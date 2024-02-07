@@ -67,7 +67,6 @@ public class LoginPage implements TemplateComposer {
         this.i18nSupport = pageService.getI18nSupport();
         this.defaultRegisterPage = defaultRegisterPage;
         this.registeringEnabled = BooleanUtils.toBoolean(registeringEnabled);
-
     }
 
     @Override
@@ -133,7 +132,7 @@ public class LoginPage implements TemplateComposer {
             }
         });
 
-        if (this.registeringEnabled) {
+        if (this.registeringEnabled && !pageService.isLightSetup()) {
             final Button registerButton = this.widgetFactory.buttonLocalized(buttons, TEXT_REGISTER);
             gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
             gridData.verticalIndent = 10;

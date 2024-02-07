@@ -130,7 +130,7 @@ public interface PageService {
     /** Indicates if SEB Server runs with SEB Server light setup
      *
      * @return true if this is a SEB Server light setup*/
-    boolean isSEBServerLightSetup();
+    boolean isLightSetup();
 
     void applyFullVersionNote(Composite content, PageContext pageContext);
 

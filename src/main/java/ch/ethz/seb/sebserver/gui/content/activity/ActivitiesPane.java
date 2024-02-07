@@ -135,7 +135,9 @@ public class ActivitiesPane implements TemplateComposer {
 
         // User Account
         // if current user has role seb-server admin or institutional-admin, show list
-        if (isServerOrInstAdmin && !pageService.isSEBServerLightSetup()) {
+        if (isServerOrInstAdmin
+                && !pageService.isLightSetup()
+                && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)) {
 
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     sebAdmin,
@@ -145,15 +147,15 @@ public class ActivitiesPane implements TemplateComposer {
                     actionBuilder
                             .newAction(ActionDefinition.USER_ACCOUNT_VIEW_LIST)
                             .create());
-        } else {
+        } else if (currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ACCOUNT)) {
             // otherwise show the user account form for current user
-            final TreeItem userAccounts = pageService.isSEBServerLightSetup()
-            ? this.widgetFactory.treeItemLocalized(
-                    sebAdmin,
-                    ActivityDefinition.USER_ACCOUNT.displayName)
-            : this.widgetFactory.treeItemLocalized(
-                    navigation,
-                    ActivityDefinition.USER_ACCOUNT.displayName);
+            final TreeItem userAccounts = pageService.isLightSetup() || !currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)
+                    ? this.widgetFactory.treeItemLocalized(
+                            sebAdmin,
+                            ActivityDefinition.USER_ACCOUNT.displayName)
+                    : this.widgetFactory.treeItemLocalized(
+                            navigation,
+                            ActivityDefinition.USER_ACCOUNT.displayName);
             injectActivitySelection(
                     userAccounts,
                     actionBuilder.newAction(ActionDefinition.USER_ACCOUNT_VIEW_FORM)
@@ -165,7 +167,8 @@ public class ActivitiesPane implements TemplateComposer {
         // User Activity Logs
         final boolean viewUserActivityLogs = this.currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.READ,
-                EntityType.USER_ACTIVITY_LOG);
+                EntityType.USER_ACTIVITY_LOG)
+                && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_AUDIT_LOGS);
         if (viewUserActivityLogs) {
             final TreeItem activityLogs = this.widgetFactory.treeItemLocalized(
                     sebAdmin,
@@ -201,13 +204,19 @@ public class ActivitiesPane implements TemplateComposer {
                 PrivilegeType.READ,
                 EntityType.CONFIGURATION_NODE);
 
-        if ((clientConfigRead || examConfigRead) && !isSupporterOnly) {
+        final boolean connConfigEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.CONFIG_CONNECTION_CONFIGURATION);
+        final boolean examConfigEnabled =  currentUser.isFeatureEnabled(UserFeatures.Feature.CONFIG_EXAM_CONFIGURATION);
+        final boolean templateEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.CONFIG_TEMPLATE);
+        final boolean certificatesEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.CONFIG_CERTIFICATE);
+        final boolean anyEnabled = connConfigEnabled || examConfigEnabled || templateEnabled || certificatesEnabled;
+
+        if (anyEnabled && (clientConfigRead || examConfigRead) && !isSupporterOnly) {
             final TreeItem sebConfigs = this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.SEB_CONFIGURATION.displayName);
 
             // SEB Client Config
-            if (clientConfigRead) {
+            if (clientConfigRead && connConfigEnabled) {
                 final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
                         sebConfigs,
                         ActivityDefinition.SEB_CLIENT_CONFIG.displayName);
@@ -219,7 +228,7 @@ public class ActivitiesPane implements TemplateComposer {
             }
 
             // SEB Exam Config
-            if (examConfigRead) {
+            if (examConfigRead && examConfigEnabled) {
                 final TreeItem examConfig = this.widgetFactory.treeItemLocalized(
                         sebConfigs,
                         ActivityDefinition.SEB_EXAM_CONFIG.displayName);
@@ -231,7 +240,7 @@ public class ActivitiesPane implements TemplateComposer {
             }
 
             // SEB Exam Config Template
-            if (examConfigRead) {
+            if (examConfigRead && templateEnabled) {
                 final TreeItem examConfigTemplate = this.widgetFactory.treeItemLocalized(
                         sebConfigs,
                         ActivityDefinition.SEB_EXAM_CONFIG_TEMPLATE.displayName);
@@ -243,7 +252,7 @@ public class ActivitiesPane implements TemplateComposer {
             }
 
             // Certificate management
-            if (!isSupporterOnly) {
+            if (!isSupporterOnly && certificatesEnabled) {
                 final TreeItem examConfigTemplate = this.widgetFactory.treeItemLocalized(
                         sebConfigs,
                         ActivityDefinition.SEB_CERTIFICATE_MANAGEMENT.displayName);
@@ -268,63 +277,73 @@ public class ActivitiesPane implements TemplateComposer {
                 this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM);
         final boolean examWrite = this.currentUser.hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.EXAM);
 
-        // Exam Administration
-        final TreeItem examAdmin = this.widgetFactory.treeItemLocalized(
-                navigation,
-                ActivityDefinition.EXAM_ADMINISTRATION.displayName);
+        final boolean lmsSetupEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.LMS_SETUP);
+        final boolean quizLookupEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.QUIZ_LOOKUP);
+        final boolean examEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_ADMIN);
+        final boolean examTemplateEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_TEMPLATE);
+        final boolean anyExamAdminEnabled = lmsSetupEnabled || quizLookupEnabled || examEnabled || examTemplateEnabled;
 
-        if (examRead || lmsRead) {
-            // LMS Setup
-            if (lmsRead && !isSupporterOnly) {
-                final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
-                        examAdmin,
-                        ActivityDefinition.LMS_SETUP.displayName);
-                injectActivitySelection(
-                        lmsSetup,
-                        actionBuilder
-                                .newAction(ActionDefinition.LMS_SETUP_VIEW_LIST)
-                                .create());
-            }
+        if (anyExamAdminEnabled) {
+            // Exam Administration
+            final TreeItem examAdmin = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActivityDefinition.EXAM_ADMINISTRATION.displayName);
 
-            if (examRead) {
-
-                if (examWrite) {
-                    // Quiz Discovery
-                    final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
+            if ((examRead || lmsRead) && lmsSetupEnabled) {
+                // LMS Setup
+                if (lmsRead && !isSupporterOnly) {
+                    final TreeItem lmsSetup = this.widgetFactory.treeItemLocalized(
                             examAdmin,
-                            ActivityDefinition.QUIZ_DISCOVERY.displayName);
+                            ActivityDefinition.LMS_SETUP.displayName);
                     injectActivitySelection(
-                            quizDiscovery,
+                            lmsSetup,
                             actionBuilder
-                                    .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
+                                    .newAction(ActionDefinition.LMS_SETUP_VIEW_LIST)
                                     .create());
                 }
 
-                // Exam
-                final TreeItem exam = this.widgetFactory.treeItemLocalized(
-                        examAdmin,
-                        ActivityDefinition.EXAM.displayName);
-                injectActivitySelection(
-                        exam,
-                        actionBuilder
-                                .newAction(ActionDefinition.EXAM_VIEW_LIST)
-                                .create());
+                if (examRead) {
 
+                    if (examWrite && quizLookupEnabled) {
+                        // Quiz Discovery
+                        final TreeItem quizDiscovery = this.widgetFactory.treeItemLocalized(
+                                examAdmin,
+                                ActivityDefinition.QUIZ_DISCOVERY.displayName);
+                        injectActivitySelection(
+                                quizDiscovery,
+                                actionBuilder
+                                        .newAction(ActionDefinition.QUIZ_DISCOVERY_VIEW_LIST)
+                                        .create());
+                    }
+
+                    if (examEnabled) {
+                        // Exam
+                        final TreeItem exam = this.widgetFactory.treeItemLocalized(
+                                examAdmin,
+                                ActivityDefinition.EXAM.displayName);
+                        injectActivitySelection(
+                                exam,
+                                actionBuilder
+                                        .newAction(ActionDefinition.EXAM_VIEW_LIST)
+                                        .create());
+                    }
+                }
+
+                if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM_TEMPLATE)
+                        && examTemplateEnabled) {
+                    // Exam Template
+                    final TreeItem examTemplate = this.widgetFactory.treeItemLocalized(
+                            examAdmin,
+                            ActivityDefinition.EXAM_TEMPLATE.displayName);
+                    injectActivitySelection(
+                            examTemplate,
+                            actionBuilder
+                                    .newAction(ActionDefinition.EXAM_TEMPLATE_VIEW_LIST)
+                                    .create());
+                }
+
+                examAdmin.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
             }
-
-            if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM_TEMPLATE)) {
-                // Exam Template
-                final TreeItem examTemplate = this.widgetFactory.treeItemLocalized(
-                        examAdmin,
-                        ActivityDefinition.EXAM_TEMPLATE.displayName);
-                injectActivitySelection(
-                        examTemplate,
-                        actionBuilder
-                                .newAction(ActionDefinition.EXAM_TEMPLATE_VIEW_LIST)
-                                .create());
-            }
-
-            examAdmin.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
         }
 
         // ---- EXAM ADMINISTRATION ------------------------------------------------------------
@@ -335,12 +354,15 @@ public class ActivitiesPane implements TemplateComposer {
 
         final boolean isSupporter = this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER) ||
                 this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN);
-        final boolean viewSEBClientLogs = this.currentUser.hasInstitutionalPrivilege(
-                PrivilegeType.READ,
-                EntityType.EXAM) ||
-                this.currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
+        final boolean viewSEBClientLogs =
+                currentUser.isFeatureEnabled(UserFeatures.Feature.MONITORING_OVERALL_LOG_EXPORT)
+                        && ( this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM)
+                        || this.currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
+        final boolean monitoringEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.MONITORING_RUNNING_EXAMS);
+        final boolean finishedEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.MONITORING_FINISHED_EXAMS);
 
-        if (isSupporter || viewSEBClientLogs) {
+
+        if (viewSEBClientLogs || monitoringEnabled || finishedEnabled) {
             // Monitoring
             final TreeItem monitoring = this.widgetFactory.treeItemLocalized(
                     navigation,
@@ -349,24 +371,27 @@ public class ActivitiesPane implements TemplateComposer {
             // Monitoring exams
             if (isSupporter) {
 
-                final TreeItem monitoringExams = this.widgetFactory.treeItemLocalized(
-                        monitoring,
-                        ActivityDefinition.MONITORING_EXAMS.displayName);
-                injectActivitySelection(
-                        monitoringExams,
-                        actionBuilder
-                                .newAction(ActionDefinition.RUNNING_EXAM_VIEW_LIST)
-                                .create());
+                if (monitoringEnabled) {
+                    final TreeItem monitoringExams = this.widgetFactory.treeItemLocalized(
+                            monitoring,
+                            ActivityDefinition.MONITORING_EXAMS.displayName);
+                    injectActivitySelection(
+                            monitoringExams,
+                            actionBuilder
+                                    .newAction(ActionDefinition.RUNNING_EXAM_VIEW_LIST)
+                                    .create());
+                }
 
-                final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
-                        monitoring,
-                        ActivityDefinition.FINISHED_EXAMS.displayName);
-                injectActivitySelection(
-                        clientConfig,
-                        actionBuilder
-                                .newAction(ActionDefinition.FINISHED_EXAM_VIEW_LIST)
-                                .create());
-
+                if (finishedEnabled) {
+                    final TreeItem finishedExams = this.widgetFactory.treeItemLocalized(
+                            monitoring,
+                            ActivityDefinition.FINISHED_EXAMS.displayName);
+                    injectActivitySelection(
+                            finishedExams,
+                            actionBuilder
+                                    .newAction(ActionDefinition.FINISHED_EXAM_VIEW_LIST)
+                                    .create());
+                }
             }
 
             // SEB Client Logs
@@ -434,9 +459,11 @@ public class ActivitiesPane implements TemplateComposer {
         final PageState state = this.pageService.getCurrentState();
         if (state == null) {
             final TreeItem item = getDefaultSelectionFor(navigation, this.currentUser);
-            final TreeItem actionItem = getActionItem(item);
-            final PageAction activityAction = getActivitySelection(actionItem);
-            this.pageService.executePageAction(activityAction);
+            if (item != null) {
+                final TreeItem actionItem = getActionItem(item);
+                final PageAction activityAction = getActivitySelection(actionItem);
+                this.pageService.executePageAction(activityAction);
+            }
         } else {
             final TreeItem item = findItemByActionDefinition(
                     navigation.getItems(),
@@ -451,7 +478,7 @@ public class ActivitiesPane implements TemplateComposer {
     private TreeItem getDefaultSelectionFor(final Tree navigation, final CurrentUser currentUser2) {
         try {
             if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
-                if (pageService.isSEBServerLightSetup()) {
+                if (pageService.isLightSetup()) {
                     return navigation.getItem(0).getItem(1);
                 }
                 return navigation.getItem(0);
@@ -467,7 +494,11 @@ public class ActivitiesPane implements TemplateComposer {
                 return navigation.getItem(0);
             }
         } catch (final Exception e) {
-            return navigation.getItem(0);
+            try {
+                return navigation.getItem(0);
+            } catch (final Exception ignored) {
+                return null;
+            }
         }
     }
 

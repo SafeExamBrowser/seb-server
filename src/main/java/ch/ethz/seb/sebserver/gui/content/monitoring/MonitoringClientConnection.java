@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -181,6 +183,12 @@ public class MonitoringClientConnection implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final String connectionToken = pageContext.getAttribute(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN);
 
+        final boolean quitEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_QUIT);
+        final boolean lockscreenEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_QUIT);
+        final boolean cancelEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_CANCEL_CON);
+        final boolean askEnabled = currentUser.isFeatureEnabled(EXAM_ASK);
+        final boolean liveProctoringEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_LIVE_PROCTORING);
+
         if (connectionToken == null) {
             pageContext.notifyUnexpectedError(new IllegalAccessException("connectionToken has null reference"));
             return;
@@ -291,7 +299,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .withParentEntityKey(parentEntityKey)
                     .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
                     .withSelect(
-                            () -> notificationTable.getMultiSelection(),
+                            notificationTable::getMultiSelection,
                             action -> this.confirmNotification(action, connectionData, notificationTable),
 
                             NOTIFICATION_LIST_NO_SELECTION_KEY)
@@ -398,7 +406,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     return action;
                 })
                 .noEventPropagation()
-                .publishIf(() -> isExamSupporter.getAsBoolean() &&
+                .publishIf(() -> quitEnabled && isExamSupporter.getAsBoolean() &&
                         connectionData.clientConnection.status.clientActiveStatus)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_LOCK)
@@ -406,7 +414,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withExec(action -> this.sebSendLockPopup.show(action,
                         some -> new HashSet<>(Arrays.asList(connectionToken))))
                 .noEventPropagation()
-                .publishIf(() -> isExamSupporter.getAsBoolean() &&
+                .publishIf(() -> lockscreenEnabled && isExamSupporter.getAsBoolean() &&
                         connectionData.clientConnection.status.clientActiveStatus)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_DISABLE_CONNECTION)
@@ -419,11 +427,11 @@ public class MonitoringClientConnection implements TemplateComposer {
                         : null)
                 .withExec(action -> this.disableClientConnection(action, clientConnectionDetails))
                 .noEventPropagation()
-                .publishIf(() -> isExamSupporter.getAsBoolean() &&
+                .publishIf(() -> cancelEnabled && isExamSupporter.getAsBoolean() &&
                         (connectionData.clientConnection.status.clientActiveStatus ||
                                 connectionData.clientConnection.status == ConnectionStatus.CLOSED));
 
-        if (clientConnectionDetails.checkSecurityGrant) {
+        if (askEnabled && clientConnectionDetails.checkSecurityGrant) {
             final SecurityKey securityKey = this.pageService
                     .getRestService()
                     .getBuilder(GetClientConnectionSecurityKey.class)
@@ -444,7 +452,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             }
         }
 
-        if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
+        if (liveProctoringEnabled && connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
             final ProctoringServiceSettings proctoringSettings = restService
                     .getBuilder(GetExamProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)

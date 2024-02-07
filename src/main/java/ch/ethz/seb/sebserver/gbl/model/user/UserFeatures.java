@@ -27,15 +27,20 @@ public class UserFeatures {
         CONFIG_CERTIFICATE("config.certificate"),
         LMS_SETUP( "lms.setup"),
         LMS_SETUP_TEST("lms.setup.type.MOCKUP"),
-        LMS_SETUP_MOODLE("lms.setup.type.moodle"),
-        LMS_SETUP_MOODLE_PLUGIN("lms.setup.type.moodle.plugin"),
-        LMS_SETUP_OPEN_EDX("lms.setup.type.openedx"),
-        LMS_SETUP_ANS("lms.setup.type.ans"),
-        LMS_SETUP_OPEN_OLAT("lms.setup.type.openolat"),
+        LMS_SETUP_MOODLE("lms.setup.type.MOODLE"),
+        LMS_SETUP_MOODLE_PLUGIN("lms.setup.type.MOODLE_PLUGIN"),
+        LMS_SETUP_OPEN_EDX("lms.setup.type.OPEN_EDX"),
+        LMS_SETUP_ANS("lms.setup.type.ANS_DELFT"),
+        LMS_SETUP_OPEN_OLAT("lms.setup.type.OPEN_OLAT"),
 
+        QUIZ_LOOKUP("lms.quiz.lookup"),
+
+        EXAM_ADMIN("exam.administration"),
         EXAM_ASK("exam.ask"),
+        EXAM_CONNECTION_CONFIG("exam.connection.config"),
         EXAM_SEB_RESTRICTION( "exam.seb.restriction"),
         EXAM_LIVE_PROCTORING("exam.seb.liveProctoring"),
+        EXAM_NO_LMS("exam.noLMS"),
 
         EXAM_SCREEN_PROCTORING("exam.seb.screenProctoring"),
         EXAM_INDICATORS("exam.monitoring.indicators"),
@@ -46,15 +51,21 @@ public class UserFeatures {
         MONITORING_RUNNING_EXAM_DETAIL_VIEW("monitoring.running.exam.detailview"),
         MONITORING_RUNNING_EXAM_DETAIL_VIEW_LOG_EXPORT("monitoring.running.exam.detailview.logexport"),
         //more? ...
-        MONITORING_RUNNING_EXAM_QUIT_ALL("monitoring.running.exam.quitall"),
+        MONITORING_RUNNING_EXAM_QUIT("monitoring.running.exam.quit"),
+
         MONITORING_RUNNING_EXAM_LOCKSCREEN("monitoring.running.exam.lockscreen"),
-        // more? ...
+
+        MONITORING_RUNNING_EXAM_CANCEL_CON("monitoring.running.exam.cancel.connection"),
+
+        MONITORING_RUNNING_EXAM_STATE_FILTER("monitoring.running.exam.state.filter"),
+        MONITORING_RUNNING_EXAM_ISSUE_FILTER("monitoring.running.exam.issue.filter"),
+        MONITORING_RUNNING_EXAM_CLIENT_FILTER("monitoring.running.exam.client.filter"),
+        MONITORING_RUNNING_EXAM_LIVE_PROCTORING("monitoring.running.exam.live.proctoring"),
+        MONITORING_RUNNING_EXAM_SCREEN_PROCTORING("monitoring.running.exam.screen.proctoring"),
         MONITORING_FINISHED_EXAMS("monitoring.finished.exams"),
         MONITORING_OVERALL_LOG_EXPORT("monitoring.overall.export"),
 
 
-
-        EXAM_NO_LMS("exam.noLMS"),
 
         ;
 

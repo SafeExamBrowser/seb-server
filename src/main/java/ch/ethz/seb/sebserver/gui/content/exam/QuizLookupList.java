@@ -195,7 +195,7 @@ public class QuizLookupList implements TemplateComposer {
                         .withColumnIf(
                                 () -> isSEBAdmin.getAsBoolean()
                                         && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                        && !pageService.isSEBServerLightSetup(),
+                                        && !pageService.isLightSetup(),
                                 () -> new ColumnDefinition<QuizData>(
                                         QuizData.QUIZ_ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

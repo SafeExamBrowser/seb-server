@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -669,12 +668,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @Override
     protected Result<Exam> notifySaved(final Exam entity) {
-        return Result.tryCatch(() -> {
-            this.examAdminService.notifyExamSaved(entity);
-            this.examAdminService.applyQuitPassword(entity);
-            this.examSessionService.flushCache(entity);
-            return entity;
-        });
+        return this.examAdminService.notifyExamSaved(entity)
+                .flatMap(this.examAdminService::applyQuitPassword)
+                .flatMap(this.examSessionService::flushCache);
     }
 
     @Override

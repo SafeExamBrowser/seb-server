@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_SCREEN_PROCTORING;
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.*;
 
 import java.util.*;
 import java.util.function.Function;
@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -197,7 +198,7 @@ public class ExamForm implements TemplateComposer {
         final EntityKey entityKey = (readonly || !newExamNoLMS) ? pageContext.getEntityKey() : null;
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
         final EntityGrantCheck entityGrantCheck = currentUser.entityGrantCheck(exam);
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
         final boolean modifyGrant = entityGrantCheck.m();
         final boolean writeGrant = entityGrantCheck.w();
         final boolean editable = modifyGrant && (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.RUNNING);
@@ -214,6 +215,11 @@ public class ExamForm implements TemplateComposer {
                 sebRestrictionAvailable &&
                 isRestricted != exam.sebRestriction &&
                 exam.status == ExamStatus.RUNNING;
+        final boolean connectionConfigEnabled = currentUser.isFeatureEnabled(EXAM_CONNECTION_CONFIG);
+        final boolean askEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_ASK);
+        final boolean spsFeatureEnabled = currentUser.isFeatureEnabled(EXAM_SCREEN_PROCTORING);
+        final boolean lpEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_LIVE_PROCTORING);
+        final boolean restrictionEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_SEB_RESTRICTION);
 
         // check exam consistency and inform the user if needed
         Collection<APIMessage> warnings = null;
@@ -255,7 +261,6 @@ public class ExamForm implements TemplateComposer {
                 .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
-        final boolean spsFeatureEnabled = currentUser.isFeatureEnabled(EXAM_SCREEN_PROCTORING);
         final boolean screenProctoringEnabled = readonly && spsFeatureEnabled && this.restService
                 .getBuilder(GetScreenProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -306,15 +311,15 @@ public class ExamForm implements TemplateComposer {
                 .withExec(this.examCreateClientConfigPopup.exportFunction(
                         exam.institutionId,
                         exam.getName()))
-                .publishIf(() -> editable && readonly)
+                .publishIf(() -> connectionConfigEnabled && editable && readonly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_ENABLED)
                 .withEntityKey(entityKey)
-                .publishIf(() -> signatureKeyCheckEnabled && readonly)
+                .publishIf(() -> askEnabled && signatureKeyCheckEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_DISABLED)
                 .withEntityKey(entityKey)
-                .publishIf(() -> !signatureKeyCheckEnabled && readonly)
+                .publishIf(() -> askEnabled && !signatureKeyCheckEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
@@ -322,7 +327,7 @@ public class ExamForm implements TemplateComposer {
                 .withAttribute(ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_ID, String.valueOf(exam.lmsSetupId))
                 .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant || !editable))
                 .noEventPropagation()
-                .publishIf(() -> sebRestrictionAvailable && readonly)
+                .publishIf(() -> restrictionEnabled && sebRestrictionAvailable && readonly)
 
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
@@ -341,20 +346,20 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> !isLight && proctoringEnabled && readonly)
+                .publishIf(() -> lpEnabled && !isLight && proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> !isLight && !proctoringEnabled && readonly)
+                .publishIf(() -> lpEnabled && !isLight && !proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.SCREEN_PROCTORING_ON)
                 .withEntityKey(entityKey)
                 .withExec(
                         this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> spsFeatureEnabled && screenProctoringEnabled && readonly)
+                .publishIf(() ->  spsFeatureEnabled && screenProctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.SCREEN_PROCTORING_OFF)
                 .withEntityKey(entityKey)
@@ -501,8 +506,9 @@ public class ExamForm implements TemplateComposer {
             final Composite content,
             final Exam exam) {
 
+        final boolean templateEnabled = pageService.getCurrentUser().isFeatureEnabled(EXAM_TEMPLATE);
         final I18nSupport i18nSupport = formContext.getI18nSupport();
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
         final boolean newExam = exam.id == null;
         final boolean hasLMS = exam.lmsSetupId != null;
         final boolean importFromLMS = newExam && hasLMS;
@@ -545,7 +551,7 @@ public class ExamForm implements TemplateComposer {
                                         this.resourceService::lmsSetupResource)
                                 .readonly(true))
 
-                .addFieldIf(() -> !isLight && exam.id == null,
+                .addFieldIf(() -> templateEnabled && !isLight && exam.id == null,
                         () -> FormBuilder.singleSelection(
                                 Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
                                 FORM_EXAM_TEMPLATE_TEXT_KEY,
@@ -630,7 +636,7 @@ public class ExamForm implements TemplateComposer {
                 DateTime.now(timeZone).plusHours(1),
             Exam.ExamType.UNDEFINED,
             null,
-                pageService.isSEBServerLightSetup()
+                pageService.isLightSetup()
                         ? Stream.of(this.pageService.getCurrentUser().get().uuid).collect(Collectors.toList())
                         : null,
             ExamStatus.UP_COMING,
@@ -811,7 +817,7 @@ public class ExamForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final POSTMapper mapper = new POSTMapper(null, null);
-        if (pageService.isSEBServerLightSetup()) {
+        if (pageService.isLightSetup()) {
             mapper.putIfAbsent(Domain.EXAM.ATTR_SUPPORTER, this.pageService.getCurrentUser().get().uuid);
         }
         return this.restService.getBuilder(GetQuizData.class)

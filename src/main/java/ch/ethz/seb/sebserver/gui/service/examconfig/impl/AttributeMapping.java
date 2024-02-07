@@ -8,14 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.OrientationRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,34 +51,41 @@ public class AttributeMapping {
                 .stream()
                 .collect(Collectors.toMap(
                         o -> o.attributeId,
-                        Function.identity())));
-
+                        Function.identity(),
+                        (first, second) -> {
+                            log.warn("*** Found duplicate orientation, use {} instead of {}", second, first);
+                            return second;
+                        })));
         this.attributeIdMapping = Utils.immutableMapOf(attributes
                 .stream()
                 .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id))
                 .collect(Collectors.toMap(
                         attr -> attr.id,
-                        Function.identity())));
+                        Function.identity(),
+                        (first, second) -> second)));
 
         this.attributeNameIdMapping = Utils.immutableMapOf(attributes
                 .stream()
                 .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id))
                 .collect(Collectors.toMap(
                         attr -> attr.name,
-                        attr -> attr.id)));
+                        attr -> attr.id,
+                        (first, second) -> second)));
 
         this.orientationAttributeNameMapping = Utils.immutableMapOf(orientations
                 .stream()
                 .collect(Collectors.toMap(
                         o -> this.attributeIdMapping.get(o.attributeId).name,
-                        Function.identity())));
+                        Function.identity(),
+                        (first, second) -> second)));
 
         this.childAttributeMapping = Utils.immutableMapOf(attributes
                 .stream()
                 .filter(attr -> this.orientationAttributeMapping.containsKey(attr.id))
                 .collect(Collectors.toMap(
                         attr -> attr.id,
-                        this::getChildAttributes)));
+                        this::getChildAttributes,
+                        (first, second) -> second)));
 
         this.attributeGroupMapping = Utils.immutableMapOf(orientations
                 .stream()
@@ -91,7 +95,8 @@ public class AttributeMapping {
                 .stream()
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        this::getAttributesOfGroup)));
+                        this::getAttributesOfGroup,
+                        (first, second) -> second)));
     }
 
     public Collection<ConfigurationAttribute> getAttributes() {

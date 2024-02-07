@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -70,10 +72,12 @@ public class ExamIndicatorsList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+        final CurrentUser currentUser = pageService.getCurrentUser();
         final Composite content = pageContext.getParent();
         final EntityKey entityKey = pageContext.getEntityKey();
         final boolean editable = BooleanUtils.toBoolean(pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
+        final boolean indicatorEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_INDICATORS);
 
         // List of Indicators
         this.widgetFactory.addFormSubContextHeader(
@@ -111,7 +115,7 @@ public class ExamIndicatorsList implements TemplateComposer {
                                         .asMarkup()
                                         .widthProportion(4))
                         .withDefaultActionIf(
-                                () -> editable,
+                                () -> editable && indicatorEnabled,
                                 () -> actionBuilder
                                         .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                                         .withParentEntityKey(entityKey)
@@ -132,7 +136,7 @@ public class ExamIndicatorsList implements TemplateComposer {
                         indicatorTable::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> editable && indicatorTable.hasAnyContent(), false)
+                .publishIf(() -> indicatorEnabled && editable && indicatorTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
@@ -140,11 +144,11 @@ public class ExamIndicatorsList implements TemplateComposer {
                         indicatorTable::getMultiSelection,
                         this::deleteSelectedIndicator,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> !isLight && editable && indicatorTable.hasAnyContent(), false)
+                .publishIf(() -> indicatorEnabled && !isLight && editable && indicatorTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
                 .withParentEntityKey(entityKey)
-                .publishIf(() -> editable);
+                .publishIf(() -> indicatorEnabled && editable);
 
     }
 

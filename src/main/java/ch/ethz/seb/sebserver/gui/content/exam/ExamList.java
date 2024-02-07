@@ -177,7 +177,7 @@ public class ExamList implements TemplateComposer {
                         .withColumnIf(
                                 () -> isSEBAdmin.getAsBoolean()
                                         && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                        && !pageService.isSEBServerLightSetup(),
+                                        && !pageService.isLightSetup(),
                                 () -> new ColumnDefinition<Exam>(
                                         Domain.EXAM.ATTR_INSTITUTION_ID,
                                         COLUMN_TITLE_INSTITUTION_KEY,

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -159,7 +160,7 @@ public class SEBExamConfigForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean isNew = entityKey == null;
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
 
         // get data or create new. Handle error if happen
         final ConfigurationNode examConfig = (isNew)
@@ -350,7 +351,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
-        if (isAttachedToExam && isReadonly) {
+        if (isAttachedToExam && isReadonly && currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_ADMIN)) {
 
             widgetFactory.addFormSubContextHeader(
                     content,

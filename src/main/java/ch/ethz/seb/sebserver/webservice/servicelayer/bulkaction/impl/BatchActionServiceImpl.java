@@ -253,7 +253,7 @@ public class BatchActionServiceImpl implements BatchActionService {
                             this.batchActionExec
                                     .doSingleAction(modelId, this.batchAction)
                                     .onError(error -> this.batchActionHandler.handleError(modelId, error))
-                                    .onSuccess(entityKey -> this.batchActionHandler.handleSuccess(entityKey));
+                                    .onSuccess(this.batchActionHandler::handleSuccess);
                         });
 
                 this.batchActionHandler.finishUp();

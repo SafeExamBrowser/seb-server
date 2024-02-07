@@ -161,9 +161,9 @@ public interface ExamAdminService {
     /** Gets invoked after an exam has been changed and saved.
      *
      * @param exam the exam that has been changed and saved */
-    void notifyExamSaved(Exam exam);
+    Result<Exam> notifyExamSaved(Exam exam);
 
-    void applyQuitPassword(Exam entity);
+    Result<Exam>  applyQuitPassword(Exam exam);
 
     static void newExamFieldValidation(final POSTMapper postParams) {
         noLMSFieldValidation(new Exam(postParams));

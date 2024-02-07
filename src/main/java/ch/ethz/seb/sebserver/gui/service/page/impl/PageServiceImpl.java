@@ -188,7 +188,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public boolean isSEBServerLightSetup() {
+    public boolean isLightSetup() {
         return this.guiServiceInfo.isLightSetup();
     }
 
