@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -148,6 +150,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .call()
                 .getOrThrow();
         final UserInfo user = currentUser.get();
+
+        final boolean detailEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_DETAIL_VIEW);
+        final boolean quitEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_QUIT);
+        final boolean lockscreenEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_QUIT);
+        final boolean cancelEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_CANCEL_CON);
         final boolean supporting = user.hasRole(UserRole.EXAM_SUPPORTER) &&
                 exam.supporter.contains(user.uuid);
         final BooleanSupplier isExamSupporter = () -> supporting || user.hasRole(UserRole.EXAM_ADMIN);
@@ -195,7 +202,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         guiUpdates.add(clientTable);
 
         clientTable
-                .withDefaultAction(
+                .withDefaultActionIf(() -> detailEnabled,
                         actionBuilder
                                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
                                 .withParentEntityKey(entityKey)
@@ -221,7 +228,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withConfirm(() -> CONFIRM_QUIT_ALL)
                 .withExec(action -> this.quitSEBClients(action, clientTable, true))
                 .noEventPropagation()
-                .publishIf(isExamSupporter)
+                .publishIf(() -> isExamSupporter.getAsBoolean() && quitEnabled)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_SELECTED)
                 .withEntityKey(entityKey)
@@ -231,7 +238,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.quitSEBClients(action, clientTable, false),
                         EMPTY_ACTIVE_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(isExamSupporter, false)
+                .publishIf(() -> isExamSupporter.getAsBoolean() && quitEnabled, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_LOCK_SELECTED)
                 .withEntityKey(entityKey)
@@ -240,7 +247,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.showSEBLockActionPopup(action, clientTable),
                         EMPTY_ACTIVE_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(isExamSupporter, false)
+                .publishIf(() -> isExamSupporter.getAsBoolean() && lockscreenEnabled, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
                 .withParentEntityKey(entityKey)
@@ -260,7 +267,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
                     return copyOfPageAction;
                 })
-                .publishIf(isExamSupporter, false)
+                .publishIf(() -> isExamSupporter.getAsBoolean() && detailEnabled, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION)
                 .withEntityKey(entityKey)
@@ -270,7 +277,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.disableSEBClients(action, clientTable, false),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(isExamSupporter, false);
+                .publishIf(() -> isExamSupporter.getAsBoolean() && cancelEnabled, false);
 
         if (isExamSupporter.getAsBoolean()) {
             guiUpdates.add(createFilterActions(
@@ -317,13 +324,16 @@ public class MonitoringRunningExam implements TemplateComposer {
             final PageContext pageContext,
             final Composite parent) {
 
+        final CurrentUser currentUser = pageService.getCurrentUser();
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
 
-        final boolean proctoringEnabled = proctoringSettings != null &&
-                BooleanUtils.toBoolean(proctoringSettings.enableProctoring);
-        final boolean screenProctoringEnabled = screenProctoringSettings != null &&
-                BooleanUtils.toBoolean(screenProctoringSettings.enableScreenProctoring);
+        final boolean proctoringEnabled = proctoringSettings != null
+                && currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_LIVE_PROCTORING)
+                && BooleanUtils.toBoolean(proctoringSettings.enableProctoring);
+        final boolean screenProctoringEnabled = screenProctoringSettings != null
+                && currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_SCREEN_PROCTORING)
+                && BooleanUtils.toBoolean(screenProctoringSettings.enableScreenProctoring);
 
         if (!proctoringEnabled && !screenProctoringEnabled) {
             return monitoringStatus -> {
@@ -408,43 +418,50 @@ public class MonitoringRunningExam implements TemplateComposer {
             final boolean isAskCheckEnabled,
             final List<AllowedSEBVersion> allowedSEBVersions) {
 
+        final CurrentUser currentUser = pageService.getCurrentUser();
+        final boolean stateFilterEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_STATE_FILTER);
+        final boolean issueFilterEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_ISSUE_FILTER);
+        final boolean clientFilterEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_CLIENT_FILTER);
+
         final FilterGUIUpdate statusFilterGUIUpdate =
                 new FilterGUIUpdate(this.pageService.getPolyglotPageService());
 
-        addFilterAction(
-                monitoringStatus,
-                statusFilterGUIUpdate,
-                actionBuilder,
-                clientTable,
-                ConnectionStatus.CONNECTION_REQUESTED,
-                ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION,
-                ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION);
-        addFilterAction(
-                monitoringStatus,
-                statusFilterGUIUpdate,
-                actionBuilder,
-                clientTable,
-                ConnectionStatus.ACTIVE,
-                ActionDefinition.MONITOR_EXAM_SHOW_ACTIVE_CONNECTION,
-                ActionDefinition.MONITOR_EXAM_HIDE_ACTIVE_CONNECTION);
-        addFilterAction(
-                monitoringStatus,
-                statusFilterGUIUpdate,
-                actionBuilder,
-                clientTable,
-                ConnectionStatus.CLOSED,
-                ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION,
-                ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION);
-        addFilterAction(
-                monitoringStatus,
-                statusFilterGUIUpdate,
-                actionBuilder,
-                clientTable,
-                ConnectionStatus.DISABLED,
-                ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION,
-                ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION);
+        if (stateFilterEnabled) {
+            addFilterAction(
+                    monitoringStatus,
+                    statusFilterGUIUpdate,
+                    actionBuilder,
+                    clientTable,
+                    ConnectionStatus.CONNECTION_REQUESTED,
+                    ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION,
+                    ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION);
+            addFilterAction(
+                    monitoringStatus,
+                    statusFilterGUIUpdate,
+                    actionBuilder,
+                    clientTable,
+                    ConnectionStatus.ACTIVE,
+                    ActionDefinition.MONITOR_EXAM_SHOW_ACTIVE_CONNECTION,
+                    ActionDefinition.MONITOR_EXAM_HIDE_ACTIVE_CONNECTION);
+            addFilterAction(
+                    monitoringStatus,
+                    statusFilterGUIUpdate,
+                    actionBuilder,
+                    clientTable,
+                    ConnectionStatus.CLOSED,
+                    ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION,
+                    ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION);
+            addFilterAction(
+                    monitoringStatus,
+                    statusFilterGUIUpdate,
+                    actionBuilder,
+                    clientTable,
+                    ConnectionStatus.DISABLED,
+                    ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION,
+                    ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION);
+        }
 
-        if(isAskCheckEnabled){
+        if(issueFilterEnabled && isAskCheckEnabled) {
             addIssueFilterAction(
                     monitoringStatus,
                     statusFilterGUIUpdate,
@@ -455,7 +472,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                     ActionDefinition.MONITOR_EXAM_HIDE_ASK_GRANTED);
         }
 
-        if(allowedSEBVersions != null) {
+        if(issueFilterEnabled && allowedSEBVersions != null) {
             addIssueFilterAction(
                     monitoringStatus,
                     statusFilterGUIUpdate,
@@ -466,7 +483,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                     ActionDefinition.MONITOR_EXAM_HIDE_SEB_VERSION_GRANTED);
         }
 
-        if (clientGroups != null && !clientGroups.isEmpty()) {
+        if (clientFilterEnabled && clientGroups != null && !clientGroups.isEmpty()) {
             clientGroups.forEach(clientGroup -> {
 
                 addClientGroupFilterAction(

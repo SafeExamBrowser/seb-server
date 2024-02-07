@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.gbl.model.user.*;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -64,10 +65,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -197,7 +194,7 @@ public class ResourceService {
 
     public List<Tuple<String>> lmsTypeResources() {
         return Arrays.stream(LmsType.values())
-                .filter(lmsType -> this.currentUser.isFeatureEnabled("lms.type." + lmsType.name()))
+                .filter(lmsType -> this.currentUser.isFeatureEnabled("lms.setup.type." + lmsType.name()))
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))
@@ -294,8 +291,10 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> userRoleResources() {
+        final boolean showServerAdminRole = this.currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION);
         return UserRole.publicRolesForUser(this.currentUser.get())
                 .stream()
+                .filter(ur -> ur != UserRole.SEB_SERVER_ADMIN || showServerAdminRole)
                 .map(ur -> new Tuple3<>(
                         ur.name(),
                         this.i18nSupport.getText(USERACCOUNT_ROLE_PREFIX + ur.name()),

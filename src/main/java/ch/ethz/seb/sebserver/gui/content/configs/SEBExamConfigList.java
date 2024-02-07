@@ -129,7 +129,7 @@ public class SEBExamConfigList implements TemplateComposer {
                 TITLE_CONFIGURATION_TEXT_KEY);
 
         final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
@@ -146,7 +146,7 @@ public class SEBExamConfigList implements TemplateComposer {
                         .withColumnIf(
                                 () -> isSEBAdmin
                                         && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                        && !pageService.isSEBServerLightSetup(),
+                                        && !pageService.isLightSetup(),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

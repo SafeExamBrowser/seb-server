@@ -129,7 +129,7 @@ public class SEBClientConfigList implements TemplateComposer {
                         .withColumnIf(
                                 () -> isSEBAdmin
                                         && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                        && !pageService.isSEBServerLightSetup(),
+                                        && !pageService.isLightSetup(),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

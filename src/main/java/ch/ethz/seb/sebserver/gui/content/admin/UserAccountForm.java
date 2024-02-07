@@ -99,7 +99,6 @@ public class UserAccountForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
-
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
@@ -108,11 +107,12 @@ public class UserAccountForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean readonly = pageContext.isReadonly();
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
 
         final BooleanSupplier isNew = () -> entityKey == null;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final BooleanSupplier isSEBAdmin = () -> user.hasRole(UserRole.SEB_SERVER_ADMIN);
+        final boolean newAccountPrivilege = !isLight && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION);
 
         if (isLight && !readonly && isNew.getAsBoolean()) {
             pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
@@ -142,8 +142,12 @@ public class UserAccountForm implements TemplateComposer {
         final boolean ownAccount = user.uuid.equals(userAccount.getModelId());
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(userAccount);
 
-        final boolean writeGrant = roleBasedEditGrant && userGrantCheck.w();
-        final boolean modifyGrant = roleBasedEditGrant && userGrantCheck.m();
+        final boolean writeGrant = roleBasedEditGrant
+                && userGrantCheck.w()
+                && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION);
+        final boolean modifyGrant = roleBasedEditGrant
+                && userGrantCheck.m()
+                && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ACCOUNT);
         final boolean institutionalWriteGrant = currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.WRITE,
                 EntityType.USER);
@@ -232,7 +236,6 @@ public class UserAccountForm implements TemplateComposer {
                                 FORM_ROLES_TEXT_KEY,
                                 StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
                                 this.resourceService::userRoleResources)
-                                .visibleIf(writeGrant)
                                 .mandatory(!readonly))
                 .addFieldIf(
                         isNew,
@@ -252,11 +255,13 @@ public class UserAccountForm implements TemplateComposer {
                         ? restService.getRestCall(NewUserAccount.class)
                         : restService.getRestCall(SaveUserAccount.class));
 
+
+
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_NEW)
-                .publishIf(() -> institutionalWriteGrant && readonly && institutionActive)
+                .publishIf(() -> newAccountPrivilege && institutionalWriteGrant && readonly && institutionActive)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY)
                 .withEntityKey(entityKey)

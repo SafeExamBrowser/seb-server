@@ -84,7 +84,7 @@ public class IndicatorForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
-        if (pageService.isSEBServerLightSetup()) {
+        if (pageService.isLightSetup()) {
             pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
             this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
                     .newAction(ActionDefinition.EXAM_INDICATOR_CANCEL_MODIFY)

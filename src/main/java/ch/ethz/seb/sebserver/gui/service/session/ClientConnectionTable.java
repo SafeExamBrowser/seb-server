@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -219,6 +220,16 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
     public Exam getExam() {
         return this.exam;
+    }
+
+    public ClientConnectionTable withDefaultActionIf(
+            final BooleanSupplier check,
+            final PageAction pageAction,
+            final PageService pageService) {
+        if (check.getAsBoolean()) {
+            return withDefaultAction(pageAction, pageService);
+        }
+        return this;
     }
 
     public ClientConnectionTable withDefaultAction(final PageAction pageAction, final PageService pageService) {

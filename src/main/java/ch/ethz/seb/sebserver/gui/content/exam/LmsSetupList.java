@@ -109,7 +109,7 @@ public class LmsSetupList implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
 
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(

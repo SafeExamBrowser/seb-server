@@ -87,7 +87,7 @@ public class ClientGroupForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
-        if (pageService.isSEBServerLightSetup()) {
+        if (pageService.isLightSetup()) {
             pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
             this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
                     .newAction(ActionDefinition.EXAM_CLIENT_GROUP_CANCEL_MODIFY)

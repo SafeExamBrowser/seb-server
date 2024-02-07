@@ -196,7 +196,7 @@ public class UserActivityLogs implements TemplateComposer {
                 .withColumnIf(
                         () -> isSEBAdmin.getAsBoolean()
                                 && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                && !pageService.isSEBServerLightSetup(),
+                                && !pageService.isLightSetup(),
                         () -> new ColumnDefinition<>(
                                 UserActivityLog.FILTER_ATTR_INSTITUTION,
                                 INSTITUTION_TEXT_KEY,

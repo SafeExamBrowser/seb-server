@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -71,10 +73,12 @@ public class ExamClientGroupList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+        final CurrentUser currentUser = pageService.getCurrentUser();
         final Composite content = pageContext.getParent();
         final EntityKey entityKey = pageContext.getEntityKey();
         final boolean editable = BooleanUtils.toBoolean(pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
-        final boolean isLight = pageService.isSEBServerLightSetup();
+        final boolean isLight = pageService.isLightSetup();
+        final boolean clientGroupsEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_SEB_CLIENT_GROUPS);
 
         // List of ClientGroups
         this.widgetFactory.addFormSubContextHeader(
@@ -124,7 +128,7 @@ public class ExamClientGroupList implements TemplateComposer {
                                         .widthProportion(3))
 
                         .withDefaultActionIf(
-                                () -> editable,
+                                () -> editable && clientGroupsEnabled,
                                 () -> actionBuilder
                                         .newAction(ActionDefinition.EXAM_CLIENT_GROUP_MODIFY_FROM_LIST)
                                         .withParentEntityKey(entityKey)
@@ -145,7 +149,7 @@ public class ExamClientGroupList implements TemplateComposer {
                         clientGroupTable::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> editable && clientGroupTable.hasAnyContent(), false)
+                .publishIf(() -> clientGroupsEnabled && editable && clientGroupTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CLIENT_GROUP_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
@@ -153,11 +157,11 @@ public class ExamClientGroupList implements TemplateComposer {
                         clientGroupTable::getMultiSelection,
                         this::deleteSelectedClientGroup,
                         CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> !isLight && editable && clientGroupTable.hasAnyContent(), false)
+                .publishIf(() -> clientGroupsEnabled && !isLight && editable && clientGroupTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CLIENT_GROUP_NEW)
                 .withParentEntityKey(entityKey)
-                .publishIf(() -> editable);
+                .publishIf(() -> clientGroupsEnabled && editable);
     }
 
     private PageAction deleteSelectedClientGroup(final PageAction action) {

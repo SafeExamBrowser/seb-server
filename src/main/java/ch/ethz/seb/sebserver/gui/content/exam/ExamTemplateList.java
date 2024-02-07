@@ -106,7 +106,7 @@ public class ExamTemplateList implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
-        if (pageService.isSEBServerLightSetup()) {
+        if (pageService.isLightSetup()) {
             pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
             return;
         }
