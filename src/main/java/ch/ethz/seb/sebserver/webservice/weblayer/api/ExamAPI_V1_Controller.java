@@ -19,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,15 +39,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
@@ -68,7 +64,6 @@ public class ExamAPI_V1_Controller {
     private final SEBClientConnectionService sebClientConnectionService;
     private final SEBClientSessionService sebClientSessionService;
     private final SEBClientConfigDAO sebClientConfigDAO;
-    private final JSONMapper jsonMapper;
     private final Executor executor;
 
     protected ExamAPI_V1_Controller(
@@ -77,7 +72,6 @@ public class ExamAPI_V1_Controller {
             final SEBClientConnectionService sebClientConnectionService,
             final SEBClientSessionService sebClientSessionService,
             final SEBClientConfigDAO sebClientConfigDAO,
-            final JSONMapper jsonMapper,
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.lmsSetupDAO = lmsSetupDAO;
@@ -85,7 +79,6 @@ public class ExamAPI_V1_Controller {
         this.sebClientConnectionService = sebClientConnectionService;
         this.sebClientSessionService = sebClientSessionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
-        this.jsonMapper = jsonMapper;
         this.executor = executor;
     }
 
