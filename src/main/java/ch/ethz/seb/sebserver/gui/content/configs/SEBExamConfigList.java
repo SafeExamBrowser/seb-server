@@ -53,11 +53,11 @@ public class SEBExamConfigList implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.list.title");
     private static final LocTextKey INSTITUTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.institution");
-    private static final LocTextKey NAME_TEXT_KEY =
+    public static final LocTextKey NAME_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.name");
     private static final LocTextKey DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.description");
-    private static final LocTextKey STATUS_TEXT_KEY =
+    public static final LocTextKey STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.status");
     private static final LocTextKey TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.template");
@@ -81,6 +81,8 @@ public class SEBExamConfigList implements TemplateComposer {
     private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
     private final SEBExamConfigBatchStateChangePopup sebExamConfigBatchStateChangePopup;
     private final SEBExamConfigBatchResetToTemplatePopup sebExamConfigBatchResetToTemplatePopup;
+    private final SEBExamConfigBatchDeletePopup sebExamConfigBatchDeletePopup;
+
     private final CurrentUser currentUser;
     private final ResourceService resourceService;
     private final int pageSize;
@@ -91,6 +93,7 @@ public class SEBExamConfigList implements TemplateComposer {
             final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
             final SEBExamConfigBatchStateChangePopup sebExamConfigBatchStateChangePopup,
             final SEBExamConfigBatchResetToTemplatePopup sebExamConfigBatchResetToTemplatePopup,
+            final SEBExamConfigBatchDeletePopup sebExamConfigBatchDeletePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
@@ -98,6 +101,7 @@ public class SEBExamConfigList implements TemplateComposer {
         this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
         this.sebExamConfigBatchStateChangePopup = sebExamConfigBatchStateChangePopup;
         this.sebExamConfigBatchResetToTemplatePopup = sebExamConfigBatchResetToTemplatePopup;
+        this.sebExamConfigBatchDeletePopup = sebExamConfigBatchDeletePopup;
         this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
@@ -188,7 +192,8 @@ public class SEBExamConfigList implements TemplateComposer {
                                 ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST,
                                 ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST,
                                 ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE,
-                                ActionDefinition.SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE))
+                                ActionDefinition.SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE,
+                                ActionDefinition.SEB_EXAM_CONFIG_BULK_DELETE))
 
                         .compose(pageContext.copyOf(content));
 
@@ -244,6 +249,14 @@ public class SEBExamConfigList implements TemplateComposer {
                 .withSelect(
                         configTable::getMultiSelection,
                         this.sebExamConfigBatchResetToTemplatePopup.popupCreationFunction(pageContext),
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> !isLight && examConfigGrant.im(), false)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_BULK_DELETE)
+                .withSelect(
+                        configTable::getMultiSelection,
+                        this.sebExamConfigBatchDeletePopup.popupCreationFunction(pageContext),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(() -> !isLight && examConfigGrant.im(), false)

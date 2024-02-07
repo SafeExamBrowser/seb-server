@@ -715,6 +715,12 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 
+    SEB_EXAM_CONFIG_BULK_DELETE(
+            new LocTextKey("sebserver.examconfig.list.batch.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
+
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
             ImageIcon.EDIT,
