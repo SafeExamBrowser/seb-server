@@ -265,7 +265,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
-        return Result.tryCatch(() -> {
+        return Result.<Collection<EntityKey>>tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
 
@@ -306,7 +306,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
                     .collect(Collectors.toList());
-        });
+        }).onError(TransactionHandler::rollback);
     }
 
     private void handleConfigTemplateDeletion(final List<Long> configurationIds) {
