@@ -8,9 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.datalayer.checks;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -68,7 +66,8 @@ public class OrientationTableDuplicatesCheck implements DBIntegrityCheck {
 
             final List<Long> checkedToDelete = toDelete
                     .stream()
-                    .filter(this::doubleCheck)
+                    .map(this::getOldestForDeletion)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
             if (checkedToDelete == null || checkedToDelete.isEmpty()) {
@@ -88,21 +87,38 @@ public class OrientationTableDuplicatesCheck implements DBIntegrityCheck {
         });
     }
 
-    private boolean doubleCheck(final Long id) {
+    private Long getOldestForDeletion(final Long id) {
         try {
             final OrientationRecord selectByPrimaryKey = this.orientationRecordMapper.selectByPrimaryKey(id);
-            final Long count = this.orientationRecordMapper.countByExample()
+            final List<OrientationRecord> records = this.orientationRecordMapper.selectByExample()
                     .where(
                             OrientationRecordDynamicSqlSupport.configAttributeId,
                             SqlBuilder.isEqualTo(selectByPrimaryKey.getConfigAttributeId()))
                     .and(
                             OrientationRecordDynamicSqlSupport.templateId,
                             SqlBuilder.isEqualTo(selectByPrimaryKey.getTemplateId()))
+                    .orderBy(OrientationRecordDynamicSqlSupport.id)
                     .build()
                     .execute();
-            return count != null && count.longValue() > 1;
+
+            // get latest entry of duplicates
+            if (records != null && records.size() > 1) {
+                Long result = null;
+                for (int i = 0; i < records.size(); i++) {
+                    final OrientationRecord rec = records.get(i);
+                    if (result == null) {
+                        result = rec.getId();
+                        continue;
+                    }
+                    if (result > rec.getId()) {
+                        result = rec.getId();
+                    }
+                }
+                return result;
+            }
+            return null;
         } catch (final Exception e) {
-            return false;
+            return null;
         }
     }
 
