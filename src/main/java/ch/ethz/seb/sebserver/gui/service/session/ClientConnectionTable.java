@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -442,7 +443,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     private void sortTable() {
-        // SEBSERV-427 get all selected indices here and store connectionTokens for selection in Set
+        Set<String> connectionTokens = getSelectedConnectionTokens();
 
         this.sortList.clear();
         this.sortList.addAll(this.tableMapping.values());
@@ -454,7 +455,10 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             this.tableMapping.put(item.connectionId, item);
         }
 
-        // SEBSERV-427 apply selected connectionTokens back to table index selection
+        if(!connectionTokens.isEmpty()){
+            this.table.deselectAll();
+            this.table.select(getSelectedTableIndices(connectionTokens));
+        }
     }
 
     private void notifySelectionChange() {
@@ -825,6 +829,45 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                         }
                     });
         }
+    }
+
+    private Set<String> getSelectedConnectionTokens(){
+        final int[] selectionIndices = this.table.getSelectionIndices();
+        if (selectionIndices == null) {
+            return Collections.emptySet();
+        }
+
+        final Set<String> result = new HashSet<>();
+        for (int i = 0; i < selectionIndices.length; i++) {
+            UpdatableTableItem item = this.tableMapping.values()
+                    .stream()
+                    .collect(Collectors.toList())
+                    .get(selectionIndices[i]);
+
+            result.add(item.staticData.connectionToken);
+        }
+
+        return result;
+    }
+
+    private int[] getSelectedTableIndices(Set<String> connectionTokens){
+        if(connectionTokens.isEmpty()){
+            return new int[]{};
+        }
+
+        int[] selectedTableIndices = new int[connectionTokens.size()];
+
+        int index = 0;
+        int tableIndices = 0;
+
+        for (UpdatableTableItem item : this.tableMapping.values()) {
+            if (connectionTokens.contains(item.staticData.connectionToken)) {
+                selectedTableIndices[index] = tableIndices;
+                index++;
+            }
+            tableIndices++;
+        }
+        return selectedTableIndices;
     }
 
 }
