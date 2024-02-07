@@ -40,8 +40,6 @@ import java.util.stream.Collectors;
 @GuiProfile
 public class SEBExamConfigBatchDeletePopup extends AbstractBatchActionWizard {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBExamConfigBatchDeletePopup.class);
-
     private final static LocTextKey FORM_TITLE = new LocTextKey("sebserver.examconfig.list.batch.delete.title");
     private final static LocTextKey FORM_INFO = new LocTextKey("sebserver.examconfig.list.batch.delete.info");
     private final static LocTextKey ACTION_DO_DELETE = new LocTextKey("sebserver.examconfig.list.batch.action.delete.button");
