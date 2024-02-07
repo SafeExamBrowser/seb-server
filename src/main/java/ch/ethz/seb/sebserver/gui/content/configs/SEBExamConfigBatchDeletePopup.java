@@ -44,7 +44,7 @@ public class SEBExamConfigBatchDeletePopup extends AbstractBatchActionWizard {
 
     private final static LocTextKey FORM_TITLE = new LocTextKey("sebserver.examconfig.list.batch.delete.title");
     private final static LocTextKey FORM_INFO = new LocTextKey("sebserver.examconfig.list.batch.delete.info");
-    private final static LocTextKey ACTION_DO_DELETE = new LocTextKey("sebserver.examconfig.list.batch.action.delete");
+    private final static LocTextKey ACTION_DO_DELETE = new LocTextKey("sebserver.examconfig.list.batch.action.delete.button");
 
     protected SEBExamConfigBatchDeletePopup(
             final PageService pageService,
