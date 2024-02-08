@@ -406,16 +406,22 @@ public class ExamForm implements TemplateComposer {
         final I18nSupport i18nSupport = formContext.getI18nSupport();
         return this.pageService.formBuilder(
                 formContext.copyOf(content), 8)
-                .withDefaultSpanLabel(1)
-                .withDefaultSpanInput(4)
-                .withDefaultSpanEmptyCell(3)
+                .withDefaultSpanLabel(2)
+                .withDefaultSpanInput(5)
                 .readonly(true)
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
                         exam.name)
                         .readonly(true)
-                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                                QuizData.QUIZ_ATTR_DESCRIPTION,
+                                FORM_DESCRIPTION_TEXT_KEY,
+                                exam.getDescription())
+                        .asHTML(50)
+                        .readonly(true)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.singleSelection(
@@ -424,7 +430,6 @@ public class ExamForm implements TemplateComposer {
                         String.valueOf(exam.lmsSetupId),
                         this.resourceService::lmsSetupResource)
                         .readonly(true)
-                        .withInputSpan(3)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
@@ -432,7 +437,6 @@ public class ExamForm implements TemplateComposer {
                                 FORM_STATUS_TEXT_KEY,
                                 i18nSupport.getText(new LocTextKey("sebserver.exam.status." + exam.status.name())))
                         .readonly(true)
-                        .withInputSpan(3)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
@@ -440,7 +444,6 @@ public class ExamForm implements TemplateComposer {
                                 FORM_QUIZ_ID_TEXT_KEY,
                                 exam.externalId)
                         .readonly(true)
-                        .withInputSpan(3)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
@@ -448,7 +451,6 @@ public class ExamForm implements TemplateComposer {
                         FORM_START_TIME_TEXT_KEY,
                         i18nSupport.formatDisplayDateWithTimeZone(exam.startTime))
                         .readonly(true)
-                        .withInputSpan(3)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
@@ -456,7 +458,6 @@ public class ExamForm implements TemplateComposer {
                         FORM_END_TIME_TEXT_KEY,
                         i18nSupport.formatDisplayDateWithTimeZone(exam.endTime))
                         .readonly(true)
-                        .withInputSpan(3)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
@@ -464,16 +465,6 @@ public class ExamForm implements TemplateComposer {
                         FORM_QUIZ_URL_TEXT_KEY,
                         exam.getStartURL())
                         .readonly(true)
-                        .withInputSpan(7)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_DESCRIPTION,
-                        FORM_DESCRIPTION_TEXT_KEY,
-                        exam.getDescription())
-                        .asHTML(50)
-                        .readonly(true)
-                        .withInputSpan(7)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.singleSelection(
@@ -481,14 +472,12 @@ public class ExamForm implements TemplateComposer {
                                 FORM_TYPE_TEXT_KEY,
                                 (exam.type != null) ? String.valueOf(exam.type) : Exam.ExamType.UNDEFINED.name(),
                                 this.resourceService::examTypeResources)
-                        .withInputSpan(7)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.password(
                                 Domain.EXAM.ATTR_QUIT_PASSWORD,
                                 FORM_QUIT_PWD_TEXT_KEY,
                                 exam.quitPassword)
-                        .withInputSpan(3)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.multiComboSelection(
@@ -496,8 +485,7 @@ public class ExamForm implements TemplateComposer {
                         FORM_SUPPORTER_TEXT_KEY,
                         StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
                         this.resourceService::examSupporterResources)
-                        .withInputSpan(7)
-                        .withEmptyCellSpan(4))
+                )
                 .build();
     }
 
@@ -537,20 +525,6 @@ public class ExamForm implements TemplateComposer {
                         Domain.EXAM.ATTR_SUPPORTER,
                         this.pageService.getCurrentUser().get().uuid)
 
-                .addField(FormBuilder.text(
-                                Domain.EXAM.ATTR_STATUS + "_display",
-                                FORM_STATUS_TEXT_KEY,
-                                i18nSupport.getText(statusTitle))
-                        .readonly(true))
-
-                .addFieldIf( () -> hasLMS,
-                        () -> FormBuilder.singleSelection(
-                                        Domain.EXAM.ATTR_LMS_SETUP_ID,
-                                        FORM_LMSSETUP_TEXT_KEY,
-                                        String.valueOf(exam.lmsSetupId),
-                                        this.resourceService::lmsSetupResource)
-                                .readonly(true))
-
                 .addFieldIf(() -> templateEnabled && !isLight && exam.id == null,
                         () -> FormBuilder.singleSelection(
                                 Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
@@ -575,6 +549,20 @@ public class ExamForm implements TemplateComposer {
                         .asHTMLOrArea(50, hasLMS)
                         .readonly(hasLMS))
                 .withAdditionalValueMapping(QuizData.QUIZ_ATTR_DESCRIPTION)
+
+                .addFieldIf( () -> hasLMS,
+                        () -> FormBuilder.singleSelection(
+                                        Domain.EXAM.ATTR_LMS_SETUP_ID,
+                                        FORM_LMSSETUP_TEXT_KEY,
+                                        String.valueOf(exam.lmsSetupId),
+                                        this.resourceService::lmsSetupResource)
+                                .readonly(true))
+
+                .addField(FormBuilder.text(
+                                Domain.EXAM.ATTR_STATUS + "_display",
+                                FORM_STATUS_TEXT_KEY,
+                                i18nSupport.getText(statusTitle))
+                        .readonly(true))
 
                 .addField(FormBuilder.dateTime(
                                 Domain.EXAM.ATTR_QUIZ_START_TIME,

@@ -172,8 +172,8 @@ public class LmsSetupForm implements TemplateComposer {
         // The LMS Setup form
         final LmsType lmsType = lmsSetup.getLmsType();
         final FormHandle<LmsSetup> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 8)
-                .withDefaultSpanLabel(2)
+                formContext.copyOf(content), 9)
+                .withDefaultSpanLabel(3)
                 .withDefaultSpanInput(5)
                 .withDefaultSpanEmptyCell(1)
                 .readonly(readonly)
@@ -280,9 +280,9 @@ public class LmsSetupForm implements TemplateComposer {
                                 FORM_PROXY_PWD_KEY,
                                 lmsSetup.proxyAuthSecret)
                                 .withInputSpan(3)
-                                .withLabelSpan(2)
+                                .withLabelSpan(3)
                                 .withEmptyCellSeparation(true)
-                                .withEmptyCellSpan(3))
+                                .withEmptyCellSpan(2))
 
                 .buildFor((entityKey == null)
                         ? restService.getRestCall(NewLmsSetup.class)

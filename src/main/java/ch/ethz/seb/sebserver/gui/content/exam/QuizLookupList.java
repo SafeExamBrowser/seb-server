@@ -356,7 +356,7 @@ public class QuizLookupList implements TemplateComposer {
         final ModalInputDialog<Void> dialog = new ModalInputDialog<Void>(
                 action.pageContext().getParent().getShell(),
                 this.widgetFactory)
-                        .setLargeDialogWidth();
+                        .setVeryLargeDialogWidth();
 
         dialog.open(
                 DETAILS_TITLE_TEXT_KEY,
