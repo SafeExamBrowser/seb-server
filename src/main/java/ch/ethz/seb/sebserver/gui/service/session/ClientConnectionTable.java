@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -443,7 +442,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     private void sortTable() {
-        Set<String> connectionTokens = getSelectedConnectionTokens();
+        final Set<String> connectionTokens = getSelectedConnectionTokens();
 
         this.sortList.clear();
         this.sortList.addAll(this.tableMapping.values());
@@ -839,7 +838,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
         final Set<String> result = new HashSet<>();
         for (int i = 0; i < selectionIndices.length; i++) {
-            UpdatableTableItem item = this.tableMapping.values()
+            final UpdatableTableItem item = this.tableMapping.values()
                     .stream()
                     .collect(Collectors.toList())
                     .get(selectionIndices[i]);
@@ -850,18 +849,18 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         return result;
     }
 
-    private int[] getSelectedTableIndices(Set<String> connectionTokens){
+    private int[] getSelectedTableIndices(final Set<String> connectionTokens){
         if(connectionTokens.isEmpty()){
             return new int[]{};
         }
 
-        int[] selectedTableIndices = new int[connectionTokens.size()];
+        final int[] selectedTableIndices = new int[connectionTokens.size()];
 
         int index = 0;
         int tableIndices = 0;
 
-        for (UpdatableTableItem item : this.tableMapping.values()) {
-            if (connectionTokens.contains(item.staticData.connectionToken)) {
+        for (final UpdatableTableItem item : this.tableMapping.values()) {
+            if (index < selectedTableIndices.length && connectionTokens.contains(item.staticData.connectionToken)) {
                 selectedTableIndices[index] = tableIndices;
                 index++;
             }
