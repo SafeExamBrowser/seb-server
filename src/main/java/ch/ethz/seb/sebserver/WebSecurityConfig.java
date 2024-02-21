@@ -84,6 +84,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
                 .antMatchers(ERROR_PATH)
                 .antMatchers(CHECK_PATH)
                 .antMatchers(this.examAPIDiscoveryEndpoint)
+                .antMatchers(this.examAPIDiscoveryEndpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT)
                 .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**")
                 .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**")
                 .antMatchers(this.adminAPIEndpoint + API.REGISTER_ENDPOINT);
