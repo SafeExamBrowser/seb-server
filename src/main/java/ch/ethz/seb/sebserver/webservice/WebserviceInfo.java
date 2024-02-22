@@ -156,21 +156,21 @@ public class WebserviceInfo {
         }
 
         final boolean spsEnabled = BooleanUtils.toBoolean(environment.getProperty(
-                "sebserver.feature.seb.screenProctoring.enabled",
+                "sebserver.feature.exam.seb.screenProctoring.enabled",
                 Constants.FALSE_STRING));
         final boolean spsBundled = BooleanUtils.toBoolean(environment.getProperty(
-                "sebserver.feature.seb.screenProctoring.bundled",
+                "sebserver.feature.exam.seb.screenProctoring.bundled",
                 Constants.FALSE_STRING));
         if (spsEnabled && spsBundled) {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle(
-                    environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.url"),
-                    environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.clientId"),
+                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.url"),
+                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientId"),
                     cryptor.encrypt(
-                            environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.clientPassword"))
+                            environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientPassword"))
                             .getOrThrow(),
-                    environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.sebserveraccount.username"),
+                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.username"),
                     cryptor.encrypt(environment
-                            .getProperty("sebserver.feature.seb.screenProctoring.bundled.sebserveraccount.password"))
+                            .getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.password"))
                             .getOrThrow());
         } else {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle();
