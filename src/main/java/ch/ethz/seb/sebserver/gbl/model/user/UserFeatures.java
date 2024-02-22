@@ -17,8 +17,12 @@ public class UserFeatures {
     public enum Feature {
         ADMIN_INSTITUTION("admin.institution"),
 
+
+
         ADMIN_USER_ADMINISTRATION("admin.user.administration"),
         ADMIN_USER_ACCOUNT("admin.user.account"),
+        ADMIN_USER_ACCOUNT_SELF_REGISTERING("admin.user.account.self.registering"),
+        ADMIN_USER_ACCOUNT_SELF_REGISTERING_AUTO_ACTIVATION("admin.user.account.self.registering.autoactivation"),
         ADMIN_AUDIT_LOGS("admin.auditlogs"),
 
         CONFIG_CONNECTION_CONFIGURATION("config.connection.configuration"),

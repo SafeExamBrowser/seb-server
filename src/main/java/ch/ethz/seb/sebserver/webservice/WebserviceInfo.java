@@ -178,10 +178,10 @@ public class WebserviceInfo {
     }
 
     public Map<String, Boolean> configuredFeatures() {
-        return Arrays.stream(UserFeatures.Feature.values()).collect(Collectors.toMap(
+        return new TreeMap<>( Arrays.stream(UserFeatures.Feature.values()).collect(Collectors.toMap(
                 f -> f.featureName,
                 featureService::isEnabledByConfig
-        ));
+        )));
     }
 
     public boolean isMaster() {

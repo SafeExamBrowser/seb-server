@@ -10,10 +10,15 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import ch.ethz.seb.sebserver.gbl.model.user.*;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.MultiValueMap;
@@ -30,10 +35,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
-import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
@@ -51,6 +52,8 @@ public class RegisterUserController {
     private final BeanValidationService beanValidationService;
     private final LocalBucket requestRateLimitBucket;
     private final LocalBucket createRateLimitBucket;
+    private final boolean registeringEnabled;
+    private final boolean autoActivation;
 
     protected RegisterUserController(
             final InstitutionDAO institutionDAO,
@@ -58,12 +61,15 @@ public class RegisterUserController {
             final UserDAO userDAO,
             final BeanValidationService beanValidationService,
             final RateLimitService rateLimitService,
+            final WebserviceInfo webserviceInfo,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
+        final Map<String, Boolean> features = webserviceInfo.configuredFeatures();
         this.userActivityLogDAO = userActivityLogDAO;
         this.userDAO = userDAO;
         this.beanValidationService = beanValidationService;
-
+        this. registeringEnabled = BooleanUtils.isTrue(features.get(UserFeatures.Feature.ADMIN_USER_ACCOUNT_SELF_REGISTERING.featureName));
+        this.autoActivation = BooleanUtils.isTrue(features.get(UserFeatures.Feature.ADMIN_USER_ACCOUNT_SELF_REGISTERING_AUTO_ACTIVATION.featureName));
         this.requestRateLimitBucket = rateLimitService.createRequestLimitBucker();
         this.createRateLimitBucket = rateLimitService.createCreationLimitBucker();
     }
@@ -75,6 +81,10 @@ public class RegisterUserController {
     public UserInfo registerNewUser(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
+
+        if (!registeringEnabled) {
+            throw new RuntimeException("Registering is not enabled from backend!");
+        }
 
         if (!this.requestRateLimitBucket.tryConsume(1)) {
             throw new TooManyRequests();
@@ -107,7 +117,7 @@ public class RegisterUserController {
                     return userAccount;
                 })
                 .flatMap(this.userDAO::createNew)
-                .flatMap(account -> this.userDAO.setActive(account, true))
+                .flatMap(account -> this.userDAO.setActive(account, autoActivation))
                 .flatMap(this.userActivityLogDAO::logRegisterAccount)
                 .flatMap(account -> this.userDAO.byModelId(account.getModelId()))
                 .getOrThrow();
