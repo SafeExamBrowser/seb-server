@@ -138,7 +138,8 @@ public class ModelObjectJSONGenerator {
                 false,
                 true,
                 DateTime.now(),
-                "user123");
+                "user123",
+                null);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

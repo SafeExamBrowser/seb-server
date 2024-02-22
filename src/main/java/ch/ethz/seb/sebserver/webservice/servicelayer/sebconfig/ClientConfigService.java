@@ -63,5 +63,5 @@ public interface ClientConfigService {
     boolean checkAccess(SEBClientConfig config);
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void initalCheckAccess(SEBClientConfig config);
+    void initialCheckAccess(SEBClientConfig config);
 }

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -251,9 +252,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Collection<Exam>> getRunningExamsForInstitution(final Long institutionId) {
+    public Result<Collection<Exam>> getRunningExams(final Long institutionId, final Predicate<Long> examSelectionFilter) {
         return this.examDAO.allIdsOfRunning(institutionId)
                 .map(col -> col.stream()
+                        .filter(examSelectionFilter)
                         .map(this::getRunningExam)
                         .filter(Result::hasValue)
                         .map(Result::get)
