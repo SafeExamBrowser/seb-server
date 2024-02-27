@@ -60,6 +60,7 @@ public class LoginPage implements TemplateComposer {
             final PageService pageService,
             final DefaultRegisterPage defaultRegisterPage,
             @Value("${sebserver.gui.registering:false}") final boolean guiRegEnabled,
+            @Value("${sebserver.gui.self-registering:false}") final boolean guiRegEnabledOld,
             @Value("${sebserver.feature.admin.user.account.self.registering:true}") final boolean webRegEnabled) {
 
         this.pageService = pageService;
@@ -67,7 +68,7 @@ public class LoginPage implements TemplateComposer {
         this.widgetFactory = pageService.getWidgetFactory();
         this.i18nSupport = pageService.getI18nSupport();
         this.defaultRegisterPage = defaultRegisterPage;
-        this.registeringEnabled = webRegEnabled && guiRegEnabled;
+        this.registeringEnabled = webRegEnabled && (guiRegEnabled || guiRegEnabledOld);
     }
 
     @Override

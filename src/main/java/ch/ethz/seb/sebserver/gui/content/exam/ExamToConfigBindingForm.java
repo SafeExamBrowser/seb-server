@@ -82,7 +82,7 @@ public class ExamToConfigBindingForm {
         return action -> {
 
             final PageContext pageContext = action.pageContext();
-            final EntityKey entityKey = pageContext.getEntityKey();
+            final EntityKey entityKey = action.getSingleSelection();
             final boolean isNew = entityKey == null;
 
             if (isNew) {
@@ -103,11 +103,12 @@ public class ExamToConfigBindingForm {
 
             final BindFormContext bindFormContext = new BindFormContext(
                     this.pageService,
-                    action.pageContext());
+                    action.pageContext()
+                            .withEntityKey(entityKey));
 
             final Predicate<FormHandle<ExamConfigurationMap>> doBind = formHandle -> doCreate(
                     this.pageService,
-                    pageContext,
+                    bindFormContext.pageContext,
                     formHandle);
 
             // the default page layout
@@ -181,14 +182,13 @@ public class ExamToConfigBindingForm {
             final EntityKey parentEntityKey = this.pageContext.getParentEntityKey();
             final boolean isNew = entityKey == null;
 
-            final Exam exam = (isNew)
-                    ? restService
-                            .getBuilder(GetExam.class)
-                            .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
-                            .call()
-                            .onError(error -> this.pageContext.notifyLoadError(EntityType.EXAM, error))
-                            .getOrThrow()
-                    : null;
+            final Exam exam = restService
+                .getBuilder(GetExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
+                .call()
+                .onError(error -> this.pageContext.notifyLoadError(EntityType.EXAM, error))
+                .getOrThrow();
+
 
             // get data or create new. Handle error if happen
             final ExamConfigurationMap examConfigurationMap = (isNew)
@@ -217,14 +217,26 @@ public class ExamToConfigBindingForm {
                     .putStaticValue(
                             Domain.EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID,
                             String.valueOf(examConfigurationMap.examId))
+                    .putStaticValueIf(
+                            () -> !isNew,
+                            Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID,
+                            String.valueOf(examConfigurationMap.configurationNodeId))
 
-                    .addField(FormBuilder.singleSelection(
+                    .addFieldIf( () -> isNew,
+                            () -> FormBuilder.singleSelection(
                             Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID,
                             CONFIG_MAPPING_NAME_TEXT_KEY,
                             String.valueOf(examConfigurationMap.configurationNodeId),
                             resourceService::examConfigurationSelectionResources)
                             .withSelectionListener(form -> updateFormValuesFromConfigSelection(form, resourceService))
                             .mandatory())
+
+                    .addFieldIf( () -> !isNew,
+                            () -> FormBuilder.text(
+                            Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID,
+                            CONFIG_MAPPING_NAME_TEXT_KEY,
+                            examConfigurationMap.configName)
+                            .readonly(true))
 
                     .addField(FormBuilder.text(
                             Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,

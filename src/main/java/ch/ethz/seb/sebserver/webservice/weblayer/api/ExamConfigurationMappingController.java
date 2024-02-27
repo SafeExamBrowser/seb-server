@@ -134,6 +134,12 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     @Override
+    protected Result<ExamConfigurationMap> validForSave(final ExamConfigurationMap entity) {
+        return super.validForSave(entity)
+                .map(this::checkPasswordMatch);
+    }
+
+    @Override
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -154,7 +160,6 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         final ExamConfigurationMap requestModel = this.createNew(postMap);
         return this.checkCreateAccess(requestModel)
                 .flatMap(this::validForCreate)
-                .map(this::checkPasswordMatch)
                 .flatMap(entity -> this.examConfigUpdateService.processExamConfigurationMappingChange(
                         entity,
                         this.entityDAO::createNew))

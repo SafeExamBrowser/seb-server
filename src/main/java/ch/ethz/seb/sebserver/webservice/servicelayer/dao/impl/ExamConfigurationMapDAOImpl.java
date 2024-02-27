@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -260,15 +262,17 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     public Result<ExamConfigurationMap> save(final ExamConfigurationMap data) {
         return Result.tryCatch(() -> {
 
-            final ExamConfigurationMapRecord newRecord = new ExamConfigurationMapRecord(
-                    data.id,
-                    null,
-                    null,
-                    null,
-                    getEncryptionPassword(data),
-                    data.clientGroupId);
+            final String p =  (StringUtils.isNotBlank(data.encryptSecret))
+                    ? getEncryptionPassword(data)
+                    : null;
 
-            this.examConfigurationMapRecordMapper.updateByPrimaryKeySelective(newRecord);
+            UpdateDSL.updateWithMapper(examConfigurationMapRecordMapper::update, examConfigurationMapRecord)
+                    .set(encryptSecret).equalTo(p )
+                    .set(clientGroupId).equalToWhenPresent(data.clientGroupId)
+                    .where(id, isEqualTo(data.id))
+                    .build()
+                    .execute();
+
             return this.examConfigurationMapRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(this::toDomainModel)
