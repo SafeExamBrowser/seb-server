@@ -12,10 +12,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -44,15 +46,18 @@ class AdminUserInitializer {
     private final boolean initializeAdmin;
     private final String adminName;
     private final String orgName;
+    private final Environment environment;
 
     public AdminUserInitializer(
             final UserDAO userDAO,
             final InstitutionDAO institutionDAO,
+            final Environment environment,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder passwordEncoder,
             @Value("${sebserver.init.adminaccount.gen-on-init:false}") final boolean initializeAdmin,
             @Value("${sebserver.init.adminaccount.username:seb-server-admin}") final String adminName,
             @Value("${sebserver.init.organisation.name:[SET_ORGANIZATION_NAME]}") final String orgName) {
 
+        this.environment = environment;
         this.userDAO = userDAO;
         this.institutionDAO = institutionDAO;
         this.passwordEncoder = passwordEncoder;
@@ -89,7 +94,11 @@ class AdminUserInitializer {
                     }
                 }
             } else {
-                final CharSequence generateAdminPassword = this.generateAdminPassword();
+                final String initPWD = environment.getProperty("sebserver.init.adminaccount.init.pwd", "");
+                final CharSequence generateAdminPassword = StringUtils.isNotBlank(initPWD)
+                        ? initPWD :
+                        this.generateAdminPassword();
+
                 Long institutionId = this.institutionDAO.allMatching(new FilterMap())
                         .getOrElse(Collections::emptyList)
                         .stream()
