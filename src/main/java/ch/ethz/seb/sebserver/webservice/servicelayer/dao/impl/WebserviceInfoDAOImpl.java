@@ -57,6 +57,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                     .execute();
             return true;
         } catch (final Exception e) {
+            log.warn("DB Context not initialized: ", e);
             return false;
         }
     }

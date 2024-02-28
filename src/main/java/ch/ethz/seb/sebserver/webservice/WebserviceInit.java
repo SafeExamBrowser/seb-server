@@ -76,22 +76,26 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Register Webservice: {}", this.webserviceInfo.getWebserviceUUID());
 
-        if (this.webserviceInfoDAO.isInitialized()) {
-            this.registerWebservice();
+        try {
+            if (this.webserviceInfoDAO.isInitialized()) {
+                this.registerWebservice();
 
-            // Apply migration if needed and possible
-            SEBServerInit.INIT_LOGGER.info("----> ");
-            this.sebServerMigrationStrategy.applyMigration();
-            SEBServerInit.INIT_LOGGER.info("----> ");
+                // Apply migration if needed and possible
+                SEBServerInit.INIT_LOGGER.info("----> ");
+                this.sebServerMigrationStrategy.applyMigration();
+                SEBServerInit.INIT_LOGGER.info("----> ");
 
-        } else {
+            } else {
 
-            // Apply migration if needed and possible
-            SEBServerInit.INIT_LOGGER.info("----> ");
-            this.sebServerMigrationStrategy.applyMigration();
-            SEBServerInit.INIT_LOGGER.info("----> ");
+                // Apply migration if needed and possible
+                SEBServerInit.INIT_LOGGER.info("----> ");
+                this.sebServerMigrationStrategy.applyMigration();
+                SEBServerInit.INIT_LOGGER.info("----> ");
 
-            this.registerWebservice();
+                this.registerWebservice();
+            }
+        } catch (final Exception e) {
+            SEBServerInit.INIT_LOGGER.error("Failed to apply data import and migration --> ", e);
         }
 
         SEBServerInit.INIT_LOGGER.info("----> ");
