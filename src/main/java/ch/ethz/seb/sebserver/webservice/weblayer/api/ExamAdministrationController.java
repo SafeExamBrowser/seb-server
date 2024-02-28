@@ -707,6 +707,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             examSessionService.hasActiveSEBClientConnections(exam.id)) {
             final Exam oldExam = this.examDAO.byPK(exam.id).getOrThrow();
             final CharSequence pwd = cryptor.decrypt(oldExam.quitPassword).getOr(oldExam.quitPassword);
+            if (StringUtils.isBlank(pwd) && StringUtils.isBlank(exam.quitPassword)) {
+                return exam;
+            }
             if (!Objects.equals(pwd, exam.quitPassword)) {
                 throw new APIMessageException(APIMessage.fieldValidationError(
                         new FieldError(
