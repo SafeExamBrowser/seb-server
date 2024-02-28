@@ -32,7 +32,7 @@ What is Safe Exam Browser Server (SEB Server)?
 
 While the interaction with SEB is well known in Learning Management Systems (LMS) like `Open edX <https://open.edx.org/>`_, 
 `Moodle <https://moodle.org/>`_ etc. the SEB Server is an entirely new component to set up secured online exams. 
-It interacts with the assessments system/LMS as well as with SEB on exam clients.It supports exam scenarios on student owned devices (BYOD) 
+It interacts with the assessments system/LMS as well as with SEB on exam clients. It supports exam scenarios on student owned devices (BYOD) 
 and on managed devices.
 
 SEB Server is a modern webservice with a REST API and a GUI service on top of it. SEB Server is written in Java and uses Docker for installation and setup.
@@ -62,7 +62,7 @@ New Features:
 
 - Security: New Application Signature Key (ASK) integration within SEB Server exams and monitoring
 - Security: Minimum SEB Client version tracking within SEB Server monitoring
-- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
+- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
 - Exam Maintenance: Added new SEB grouping functionality for Exam (and Exam Template) and Monitoring to be able to view/manage SEB Clients within defined groups (IP range, SEB client OS, ...) 
 - Exam Maintenance: Batch actions for archive and delete exams
 - Exam Maintenance: Added SEB log export for finished and archived exams
@@ -98,12 +98,20 @@ Bugfixes:
 
 Docker-Image:
 
+- Exact release version: docker pull anhefti/seb-server:v1.5.0 (sha256:21d62e24dd5cf697ab5f2b437dc458e6c7492ea294f77a424d39d05164d6c8cc)
+- Stable minor version: docker pull anhefti/seb-server:v1.5-stable
+
+Latest Version is 1.5.1 with Docker-Image:
+
+- Exact release version: docker pull anhefti/seb-server:v1.5.1 (sha256:af860f5dd4d99db3e7acaa66d26c3ee72cf0ad08d8ca88febec6d4ecd160b9cf)
+- Latest stable minor version with latest patches: docker pull anhefti/seb-server:v1.5-latest
+
 
 SEB - SEB Server Compatibility
 ------------------------------
 
 The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
-SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
+SEB Server versions. There is an entry for each platform with a beta or testing release date and an official release date.
 
 **SEB Server Version 1.5.X**
 
