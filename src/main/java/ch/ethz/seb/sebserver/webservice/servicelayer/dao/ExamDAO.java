@@ -216,7 +216,9 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *
      * @param examId the Exam identifier */
     @CacheEvict(
-            cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
+            cacheNames = {
+                    ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
+                    ExamSessionCacheService.CACHE_NAME_SEB_CONFIG_EXAM },
             key = "#examId")
     void markUpdate(Long examId);
 

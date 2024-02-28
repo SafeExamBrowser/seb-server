@@ -163,6 +163,11 @@ public class ExamFormConfigs implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> examConfigEnabled && editable && !configurationTable.hasAnyContent())
 
+                .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
+                .withParentEntityKey(entityKey)
+                .withEntityKey(configKey)
+                .publishIf(() -> examConfigEnabled && readGrant && configurationTable.hasAnyContent(), false)
+
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
                 .withParentEntityKey(entityKey)
                 .withSelect(
@@ -171,11 +176,6 @@ public class ExamFormConfigs implements TemplateComposer {
                         CONFIG_EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(() -> examConfigEnabled && editable && configurationTable.hasAnyContent(), false)
-
-                .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
-                .withParentEntityKey(entityKey)
-                .withEntityKey(configKey)
-                .publishIf(() -> examConfigEnabled && readGrant && configurationTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
