@@ -134,6 +134,9 @@ public class SEBClientConfigForm implements TemplateComposer {
     private static final LocTextKey FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.encryptSecret.confirm");
 
+    private static final LocTextKey FORM_EXAM_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.examselection");
+
     private static final LocTextKey DELETE_CONFIRM =
             new LocTextKey("sebserver.clientconfig.action.delete.confirm");
     private static final LocTextKey DELETE_SUCCESS =
@@ -409,20 +412,28 @@ public class SEBClientConfigForm implements TemplateComposer {
                         .mandatory(!isReadonly))
                 .withDefaultSpanEmptyCell(3)
 
+                .addField(FormBuilder.multiComboSelection(
+                                SEBClientConfig.ATTR_EXAM_SELECTION,
+                                FORM_EXAM_SELECTION_TEXT_KEY,
+                                StringUtils.join(clientConfig.selectedExams, Constants.LIST_SEPARATOR),
+                                () -> pageService.getResourceService().getExamLogSelectionResources())
+                        .withInputSpan(5))
+                .withDefaultSpanEmptyCell(1);
+
                 // VDI
 
-                .withDefaultSpanInput(2)
-                .addFieldIf(
-                        () -> false, // TODO skipped for version 1.2 --> 1.3 or 1.4
-                        () -> FormBuilder.singleSelection(
-                                SEBClientConfig.ATTR_VDI_TYPE,
-                                VDI_TYPE_TEXT_KEY,
-                                clientConfig.vdiType != null
-                                        ? clientConfig.vdiType.name()
-                                        : SEBClientConfig.VDIType.NO.name(),
-                                () -> this.pageService.getResourceService().vdiTypeResources())
-                                .mandatory(!isReadonly))
-                .withDefaultSpanEmptyCell(3);
+//                .withDefaultSpanInput(2)
+//                .addFieldIf(
+//                        () -> false, // TODO skipped for version 1.2 --> 1.3 or 1.4
+//                        () -> FormBuilder.singleSelection(
+//                                SEBClientConfig.ATTR_VDI_TYPE,
+//                                VDI_TYPE_TEXT_KEY,
+//                                clientConfig.vdiType != null
+//                                        ? clientConfig.vdiType.name()
+//                                        : SEBClientConfig.VDIType.NO.name(),
+//                                () -> this.pageService.getResourceService().vdiTypeResources())
+//                                .mandatory(!isReadonly))
+//                .withDefaultSpanEmptyCell(3);
 
         // VDI Attributes
 
@@ -460,7 +471,10 @@ public class SEBClientConfigForm implements TemplateComposer {
                 FALLBACK_TEXT_KEY,
                 clientConfig.fallback != null
                         ? clientConfig.fallback.toString()
-                        : Constants.FALSE_STRING));
+                        : Constants.FALSE_STRING))
+                .withDefaultSpanEmptyCell(3)
+
+               ;
 
         // Fallback Attributes
 

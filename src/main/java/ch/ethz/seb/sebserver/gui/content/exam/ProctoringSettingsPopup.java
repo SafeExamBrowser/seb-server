@@ -111,6 +111,13 @@ public class ProctoringSettingsPopup {
     private final static LocTextKey RESET_SUCCESS_KEY =
             new LocTextKey("sebserver.exam.proctoring.form.resetOk");
 
+    private final static LocTextKey DEPRECATION_MESSAGE =
+            new LocTextKey("sebserver.exam.proctoring.deprecation.message");
+    private final static LocTextKey DEPRECATION_NOTE =
+            new LocTextKey("sebserver.exam.proctoring.deprecation.title");
+
+
+
     Function<PageAction, PageAction> settingsFunction(final PageService pageService, final boolean modifyGrant) {
 
         return action -> {
@@ -125,7 +132,7 @@ public class ProctoringSettingsPopup {
                             action.pageContext().getParent().getShell(),
                             pageService.getWidgetFactory())
                                     .setDialogWidth(860)
-                                    .setDialogHeight(600);
+                                    .setDialogHeight(650);
 
             final ResetButtonHandler resetButtonHandler = new ResetButtonHandler();
             if (modifyGrant) {
@@ -325,6 +332,10 @@ public class ProctoringSettingsPopup {
         public Supplier<FormHandle<?>> compose(final Composite parent) {
             final RestService restService = this.pageService.getRestService();
             final EntityKey entityKey = this.pageContext.getEntityKey();
+
+            final Composite warningPanel = this.pageService.getWidgetFactory().createWarningPanel(parent);
+            this.pageService.getWidgetFactory().labelLocalized(warningPanel, WidgetFactory.CustomVariant.TITLE_LABEL, DEPRECATION_NOTE);
+            this.pageService.getWidgetFactory().labelLocalized(warningPanel, WidgetFactory.CustomVariant.SUBTITLE, DEPRECATION_MESSAGE, null);
 
             final Composite content = this.pageService
                     .getWidgetFactory()

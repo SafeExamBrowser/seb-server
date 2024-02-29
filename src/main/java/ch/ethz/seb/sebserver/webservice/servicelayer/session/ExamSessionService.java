@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.io.OutputStream;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -130,9 +131,10 @@ public interface ExamSessionService {
     /** Gets all currently running Exams for a particular Institution.
      *
      * @param institutionId the Institution identifier
+     * @param examSelectionFilter Exam selection filter from SEB connection configuration
      * @return Result referencing the list of all currently running Exams of the institution or to an error if
      *         happened. */
-    Result<Collection<Exam>> getRunningExamsForInstitution(Long institutionId);
+    Result<Collection<Exam>> getRunningExams(Long institutionId, Predicate<Long> examSelectionFilter);
 
     /** Gets all currently running Exams for a particular FilterMap.
      *

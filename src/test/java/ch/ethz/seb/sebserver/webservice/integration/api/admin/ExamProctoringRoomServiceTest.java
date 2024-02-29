@@ -12,6 +12,7 @@ import static org.junit.Assert.*;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Order;
@@ -61,7 +62,7 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
     @Order(1)
     public void test01_checkExamRunning() {
         final Result<Collection<Exam>> runningExamsForInstitution =
-                this.examSessionService.getRunningExamsForInstitution(1L);
+                this.examSessionService.getRunningExams(1L, Utils.truePredicate());
         assertFalse(runningExamsForInstitution.hasError());
         final Collection<Exam> collection = runningExamsForInstitution.get();
         assertFalse(collection.isEmpty());

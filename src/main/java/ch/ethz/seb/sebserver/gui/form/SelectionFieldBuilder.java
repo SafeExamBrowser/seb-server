@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -122,6 +123,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                 this.itemsSupplier.get()
                         .stream()
                         .filter(tuple -> keys.contains(tuple._1))
+                        .sorted((t1, t2) -> String.CASE_INSENSITIVE_ORDER.compare(t1._2, t2._2))
                         .map(tuple -> tuple._1)
                         .forEach(v -> buildReadonlyLabel(builder, composite, v, 1));
             }

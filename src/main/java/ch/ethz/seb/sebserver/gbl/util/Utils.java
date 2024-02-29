@@ -935,4 +935,22 @@ public final class Utils {
         return "Basic " + base64Creds;
     }
 
+    public static Set<Long> getIdsFromString(final String idsString) {
+        if (StringUtils.isBlank(idsString)) {
+            return Collections.emptySet();
+        }
+
+        return Arrays
+                .stream(StringUtils.split(idsString, Constants.LIST_SEPARATOR_CHAR))
+                .map(s -> {
+                    try {
+                        return Long.valueOf(s);
+                    } catch (final Exception e) {
+                        log.warn("Failed to parse String: {} to Long", s);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
 }

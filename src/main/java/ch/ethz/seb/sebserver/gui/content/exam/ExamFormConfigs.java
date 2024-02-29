@@ -137,6 +137,7 @@ public class ExamFormConfigs implements TemplateComposer {
 
                         .withSelectionListener(this.pageService.getSelectionPublisher(
                                 pageContext,
+                                ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST,
                                 ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP,
                                 ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST,
                                 ActionDefinition.EXAM_CONFIGURATION_EXPORT,
@@ -144,7 +145,7 @@ public class ExamFormConfigs implements TemplateComposer {
 
                         .compose(pageContext.copyOf(content));
 
-        final EntityKey configMapKey = (configurationTable.hasAnyContent())
+        final EntityKey configKey = (configurationTable.hasAnyContent())
                 ? new EntityKey(
                         configurationTable.getFirstRowData().configurationNodeId,
                         EntityType.CONFIGURATION_NODE)
@@ -164,8 +165,17 @@ public class ExamFormConfigs implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                 .withParentEntityKey(entityKey)
-                .withEntityKey(configMapKey)
+                .withEntityKey(configKey)
                 .publishIf(() -> examConfigEnabled && readGrant && configurationTable.hasAnyContent(), false)
+
+                .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
+                .withParentEntityKey(entityKey)
+                .withSelect(
+                        getConfigMappingSelection(configurationTable),
+                        this.examToConfigBindingForm.bindFunction(),
+                        CONFIG_EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> examConfigEnabled && editable && configurationTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
@@ -179,7 +189,7 @@ public class ExamFormConfigs implements TemplateComposer {
                     }
                     return null;
                 })
-                .publishIf(() -> examConfigEnabled && editable && configurationTable.hasAnyContent() && editable, false)
+                .publishIf(() -> examConfigEnabled && editable && configurationTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
                 .withSelect(

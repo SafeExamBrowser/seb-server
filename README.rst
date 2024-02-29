@@ -1,4 +1,7 @@
-Master: 
+Safe Exam Browser (SEB) Server
+--------------------------------
+
+Master:
 
 .. image:: https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting.yml/badge.svg?branch=master
     :target: https://github.com/SafeExamBrowser/seb-server/actions
@@ -32,7 +35,7 @@ What is Safe Exam Browser Server (SEB Server)?
 
 While the interaction with SEB is well known in Learning Management Systems (LMS) like `Open edX <https://open.edx.org/>`_, 
 `Moodle <https://moodle.org/>`_ etc. the SEB Server is an entirely new component to set up secured online exams. 
-It interacts with the assessments system/LMS as well as with SEB on exam clients.It supports exam scenarios on student owned devices (BYOD) 
+It interacts with the assessments system/LMS as well as with SEB on exam clients. It supports exam scenarios on student owned devices (BYOD) 
 and on managed devices.
 
 SEB Server is a modern webservice with a REST API and a GUI service on top of it. SEB Server is written in Java and uses Docker for installation and setup.
@@ -62,7 +65,7 @@ New Features:
 
 - Security: New Application Signature Key (ASK) integration within SEB Server exams and monitoring
 - Security: Minimum SEB Client version tracking within SEB Server monitoring
-- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
+- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
 - Exam Maintenance: Added new SEB grouping functionality for Exam (and Exam Template) and Monitoring to be able to view/manage SEB Clients within defined groups (IP range, SEB client OS, ...) 
 - Exam Maintenance: Batch actions for archive and delete exams
 - Exam Maintenance: Added SEB log export for finished and archived exams
@@ -98,12 +101,20 @@ Bugfixes:
 
 Docker-Image:
 
+- Exact release version: docker pull anhefti/seb-server:v1.5.0 (sha256:21d62e24dd5cf697ab5f2b437dc458e6c7492ea294f77a424d39d05164d6c8cc)
+- Stable minor version: docker pull anhefti/seb-server:v1.5-stable
+
+Latest Version is 1.5.1 with Docker-Image:
+
+- Exact release version: docker pull anhefti/seb-server:v1.5.1 (sha256:af860f5dd4d99db3e7acaa66d26c3ee72cf0ad08d8ca88febec6d4ecd160b9cf)
+- Latest stable minor version with latest patches: docker pull anhefti/seb-server:v1.5-latest
+
 
 SEB - SEB Server Compatibility
 ------------------------------
 
 The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
-SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
+SEB Server versions. There is an entry for each platform with a beta or testing release date and an official release date.
 
 **SEB Server Version 1.5.X**
 
@@ -134,7 +145,61 @@ Getting started with SEB Server
 
 For a complete SEB Server user guide please go to `SEB Server User Guide <https://seb-server.readthedocs.io/en/latest/#>`_
 
+
 Project Background
 ------------------
 
 The SEB Server is currently build and maintained by `ETH Zürich <https://ethz.ch/en.html>`_ and by the `Swiss MOOC Service <https://www.swissmooc.ch/>`_ that is founded by leading Swiss universities EPFL, ETH, SUPSI, USI and HES-SO. The Swiss MOOC Service was financially supported from 2018-2020 by the `Swissuniversities´ P5 program <https://www.swissuniversities.ch/themen/digitalisierung/p-5-wissenschaftliche-information>`_.
+
+Contributing to SEB Server
+------------------
+We want to make contributing to this project as easy and transparent as possible, whether it's:
+
+- Give us a star
+- Reporting a bug
+- Submitting a fix
+- Proposing new features
+- Becoming a SEB Alliance member
+
+We use github to host code, to track issues and feature requests, as well as accept pull requests.
+And we use `Github issues <https://github.com/SafeExamBrowser/seb-server/issues>`_ to track public bugs.
+Report a bug by [opening a new issue]();
+
+**Before enter a new bug-report, ensure the bug was not already reported**
+
+Please fill and provide all the information suggested by the bug-report template
+Great Bug Reports tend to have:
+
+- A quick summary and/or background
+- Steps to reproduce
+- Be specific and give sample code if you can. Can also be Pseudocode.
+- What you expected would happen
+- What actually happens
+- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+
+**We Use Git-Flow for Code Contributions**
+
+Pull requests are the best way to propose changes to the codebase. We use `Github Flow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_. We actively welcome your pull requests:
+
+1. Fork the repo and create your branch from `development`. The development branch always has the newest changes.
+2. If you've added code that should be tested, add tests.
+3. If you introduce new API also add clear documentation.
+4. Ensure the test suite passes.
+5. Make sure your code lints.
+6. Issue that pull request!
+
+**Use a Consistent Coding Style**
+
+Have a close look to the existing code stile that is used within SEB Server and adapt to it as close as possible.
+We reserve the right to adapt contributed code to the code style matching SEB Server code style before or after a pull request.
+
+**Any contributions you make will be under the Mozilla Public License Version 2.0**
+
+In short, when you submit code changes, your submissions are understood to be under the same `Mozilla Public License <https://github.com/SafeExamBrowser/seb-server?tab=MPL-2.0-1-ov-file>`_ that covers the project. Feel free to contact the maintainers if that's a concern.
+
+**Becoming a SEB Alliance member**
+
+The `SEB Alliance <https://www.safeexambrowser.org/alliance/members.html>`_ is the body which sustains ongoing funding of the Safe Exam Browser open source project to continue its maintenance, development and support activities. ETH Zurich provides the infrastructure for the management and the software engineering of the SEB project and appoints an alliance manager who will provide administrative support to the SEB Alliance, and ensure the day-to-day running of the SEB Alliance. ETH Zurich leads the Alliance and offers different contribution levels to parties interested in the evolution of the SEB open source project.
+
+More information about `joining <https://www.safeexambrowser.org/alliance/join.html>`_ the Alliance is available in our `benefits <https://www.safeexambrowser.org/alliance/benefits.html>`_ and `documents <https://www.safeexambrowser.org/alliance/documents.html>`_ section.
+

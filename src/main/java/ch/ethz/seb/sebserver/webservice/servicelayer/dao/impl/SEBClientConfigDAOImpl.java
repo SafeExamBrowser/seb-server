@@ -489,7 +489,11 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM),
                 BooleanUtils.toBooleanObject(record.getActive()),
                 Utils.toDateTimeUTC(record.getLastUpdateTime()),
-                record.getLastUpdateUser()));
+                record.getLastUpdateUser(),
+                Utils.getIdsFromString(
+                        additionalAttributes.containsKey(SEBClientConfig.ATTR_EXAM_SELECTION)
+                         ? additionalAttributes.get(SEBClientConfig.ATTR_EXAM_SELECTION).getValue()
+                         : null)));
     }
 
     private String getEncryptionPassword(final SEBClientConfig sebClientConfig) {
@@ -684,6 +688,21 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM);
+        }
+
+        final Set<Long> selectedExams = sebClientConfig.getSelectedExams();
+        if (selectedExams != null && !selectedExams.isEmpty()) {
+            final String ids = StringUtils.join(selectedExams, Constants.LIST_SEPARATOR);
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_EXAM_SELECTION,
+                    ids);
+        } else {
+            this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_EXAM_SELECTION);
         }
     }
 

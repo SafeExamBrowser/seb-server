@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -251,9 +250,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Collection<Exam>> getRunningExamsForInstitution(final Long institutionId) {
+    public Result<Collection<Exam>> getRunningExams(final Long institutionId, final Predicate<Long> examSelectionFilter) {
         return this.examDAO.allIdsOfRunning(institutionId)
                 .map(col -> col.stream()
+                        .filter(examSelectionFilter)
                         .map(this::getRunningExam)
                         .filter(Result::hasValue)
                         .map(Result::get)

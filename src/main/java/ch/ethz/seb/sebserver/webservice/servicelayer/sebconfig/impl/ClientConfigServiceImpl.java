@@ -504,7 +504,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     }
 
     @Override
-    public void initalCheckAccess(final SEBClientConfig config) {
+    public void initialCheckAccess(final SEBClientConfig config) {
         checkAccess(config);
     }
 

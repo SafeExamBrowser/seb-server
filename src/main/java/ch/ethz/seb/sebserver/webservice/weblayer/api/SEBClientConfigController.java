@@ -182,7 +182,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
     protected Result<SEBClientConfig> notifySaved(final SEBClientConfig entity) {
         if (entity.isActive()) {
             // try to get access token for SEB client
-            this.sebClientConfigService.initalCheckAccess(entity);
+            this.sebClientConfigService.initialCheckAccess(entity);
         }
         return super.notifySaved(entity);
     }

@@ -85,6 +85,9 @@ public class RegisterPage implements TemplateComposer {
     static final LocTextKey MESSAGE_SUCCESS_TEXT =
             new LocTextKey("sebserver.login.register.success");
 
+    static final LocTextKey MESSAGE_SUCCESS_ACTIVATION_TEXT =
+            new LocTextKey("sebserver.login.register.success.activate");
+
     private final PageService pageService;
     private final ResourceService resourceService;
     private final WidgetFactory widgetFactory;
@@ -247,7 +250,9 @@ public class RegisterPage implements TemplateComposer {
             }
 
             pageContext.forwardToLoginPage();
-            pageContext.publishPageMessage(MESSAGE_SUCCESS_TILE, MESSAGE_SUCCESS_TEXT);
+            pageContext.publishPageMessage(
+                    MESSAGE_SUCCESS_TILE,
+                    (result.get().active) ? MESSAGE_SUCCESS_TEXT : MESSAGE_SUCCESS_ACTIVATION_TEXT);
 
         });
 

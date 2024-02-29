@@ -13,6 +13,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
@@ -56,6 +58,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_CONFIGURATION_MAP_ENDPOINT)
 public class ExamConfigurationMappingController extends EntityController<ExamConfigurationMap, ExamConfigurationMap> {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamConfigurationMappingController.class);
 
     private final ExamDAO examDao;
     private final ConfigurationNodeDAO configurationNodeDAO;
@@ -134,6 +138,18 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     @Override
+    protected Result<ExamConfigurationMap> validForSave(final ExamConfigurationMap entity) {
+        return super.validForSave(entity)
+                .map(this::checkPasswordMatch);
+    }
+
+    @Override
+    protected Result<ExamConfigurationMap> notifySaved(final ExamConfigurationMap entity) {
+        examDao.markUpdate(entity.examId);
+        return super.notifySaved(entity);
+    }
+
+    @Override
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -154,7 +170,6 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         final ExamConfigurationMap requestModel = this.createNew(postMap);
         return this.checkCreateAccess(requestModel)
                 .flatMap(this::validForCreate)
-                .map(this::checkPasswordMatch)
                 .flatMap(entity -> this.examConfigUpdateService.processExamConfigurationMappingChange(
                         entity,
                         this.entityDAO::createNew))

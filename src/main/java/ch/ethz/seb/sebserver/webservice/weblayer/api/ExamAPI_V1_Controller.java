@@ -11,17 +11,17 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,7 +132,10 @@ public class ExamAPI_V1_Controller {
                     // Crate list of running exams
                     final List<RunningExamInfo> result;
                     if (examId == null) {
-                        result = this.examSessionService.getRunningExamsForInstitution(institutionId)
+
+                        result = this.examSessionService.getRunningExams(
+                                    institutionId,
+                                    getExamSelectionPredicate(principal.getName()))
                                 .getOrThrow()
                                 .stream()
                                 .map(this::createRunningExamInfo)
@@ -161,17 +164,7 @@ public class ExamAPI_V1_Controller {
                 this.executor);
     }
 
-    private boolean checkConsistency(final RunningExamInfo info) {
-        if (StringUtils.isNotBlank(info.name) &&
-                StringUtils.isNotBlank(info.url) &&
-                StringUtils.isNotBlank(info.examId)) {
 
-            return true;
-        }
-
-        log.warn("Invalid running exam detected. Filter out exam : {}", info);
-        return false;
-    }
 
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
@@ -418,6 +411,33 @@ public class ExamAPI_V1_Controller {
         this.examSessionService.getRunningExam(examId)
                 .map(exam -> exam.getAdditionalAttribute(SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK))
                 .onSuccess(bek -> response.setHeader(API.EXAM_API_EXAM_ALT_BEK, bek));
+    }
+
+    private Predicate<Long> getExamSelectionPredicate(final String clientName) {
+        return this.sebClientConfigDAO
+                .byClientName(clientName)
+                .map(this::getExamSelectionPredicate)
+                .onError(error -> log.warn("Failed to get SEB connection configuration by name: {}", clientName))
+                .getOr(Utils.truePredicate());
+    }
+
+    private Predicate<Long> getExamSelectionPredicate(final SEBClientConfig config) {
+        if (config == null || config.selectedExams.isEmpty()) {
+            return Utils.truePredicate();
+        }
+        return config.getSelectedExams()::contains;
+    }
+
+    private boolean checkConsistency(final RunningExamInfo info) {
+        if (StringUtils.isNotBlank(info.name) &&
+                StringUtils.isNotBlank(info.url) &&
+                StringUtils.isNotBlank(info.examId)) {
+
+            return true;
+        }
+
+        log.warn("Invalid running exam detected. Filter out exam : {}", info);
+        return false;
     }
 
 }

@@ -11,6 +11,11 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import java.util.Collection;
+import java.util.Set;
+
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.URL;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -52,6 +57,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public static final String ATTR_ENCRYPT_CERTIFICATE_ASYM = "cert_encryption_asym";
 
     public static final String FILTER_ATTR_CREATION_DATE = "creation_date";
+    public static final String ATTR_EXAM_SELECTION = "exam_selection";
 
     public enum ConfigPurpose {
         START_EXAM,
@@ -174,6 +180,8 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
 
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER)
     public final String lastUpdateUser;
+    @JsonProperty(SEBClientConfig.ATTR_EXAM_SELECTION)
+    public final Set<Long> selectedExams;
 
     @JsonCreator
     public SEBClientConfig(
@@ -204,7 +212,8 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
             @JsonProperty(ATTR_ENCRYPT_CERTIFICATE_ASYM) final Boolean encryptCertificateAsym,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_TIME) final DateTime lastUpdateTime,
-            @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER) final String lastUpdateUser) {
+            @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER) final String lastUpdateUser,
+            @JsonProperty(SEBClientConfig.ATTR_EXAM_SELECTION) final Set<Long> selectedExams) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -240,6 +249,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.active = active;
         this.lastUpdateTime = lastUpdateTime;
         this.lastUpdateUser = lastUpdateUser;
+        this.selectedExams = Utils.immutableSetOf(selectedExams);
     }
 
     public SEBClientConfig(final Long institutionId, final POSTMapper postParams) {
@@ -281,6 +291,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.active = false;
         this.lastUpdateTime = postParams.getDateTime(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME);
         this.lastUpdateUser = postParams.getString(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER);
+        this.selectedExams = Utils.immutableSetOf(Utils.getIdsFromString(postParams.getString(SEBClientConfig.ATTR_EXAM_SELECTION)));
     }
 
     @Override
@@ -424,6 +435,10 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         return this.lastUpdateUser;
     }
 
+    public Set<Long> getSelectedExams() {
+        return selectedExams;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -503,7 +518,8 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 this.encryptCertificateAsym,
                 this.active,
                 this.lastUpdateTime,
-                this.lastUpdateUser);
+                this.lastUpdateUser,
+                this.selectedExams);
     }
 
     public static SEBClientConfig createNew(final Long institutionId, final long pingIterval) {
@@ -532,6 +548,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 null,
                 false,
                 false,
+                null,
                 null,
                 null);
     }
