@@ -48,6 +48,3 @@ We reserve the right to adapt contributed code to the code style matching SEB Se
 The [SEB Alliance](https://www.safeexambrowser.org/alliance/members.html) is the body which sustains ongoing funding of the Safe Exam Browser open source project to continue its maintenance, development and support activities. ETH Zurich provides the infrastructure for the management and the software engineering of the SEB project and appoints an alliance manager who will provide administrative support to the SEB Alliance, and ensure the day-to-day running of the SEB Alliance. ETH Zurich leads the Alliance and offers different contribution levels to parties interested in the evolution of the SEB open source project.
 
 More information about [joining](https://www.safeexambrowser.org/alliance/join.html) the Alliance is available in our [benefits](https://www.safeexambrowser.org/alliance/benefits.html) and [documents](https://www.safeexambrowser.org/alliance/documents.html) section.
-
-## License
-By contributing, you agree that your contributions will be licensed under its [Mozilla Public License](https://github.com/SafeExamBrowser/seb-server?tab=MPL-2.0-1-ov-file).
