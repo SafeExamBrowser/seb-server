@@ -150,4 +150,4 @@ The SEB Server is currently build and maintained by `ETH Zürich <https://ethz.c
 
 Contribution
 ------------
-.. include:: CONTRIBUTING.md
+.. include:: ./CONTRIBUTING.md
