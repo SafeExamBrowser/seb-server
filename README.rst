@@ -162,23 +162,24 @@ We want to make contributing to this project as easy and transparent as possible
 - Becoming a SEB Alliance member
 
 We use github to host code, to track issues and feature requests, as well as accept pull requests.
-And we use [Github issues](https://github.com/SafeExamBrowser/seb-server/issues) to track public bugs.
+And we use `Github issues <https://github.com/SafeExamBrowser/seb-server/issues>`_ to track public bugs.
 Report a bug by [opening a new issue]();
 
 **Before enter a new bug-report, ensure the bug was not already reported**
+
 Please fill and provide all the information suggested by the bug-report template
 Great Bug Reports tend to have:
 
 - A quick summary and/or background
 - Steps to reproduce
-    - Be specific!
-    - Give sample code if you can. Can also be Pseudocode.
+- Be specific and give sample code if you can. Can also be Pseudocode.
 - What you expected would happen
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
 
 ** We Use Git-Flow for Code Contributions**
-Pull requests are the best way to propose changes to the codebase (we use [Github Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)). We actively welcome your pull requests:
+
+Pull requests are the best way to propose changes to the codebase. We use `Github Flow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_. We actively welcome your pull requests:
 
 1. Fork the repo and create your branch from `development`. The development branch always has the newest changes.
 2. If you've added code that should be tested, add tests.
@@ -194,10 +195,10 @@ We reserve the right to adapt contributed code to the code style matching SEB Se
 
 **Any contributions you make will be under the Mozilla Public License Version 2.0**
 
-In short, when you submit code changes, your submissions are understood to be under the same [Mozilla Public License](https://github.com/SafeExamBrowser/seb-server?tab=MPL-2.0-1-ov-file) that covers the project. Feel free to contact the maintainers if that's a concern.
+In short, when you submit code changes, your submissions are understood to be under the same `Mozilla Public License <https://github.com/SafeExamBrowser/seb-server?tab=MPL-2.0-1-ov-file>`_ that covers the project. Feel free to contact the maintainers if that's a concern.
 
 **Becoming a SEB Alliance member**
-The [SEB Alliance](https://www.safeexambrowser.org/alliance/members.html) is the body which sustains ongoing funding of the Safe Exam Browser open source project to continue its maintenance, development and support activities. ETH Zurich provides the infrastructure for the management and the software engineering of the SEB project and appoints an alliance manager who will provide administrative support to the SEB Alliance, and ensure the day-to-day running of the SEB Alliance. ETH Zurich leads the Alliance and offers different contribution levels to parties interested in the evolution of the SEB open source project.
+The `SEB Alliance <https://www.safeexambrowser.org/alliance/members.html>`_ is the body which sustains ongoing funding of the Safe Exam Browser open source project to continue its maintenance, development and support activities. ETH Zurich provides the infrastructure for the management and the software engineering of the SEB project and appoints an alliance manager who will provide administrative support to the SEB Alliance, and ensure the day-to-day running of the SEB Alliance. ETH Zurich leads the Alliance and offers different contribution levels to parties interested in the evolution of the SEB open source project.
 
-More information about [joining](https://www.safeexambrowser.org/alliance/join.html) the Alliance is available in our [benefits](https://www.safeexambrowser.org/alliance/benefits.html) and [documents](https://www.safeexambrowser.org/alliance/documents.html) section.
+More information about `joining <https://www.safeexambrowser.org/alliance/join.html>`_ the Alliance is available in our `benefits <https://www.safeexambrowser.org/alliance/benefits.html>`_ and `documents <https://www.safeexambrowser.org/alliance/documents.html>`_ section.
 
