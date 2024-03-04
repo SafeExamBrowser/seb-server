@@ -16,9 +16,9 @@ public class ProxyDataTest {
 
     @Test
     public void testCreation() {
-        final ProxyData proxyData = new ProxyData("proxyName", 8080, new ClientCredentials("user1", "password"));
+        final ProxyData proxyData = new ProxyData("proxyName", 8888, new ClientCredentials("user1", "password"));
         assertEquals(
-                "ProxyData [proxyName=proxyName, proxyPort=8080, clientCredentials=ClientCredentials [clientId=user1]]",
+                "ProxyData [proxyName=proxyName, proxyPort=8888, clientCredentials=ClientCredentials [clientId=user1]]",
                 proxyData.toString());
     }
 

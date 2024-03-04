@@ -79,7 +79,7 @@ public class SEBClientBot {
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private final Random random = new Random();
 
-    String webserviceAddress = "http://localhost:8080";
+    String webserviceAddress = "http://localhost:8888";
     String accessTokenEndpoint = "/oauth/token";
     String clientId = "test";
     String sessionId = null;
