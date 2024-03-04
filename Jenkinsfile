@@ -19,37 +19,6 @@ pipeline {
                 }
             }        
         }
-        
-//         stage('Reporting') {
-//             steps {
-//                 withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
-//                     sh "mvn --batch-mode -V -U -e -P let_reporting pmd:pmd pmd:cpd findbugs:findbugs spotbugs:spotbugs"
-//                 }
-//             }
-//         }
-    }
 
-//     post {
-//         always {
-//             junit testResults: '**/target/surefire-reports/TEST-*.xml'
-//
-//             recordIssues enabledForFailure: true, tool: spotBugs()
-//             recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
-//         }
-//         failure {
-//             setBuildStatus("Build failed", "FAILURE");
-//             emailext body: "The build of the LET Application (${env.JOB_NAME}) failed! See ${env.BUILD_URL}", recipientProviders: [[$class: 'CulpritsRecipientProvider']], subject: 'LET Application Build Failure'
-//         }
-//         success {
-//             setBuildStatus("Build complete", "SUCCESS");
-//         }
-//     }
-//     options {
-//         timeout(time: 10, unit: 'MINUTES')
-//         buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '7'))
-//     }
-    triggers {
-        pollSCM('H/5 * * * *')
-    }  
        
 }    
