@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Maven build') {
             steps {
-                withMaven(globalMavenSettingsConfig: '', jdk: '', maven: '', mavenSettingsConfig: '', traceability: true, options: [findbugsPublisher(disabled: true)]) {
+                withMaven(jdk: '17', traceability: true, options: [findbugsPublisher(disabled: true)]) {
                 //withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
                     sh "mvn clean install -e -P let_reporting"
                 }
