@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Maven build') {
             steps {
-                withMaven(jdk: '17', traceability: true, sh: 'mvn clean install') {
+                withMaven(jdk: '17', traceability: true) {
                 //withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
                     sh "mvn clean install"
                 }
