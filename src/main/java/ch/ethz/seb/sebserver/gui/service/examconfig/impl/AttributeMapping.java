@@ -74,6 +74,7 @@ public class AttributeMapping {
 
         this.orientationAttributeNameMapping = Utils.immutableMapOf(orientations
                 .stream()
+                .filter(o -> this.attributeIdMapping.containsKey(o.attributeId))
                 .collect(Collectors.toMap(
                         o -> this.attributeIdMapping.get(o.attributeId).name,
                         Function.identity(),
