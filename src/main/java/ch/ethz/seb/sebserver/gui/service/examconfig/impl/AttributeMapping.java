@@ -48,28 +48,9 @@ public class AttributeMapping {
         Objects.requireNonNull(attributes);
         Objects.requireNonNull(orientations);
 
-        Set<Long> _config_attrs_ids = null;
-        try {
-            final ClassPathResource configFileResource = new ClassPathResource("config/examConfigAttrVersionTable");
-            final String ids_comma_separated = IOUtils.toString(configFileResource.getInputStream());
-            final String[] split = StringUtils.split(ids_comma_separated, Constants.LIST_SEPARATOR_CHAR);
-            _config_attrs_ids = Arrays.stream(split).map(s -> {
-                try {
-                    return Long.valueOf(s.trim());
-                } catch (Exception e) {
-                    return 0L;
-                }
-            }).collect(Collectors.toSet());
-        } catch (final Exception e) {
-            log.error("Failed to get exam config attribute version infos: ", e);
-        }
-
-        final Set<Long> config_attrs_ids = _config_attrs_ids;
         this.templateId = templateId;
-
         this.orientationAttributeMapping = Utils.immutableMapOf(orientations
                 .stream()
-                .filter(o -> config_attrs_ids == null || config_attrs_ids.contains(o.attributeId))
                 .collect(Collectors.toMap(
                         o -> o.attributeId,
                         Function.identity())));

@@ -10,16 +10,16 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +50,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
     private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
     private final OrientationRecordMapper orientationRecordMapper;
+    private final Set<Long> config_attrs_ids;
 
     protected ConfigurationAttributeDAOImpl(
             final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper,
@@ -59,6 +60,25 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
         this.configurationAttributeRecordMapper = configurationAttributeRecordMapper;
         this.configurationValueRecordMapper = configurationValueRecordMapper;
         this.orientationRecordMapper = orientationRecordMapper;
+
+        Set<Long> _config_attrs_ids = null;
+        try {
+            final ClassPathResource configFileResource = new ClassPathResource("config/examConfigAttrVersionTable");
+            final String ids_comma_separated = IOUtils.toString(configFileResource.getInputStream());
+            final String[] split = StringUtils.split(ids_comma_separated, Constants.LIST_SEPARATOR_CHAR);
+            _config_attrs_ids = Arrays.stream(split).map(s -> {
+                try {
+                    return Long.valueOf(s.trim());
+                } catch (Exception e) {
+                    return 0L;
+                }
+            }).collect(Collectors.toSet());
+        } catch (final Exception e) {
+            log.error("Failed to get exam config attribute version infos: ", e);
+            _config_attrs_ids = null;
+        }
+
+        config_attrs_ids = _config_attrs_ids;
     }
 
     @Override
@@ -123,6 +143,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
                 .build()
                 .execute()
                 .stream()
+                .filter(this::settingsVersionFilter)
                 .map(ConfigurationAttributeDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
@@ -156,9 +177,14 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
                 .build()
                 .execute()
                 .stream()
+                .filter(this::settingsVersionFilter)
                 .map(ConfigurationAttributeDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Collectors.toList()));
+    }
+
+    private boolean settingsVersionFilter(final ConfigurationAttributeRecord record) {
+        return config_attrs_ids == null || config_attrs_ids.contains(record.getId());
     }
 
     @Override
