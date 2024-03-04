@@ -143,7 +143,6 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
                 .build()
                 .execute()
                 .stream()
-                .filter(this::settingsVersionFilter)
                 .map(ConfigurationAttributeDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
