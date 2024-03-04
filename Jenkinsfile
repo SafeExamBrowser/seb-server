@@ -14,7 +14,9 @@ pipeline {
     stages {
         stage('Maven build') {
             steps {
-                withMaven() {
+                git url: 'https://github.com/SafeExamBrowser/seb-server'
+                withMaven {
+
                 //withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
                     sh "mvn clean install"
                 }
