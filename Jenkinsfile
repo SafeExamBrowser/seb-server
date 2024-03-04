@@ -44,10 +44,10 @@ pipeline {
 //             setBuildStatus("Build complete", "SUCCESS");
 //         }
 //     }
-    options {
-        timeout(time: 10, unit: 'MINUTES')
-        buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '7'))
-    }
+//     options {
+//         timeout(time: 10, unit: 'MINUTES')
+//         buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '7'))
+//     }
     triggers {
         pollSCM('H/5 * * * *')
     }  
