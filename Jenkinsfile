@@ -22,7 +22,7 @@ pipeline {
 
         stage('Reporting') {
             steps {
-                withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
+                withMaven(maven: 'Maven3.9.6', options: [findbugsPublisher(disabled: true)]) {
                     sh "mvn --batch-mode -V -U -e -P let_reporting pmd:pmd pmd:cpd findbugs:findbugs"
                 }
             }
@@ -33,7 +33,7 @@ pipeline {
         always {
             junit testResults: '**/target/surefire-reports/TEST-*.xml'
 
-            //recordIssues enabledForFailure: true, tool: spotBugs()
+            recordIssues enabledForFailure: true, tool: spotBugs()
             recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
         }
         failure {
