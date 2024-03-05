@@ -2922,7 +2922,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(NewLmsSetup.class)
                 .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test Open edx")
                 .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.OPEN_EDX.name())
-                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://localhost:8080/openedxtest")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://localhost:8888/openedxtest")
                 .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME, "test")
                 .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET, "test")
                 .call();
