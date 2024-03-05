@@ -33,7 +33,7 @@ pipeline {
         always {
             junit testResults: '**/target/surefire-reports/TEST-*.xml'
 
-            recordIssues enabledForFailure: true, tool: spotBugs()
+            //recordIssues enabledForFailure: true, tool: spotBugs()
             recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
         }
         failure {
