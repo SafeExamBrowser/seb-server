@@ -48,6 +48,8 @@ jobs:
     -
       name: Build with Maven
       run: mvn clean install -e -P let_reporting
+      env:
+        sebserver-version: ${{ env.TAG_NAME }}-${{ env.SHA }}
     -
       name: Reporting
       uses: codecov/codecov-action@v4
