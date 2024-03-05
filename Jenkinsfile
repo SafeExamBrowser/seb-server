@@ -15,7 +15,7 @@ pipeline {
         stage('Maven build') {
             steps {
                 withMaven(maven: 'Maven3.9.6', options: [findbugsPublisher(disabled: true)]) {
-                    sh "mvn clean install"
+                    sh "mvn clean install -e -P let_reporting"
                 }
             }        
         }
