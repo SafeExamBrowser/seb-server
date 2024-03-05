@@ -23,7 +23,7 @@ pipeline {
         stage('Reporting') {
             steps {
                 withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
-                    sh "mvn --batch-mode -V -U -e -P let_reporting pmd:pmd pmd:cpd findbugs:findbugs spotbugs:spotbugs"
+                    sh "mvn --batch-mode -V -U -e -P let_reporting pmd:pmd pmd:cpd findbugs:findbugs"
                 }
             }
         }
