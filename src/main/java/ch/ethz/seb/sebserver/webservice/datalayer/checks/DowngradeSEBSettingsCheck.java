@@ -1,5 +1,9 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.checks;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -30,8 +34,9 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
 
     private final OrientationRecordMapper orientationRecordMapper;
     private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
-    private final ConfigurationValueRecordMapper configurationValueRecordMapper;
-
+    private final DataSource dataSource;
+    private final String schemaName;
+    private final Long lastMigrationVersion = 22L;
     private final String versionAttributeIds =
             "1,2,3,4,8,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,42,43,44,45,46,47,48," +
             "50,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,81,82,85,86,87,88," +
@@ -47,13 +52,15 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
     public DowngradeSEBSettingsCheck(
             final OrientationRecordMapper orientationRecordMapper,
             final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper,
-            final ConfigurationValueRecordMapper configurationValueRecordMapper,
-            @Value("${sebserver.init.database.integrity.fix.downgrade:false}") final boolean fixDowngrade) {
+            final DataSource dataSource,
+            @Value("${sebserver.init.database.integrity.fix.downgrade:false}") final boolean fixDowngrade,
+            @Value("${sebserver.init.database.integrity.check.schema:SEBServer}") final String schemaName) {
 
         this.orientationRecordMapper = orientationRecordMapper;
         this.configurationAttributeRecordMapper = configurationAttributeRecordMapper;
-        this.configurationValueRecordMapper = configurationValueRecordMapper;
+        this.dataSource = dataSource;
         this.fixDowngrade = fixDowngrade;
+        this.schemaName = schemaName;
     }
 
     @Override
@@ -115,8 +122,6 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
                 throw new WebserviceInitException("Detected a Database version integrity violation, probably due to SEB Server version downgrade. See logs above");
                 //return "Downgrade SEB Settings correction would delete the following SEB Settings: " + allNames;
             } else {
-                // TODO delete orientations
-
                 try {
                     final Integer deletedOrientation = orientationRecordMapper
                             .deleteByExample()
@@ -126,6 +131,17 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
                             .execute();
 
                     INIT_LOGGER.info(" ---> Deleted {} entries from table orientation", deletedOrientation);
+
+                    INIT_LOGGER.info(" ---> Try delete migration task until this version...");
+
+                    final Connection connection = this.dataSource.getConnection();
+                    final PreparedStatement prepareStatement = connection.prepareStatement(
+                            "DELETE FROM "+ schemaName +".flyway_schema_history WHERE version > " + lastMigrationVersion);
+                    prepareStatement.execute();
+                    final ResultSet resultSet = prepareStatement.getResultSet();
+                    final int num = resultSet.getInt(0);
+
+                    INIT_LOGGER.info(" ---> Deleted {} entries from table flyway_schema_history", deletedOrientation);
 
                     return "Successfully deleted SEB Settings attributes: " + allNames;
                 } catch (final Exception e) {
