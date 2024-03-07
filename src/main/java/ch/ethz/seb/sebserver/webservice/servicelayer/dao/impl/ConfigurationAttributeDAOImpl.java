@@ -120,7 +120,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
                 .execute()
                 .stream()
                 .map(ConfigurationAttributeDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .flatMap(DAOLoggingSupport::logMinAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
     }
@@ -153,7 +153,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
                 .execute()
                 .stream()
                 .map(ConfigurationAttributeDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .flatMap(DAOLoggingSupport::logMinAndSkipOnError)
                 .collect(Collectors.toList()));
     }
 

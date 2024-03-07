@@ -139,7 +139,7 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
                             "DELETE FROM "+ schemaName +".flyway_schema_history WHERE version > " + lastMigrationVersion);
                     prepareStatement.execute();
 
-                    INIT_LOGGER.info(" ---> Deleted {} entries from table flyway_schema_history", deletedOrientation);
+                    INIT_LOGGER.info(" ---> Deleted entries from table flyway_schema_history until version: {}", lastMigrationVersion);
 
                     return "Successfully deleted SEB Settings attributes: " + allNames;
                 } catch (final Exception e) {

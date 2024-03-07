@@ -31,4 +31,9 @@ public final class DAOLoggingSupport {
                 result.onError(error -> log.error("Unexpected error. Object processing is skipped: ", error)));
     }
 
+    public static <T> Stream<T> logMinAndSkipOnError(final Result<T> result) {
+        return Result.skipOnError(
+                result.onError(error -> log.error("Unexpected error. Object processing is skipped: {}", error.getMessage())));
+    }
+
 }
