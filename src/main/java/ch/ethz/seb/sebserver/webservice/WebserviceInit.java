@@ -99,10 +99,10 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
         this.applicationEventPublisher.publishEvent(new SEBServerInitEvent(this));
 
-        // Run the data base integrity checks and fixes if configured
+        // Run the database integrity checks and fixes if configured
         this.dbIntegrityChecker.checkIntegrity();
 
-        // Create an initial admin account if requested and not already in the data-base
+        // Create an initial admin account if requested and not already in the database
         this.adminUserInitializer.initAdminAccount();
 
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");

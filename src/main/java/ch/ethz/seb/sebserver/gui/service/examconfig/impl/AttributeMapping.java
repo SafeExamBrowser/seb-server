@@ -8,14 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.springframework.core.io.ClassPathResource;
 
 public class AttributeMapping {
 
@@ -49,7 +49,6 @@ public class AttributeMapping {
         Objects.requireNonNull(orientations);
 
         this.templateId = templateId;
-
         this.orientationAttributeMapping = Utils.immutableMapOf(orientations
                 .stream()
                 .collect(Collectors.toMap(
