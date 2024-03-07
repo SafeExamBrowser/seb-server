@@ -74,7 +74,7 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
     }
 
     @Override
-    public Result<String> applyCheck(boolean tryFix) {
+    public Result<String> applyCheck(final boolean tryFix) {
         return Result.tryCatch(() -> {
 
             final String[] split = StringUtils.split(versionAttributeIds, Constants.LIST_SEPARATOR_CHAR);
@@ -138,8 +138,6 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
                     final PreparedStatement prepareStatement = connection.prepareStatement(
                             "DELETE FROM "+ schemaName +".flyway_schema_history WHERE version > " + lastMigrationVersion);
                     prepareStatement.execute();
-                    final ResultSet resultSet = prepareStatement.getResultSet();
-                    final int num = resultSet.getInt(0);
 
                     INIT_LOGGER.info(" ---> Deleted {} entries from table flyway_schema_history", deletedOrientation);
 
