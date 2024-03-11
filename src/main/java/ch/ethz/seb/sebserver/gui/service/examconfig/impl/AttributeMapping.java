@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.OrientationRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.springframework.core.io.ClassPathResource;
 
 public class AttributeMapping {
 
@@ -46,7 +46,6 @@ public class AttributeMapping {
         Objects.requireNonNull(orientations);
 
         this.templateId = templateId;
-
         this.orientationAttributeMapping = Utils.immutableMapOf(orientations
                 .stream()
                 .collect(Collectors.toMap(
@@ -74,6 +73,7 @@ public class AttributeMapping {
 
         this.orientationAttributeNameMapping = Utils.immutableMapOf(orientations
                 .stream()
+                .filter(o -> this.attributeIdMapping.containsKey(o.attributeId))
                 .collect(Collectors.toMap(
                         o -> this.attributeIdMapping.get(o.attributeId).name,
                         Function.identity(),
