@@ -3,7 +3,6 @@ package ch.ethz.seb.sebserver.webservice.datalayer.checks;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -36,17 +35,19 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
     private final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper;
     private final DataSource dataSource;
     private final String schemaName;
-    private final Long lastMigrationVersion = 22L;
+    private final Long lastMigrationVersion = 27L;
     private final String versionAttributeIds =
-            "1,2,3,4,8,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,42,43,44,45,46,47,48," +
-            "50,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,81,82,85,86,87,88," +
-            "89,90,91,92,93,94,95,96,97,98,99,100,200,201,202,203,204,205,206,210,220,221,222,223,231,233,234,235,236," +
-            "237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262," +
-            "263,264,265,300,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322," +
-            "400,401,402,403,404,405,406,407,408,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516," +
-            "517,518,519,520,804,812,900,901,904,919,928,940,941,942,950,951,952,953,960,961,970,971,972,973,974,975," +
-            "1100,1101,1102,1103,1104,1105,1106,1108,1116,1120,1121,1122,1123,1124,1125,1129,1130,1131,1132,1133,1500," +
-            "1501,1502,1503,1504,1505,1506,1508,1516,1530,1531,1532,1533,1551,1578,";
+            "1,2,4,8,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29,31,32,33,34,35,42,43,44,45,46,47,48,50,51," +
+            "52,53,54,55,56,57,58,59,60,61,972,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,81,82,85,86,87," +
+            "88,89,90,91,92,93,94,95,96,97,98,99,100,200,201,202,203,204,205,206,210,220,221,222,223,231,233,234," +
+            "235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259," +
+            "260,261,262,263,264,265,300,301,302,303,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319," +
+            "320,321,322,400,401,402,403,404,405,406,407,408,500,501,502,503,504,505,506,507,508,509,510,511,512," +
+            "513,514,515,516,517,518,519,520,804,812,900,901,942,940,941,1129,1130,1131,1132,1133,1102,1103,1106," +
+            "1108,1104,1105,1100,1116,1101,1120,1122,1123,1125,1124,1121,1500,1503,1506,1508,1504,1505,1502,1516," +
+            "1501,1530,1531,1532,1533,951,952,953,950,960,961,919,928,970,971,973,904,974,975,1578,1551,1300,1301," +
+            "1302,1303,1305,1306,1320,1321,1322,1564,1580,1581,1582,1200,1590,1591,1568,1577,1567,1550,909,1552,948," +
+            "1557,943,945,1558,1559,1560,1561,1562,905,1569,1570,1563,1595";
     private final boolean fixDowngrade;
 
     public DowngradeSEBSettingsCheck(
@@ -112,11 +113,19 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
                 INIT_LOGGER.error(" ---> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 INIT_LOGGER.error(" ---> !!! Detected a Database version integrity violation, probably due to SEB Server version downgrade.");
                 INIT_LOGGER.error(" ---> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                INIT_LOGGER.error(" ---> !!!! Please check the following correction and set 'sebserver.init.database.integrity.fix.downgrade'");
-                INIT_LOGGER.error(" ---> !!!! to true to apply repair with next startup. Then SEB Server will apply the repair task");
+                INIT_LOGGER.error(" ---> !!!! Please check if there was a SEB Server downgrade that causes this or if this is caused by actual development. ");
+                INIT_LOGGER.error(" ---> !!!! ");
+                INIT_LOGGER.error(" ---> !!!! If new SEB Settings are added to the default SEB Settings view in actual development, just add the new attributes ids");
+                INIT_LOGGER.error(" ---> !!!! To the list in class DowngradeSEBSettingsCheck to fix this issue.");
+                INIT_LOGGER.error(" ---> !!!! ");
+                INIT_LOGGER.error(" ---> !!!! If a SEB Server version downgrade is the cause of this issue, please check the following");
+                INIT_LOGGER.error(" ---> !!!! correction and set 'sebserver.init.database.integrity.fix.downgrade' to true");
+                INIT_LOGGER.error(" ---> !!!! to apply repair with next startup. Then SEB Server will apply the repair task");
                 INIT_LOGGER.error(" ---> !!!! After successfully repair you can set 'sebserver.init.database.integrity.fix.downgrade' back to false ");
+                INIT_LOGGER.error(" ---> !!!! ");
                 INIT_LOGGER.error(" ---> !!!! NOTE: Repair will delete the following SEB Settings orientation for Exam Configuration default Views");
                 INIT_LOGGER.error(" ---> !!!!       Exam Configurations built from Configuration Template will stay the same and might have incorrect View Tabs");
+                INIT_LOGGER.error(" ---> !!!! ");
                 INIT_LOGGER.error(" ---> !!!! Repair will remove following SEB Settings from default view:\n {}", allNames);
                 INIT_LOGGER.error(" ---> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 throw new WebserviceInitException("Detected a Database version integrity violation, probably due to SEB Server version downgrade. See logs above");

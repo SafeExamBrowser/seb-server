@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.OrientationRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import org.springframework.core.io.ClassPathResource;
 
 public class AttributeMapping {
 
