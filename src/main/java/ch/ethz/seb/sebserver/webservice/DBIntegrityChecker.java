@@ -60,11 +60,16 @@ public class DBIntegrityChecker {
 
             final Result<String> applyCheck = dbIntegrityCheck.applyCheck(this.tryFix);
             if (applyCheck.hasError()) {
+                if (applyCheck.getError() instanceof  WebserviceInitException) {
+                    throw applyCheck.getError();
+                }
                 SEBServerInit.INIT_LOGGER.info("--------> Unexpected Error: {}", applyCheck.getError().getMessage());
             } else {
                 SEBServerInit.INIT_LOGGER.info("--------> Result: {}", applyCheck.get());
             }
 
+        } catch (final WebserviceInitException initE) {
+            throw initE;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply data base integrity check: {}", dbIntegrityCheck);
         }

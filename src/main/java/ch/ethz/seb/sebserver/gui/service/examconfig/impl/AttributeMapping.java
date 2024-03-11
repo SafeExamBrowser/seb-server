@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.springframework.core.io.ClassPathResource;
 
 public class AttributeMapping {
 
@@ -46,7 +47,6 @@ public class AttributeMapping {
         Objects.requireNonNull(orientations);
 
         this.templateId = templateId;
-
         this.orientationAttributeMapping = Utils.immutableMapOf(orientations
                 .stream()
                 .collect(Collectors.toMap(
