@@ -47,7 +47,7 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
             "1108,1104,1105,1100,1116,1101,1120,1122,1123,1125,1124,1121,1500,1503,1506,1508,1504,1505,1502,1516," +
             "1501,1530,1531,1532,1533,951,952,953,950,960,961,919,928,970,971,973,904,974,975,1578,1551,1300,1301," +
             "1302,1303,1305,1306,1320,1321,1322,1564,1580,1581,1582,1200,1590,1591,1568,1577,1567,1550,909,1552,948," +
-            "1557,943,945,1558,1559,1560,1561,1562,905,1569,1570,1563,1595";
+            "1557,943,945,1558,1559,1560,1561,1562,905,1569,1570,1563,1595,947";
     private final boolean fixDowngrade;
 
     public DowngradeSEBSettingsCheck(
@@ -128,8 +128,8 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
                 INIT_LOGGER.error(" ---> !!!! ");
                 INIT_LOGGER.error(" ---> !!!! Repair will remove following SEB Settings from default view:\n {}", allNames);
                 INIT_LOGGER.error(" ---> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                throw new WebserviceInitException("Detected a Database version integrity violation, probably due to SEB Server version downgrade. See logs above");
-                //return "Downgrade SEB Settings correction would delete the following SEB Settings: " + allNames;
+                //throw new WebserviceInitException("Detected a Database version integrity violation, probably due to SEB Server version downgrade. See logs above");
+                return "Downgrade SEB Settings correction would delete the following SEB Settings: " + allNames;
             } else {
                 try {
                     final Integer deletedOrientation = orientationRecordMapper
