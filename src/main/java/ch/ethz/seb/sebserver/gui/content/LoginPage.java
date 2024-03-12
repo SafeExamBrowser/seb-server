@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
