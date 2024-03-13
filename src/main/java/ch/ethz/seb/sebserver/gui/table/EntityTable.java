@@ -244,6 +244,7 @@ public class EntityTable<ROW extends ModelIdAware> {
                 this.pageSize,
                 this.sortColumn,
                 this.sortOrder);
+        updateFilterUserAttrs();
     }
 
     public String getName() {
@@ -330,8 +331,9 @@ public class EntityTable<ROW extends ModelIdAware> {
     public void applyFilter() {
         try {
 
-            updateFilterUserAttrs();
-            this.selectPage(1);
+            if (updateFilterUserAttrs()) {
+                this.selectPage(1);
+            }
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply filter: ", e);
@@ -813,16 +815,27 @@ public class EntityTable<ROW extends ModelIdAware> {
         }
     }
 
-    private void updateFilterUserAttrs() {
+    private boolean updateFilterUserAttrs() {
         if (this.filter != null) {
             try {
-                this.pageService
-                        .getCurrentUser()
-                        .putAttribute(this.filterAttrName, this.filter.getFilterAttributes());
+
+                final CurrentUser currentUser = this.pageService.getCurrentUser();
+                final String newFilterAttributes = this.filter.getFilterAttributes();
+                final String oldFilterAttributes = currentUser.getAttribute(this.filterAttrName);
+                if(Objects.equals(newFilterAttributes, oldFilterAttributes)) {
+                    return false;
+                }
+                if (multiselection != null) {
+                    multiselection.clear();
+                }
+                currentUser.putAttribute(this.filterAttrName, newFilterAttributes);
+                return true;
             } catch (final Exception e) {
                 log.error("Failed to put filter attributes to current user attributes", e);
+                return true;
             }
         }
+        return false;
     }
 
     private void initFilterFromUserAttrs() {
@@ -864,7 +877,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         if (this.multiselection != null) {
             Arrays.stream(this.table.getItems())
                     .forEach(item -> {
-                        final int index = this.table.indexOf(item);
+                            final int index = this.table.indexOf(item);
                         if (this.multiselection.contains(getModelId(item))) {
                             if (!this.table.isSelected(index)) {
                                 this.table.select(index);
