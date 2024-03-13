@@ -63,6 +63,8 @@ public interface PageContext {
     LocTextKey UNEXPECTED_ERROR_KEY =
             new LocTextKey("sebserver.error.action.unexpected.message");
 
+    PageService getPageService();
+
     /** Get the I18nSupport service
      *
      * @return the I18nSupport service */

@@ -199,7 +199,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                         this.jsonMapper,
                         this.valueChangeRules,
                         valueChangeCallback),
-                this.widgetFactory.getI18nSupport(),
+                pageContext.getPageService(),
                 readonly,
                 isTemplate);
 

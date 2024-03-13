@@ -61,7 +61,7 @@ public abstract class SelectionFieldBuilder {
                     final String key = prefix + value + ((toolTipResources)
                             ? ExamConfigurationService.TOOL_TIP_SUFFIX
                             : "");
-                    final String text = viewContext.i18nSupport.getText(key, "");
+                    final String text = viewContext.getI18nSupport().getText(key, "");
                     return new Tuple<>(value, (StringUtils.isBlank(text))
                             ? (toolTipResources)
                                     ? text
