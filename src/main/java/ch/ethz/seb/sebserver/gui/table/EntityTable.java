@@ -224,7 +224,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         }
         this.table.addListener(SWT.Selection, event -> {
             if (this.multiselection != null && event.item != null) {
-                if (event.item == null || event.item.isDisposed()) {
+                if (event.item.isDisposed()) {
                     return;
                 }
                 handleMultiSelection((TableItem) event.item);
@@ -530,9 +530,6 @@ public class EntityTable<ROW extends ModelIdAware> {
 
         // first remove all rows if there are some
         this.table.removeAll();
-        if (this.multiselection != null) {
-            this.multiselection.clear();
-        }
 
         // get page data and create rows
         final Page<ROW> page = this.pageSupplier.newBuilder()
