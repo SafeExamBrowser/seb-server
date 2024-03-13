@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gui.service.page.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.widgets.DialogCallback;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -66,6 +65,10 @@ public class PageContextImpl implements PageContext {
         this.root = root;
         this.parent = parent;
         this.attributes = Utils.immutableMapOf(attributes);
+    }
+
+    public PageService getPageService() {
+        return pageService;
     }
 
     @Override

@@ -67,7 +67,7 @@ public class TableContext {
     }
 
     public I18nSupport i18nSupport() {
-        return this.viewContext.i18nSupport;
+        return this.viewContext.getI18nSupport();
     }
 
     public InputFieldBuilderSupplier getInputFieldBuilderSupplier() {

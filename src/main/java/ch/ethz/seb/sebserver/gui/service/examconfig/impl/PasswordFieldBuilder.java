@@ -88,7 +88,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         final LocTextKey confirmNameLocKey =
                 new LocTextKey(
                         SEBSERVER_FORM_CONFIRM_LABEL,
-                        viewContext.i18nSupport.getText(attributeNameLocKey));
+                        viewContext.getI18nSupport().getText(attributeNameLocKey));
         final PasswordInput confirmInput = new PasswordInput(
                 innerGrid,
                 this.widgetFactory,
