@@ -544,13 +544,15 @@ public class EntityTable<ROW extends ModelIdAware> {
                 .onError(this.pageContext::notifyUnexpectedError)
                 .getOr(null);
 
-        this.isComplete = page.complete;
         this.composite.getParent().layout(true, true);
         PageService.updateScrolledComposite(this.composite);
         this.notifyContentChange();
         this.notifySelectionChange();
 
-        if (page != null && this.pageReloadListener != null) {
+        if (page != null) {
+            this.isComplete = page.complete;
+        }
+        if (this.pageReloadListener != null) {
             this.pageReloadListener.accept(this);
         }
     }
@@ -633,8 +635,7 @@ public class EntityTable<ROW extends ModelIdAware> {
 
     private void adaptColumnWidthChange(final Event event) {
         final Widget widget = event.widget;
-        if (widget instanceof TableColumn) {
-            final TableColumn tableColumn = ((TableColumn) widget);
+        if (widget instanceof final TableColumn tableColumn) {
             if (this.filter != null) {
                 this.filter.adaptColumnWidth(
                         this.table.indexOf(tableColumn),
@@ -676,10 +677,10 @@ public class EntityTable<ROW extends ModelIdAware> {
         for (int i = 0; i < columns.length; i++) {
             final ColumnDefinition<ROW> columnDefinition = table.columns.get(i);
             if (columnDefinition.isLocalized()) {
-                for (int j = 0; j < items.length; j++) {
+                for (final TableItem item : items) {
                     @SuppressWarnings("unchecked")
-                    final ROW rowData = (ROW) items[j].getData(TABLE_ROW_DATA);
-                    setValueToCell(items[j], i, columnDefinition, columnDefinition.valueSupplier.apply(rowData));
+                    final ROW rowData = (ROW) item.getData(TABLE_ROW_DATA);
+                    setValueToCell(item, i, columnDefinition, columnDefinition.valueSupplier.apply(rowData));
                 }
             }
         }
@@ -852,8 +853,7 @@ public class EntityTable<ROW extends ModelIdAware> {
                 this.multiselection.remove(modelId);
             } else {
                 this.multiselection.add(modelId);
-                Arrays.asList(this.table.getSelection())
-                        .stream()
+                Arrays.stream(this.table.getSelection())
                         .forEach(i -> this.multiselection.add(getModelId(i)));
             }
             multiselectFromPage();
@@ -862,8 +862,7 @@ public class EntityTable<ROW extends ModelIdAware> {
 
     private void multiselectFromPage() {
         if (this.multiselection != null) {
-            Arrays.asList(this.table.getItems())
-                    .stream()
+            Arrays.stream(this.table.getItems())
                     .forEach(item -> {
                         final int index = this.table.indexOf(item);
                         if (this.multiselection.contains(getModelId(item))) {

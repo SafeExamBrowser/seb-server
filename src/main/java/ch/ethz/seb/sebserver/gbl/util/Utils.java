@@ -22,17 +22,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -887,25 +877,11 @@ public final class Utils {
     }
 
     public static int compareDateTime(final DateTime dt1, final DateTime dt2, final boolean descending) {
-        return ((dt1 == dt2)
-                ? 0
-                : (dt1 == null || dt1 == null)
-                        ? 1
-                        : (dt2 == null || dt2 == null)
-                                ? -1
-                                : dt1.compareTo(dt2))
-                * ((descending) ? -1 : 1);
+        return Objects.compare(dt1, dt1, DateTime::compareTo ) * ((descending) ? -1 : 1);
     }
 
     public static int compareIds(final Long id1, final Long id2, final boolean descending) {
-        return ((id1 == id2)
-                ? 0
-                : (id1 == null || id1 == null)
-                        ? 1
-                        : (id2 == null || id2 == null)
-                                ? -1
-                                : id1.compareTo(id2))
-                * ((descending) ? -1 : 1);
+        return Objects.compare(id1, id2, Long::compareTo ) * ((descending) ? -1 : 1);
     }
 
     public static String toFileName(final String name) {
