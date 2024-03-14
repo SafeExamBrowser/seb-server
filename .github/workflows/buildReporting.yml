@@ -16,54 +16,16 @@ jobs:
   maven-build-reporting:
     runs-on: ubuntu-latest
     steps:
-    -
-      name: Checkout repository
-      uses: actions/checkout@v4
-    -
-      name: Set up JDK 8
-      uses: actions/setup-java@v4
-      with:
-        java-version: '8'
-        distribution: 'adopt'
-    -
-      name: Cache Maven packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
-    -
-      name: Build with Maven
-      run: mvn clean install -e -P let_reporting
-    -
-      name: Reporting
-      uses: codecov/codecov-action@v4
-      with:
-        flags: unittests 
-        name: SEB Server Build 
-        fail_ci_if_error: false 
-        verbose: false
-
-  maven-build-docker:
-    needs: maven-build-reporting
-    # Run only on tagging
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    steps:
-    -
-      name: Get short SHA
-      uses: benjlevesque/short-sha@v2.1
+    - name: Get short SHA
+      uses: benjlevesque/short-sha@v3.0
       id: short-sha
-    -
-      name: Store short SHA as environment variable
+    - name: Store short SHA as environment variable
       run: echo $SHA
-      env: 
+      env:
         SHA: ${{ steps.short-sha.outputs.sha }}
-    -
-      name: Set env
+    - name: Set env
       run: echo "TAG_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-    -
-      name: Test tag name
+    - name: Test tag name
       run: |
         echo $TAG_NAME
         echo ${{ env.TAG_NAME }}
@@ -71,7 +33,7 @@ jobs:
       name: Checkout repository
       uses: actions/checkout@v4
     -
-      name: Set up JDK 17
+      name: Set up JDK 8
       uses: actions/setup-java@v4
       with:
         java-version: '17'
@@ -85,20 +47,27 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     -
       name: Build with Maven
-      run: mvn clean install -Dmaven.test.skip=true -Dsebserver-version="${{ env.TAG_NAME }}-${{ env.SHA }}" 
-      env: 
-         sebserver-version: ${{ env.TAG_NAME }}-${{ env.SHA }}
+      run: mvn clean install -e -P let_reporting -Dsebserver-version="${{ env.TAG_NAME }}-${{ env.SHA }}"
+      env:
+        sebserver-version: ${{ env.TAG_NAME }}-${{ env.SHA }}
     -
-      name: Simplify package name
+      name: Reporting
+      uses: codecov/codecov-action@v4
+      with:
+        flags: unittests 
+        name: SEB Server Build 
+        fail_ci_if_error: false 
+        verbose: false
+
+    - name: Simplify package name
       run: mv target/seb-server-${{ env.TAG_NAME }}-${{ env.SHA }}.jar target/seb-server.jar
-    -
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: Package
         path: target/seb-server.jar
 
   docker-build:
-    needs: maven-build-docker
+    needs: maven-build-reporting
     # Run only on tagging
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
@@ -120,7 +89,7 @@ jobs:
         echo ${{ env.TAG_NAME }}
     -
       name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
+      uses: docker/setup-qemu-action@v3
     -
       name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -185,6 +154,6 @@ jobs:
     steps:
     -
       name: Delete Artifacts
-      uses: geekyeggo/delete-artifact@v2
+      uses: geekyeggo/delete-artifact@v4
       with:
           name: Package

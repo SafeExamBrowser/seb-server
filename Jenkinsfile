@@ -14,16 +14,16 @@ pipeline {
     stages {
         stage('Maven build') {
             steps {
-                withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
+                withMaven(maven: 'Maven3.9.6') {
                     sh "mvn clean install -e -P let_reporting"
                 }
             }        
         }
-        
+
         stage('Reporting') {
             steps {
-                withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
-                    sh "mvn --batch-mode -V -U -e -P let_reporting pmd:pmd pmd:cpd findbugs:findbugs spotbugs:spotbugs"
+                withMaven(maven: 'Maven3.9.6') {
+                    sh "mvn --batch-mode -V -U -e -P let_reporting pmd:pmd pmd:cpd spotbugs:spotbugs"
                 }
             }
         }
@@ -50,6 +50,6 @@ pipeline {
     }
     triggers {
         pollSCM('H/5 * * * *')
-    }  
+    }
        
 }    

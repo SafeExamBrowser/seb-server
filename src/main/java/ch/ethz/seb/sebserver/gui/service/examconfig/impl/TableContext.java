@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -67,7 +67,7 @@ public class TableContext {
     }
 
     public I18nSupport i18nSupport() {
-        return this.viewContext.i18nSupport;
+        return this.viewContext.getI18nSupport();
     }
 
     public InputFieldBuilderSupplier getInputFieldBuilderSupplier() {

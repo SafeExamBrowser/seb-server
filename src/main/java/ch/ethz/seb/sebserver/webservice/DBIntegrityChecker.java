@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2021 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -60,11 +60,16 @@ public class DBIntegrityChecker {
 
             final Result<String> applyCheck = dbIntegrityCheck.applyCheck(this.tryFix);
             if (applyCheck.hasError()) {
+                if (applyCheck.getError() instanceof  WebserviceInitException) {
+                    throw applyCheck.getError();
+                }
                 SEBServerInit.INIT_LOGGER.info("--------> Unexpected Error: {}", applyCheck.getError().getMessage());
             } else {
                 SEBServerInit.INIT_LOGGER.info("--------> Result: {}", applyCheck.get());
             }
 
+        } catch (final WebserviceInitException initE) {
+            throw initE;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply data base integrity check: {}", dbIntegrityCheck);
         }

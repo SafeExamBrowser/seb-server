@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -97,7 +97,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
         if (!viewContext.readonly) {
             TableColumn column = new TableColumn(table, SWT.NONE);
             column.setImage(ImageIcon.ADD_BOX_WHITE.getImage(parent.getDisplay()));
-            column.setToolTipText(Utils.formatLineBreaks(viewContext.i18nSupport.getText(
+            column.setToolTipText(Utils.formatLineBreaks(viewContext.getI18nSupport().getText(
                     ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
                             attribute.name +
                             ADD_TOOLTIP_SUFFIX,
@@ -110,7 +110,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
 
             column = new TableColumn(table, SWT.NONE);
             column.setImage(ImageIcon.REMOVE_BOX_WHITE.getImage(parent.getDisplay()));
-            column.setToolTipText(Utils.formatLineBreaks(viewContext.i18nSupport.getText(
+            column.setToolTipText(Utils.formatLineBreaks(viewContext.getI18nSupport().getText(
                     ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX +
                             attribute.name +
                             REMOVE_TOOLTIP_SUFFIX,
@@ -232,7 +232,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
                             .open(
                                     ExamConfigurationService.getTablePopupTitleKey(
                                             this.attribute,
-                                            this.tableContext.getViewContext().i18nSupport),
+                                            this.tableContext.getViewContext().getI18nSupport()),
                                     (Consumer<Map<Long, TableValue>>) _rowValues -> applyFormValues(
                                             this.values,
                                             _rowValues,

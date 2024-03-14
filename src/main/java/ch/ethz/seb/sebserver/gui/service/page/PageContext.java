@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -62,6 +62,8 @@ public interface PageContext {
             new LocTextKey("sebserver.page.message");
     LocTextKey UNEXPECTED_ERROR_KEY =
             new LocTextKey("sebserver.error.action.unexpected.message");
+
+    PageService getPageService();
 
     /** Get the I18nSupport service
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2018 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,17 +22,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -96,7 +86,7 @@ public final class Utils {
         return Collectors.collectingAndThen(
                 Collectors.toList(),
                 list -> {
-                    if (list == null || list.size() == 0) {
+                    if (list == null || list.isEmpty()) {
                         throw new IllegalStateException(
                                 "Expected one elements in the given list but is empty");
                     }
@@ -189,7 +179,7 @@ public final class Utils {
 
     public static <T> List<T> asImmutableList(final T[] array) {
         return (array != null)
-                ? Collections.unmodifiableList(Arrays.asList(array))
+                ? List.of(array)
                 : Collections.emptyList();
     }
 
@@ -205,9 +195,9 @@ public final class Utils {
     }
 
     public static <T extends Enum<T>> Collection<Tuple<String>> createSelectionResource(final Class<T> enumClass) {
-        return Collections.unmodifiableList(Arrays.stream(enumClass.getEnumConstants())
-                .map(e -> new Tuple<>(e.name(), e.name()))
-                .collect(Collectors.toList()));
+        return Arrays.stream(enumClass.getEnumConstants())
+                .map(e -> new Tuple<>(e.name(), e.name())).
+                toList();
     }
 
     public static <T extends Enum<T>> T enumFromString(
@@ -354,7 +344,7 @@ public final class Utils {
         return new DateTime(timestamp * 1000, DateTimeZone.UTC);
     }
 
-    public static final long toUnixTimeInSeconds(final DateTime time) {
+    public static long toUnixTimeInSeconds(final DateTime time) {
         return time.getMillis() / 1000;
     }
 
@@ -669,7 +659,7 @@ public final class Utils {
                             if (values == null) {
                                 return sb;
                             }
-                            if (sb.length() > 0) {
+                            if (!sb.isEmpty()) {
                                 sb.append(Constants.AMPERSAND);
                             }
                             if (values.size() == 1) {
@@ -695,7 +685,7 @@ public final class Utils {
                 .reduce(
                         new StringBuilder(),
                         (sb, entry) -> {
-                            if (sb.length() > 0) {
+                            if (!sb.isEmpty()) {
                                 sb.append(Constants.AMPERSAND);
                             }
                             return sb.append(_name).append(Constants.EQUALITY_SIGN).append(entry);
@@ -726,7 +716,7 @@ public final class Utils {
      * @param urlString the URL string
      * @return true if SEB Server was able to ping the address. */
     public static boolean pingHost(final String urlString) {
-        try (Socket socket = new Socket()) {
+        try (final Socket socket = new Socket()) {
             final URL url = new URL(urlString);
             final int port = (url.getPort() >= 0) ? url.getPort() : 80;
             socket.connect(new InetSocketAddress(url.getHost(), port), (int) Constants.SECOND_IN_MILLIS * 5);
@@ -799,7 +789,7 @@ public final class Utils {
         try {
             return ipToLong(InetAddress.getByName(ipV4Address));
         } catch (final UnknownHostException e) {
-            log.error("Failed to convert IPv4 address: {}, error: ", ipV4Address, e.getMessage());
+            log.error("Failed to convert IPv4 address: {}, error: {}", ipV4Address, e.getMessage());
             return -1L;
         }
     }
@@ -822,11 +812,7 @@ public final class Utils {
         }
 
         // check null and empty string
-        if (StringUtils.isBlank(s1) && StringUtils.isBlank(s2)) {
-            return true;
-        }
-
-        return false;
+        return StringUtils.isBlank(s1) && StringUtils.isBlank(s2);
     }
 
     public static boolean isEqualsWithEmptyCheckTruncated(final String s1, final String s2) {
@@ -887,25 +873,11 @@ public final class Utils {
     }
 
     public static int compareDateTime(final DateTime dt1, final DateTime dt2, final boolean descending) {
-        return ((dt1 == dt2)
-                ? 0
-                : (dt1 == null || dt1 == null)
-                        ? 1
-                        : (dt2 == null || dt2 == null)
-                                ? -1
-                                : dt1.compareTo(dt2))
-                * ((descending) ? -1 : 1);
+        return Objects.compare(dt1, dt1, DateTime::compareTo ) * ((descending) ? -1 : 1);
     }
 
     public static int compareIds(final Long id1, final Long id2, final boolean descending) {
-        return ((id1 == id2)
-                ? 0
-                : (id1 == null || id1 == null)
-                        ? 1
-                        : (id2 == null || id2 == null)
-                                ? -1
-                                : id1.compareTo(id2))
-                * ((descending) ? -1 : 1);
+        return Objects.compare(id1, id2, Long::compareTo ) * ((descending) ? -1 : 1);
     }
 
     public static String toFileName(final String name) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -88,7 +88,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         final LocTextKey confirmNameLocKey =
                 new LocTextKey(
                         SEBSERVER_FORM_CONFIRM_LABEL,
-                        viewContext.i18nSupport.getText(attributeNameLocKey));
+                        viewContext.getI18nSupport().getText(attributeNameLocKey));
         final PasswordInput confirmInput = new PasswordInput(
                 innerGrid,
                 this.widgetFactory,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -61,7 +61,7 @@ public abstract class SelectionFieldBuilder {
                     final String key = prefix + value + ((toolTipResources)
                             ? ExamConfigurationService.TOOL_TIP_SUFFIX
                             : "");
-                    final String text = viewContext.i18nSupport.getText(key, "");
+                    final String text = viewContext.getI18nSupport().getText(key, "");
                     return new Tuple<>(value, (StringUtils.isBlank(text))
                             ? (toolTipResources)
                                     ? text

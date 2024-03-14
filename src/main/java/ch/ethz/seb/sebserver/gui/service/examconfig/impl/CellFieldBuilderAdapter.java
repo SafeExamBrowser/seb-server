@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -276,6 +277,16 @@ interface CellFieldBuilderAdapter {
             for (final Map.Entry<String, Collection<Orientation>> entry : this.orientationsOfExpandBar.entrySet()) {
 
                 final String expandItemKey = ViewGridBuilder.getExpandItemKey(entry.getKey());
+                if (expandItemKey.equals("ScreenProctoring") &&
+                        !builder.viewContext.pageService.getCurrentUser().isFeatureEnabled(UserFeatures.Feature.EXAM_SCREEN_PROCTORING)) {
+                    continue;
+                }
+                if ((expandItemKey.equals("Zoom") || expandItemKey.equals("jitsi")) &&
+                        !builder.viewContext.pageService.getCurrentUser().isFeatureEnabled(UserFeatures.Feature.EXAM_LIVE_PROCTORING)) {
+                    continue;
+                }
+
+
                 final Collection<Orientation> value = entry.getValue();
                 final LocTextKey labelKey = new LocTextKey(
                         ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX + expandItemKey,

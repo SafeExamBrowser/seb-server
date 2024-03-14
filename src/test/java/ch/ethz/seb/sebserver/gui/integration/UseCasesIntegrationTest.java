@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -2922,7 +2922,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(NewLmsSetup.class)
                 .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test Open edx")
                 .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.OPEN_EDX.name())
-                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://localhost:8080/openedxtest")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://localhost:8888/openedxtest")
                 .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME, "test")
                 .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET, "test")
                 .call();

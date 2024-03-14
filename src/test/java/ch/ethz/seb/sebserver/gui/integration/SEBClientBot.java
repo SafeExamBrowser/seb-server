@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2020 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -79,7 +79,7 @@ public class SEBClientBot {
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private final Random random = new Random();
 
-    String webserviceAddress = "http://localhost:8080";
+    String webserviceAddress = "http://localhost:8888";
     String accessTokenEndpoint = "/oauth/token";
     String clientId = "test";
     String sessionId = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -80,7 +80,7 @@ public abstract class GuiIntegrationTest {
 
         final HttpSession sessionMock = Mockito.mock(HttpSession.class);
         final WebserviceURIService webserviceURIService = new WebserviceURIService(
-                "http", "localhost", "8080", "/", this.endpoint);
+                "http", "localhost", "8888", "/", this.endpoint);
 
         final ClientHttpRequestFactoryService clientHttpRequestFactoryService = Mockito
                 .mock(ClientHttpRequestFactoryService.class);

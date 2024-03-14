@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2018 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public final class ViewContext {
     final AttributeMapping attributeMapping;
     final Map<Long, InputField> inputFieldMapping;
     final ValueChangeListener valueChangeListener;
-    final I18nSupport i18nSupport;
+    final PageService pageService;
     final boolean readonly;
     final boolean isTemplate;
 
@@ -57,7 +58,7 @@ public final class ViewContext {
             final int rows,
             final AttributeMapping attributeContext,
             final ValueChangeListener valueChangeListener,
-            final I18nSupport i18nSupport,
+            final PageService pageService,
             final boolean readonly,
             final boolean isTemplate) {
 
@@ -74,7 +75,7 @@ public final class ViewContext {
         this.attributeMapping = attributeContext;
         this.inputFieldMapping = new HashMap<>();
         this.valueChangeListener = valueChangeListener;
-        this.i18nSupport = i18nSupport;
+        this.pageService = pageService;
         this.readonly = readonly;
         this.isTemplate = isTemplate;
     }
@@ -84,7 +85,7 @@ public final class ViewContext {
     }
 
     public I18nSupport getI18nSupport() {
-        return this.i18nSupport;
+        return this.pageService.getI18nSupport();
     }
 
     public Long getId() {

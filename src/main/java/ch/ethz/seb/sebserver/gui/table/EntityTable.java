@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, IT Services
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -224,7 +224,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         }
         this.table.addListener(SWT.Selection, event -> {
             if (this.multiselection != null && event.item != null) {
-                if (event.item == null || event.item.isDisposed()) {
+                if (event.item.isDisposed()) {
                     return;
                 }
                 handleMultiSelection((TableItem) event.item);
@@ -244,6 +244,7 @@ public class EntityTable<ROW extends ModelIdAware> {
                 this.pageSize,
                 this.sortColumn,
                 this.sortOrder);
+        updateFilterUserAttrs();
     }
 
     public String getName() {
@@ -330,8 +331,9 @@ public class EntityTable<ROW extends ModelIdAware> {
     public void applyFilter() {
         try {
 
-            updateFilterUserAttrs();
-            this.selectPage(1);
+            if (updateFilterUserAttrs()) {
+                this.selectPage(1);
+            }
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply filter: ", e);
@@ -530,9 +532,6 @@ public class EntityTable<ROW extends ModelIdAware> {
 
         // first remove all rows if there are some
         this.table.removeAll();
-        if (this.multiselection != null) {
-            this.multiselection.clear();
-        }
 
         // get page data and create rows
         final Page<ROW> page = this.pageSupplier.newBuilder()
@@ -547,13 +546,15 @@ public class EntityTable<ROW extends ModelIdAware> {
                 .onError(this.pageContext::notifyUnexpectedError)
                 .getOr(null);
 
-        this.isComplete = page.complete;
         this.composite.getParent().layout(true, true);
         PageService.updateScrolledComposite(this.composite);
         this.notifyContentChange();
         this.notifySelectionChange();
 
-        if (page != null && this.pageReloadListener != null) {
+        if (page != null) {
+            this.isComplete = page.complete;
+        }
+        if (this.pageReloadListener != null) {
             this.pageReloadListener.accept(this);
         }
     }
@@ -636,8 +637,7 @@ public class EntityTable<ROW extends ModelIdAware> {
 
     private void adaptColumnWidthChange(final Event event) {
         final Widget widget = event.widget;
-        if (widget instanceof TableColumn) {
-            final TableColumn tableColumn = ((TableColumn) widget);
+        if (widget instanceof final TableColumn tableColumn) {
             if (this.filter != null) {
                 this.filter.adaptColumnWidth(
                         this.table.indexOf(tableColumn),
@@ -679,10 +679,10 @@ public class EntityTable<ROW extends ModelIdAware> {
         for (int i = 0; i < columns.length; i++) {
             final ColumnDefinition<ROW> columnDefinition = table.columns.get(i);
             if (columnDefinition.isLocalized()) {
-                for (int j = 0; j < items.length; j++) {
+                for (final TableItem item : items) {
                     @SuppressWarnings("unchecked")
-                    final ROW rowData = (ROW) items[j].getData(TABLE_ROW_DATA);
-                    setValueToCell(items[j], i, columnDefinition, columnDefinition.valueSupplier.apply(rowData));
+                    final ROW rowData = (ROW) item.getData(TABLE_ROW_DATA);
+                    setValueToCell(item, i, columnDefinition, columnDefinition.valueSupplier.apply(rowData));
                 }
             }
         }
@@ -815,16 +815,27 @@ public class EntityTable<ROW extends ModelIdAware> {
         }
     }
 
-    private void updateFilterUserAttrs() {
+    private boolean updateFilterUserAttrs() {
         if (this.filter != null) {
             try {
-                this.pageService
-                        .getCurrentUser()
-                        .putAttribute(this.filterAttrName, this.filter.getFilterAttributes());
+
+                final CurrentUser currentUser = this.pageService.getCurrentUser();
+                final String newFilterAttributes = this.filter.getFilterAttributes();
+                final String oldFilterAttributes = currentUser.getAttribute(this.filterAttrName);
+                if(Objects.equals(newFilterAttributes, oldFilterAttributes)) {
+                    return false;
+                }
+                if (multiselection != null) {
+                    multiselection.clear();
+                }
+                currentUser.putAttribute(this.filterAttrName, newFilterAttributes);
+                return true;
             } catch (final Exception e) {
                 log.error("Failed to put filter attributes to current user attributes", e);
+                return true;
             }
         }
+        return false;
     }
 
     private void initFilterFromUserAttrs() {
@@ -855,8 +866,7 @@ public class EntityTable<ROW extends ModelIdAware> {
                 this.multiselection.remove(modelId);
             } else {
                 this.multiselection.add(modelId);
-                Arrays.asList(this.table.getSelection())
-                        .stream()
+                Arrays.stream(this.table.getSelection())
                         .forEach(i -> this.multiselection.add(getModelId(i)));
             }
             multiselectFromPage();
@@ -865,10 +875,9 @@ public class EntityTable<ROW extends ModelIdAware> {
 
     private void multiselectFromPage() {
         if (this.multiselection != null) {
-            Arrays.asList(this.table.getItems())
-                    .stream()
+            Arrays.stream(this.table.getItems())
                     .forEach(item -> {
-                        final int index = this.table.indexOf(item);
+                            final int index = this.table.indexOf(item);
                         if (this.multiselection.contains(getModelId(item))) {
                             if (!this.table.isSelected(index)) {
                                 this.table.select(index);
