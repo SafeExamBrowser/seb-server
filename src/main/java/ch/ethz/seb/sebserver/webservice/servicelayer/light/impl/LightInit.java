@@ -32,9 +32,9 @@ public class LightInit {
 
     @EventListener(SEBServerInitEvent.class)
     public void init() {
-        if(isConnectionConfigAbsent()){
-            this.sebClientConfigDAO.createNew(createLightConnectionConfiguration()).getOrThrow();
-        }
+//        if(isConnectionConfigAbsent()){
+//            this.sebClientConfigDAO.createNew(createLightConnectionConfiguration()).getOrThrow();
+//        }
     }
 
     private boolean isConnectionConfigAbsent() {
