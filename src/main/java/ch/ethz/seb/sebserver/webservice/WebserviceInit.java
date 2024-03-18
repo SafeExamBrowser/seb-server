@@ -102,13 +102,15 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> Initialize Services...");
         SEBServerInit.INIT_LOGGER.info("----> ");
 
-        this.applicationEventPublisher.publishEvent(new SEBServerInitEvent(this));
-
         // Run the database integrity checks and fixes if configured
         this.dbIntegrityChecker.checkIntegrity();
 
         // Create an initial admin account if requested and not already in the database
         this.adminUserInitializer.initAdminAccount();
+
+        //emits SEBServerInitEvent
+        this.applicationEventPublisher.publishEvent(new SEBServerInitEvent(this));
+
 
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice Info:                                  ***");

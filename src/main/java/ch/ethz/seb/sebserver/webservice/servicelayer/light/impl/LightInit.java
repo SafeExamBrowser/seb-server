@@ -3,19 +3,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.light.impl;
 
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Lazy
 @Service
@@ -32,9 +26,9 @@ public class LightInit {
 
     @EventListener(SEBServerInitEvent.class)
     public void init() {
-//        if(isConnectionConfigAbsent()){
-//            this.sebClientConfigDAO.createNew(createLightConnectionConfiguration()).getOrThrow();
-//        }
+        if(isConnectionConfigAbsent()){
+            this.sebClientConfigDAO.createNew(createLightConnectionConfiguration()).getOrThrow();
+        }
     }
 
     private boolean isConnectionConfigAbsent() {
