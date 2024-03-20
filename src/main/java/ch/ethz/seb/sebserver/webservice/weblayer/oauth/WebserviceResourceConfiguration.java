@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 import java.util.Arrays;
 import java.util.List;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,6 +32,8 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
     public static final String ADMIN_API_RESOURCE_ID = "seb-server-administration-api";
     /** The resource identifier of the Exam API resources */
     public static final String EXAM_API_RESOURCE_ID = "seb-server-exam-api";
+    @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
+    private String examAPIDiscoveryEndpoint;
 
     public WebserviceResourceConfiguration(
             final TokenStore tokenStore,
@@ -73,6 +77,14 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
         http
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers(API.ERROR_PATH).permitAll()
+                .antMatchers(API.CHECK_PATH).permitAll()
+                .antMatchers(this.examAPIDiscoveryEndpoint).permitAll()
+                .antMatchers(configurerAdapter.apiEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**").permitAll()
+                .antMatchers(configurerAdapter.apiEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**").permitAll()
+                .antMatchers(configurerAdapter.apiEndpoint + API.REGISTER_ENDPOINT).permitAll()
                 .and()
                 .antMatcher(configurerAdapter.apiEndpoint + "/**")
                 .authorizeRequests()
