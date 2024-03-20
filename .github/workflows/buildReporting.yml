@@ -153,6 +153,6 @@ jobs:
     steps:
     -
       name: Delete Artifacts
-      uses: geekyeggo/delete-artifact@v4
+      uses: geekyeggo/delete-artifact@v5
       with:
           name: Package
