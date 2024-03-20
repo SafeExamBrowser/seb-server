@@ -9,12 +9,16 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
@@ -27,32 +31,34 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.discovery}")
 @ConditionalOnExpression("'${sebserver.webservice.light.setup}'.equals('true')")
-public class ExamAPIDiscoveryLightController {
+public class LightController {
 
     private final SEBClientConnectionService sebClientConnectionService;
     private final SEBClientConfigDAO sebClientConfigDAO;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
     private final Executor executor;
 
-    protected ExamAPIDiscoveryLightController(
+    protected LightController(
             final SEBClientConnectionService sebClientConnectionService,
             final SEBClientConfigDAO sebClientConfigDAO,
+            final AdditionalAttributesDAO additionalAttributesDAO,
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.sebClientConnectionService = sebClientConnectionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
+        this.additionalAttributesDAO = additionalAttributesDAO;
         this.executor = executor;
     }
 
     //this.examAPI_V1_Endpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT
     //http://localhost:8080/exam-api/discovery/light-config
     @RequestMapping(
-            path = API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT,
+            path =  API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public CompletableFuture<Void> getLightConfig(
@@ -76,6 +82,36 @@ public class ExamAPIDiscoveryLightController {
 
     }
 
+    @RequestMapping(
+            path =  API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT + API.PASSWORD_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public UsernamePasswordView getInitialAdminPassword(
+            final HttpServletRequest request,
+            final HttpServletResponse response){
+
+        try {
+            final String username = this.additionalAttributesDAO.getAdditionalAttribute(EntityType.USER, 2L, Domain.USER.ATTR_USERNAME)
+                    .getOrThrow()
+                    .getValue();
+
+            final String password = this.additionalAttributesDAO.getAdditionalAttribute(EntityType.USER, 2L, Domain.USER.ATTR_PASSWORD)
+                    .getOrThrow()
+                    .getValue();
+
+            return new UsernamePasswordView(
+                    username,
+                    password
+            );
+
+        } catch (final Exception e) {
+            return new UsernamePasswordView(
+                    "initial username missing or changed",
+                    "inital password missing or changed"
+            );
+        }
+    }
+
     private String getSebClientConfigId() {
         return this.sebClientConfigDAO
                 .allMatching(
@@ -87,9 +123,15 @@ public class ExamAPIDiscoveryLightController {
                 )
                 .getOrThrow()
                 .stream()
-                .collect(Collectors.toList())
+                .toList()
                 .get(0)
                 .getModelId();
     }
 
+}
+
+record UsernamePasswordView(String username, String password) {
+    @JsonCreator
+    UsernamePasswordView {
+    }
 }

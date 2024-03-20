@@ -22,12 +22,11 @@ public class LightInit {
             this.sebClientConfigDAO = sebClientConfigDAO;
     }
 
-
-
     @EventListener(SEBServerInitEvent.class)
     public void init() {
         if(isConnectionConfigAbsent()){
-            this.sebClientConfigDAO.createNew(createLightConnectionConfiguration()).getOrThrow();
+            this.sebClientConfigDAO.createNew(createLightConnectionConfiguration())
+                    .getOrThrow();
         }
     }
 
