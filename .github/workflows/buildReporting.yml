@@ -150,6 +150,8 @@ jobs:
         
   cleanup:
     needs: [maven-build-reporting, docker-build]
+    if: |
+      always()
     runs-on: ubuntu-latest
     steps:
     -
