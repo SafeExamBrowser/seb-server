@@ -57,6 +57,8 @@ public class ExamIndicatorsList implements TemplateComposer {
             new LocTextKey("sebserver.exam.indicator.list.pleaseSelect");
     private static final LocTextKey INDICATOR_EMPTY_LIST_MESSAGE =
             new LocTextKey("sebserver.exam.indicator.list.empty");
+    private static final LocTextKey CONFIRM_MESSAGE_REMOVE_INDICATOR =
+            new LocTextKey("sebserver.exam.indicator.list.delete.confirm");
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -144,6 +146,7 @@ public class ExamIndicatorsList implements TemplateComposer {
                         indicatorTable::getMultiSelection,
                         this::deleteSelectedIndicator,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
+                .withConfirm(() -> CONFIRM_MESSAGE_REMOVE_INDICATOR)
                 .publishIf(() -> indicatorEnabled && !isLight && editable && indicatorTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
