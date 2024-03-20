@@ -149,9 +149,6 @@ jobs:
         TAGS: ${{ steps.meta.outputs.tags }}
         
   cleanup:
-    needs: docker-build
-     # Run only on tagging
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
     -
