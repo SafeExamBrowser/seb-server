@@ -149,6 +149,7 @@ jobs:
         TAGS: ${{ steps.meta.outputs.tags }}
         
   cleanup:
+    needs: [maven-build-reporting, docker-build]
     runs-on: ubuntu-latest
     steps:
     -
