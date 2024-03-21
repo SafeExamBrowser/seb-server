@@ -32,11 +32,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueCon
 @WebServiceProfile
 public class RealNumberConverter implements AttributeValueConverter {
 
-    private static final Logger log = LoggerFactory.getLogger(IntegerConverter.class);
+    private static final Logger log = LoggerFactory.getLogger(RealNumberConverter.class);
 
     public static final Set<String> SUPPORTED_ATTR_NAMES = Utils.immutableSetOf(
             "defaultPageZoomLevel",
-            "defaultTextZoomLevel");
+            "defaultTextZoomLevel",
+            "screenProctoringImageDownscale");
 
     private static final String XML_TEMPLATE = "<key>%s</key><real>%s</real>";
     private static final String JSON_TEMPLATE = "\"%s\":%s";
@@ -87,6 +88,12 @@ public class RealNumberConverter implements AttributeValueConverter {
         } catch (final NumberFormatException nfe) {
             log.error("Failed to convert SEB configuration attribute value of type real number: {}", val, nfe);
             realVal = 0;
+        }
+
+        // NOTE: this is a special case for screenProctoringImageDownscale selector to get the selected real value
+        //       from the selection-index instead using the index. See SEBSERV-527
+        if ("screenProctoringImageDownscale".equals(attribute.name)) {
+            realVal = realVal / 10.0 + 1.0;
         }
 
         out.write(Utils.toByteArray(String.format(

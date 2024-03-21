@@ -12,6 +12,9 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 
 public final class API {
 
+    public static final String ERROR_PATH = "/sebserver/error";
+    public static final String CHECK_PATH = "/sebserver/check";
+
     public enum BulkActionType {
         HARD_DELETE,
         DEACTIVATE,

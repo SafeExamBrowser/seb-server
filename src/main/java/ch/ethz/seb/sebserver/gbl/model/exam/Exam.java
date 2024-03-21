@@ -281,7 +281,7 @@ public final class Exam implements GrantEntity {
             }
             return result;
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 

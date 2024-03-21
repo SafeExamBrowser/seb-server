@@ -42,6 +42,10 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
     private String remoteProctoringViewServletEndpoint;
     @Value("${springdoc.api-docs.enabled:false}")
     private boolean springDocsAPIEnabled;
+    @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
+    private String examAPIDiscoveryEndpoint;
+    @Value("${sebserver.webservice.api.admin.endpoint}")
+    private String adminAPIEndpoint;
 
     /** Gui-service related public URLS from spring web security perspective */
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
@@ -52,27 +56,41 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
             // project specific static resources
             new AntPathRequestMatcher("/images/**"),
 
-            new AntPathRequestMatcher("/favicon.ico"));
+            new AntPathRequestMatcher("/favicon.ico")
+    );
 
     @Override
     public void configure(final WebSecurity web) {
         web
-                .ignoring()
-                .requestMatchers(PUBLIC_URLS)
-                .antMatchers(this.guiEntryPoint)
-                .antMatchers(this.remoteProctoringEndpoint)
-                .antMatchers(this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/*");
+            .ignoring()
+            .antMatchers(this.guiEntryPoint)
+        ;
 
         if (this.springDocsAPIEnabled) {
             web.ignoring().antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**");
         }
     }
 
+
+
     @Override
     public void configure(final HttpSecurity http) throws Exception {
         http
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers(this.remoteProctoringEndpoint).permitAll()
+                .antMatchers(this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/*").permitAll()
+                .requestMatchers(PUBLIC_URLS).permitAll()
+                .antMatchers(API.ERROR_PATH).permitAll()
+                .antMatchers(API.CHECK_PATH).permitAll()
+                .antMatchers(this.examAPIDiscoveryEndpoint).permitAll()
+                .antMatchers(this.examAPIDiscoveryEndpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT).permitAll()
+                .antMatchers(this.examAPIDiscoveryEndpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT + API.PASSWORD_PATH_SEGMENT).permitAll()
+                .antMatchers(adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**").permitAll()
+                .antMatchers(adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**").permitAll()
+                .antMatchers(adminAPIEndpoint + API.REGISTER_ENDPOINT).permitAll()
                 .and()
                 .antMatcher("/**")
                 .authorizeRequests()

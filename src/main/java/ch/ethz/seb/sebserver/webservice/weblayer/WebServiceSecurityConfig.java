@@ -13,6 +13,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import org.apache.catalina.filters.RemoteIpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,18 +51,18 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
 /** This is the main web-security Spring configuration for SEB-Server webservice API
- *
+ * <p>
  * Currently two separated Rest API's are implemented, one for administration and maintenance
  * of the SEB-Server (AdminAPI) and one for SEB-Client connection on running exams and eventually
  * also for LMS communication), if needed (ExamAPI). The AdministrationAPI uses OAuth 2 password
  * grant with refresh-token, same as in the prototype and the ExamAPI uses the client_credential grant.
- *
+ * <p>
  * There is a Spring Authorization-Server defining this two clients (AdminAPIClient and ExamAPIClient) as well as
  * two Spring Resource-Server for the separation of the different API's
- *
+ * <p>
  * The endpoint of the AdministrationAPI can be configured within the key; sebserver.webservice.api.admin.endpoint
  * and is by default set to "/admin-api/**"
- *
+ * <p>
  * The endpoint of the ExamAPI can be configured within the key; sebserver.webservice.api.exam.endpoint
  * and is by default set to "/exam-api/**" */
 @WebServiceProfile
