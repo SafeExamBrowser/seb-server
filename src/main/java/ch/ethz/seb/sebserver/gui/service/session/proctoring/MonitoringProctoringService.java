@@ -286,22 +286,23 @@ public class MonitoringProctoringService {
                 String.valueOf(proctoringSettings.examId),
                 proctoringConnectionData);
 
-        final String zoomStartLink = extractZoomStartLink(room.additionalRoomData);
-        if (proctoringSettings.useZoomAppClientForCollectingRoom &&
-                StringUtils.isNotBlank(zoomStartLink)) {
+        if (proctoringSettings.useZoomAppClientForCollectingRoom) {
+            final String zoomStartLink = extractZoomStartLink(room.additionalRoomData);
+            
+            if (StringUtils.isNotBlank(zoomStartLink)) {
 
-            final String script = String.format(
-                    getOpenRoomScriptTemplate(),
-                    room.name,
-                    800,
-                    1200,
-                    room.name,
-                    zoomStartLink,
-                    "");
-
-            RWT.getClient()
-                    .getService(JavaScriptExecutor.class)
-                    .execute(script);
+                final String script = String.format(
+                        getOpenRoomScriptTemplate(),
+                        room.name,
+                        800,
+                        1200,
+                        room.name,
+                        zoomStartLink,
+                        "");
+    
+                RWT.getClient()
+                        .getService(JavaScriptExecutor.class)
+                        .execute(script);
 
         } else {
 
