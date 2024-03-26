@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -151,7 +152,9 @@ class AdminUserInitializer {
                         .flatMap(account -> this.userDAO.setActive(account, true))
                         .map(account -> {
                             printAdminCredentials(this.adminName, generateAdminPassword);
-                            if(this.webserviceInfo.isLightSetup()) writeInitialAdminCredentialsIntoDB(this.adminName, generateAdminPassword);
+                            if(this.webserviceInfo.isLightSetup()) {
+                                writeInitialAdminCredentialsIntoDB(this.adminName, generateAdminPassword);
+                            }
                             return account;
                         })
                         .getOrThrow();
@@ -179,7 +182,7 @@ class AdminUserInitializer {
     }
 
     private void writeInitialAdminCredentialsIntoDB(final String name, final CharSequence pwd){
-        Result.tryCatch(() -> {
+        try {
             final Map<String, String> attributes = new HashMap<>();
             attributes.put(
                     Domain.USER.ATTR_USERNAME,
@@ -188,11 +191,11 @@ class AdminUserInitializer {
                     Domain.USER.ATTR_PASSWORD,
                     String.valueOf(pwd));
 
-            this.additionalAttributesDAO.saveAdditionalAttributes(
-                    EntityType.USER,
-                    2L,
-                    attributes);
-        });
+            this.additionalAttributesDAO.saveAdditionalAttributes(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, attributes);
+
+        } catch (final Exception e) {
+            log.error("Unable to write initial admin credentials into the additional attributes table: ", e);
+        }
     }
 
     private CharSequence generateAdminPassword() {

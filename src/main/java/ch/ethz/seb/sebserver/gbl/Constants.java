@@ -102,6 +102,8 @@ public final class Constants {
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
 
+    public static final Long LIGHT_ADMIN_USER_ID = 1L;
+
     public static final DateTimeFormatter STANDARD_DATE_TIME_MILLIS_FORMATTER = DateTimeFormat
             .forPattern(DEFAULT_DATE_TIME_MILLIS_FORMAT)
             .withZoneUTC();

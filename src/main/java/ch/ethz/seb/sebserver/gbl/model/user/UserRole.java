@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 
@@ -61,11 +62,9 @@ public enum UserRole implements Entity, GrantedAuthority {
     }
 
     public static List<String> getNamesForAllRoles(){
-        return List.of(
-                SEB_SERVER_ADMIN.getName(),
-                INSTITUTIONAL_ADMIN.getName(),
-                EXAM_ADMIN.getName(),
-                EXAM_SUPPORTER.getName());
+        return Arrays.stream(UserRole.values())
+                .map(UserRole::getName)
+                .toList();
     }
 
 }

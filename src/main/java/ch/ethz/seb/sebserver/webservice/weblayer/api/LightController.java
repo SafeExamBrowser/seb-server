@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
@@ -55,8 +56,6 @@ public class LightController {
         this.executor = executor;
     }
 
-    //this.examAPI_V1_Endpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT
-    //http://localhost:8080/exam-api/discovery/light-config
     @RequestMapping(
             path =  API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT,
             method = RequestMethod.GET,
@@ -65,14 +64,10 @@ public class LightController {
             final HttpServletRequest request,
             final HttpServletResponse response){
 
-        //temp solution: get first active seb client config we can get -->
-        //in a light setup there should be only one setup so this step is not necessary and we can just use the first and only item in the db
-        String modelId = getSebClientConfigId();
-
         return CompletableFuture.runAsync(
                 () -> {
                     try {
-                        this.sebClientConnectionService.streamLightExamConfig(modelId, response);
+                        this.sebClientConnectionService.streamLightExamConfig("1", response);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -91,11 +86,11 @@ public class LightController {
             final HttpServletResponse response){
 
         try {
-            final String username = this.additionalAttributesDAO.getAdditionalAttribute(EntityType.USER, 2L, Domain.USER.ATTR_USERNAME)
+            final String username = this.additionalAttributesDAO.getAdditionalAttribute(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, Domain.USER.ATTR_USERNAME)
                     .getOrThrow()
                     .getValue();
 
-            final String password = this.additionalAttributesDAO.getAdditionalAttribute(EntityType.USER, 2L, Domain.USER.ATTR_PASSWORD)
+            final String password = this.additionalAttributesDAO.getAdditionalAttribute(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, Domain.USER.ATTR_PASSWORD)
                     .getOrThrow()
                     .getValue();
 

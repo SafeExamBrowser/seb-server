@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
@@ -42,6 +43,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringSer
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
@@ -63,6 +66,8 @@ import java.util.List;
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.USER_ACCOUNT_ENDPOINT)
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
+
+    private static final Logger log = LoggerFactory.getLogger(UserAccountController.class);
 
     private final ApplicationEventPublisher applicationEventPublisher;
     private final UserDAO userDAO;
@@ -201,12 +206,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(this::revokeAccessToken)
                 .flatMap(e -> this.userActivityLogDAO.log(UserLogActivityType.PASSWORD_CHANGE, e))
                 .map(this::synchronizeUserWithSPS)
-                .map(userInfo -> {
-                    if(this.webserviceInfo.isLightSetup()){
-                        return removeInitialAdminPasswordFromDB(userInfo);
-                    }
-                    return userInfo;
-                })
+                .map(this::removeInitialAdminPasswordFromDB)
                 .getOrThrow();
     }
 
@@ -314,10 +314,18 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     private UserInfo removeInitialAdminPasswordFromDB(final UserInfo userInfo){
-        Result.tryCatch(() -> {
-            this.additionalAttributesDAO.delete(EntityType.USER, 2L, Domain.USER.ATTR_USERNAME);
-            this.additionalAttributesDAO.delete(EntityType.USER, 2L, Domain.USER.ATTR_PASSWORD);
-        });
+        if(!this.webserviceInfo.isLightSetup()){
+            return userInfo;
+        }
+
+        try{
+            this.additionalAttributesDAO.delete(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, Domain.USER.ATTR_USERNAME);
+            this.additionalAttributesDAO.delete(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, Domain.USER.ATTR_PASSWORD);
+
+        }catch(final Exception e){
+            log.error("Unable to delete initial admin credentials from the additional attributes table: ", e);
+
+        }
 
         return userInfo;
     }
