@@ -126,6 +126,8 @@ public final class API {
 
     public static final String EXAM_API_CONFIGURATION_REQUEST_ENDPOINT = "/examconfig";
 
+    public static final String EXAM_API_CONFIGURATION_LIGHT_ENDPOINT = "/light-config";
+
     public static final String EXAM_API_PING_ENDPOINT = "/sebping";
 
     public static final String EXAM_API_PING_TIMESTAMP = "timestamp";

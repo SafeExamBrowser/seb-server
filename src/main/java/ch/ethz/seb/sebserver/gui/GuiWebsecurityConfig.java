@@ -86,6 +86,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(API.ERROR_PATH).permitAll()
                 .antMatchers(API.CHECK_PATH).permitAll()
                 .antMatchers(this.examAPIDiscoveryEndpoint).permitAll()
+                .antMatchers(this.examAPIDiscoveryEndpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT).permitAll()
+                .antMatchers(this.examAPIDiscoveryEndpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT + API.PASSWORD_PATH_SEGMENT).permitAll()
                 .antMatchers(adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(adminAPIEndpoint + API.REGISTER_ENDPOINT).permitAll()

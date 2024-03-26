@@ -8,19 +8,43 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-
-import javax.validation.Valid;
-
+import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.user.*;
+import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
+import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
+import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
@@ -32,35 +56,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
-import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
-import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.USER_ACCOUNT_ENDPOINT)
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
 
+    private static final Logger log = LoggerFactory.getLogger(UserAccountController.class);
+
     private final ApplicationEventPublisher applicationEventPublisher;
     private final UserDAO userDAO;
     private final PasswordEncoder userPasswordEncoder;
     private final ScreenProctoringService screenProctoringService;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final WebserviceInfo webserviceInfo;
 
     private final FeatureService featureService;
 
@@ -73,6 +87,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final ApplicationEventPublisher applicationEventPublisher,
             final BeanValidationService beanValidationService,
             final ScreenProctoringService screenProctoringService,
+            final AdditionalAttributesDAO additionalAttributesDAO,
+            final WebserviceInfo webserviceInfo,
             final FeatureService featureService,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
@@ -86,6 +102,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.userDAO = userDAO;
         this.userPasswordEncoder = userPasswordEncoder;
         this.screenProctoringService = screenProctoringService;
+        this.additionalAttributesDAO = additionalAttributesDAO;
+        this.webserviceInfo = webserviceInfo;
         this.featureService = featureService;
     }
 
@@ -188,6 +206,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(this::revokeAccessToken)
                 .flatMap(e -> this.userActivityLogDAO.log(UserLogActivityType.PASSWORD_CHANGE, e))
                 .map(this::synchronizeUserWithSPS)
+                .map(this::removeInitialAdminPasswordFromDB)
                 .getOrThrow();
     }
 
@@ -291,6 +310,23 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
     private UserInfo synchronizeUserWithSPS(final UserInfo userInfo) {
         screenProctoringService.synchronizeSPSUser(userInfo.uuid);
+        return userInfo;
+    }
+
+    private UserInfo removeInitialAdminPasswordFromDB(final UserInfo userInfo){
+        if(!this.webserviceInfo.isLightSetup()){
+            return userInfo;
+        }
+
+        try{
+            this.additionalAttributesDAO.delete(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, Domain.USER.ATTR_USERNAME);
+            this.additionalAttributesDAO.delete(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, Domain.USER.ATTR_PASSWORD);
+
+        }catch(final Exception e){
+            log.error("Unable to delete initial admin credentials from the additional attributes table: ", e);
+
+        }
+
         return userInfo;
     }
 }

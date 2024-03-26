@@ -8,10 +8,16 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,26 +46,32 @@ class AdminUserInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(AdminUserInitializer.class);
 
+    private final WebserviceInfo webserviceInfo;
     private final UserDAO userDAO;
     private final InstitutionDAO institutionDAO;
     private final PasswordEncoder passwordEncoder;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
     private final boolean initializeAdmin;
     private final String adminName;
     private final String orgName;
     private final Environment environment;
 
     public AdminUserInitializer(
+            final WebserviceInfo webserviceInfo,
             final UserDAO userDAO,
             final InstitutionDAO institutionDAO,
+            final AdditionalAttributesDAO additionalAttributesDAO,
             final Environment environment,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder passwordEncoder,
             @Value("${sebserver.init.adminaccount.gen-on-init:false}") final boolean initializeAdmin,
             @Value("${sebserver.init.adminaccount.username:seb-server-admin}") final String adminName,
             @Value("${sebserver.init.organisation.name:[SET_ORGANIZATION_NAME]}") final String orgName) {
 
+        this.webserviceInfo = webserviceInfo;
         this.environment = environment;
         this.userDAO = userDAO;
         this.institutionDAO = institutionDAO;
+        this.additionalAttributesDAO = additionalAttributesDAO;
         this.passwordEncoder = passwordEncoder;
         this.initializeAdmin = initializeAdmin;
         this.adminName = adminName;
@@ -68,7 +80,7 @@ class AdminUserInitializer {
 
     void initAdminAccount() {
         if (!this.initializeAdmin) {
-            log.debug("Create initial admin account is switched on off");
+            log.debug("Create initial admin account is switched off");
             return;
         }
 
@@ -90,7 +102,7 @@ class AdminUserInitializer {
                         this.userDAO.changePassword(
                                 sebServerUser.getUserInfo().getModelId(),
                                 generateAdminPassword);
-                        this.writeAdminCredentials(this.adminName, generateAdminPassword);
+                        this.printAdminCredentials(this.adminName, generateAdminPassword);
                     }
                 }
             } else {
@@ -133,10 +145,16 @@ class AdminUserInitializer {
                         null,
                         null,
                         null,
-                        new HashSet<>(Arrays.asList(UserRole.SEB_SERVER_ADMIN.name()))))
+                        new HashSet<>(this.webserviceInfo.isLightSetup() ?
+                                UserRole.getNamesForAllRoles() :
+                                List.of(UserRole.SEB_SERVER_ADMIN.name())
+                        )))
                         .flatMap(account -> this.userDAO.setActive(account, true))
                         .map(account -> {
-                            writeAdminCredentials(this.adminName, generateAdminPassword);
+                            printAdminCredentials(this.adminName, generateAdminPassword);
+                            if(this.webserviceInfo.isLightSetup()) {
+                                writeInitialAdminCredentialsIntoDB(this.adminName, generateAdminPassword);
+                            }
                             return account;
                         })
                         .getOrThrow();
@@ -148,7 +166,7 @@ class AdminUserInitializer {
         }
     }
 
-    private void writeAdminCredentials(final String name, final CharSequence pwd) {
+    private void printAdminCredentials(final String name, final CharSequence pwd) {
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info(
                 "----> ******************************************************************************************"
@@ -161,6 +179,23 @@ class AdminUserInitializer {
                 "----> ******************************************************************************************"
                         + "*****************************************************************************");
         SEBServerInit.INIT_LOGGER.info("---->");
+    }
+
+    private void writeInitialAdminCredentialsIntoDB(final String name, final CharSequence pwd){
+        try {
+            final Map<String, String> attributes = new HashMap<>();
+            attributes.put(
+                    Domain.USER.ATTR_USERNAME,
+                    name);
+            attributes.put(
+                    Domain.USER.ATTR_PASSWORD,
+                    String.valueOf(pwd));
+
+            this.additionalAttributesDAO.saveAdditionalAttributes(EntityType.USER, Constants.LIGHT_ADMIN_USER_ID, attributes);
+
+        } catch (final Exception e) {
+            log.error("Unable to write initial admin credentials into the additional attributes table: ", e);
+        }
     }
 
     private CharSequence generateAdminPassword() {
