@@ -202,18 +202,36 @@ public abstract class MoodleUtils {
             final boolean useQuizId) {
 
         final Map<String, String> additionalAttrs = new HashMap<>();
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_FULL_NAME, courseData.full_name);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_DISPLAY_NAME, courseData.display_name);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SUMMARY, courseData.summary);
+        if (courseData.time_created != null) {
+            additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
+        }
+        if (courseData.short_name != null) {
+            additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
+        }
+        if (courseData.idnumber != null) {
+            additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
+        }
+        if (StringUtils.isNotBlank(courseData.full_name)) {
+            additionalAttrs.put(QuizData.ATTR_ADDITIONAL_FULL_NAME, courseData.full_name);
+        }
+        if (StringUtils.isNotBlank(courseData.display_name)) {
+            additionalAttrs.put(QuizData.ATTR_ADDITIONAL_DISPLAY_NAME, courseData.display_name);
+        }
+        if (StringUtils.isNotBlank(courseData.summary)) {
+            additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SUMMARY, courseData.summary);
+        }
 
         final List<QuizData> courseAndQuiz = courseData.quizzes
                 .stream()
                 .map(courseQuizData -> {
                     final String startURI = uriPrefix + courseQuizData.course_module;
-                    additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
+
+                    additionalAttrs.put(
+                            QuizData.ATTR_ADDITIONAL_TIME_LIMIT,
+                            (courseQuizData.time_limit == null)
+                                ? StringUtils.EMPTY
+                                : String.valueOf(courseQuizData.time_limit));
+
                     return new QuizData(
                             MoodleUtils.getInternalQuizId(
                                     (useQuizId) ? courseQuizData.id : courseQuizData.course_module,

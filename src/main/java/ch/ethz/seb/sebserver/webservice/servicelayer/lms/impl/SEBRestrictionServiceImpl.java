@@ -148,9 +148,12 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             // special Moodle plugin case for ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK
             this.lmsAPIService.getLmsSetup(exam.lmsSetupId).map(lms -> {
                 if (lms.lmsType == LmsType.MOODLE_PLUGIN) {
-                    additionalAttributes.put(
-                            MoodleSEBRestriction.ATTR_ALT_BEK,
-                            exam.getAdditionalAttribute(ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK));
+                    final AdditionalAttributeRecord attr = this.additionalAttributesDAO.getAdditionalAttribute(
+                            EntityType.EXAM,
+                            exam.id,
+                            ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK)
+                            .getOrThrow();
+                    additionalAttributes.put(MoodleSEBRestriction.ATTR_ALT_BEK, attr.getValue());
                 }
                 return lms;
             });
