@@ -9,7 +9,7 @@ see a list of all available exams. You are able to filter and sort the list as u
 
 .. note::
     The Date-Filter above "Start-Time" is usually set to the date one year before now or to some other default date in the past
-    and is applied to the end-date of the exam or quiz. The list shows all running or up-comming exams and only hides finished or
+    and is applied to the end-date of the exam or quiz. The list shows all running or up-coming exams and only hides finished or
     archived exams that has an end-date before the Date-Filter date. 
     
 Double click on the list entry of the exam or select the list entry and use the "View Exam" action of the action pane on the right hand side to

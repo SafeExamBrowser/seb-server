@@ -173,7 +173,7 @@ To deselect a selected row just click it again then it will be removed from the 
     
 .. note::
     Some actions on the right action pane are used only for single objects but also enabled on multi-selection. If you have multiple selections
-    and use a single object action like "View", "Edit" or "Copy" for exmaple, then the system will take the fist selected object/row to work with.
+    and use a single object action like "View", "Edit" or "Copy" for example, then the system will take the fist selected object/row to work with.
 
 **Forms**
 
@@ -218,7 +218,7 @@ Actions are usually placed on the right action pane of the application and belon
 
 .. note::
     List action are disabled when nothing is selected from the list and get enabled as soon as one or more list items are selected.
-    Actions that are considdered single selection actions, and are used with a multi selection on the list will only affect the first selected item in the list.
+    Actions that are considered single selection actions, and are used with a multi selection on the list will only affect the first selected item in the list.
     
 .. image:: images/overview/list_multiselect_actions.png
     :align: center

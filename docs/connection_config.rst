@@ -91,6 +91,28 @@ configuration settings in the following ways:
 - Connection configuration with "Starting an Exam" setting and fallback strategy:
     Show warning with options "retry", "fallback" (load Fallback URL) and "quit".
 
+**New: Exam Selection for dedicated Client Configurations**
+
+This is a new feature since SEB Server Version 1.6. and allows to select existing exams within a Connection Configuration to reduce the possible
+Exams that SEB presents to a student when a Connection Configuration is loaded by SEB that has no dedicated Exam preselection (downloaded from the Exam view)
+In this case SEB always presented all currently running Exams from the SEB Server to the student for selection. With this
+feature it is now possible to reduce this choice for a specific Client Configuration by selecting the Exams that shall be shown to a student
+when SEB loads the respective Connection Configuration.
+
+. note::
+    Since the Exam selection is stored with SEB Server and not exported to an Connection Configuration it is also possible
+    to change the Exam selection for a certain Connection Configuration after the Connection Configuration was downloaded.
+    SEB will always present the running exams exclusively from actual Exam selection from Connection Configuration on the SEB Server.
+
+If an Connection Configuration has no Exam selection all still running exams are presented to the student as it was before.
+
+To select dedicated Exams for a Connection Configuration you can go to the Connection Configuration edit view and select
+these exams with the multi selector. It is also possible to filter the list by typing in the letters containing in the Exam name of interest.
+
+.. image:: images/connection_config/examSelection.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/connection_config/examSelection.png
+
 
 Use Cases
 ---------

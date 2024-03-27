@@ -41,7 +41,7 @@ that is in a valid state to apply the action.
 
 .. note::
     For batch-action the same validation is done like for the single action delete and archive. Archive of an exam is only possible if it
-    is not currently running but finished or up-coming. Delete is always possible and you habe to be cearfull while deleting exams in batch.
+    is not currently running but finished or up-coming. Delete is always possible and you have to be carefully while deleting exams in batch.
     
 After you have started the batch-action the result pop-up of the batch-action will show you the progress and how many has been processed and
 also how many as failed due to invalid state for batch-action or due to an error.
