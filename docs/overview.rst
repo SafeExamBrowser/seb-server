@@ -27,8 +27,8 @@ The key features of SEB Server are:
 - Track user activities within user-activity logs for the whole SEB Server or a client.
 - Create, export, and maintain SEB connection configurations. Those are needed to startup a Safe Exam Browser client with and contain all information to connect securely to the SEB Server.
 - Create and maintain SEB exam configurations. Those are sent to a SEB client on connection setup and contain all SEB settings for a particular e-assessment.
-- Setup and maintain Learning Management Systems (LMS) and e-assessment systems like Open edX, Moodle, OpenOlat or ANS to be able to navigate and find courses or quizzes on the system and to push access restrictions to it if supported by the particular LMS/e-assessment suite.
-- Import and maintain courses or quizzes from an LMS. Setup everything that is needed for an e-assessment that is based on a course or quiz from the LMS
+- Setup and maintain Learning Management Systems (LMS/Assessment Tool) and e-assessment systems like Open edX, Moodle, OpenOlat or ANS to be able to navigate and find courses or quizzes on the system and to push access restrictions to it if supported by the particular LMS/Assessment Tool.
+- Import and maintain courses or quizzes from an LMS/Assessment Tool. Setup everything that is needed for an e-assessment that is based on a course or quiz from the LMS/Assessment Tool
 - Apply indicators to the exams to indicate incidences while monitoring running e-assessments.
 - Monitor running e-assessment and have an overview of all connected SEB clients. Manage SEB client connections and view logs sent by individual SEB clients.
 
@@ -64,7 +64,7 @@ Another use-case would be to maintain registered user accounts and to give more 
 
 An institutional administrator has overall read access for its institution and can modify the institution properties as well as 
 create new or maintain existing user accounts for the belonging institution. Furthermore, an institutional administrator can create and maintain 
-learning management system (LMS) setups and SEB connection configurations for the belonging institution.
+learning management system (LMS/Assessment Tool) setups and SEB connection configurations for the belonging institution.
 
 A typical use-case for an institutional administrator would be to give the appropriate roles and privileges to newly registered users of the institution.
 Or another use-case would be to create and maintain SEB connection configurations for the institutions and set up and maintain learning management systems 

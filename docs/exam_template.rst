@@ -7,7 +7,7 @@ Overview
 --------
 
 Exam templates are a new, useful feature available since SEB Server version 1.3. Within exam templates it is possible to create specific named templates that can be 
-used by an exam import from LMS course/quiz and define default settings and indicators that are automatically be applied on the exam import.
+used by an exam import from LMS/Assessment Tool course/quiz and define default settings and indicators that are automatically be applied on the exam import.
 Furthermore, exam templates gives you the possibility to map exam configuration template to automatically create and map an exam configuration for an exam on import.
 This is very convenient if you have a lot of exams to set up that all have the same or similar settings. In such a case you can create an exam template 
 with all the common settings for that exams and use it on exam import.
@@ -67,8 +67,8 @@ look like the ones on the Exam and will get copied for an exam imported with the
 Import Exam with Template
 -------------------------
 
-Once one or more exam template exists, you are able to select one while importing an exam from the LMS in the "LMS Exam Lookup" section. Just as usual
-use the "Import as Exam" action for a LMS exam that you want to import.
+Once one or more exam template exists, you are able to select one while importing an exam from the LMS/Assessment Tool in the "LMS/Assessment Tool Exam Lookup" section. Just as usual
+use the "Import as Exam" action for a LMS/Assessment Tool exam that you want to import.
 
 .. image:: images/exam_template/select1.png
     :align: center
@@ -119,9 +119,9 @@ a of great help while shorten the setup process and reduces the work that must b
 
 **Use an existing Exam Template on Exam import**
 
-- Sign in as an Exam Administrator and select the "LMS Exam Lookup" sub-menu of the "Exam Administration" section in the left menu pane.
-- Here you can see all exams form the LMS that are bound to the SEB Server. Select the specific exam that you want to import.
-- Use "Import as Exam" from the right action pane to import that exam from the LMS as usual.
+- Sign in as an Exam Administrator and select the "LMS/Assessment Tool Exam Lookup" sub-menu of the "Exam Administration" section in the left menu pane.
+- Here you can see all exams form the LMS/Assessment Tool that are bound to the SEB Server. Select the specific exam that you want to import.
+- Use "Import as Exam" from the right action pane to import that exam from the LMS/Assessment Tool as usual.
 - In the exam import initialization step you now have a new selector to select an Exam Template that shall be applied.
 - If there is a default Exam Template defined for the institution, this is pre-selected and already applied. If not you have to select the template of your choice.
 - By selecting an Exam Template the template attributes are already applied and you see the respective attributes in the exam settings.

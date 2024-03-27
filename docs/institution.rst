@@ -109,7 +109,7 @@ the form.
 
 To deactivate an institution one can use the "Deactivate Institution" action form the action pane on the right side.
 When an institution is been deactivated, also all existing and active entities that belongs to this institution are deactivated too.
-This affects user-accounts, configurations and LMS Setups. On deactivation action, the application will search the affected entities
+This affects user-accounts, configurations and LMS/Assessment Tool Setups. On deactivation action, the application will search the affected entities
 and will inform the administrator about the number of the affected entities and asks for confirmation.
 After Confirm the deactivation the institution and all affected entities will be deactivated. This means also the user-accounts that has
 not an institutional role or the SEB Server administration role, will not be able to log in anymore.
