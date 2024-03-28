@@ -100,6 +100,7 @@ feature it is now possible to reduce this choice for a specific Client Configura
 when SEB loads the respective Connection Configuration.
 
 . note::
+
     Since the Exam selection is stored with SEB Server and not exported to an Connection Configuration it is also possible
     to change the Exam selection for a certain Connection Configuration after the Connection Configuration was downloaded.
     SEB will always present the running exams exclusively from actual Exam selection from Connection Configuration on the SEB Server.
@@ -112,6 +113,7 @@ these exams with the multi selector. It is also possible to filter the list by t
 .. image:: images/connection_config/examSelection.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/connection_config/examSelection.png
+
 
 
 Use Cases

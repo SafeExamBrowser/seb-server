@@ -1,6 +1,6 @@
 .. _sebExamQuitPassword-label:
 
-(New) Exam Quit Password
+Exam Quit Password (New)
 ========================
 
 Since SEB Server Version 1.6 it is possible to set the quit-password (usually set in the Exam Configuration/SEB Settings) while
@@ -29,11 +29,13 @@ The quit password can be set on Exam creation or import:
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/quitPasswordImport.png
 
+
 As well as in the Exam edit view:
 
 .. image:: images/exam/quitPasswordEdit.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/quitPasswordEdit.png
+
 
 If the Exam was created from an LMS/Assessment Tool with SEB Server integration that allows to send the quit-password
 to the LMS/Assessment Tool for display, SEB Server sends a new quit-password as on save. The LMS/Assessment Tool should

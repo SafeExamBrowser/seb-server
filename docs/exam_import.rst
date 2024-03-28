@@ -46,7 +46,7 @@ like name, description, start-, end-time and course-identifier will not be store
 This means, that the course data has to be modified on the LMS/Assessment Tool side as usual and the SEB Server always takes the actual data from the LMS/Assessment Tool for the
 course. This has the advantages of the principle of single responsibility and prevents synchronization issues. 
 
-You will see the creation page of the new exam with additional information: 
+You will see the creation page of the new exam with additional information from LMS/Assessment Tool:
 
 - **Name**: Is the name of the course, defines on the LMS/Assessment Tool
 - **LMS/Assessment Tool Setup**: Is the name of the LMS/Assessment Tool Setup on the SEB Server from which the course was imported
@@ -71,9 +71,6 @@ typing characters of the name of the user-account you want to apply to automatic
 specified user that will be added to the list below the input field. To add another user to the selection just click again into the input field
 and select another user. To remove a selected user from the selection-list, double-click on the specified entry of the selection-list.
 
-.. note::
-    At least one user account must be selected for the attribute "Exam Supporter". You are able to change this also later on by editing the exam.
-    
 To confirm the import use the "Save Exam" action of the action pane on the right hand side or use "Cancel" if you want to abort the import of the
 exam and go back to the course list. If you have confirmed and successfully imported the exam, you will see the exam overview page where you are able
 to edit the details of the exam, apply SEB restrictions of supported by the LMS/Assessment Tool, apply a SEB exam configuration for the exam and define indicators

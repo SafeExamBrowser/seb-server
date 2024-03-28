@@ -1,6 +1,6 @@
 .. _sebProctoringSettings-label:
 
-(Deprecated) Live Proctoring
+Live Proctoring (Deprecated)
 ========================
 
 .. attention::
