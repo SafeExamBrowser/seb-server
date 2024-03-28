@@ -17,6 +17,8 @@ put with some fields you have to provide instead of they coming from LMS/Assessm
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithURLNew.png
 
+
+
 .. image:: images/exam/examWithURL.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithURLNew.png

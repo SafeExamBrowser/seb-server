@@ -67,7 +67,8 @@ Short description of all attributes of a connection configuration:
 A connection configuration may also contain and define a fallback strategy that takes place when SEB Server service is not available while 
 a SEB client tries to connect to the SEB Server.
 
-.. note:: 
+.. note::
+
     A fallback case only takes place when SEB client is within the connection process (handshake) with the SEB Server and the SEB Server service is unavailable.
     If a SEB client is already connected to the SEB Server and the user has started an exam, the SEB will just proceed with the exam even 
     when the SEB Server connection is (temporarily) unavailable.
@@ -99,7 +100,7 @@ In this case SEB always presented all currently running Exams from the SEB Serve
 feature it is now possible to reduce this choice for a specific Client Configuration by selecting the Exams that shall be shown to a student
 when SEB loads the respective Connection Configuration.
 
-. note::
+.. note::
 
     Since the Exam selection is stored with SEB Server and not exported to an Connection Configuration it is also possible
     to change the Exam selection for a certain Connection Configuration after the Connection Configuration was downloaded.
@@ -114,7 +115,7 @@ these exams with the multi selector. It is also possible to filter the list by t
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/connection_config/examSelection.png
 
-
+___________________________
 
 Use Cases
 ---------
