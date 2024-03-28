@@ -1,8 +1,6 @@
 Safe Exam Browser (SEB) Server
 --------------------------------
 
-Master:
-
 .. image:: https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting.yml/badge.svg?branch=master
     :target: https://github.com/SafeExamBrowser/seb-server/actions
 .. image:: https://readthedocs.org/projects/seb-server/badge/?version=latest
@@ -12,14 +10,6 @@ Master:
 .. image:: https://img.shields.io/github/languages/code-size/SafeExamBrowser/seb-server
     :target: https://github.com/SafeExamBrowser/seb-server
 
-Development:
-
-.. image:: https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting.yml/badge.svg?branch=development
-    :target: https://github.com/SafeExamBrowser/seb-server/actions
-.. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/development/graph/badge.svg
-    :target: https://codecov.io/gh/SafeExamBrowser/seb-server
-.. image:: https://img.shields.io/github/last-commit/SafeExamBrowser/seb-server/development?logo=github
-    :target: https://github.com/SafeExamBrowser/seb-server/tree/development
 
 
 The Safe Exam Browser Server web application simplifies and centralizes the configuration of Safe Exam Browser clients for exams. It interacts with a learning management or exam system for setting up and conducting e-assessments with Safe Exam Browser. It also improves security by allowing to monitor connected Safe Exam Browser clients in real time during e-assessments. 
