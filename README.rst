@@ -92,7 +92,9 @@ Bugfixes:
 
 Docker-Image:
 
-TODO
+    Exact release version: docker pull anhefti/seb-server:v1.6.0 (sha256:878f411ee3df84019f2b167ad4fd29ecad77c90063b2ced4e16e69edab74805e)
+    Stable minor version: docker pull anhefti/seb-server:v1.6-stable
+
 
 SEB - SEB Server Compatibility
 ------------------------------
