@@ -1,8 +1,6 @@
 Safe Exam Browser (SEB) Server
 --------------------------------
 
-Master:
-
 .. image:: https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting.yml/badge.svg?branch=master
     :target: https://github.com/SafeExamBrowser/seb-server/actions
 .. image:: https://readthedocs.org/projects/seb-server/badge/?version=latest
@@ -12,14 +10,6 @@ Master:
 .. image:: https://img.shields.io/github/languages/code-size/SafeExamBrowser/seb-server
     :target: https://github.com/SafeExamBrowser/seb-server
 
-Development:
-
-.. image:: https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting.yml/badge.svg?branch=development
-    :target: https://github.com/SafeExamBrowser/seb-server/actions
-.. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/development/graph/badge.svg
-    :target: https://codecov.io/gh/SafeExamBrowser/seb-server
-.. image:: https://img.shields.io/github/last-commit/SafeExamBrowser/seb-server/development?logo=github
-    :target: https://github.com/SafeExamBrowser/seb-server/tree/development
 
 
 The Safe Exam Browser Server web application simplifies and centralizes the configuration of Safe Exam Browser clients for exams. It interacts with a learning management or exam system for setting up and conducting e-assessments with Safe Exam Browser. It also improves security by allowing to monitor connected Safe Exam Browser clients in real time during e-assessments. 
@@ -58,56 +48,52 @@ a more automated and secure setup for high-stake exams.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-1.5/docs/images/setup_1.png
     
-SEB Server Version 1.5 is out
+SEB Server Version 1.6 is out
 -------------------------------
 
 New Features:
 
-- Security: New Application Signature Key (ASK) integration within SEB Server exams and monitoring
-- Security: Minimum SEB Client version tracking within SEB Server monitoring
-- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
-- Exam Maintenance: Added new SEB grouping functionality for Exam (and Exam Template) and Monitoring to be able to view/manage SEB Clients within defined groups (IP range, SEB client OS, ...) 
-- Exam Maintenance: Batch actions for archive and delete exams
-- Exam Maintenance: Added SEB log export for finished and archived exams
-- Exam List: Filter for unavailable exams
-- Exam Monitoring: Added force SEB Lock Screen feature to be able to send lock screen instruction to SEB client as well as release such from SEB Server
-- User Account: Added "Change Password" function also in User Account edit page
-    
+- Connection Configuration: New possibility to select existing Exams for a Connection Configuration.
+- Exam: New Possibility to create an exam without LMS/Assessment Tool integration but with direct SEB link.
+- Exam Configuration: Batch Delete Action.
+- Exam Configuration: Added new SEB Settings from actual SEB Versions.
+- Exam: Possibility to apply SEB Settings quit-passwords within the Exam Import or creation of an Exam.
+- Monitoring: Two new Filter for ASK and SEB Client Version check.
+- Monitoring: IP Changes of SEB clients during active session are not prevented but logged now with SEB logs.
+
+
 Improvements:
 
-- LMS Setup Lookup: Improved parallel data fetch of course and quit data from LMS and added notifications to the UI if background job is still fetching data from LMS in the background
-- Zoom Proctoring: Adapted to new Zoom API's, SDK's and Apps
-- Zoom Proctoring: Gallery view works now also in the proctoring web-client of the SEB Server
-- Open Olat Integration: Added propagation of quit-link and quit-password for exam to Open Olat within the SEB restriction
-- Monitoring: Improved performance for active monitoring
-- Migration: Improved migration and added database table-char-set check
-- SEB Settings: Added various new SEB Settings within the SEB Server database and Configuration Template (not yet in Exam Configuration UI)
-- Added Tool-Tips also for list filters / various text and minor UI improvements
-    
-Bugfixes: 
+- SEB Server Setup: Default Time-Zone also globally configurable besides per user.
+- Exam Configuration Import: No import of hashed password any more. Preset hashed password form imported files gets deleted or reset.
+- Configuration Template: Lists contains more entries, better usability.
+- Exam: New force delete functionality if an Exam cannot be deleted regularly (mostly caused by LMS Setup disconnection).
+- Exam: Added confirmation dialogue on Indicator deletion attempt.
+- SEB Server: Log improvements.
+- User Account: Possibility to setup SEB Server to set newly registered Users inactive for better control of user registration.
+- User Access: Define and Implement new SEB Server feature concept that will provide dedicated user role privileges in the future.
 
-- Exam Configuration status change to "Archived" is possible for up-coming exams
-- Fix handling of invalid SEB Server monitoring UI sessions
-- Open Olat LMS Setup access deadlock (serialized token request for LMS Template)
-- Fixed exam update background process to update sometimes exams from LMS where nothing changed on LMS side
-- Zoom proctoring multiplied participants on room change
-- SEB Restriction warning on Exam seems to be not present when restriction fails
-- Certificate cannot be imported
-- Configuration Template: Filtering column "View": Paging in attribute list shows only one page
-- Exam Configuration export SEB Settings should export current settings
-- Exam: Name and Date filter does not work correctly
-- Export Exam Connection Configuration, special characters in exam name cut of file name
-- Zoom proctoring gallery view seems not to work because of cross-origin settings
+
+Bugfixes:
+
+- Exam: fixed, LMS/Assessment Tool data update end-time cannot be reset to null.
+- SEB Client Connection: Fixed handshake finishing for SEBs that got missing during handshake. SEB Server invalidates unfinished handshakes now.
+- Exam - SEB Restriction Details: Additional BEK is not sent to Moodle immediately.
+- LMS Integration: OLAT Integration seems to not work correctly with new OLAT version any-more.
+- LMS Integration: SEB Lock is not applied, when importing exam using a template.
+- LMS Integration:	Semicolon in short name of a course in Moodle leads to error message when importing an exam.
+- LMS Lookup: Illegal Thread Access Error on LMS Lookup Page.
+- Monitoring: ASK: List of sent ASK per SEB Client sometimes shows empty rows.
+- Monitoring: SEB Version check caching issue .
+- Monitoring: Low page load on sorted SEB connection table for finished or archived exams.
+- Monitoring: Monitoring table selection stick to actual selection when updating.
+- Forms: Password plaintext view: special chars are masked incorrectly.
+- Configuration Template: Wrong deletions on SEB Server update with migration.
 
 Docker-Image:
 
-- Exact release version: docker pull anhefti/seb-server:v1.5.0 (sha256:21d62e24dd5cf697ab5f2b437dc458e6c7492ea294f77a424d39d05164d6c8cc)
-- Stable minor version: docker pull anhefti/seb-server:v1.5-stable
-
-Latest Version is 1.5.1 with Docker-Image:
-
-- Exact release version: docker pull anhefti/seb-server:v1.5.1 (sha256:af860f5dd4d99db3e7acaa66d26c3ee72cf0ad08d8ca88febec6d4ecd160b9cf)
-- Latest stable minor version with latest patches: docker pull anhefti/seb-server:v1.5-latest
+    Exact release version: docker pull anhefti/seb-server:v1.6.0 (sha256:878f411ee3df84019f2b167ad4fd29ecad77c90063b2ced4e16e69edab74805e)
+    Stable minor version: docker pull anhefti/seb-server:v1.6-stable
 
 
 SEB - SEB Server Compatibility
@@ -115,6 +101,15 @@ SEB - SEB Server Compatibility
 
 The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
 SEB Server versions. There is an entry for each platform with a beta or testing release date and an official release date.
+
+**SEB Server Version 1.6.X**
+
+.. csv-table::
+   :header: "Platform / OS", "Release Version"
+
+   "SEB Client for iOS", "3.3.2"
+   "SEB Client for Mac", "3.3.2"
+   "SEB Client for Windows", "3.7.0"
 
 **SEB Server Version 1.5.X**
 
@@ -124,15 +119,6 @@ SEB Server versions. There is an entry for each platform with a beta or testing 
    "SEB Client for iOS", "ASK: 3.3", "3.1 (ASK: 3.3)"
    "SEB Client for Mac", "ASK: 3.3pre", "3.1 (Zoom: 3.2/ASK: 3.3)"
    "SEB Client for Windows", "--", "3.5.0 "
-
-**SEB Server Version 1.4.X**
-
-.. csv-table::
-   :header: "Platform / OS", "Beta/RC Version", "Release Version"
-
-   "SEB Client for iOS", "3.1 Beta", "3.1 (Zoom: 3.2) "
-   "SEB Client for Mac", "3.1/3.2 Preview", "3.1 (Zoom: 3.2)"
-   "SEB Client for Windows", "--", "Version 3.3.2 - 3.4.0"
    
 
 Install SEB Server
@@ -152,7 +138,8 @@ Project Background
 The SEB Server is currently build and maintained by `ETH Zürich <https://ethz.ch/en.html>`_ and by the `Swiss MOOC Service <https://www.swissmooc.ch/>`_ that is founded by leading Swiss universities EPFL, ETH, SUPSI, USI and HES-SO. The Swiss MOOC Service was financially supported from 2018-2020 by the `Swissuniversities´ P5 program <https://www.swissuniversities.ch/themen/digitalisierung/p-5-wissenschaftliche-information>`_.
 
 Contributing to SEB Server
-------------------
+---------------------------
+
 We want to make contributing to this project as easy and transparent as possible, whether it's:
 
 - Give us a star

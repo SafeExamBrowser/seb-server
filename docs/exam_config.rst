@@ -8,7 +8,7 @@ Overview
 
 An exam configuration defines all the SEB settings for an exam. A SEB client that is connecting to SEB Server
 and an exam defined by the SEB Server is downloading this exam configuration from SEB Server and reconfigure itself before accessing the
-exam on the learning management system (LMS) and present it to the user.
+exam on the learning management system (LMS/Assessment Tool) and present it to the user.
 
 .. note::
     For more information and detailed description of the SEB settings, see `SEB Configuration <https://www.safeexambrowser.org/windows/win_usermanual_en.html#configuration>`_.
@@ -86,7 +86,7 @@ from the right action pane in the SEB settings view. This will start a usual bro
 of the file of an exam configuration is "SEBExamSettings.seb".
 
 SEB Server supports also the `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ that is used to validate the SEB configuration
-on the LMS and adds a higher security level to the exam. This is supported if the specific type of LMS supports the automated SEB restriction feature. Anyways
+on the LMS/Assessment Tool and adds a higher security level to the exam. This is supported if the specific type of LMS/Assessment Tool supports the automated SEB restriction feature. Anyways
 sometimes it may be needed to manually extract the `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ for an exam configuration.
 Therefore, one can use the "Export Client-Key" action from the right action pane to generate the Config-Key from the actual saved SEB settings revision
 of the exam configuration. The key will be presented by a pop-up dialog where it can be copied for further use.
@@ -223,8 +223,8 @@ to another exam that has to be configured for SEB.
 **Generate and Export the Config-Key of an Exam Configuration**
 
 Usually the `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ that is used to validate the SEB configuration
-on the LMS is propagated automatically to a LMS by the SEB Server with the automated SEB restriction feature. But For testing purposes you need to generate and export the 
-`SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ and set it manually on the LMS. 
+on the LMS/Assessment Tool is propagated automatically to a LMS/Assessment Tool by the SEB Server with the automated SEB restriction feature. But For testing purposes you need to generate and export the
+`SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ and set it manually on the LMS/Assessment Tool.
 
 - Sign into SEB Server with your exam administrator role account.
 - Navigate to the "Exam Configuration" menu within the SEB Configuration section on the left-hand side.
@@ -281,7 +281,7 @@ In the current version of SEB Server, there are some differences to some SEB set
 - Additional Dictionaries: There are only the SEB client default dictionaries available in the current SEB Server version.
 - Additional Resources: Additional resources are currently not available in the current SEB Server version.
 - Embedded Certificates: There is currently no certificate management possible on current SEB Server version.
-- Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS in use.
+- Browser Exam Key: There is currently no possibility to generate the Browser Exam Key on the SEB Server. But an already generated Browser Exam Key may be used within the SEB restriction feature on the exam configuration if this feature is supported by the LMS/Assessment Tool in use.
 
 
 **SEB settings that have a slightly different form or handling in SEB Server comparing to the SEB configuration tool** 

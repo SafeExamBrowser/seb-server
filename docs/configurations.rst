@@ -21,7 +21,7 @@ This feature is currently in an experimental state and may be changed and / or e
 
 An new feature since SEB Server version 1.2 is the integrated certificate store where an administrator is able to upload and register
 certificates. The certificates can then be used to encrypt and secure a connection configuration for example. Or as planned for another
-SEB Server release, to embed into an exam configuration for SEB to allow certificate pinning on SEB - LMS communication.
+SEB Server release, to embed into an exam configuration for SEB to allow certificate pinning on SEB - LMS/Assessment Tool communication.
 
 
 .. toctree::

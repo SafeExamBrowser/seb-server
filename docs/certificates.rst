@@ -18,7 +18,7 @@ Once a certificate has been uploaded to SEB Server it can be used for various ot
 One feature that also comes with the SEB Server version 1.2 is the ability to encrypt a connection configuration with a certificate
 that has the right purpose (Identity) to do so. If you need this feature already, please have a look at: :ref:`connection-configuration-label`.
 Other planed features are the import of certificate encrypted exam configurations as well as to embed certificates within an exam configuration
-to allow certificate pinning between SEB and LMS.
+to allow certificate pinning between SEB and LMS/Assessment Tool.
 
 There is currently certificate upload support for two version of certificates:
 

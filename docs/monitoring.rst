@@ -32,14 +32,18 @@ As default you should see at least all active connections instantly.
 The list is automatically sorted in the way that SEB connections with incidents came to the top of the list and are then sorted by the 
 "User Name or Session" identifier criteria. The general SEB client connection attributes are:
 
-- **User Name or Session** The user account or user session identifier sent by the LMS to the SEB client and from SEB client to the SEB Server. This identifier may vary depending on the LMS that is involved. For Open edX it is the user account identifier (username). 
+- **User Name or Session** This shows the the available user identification as soon as it is available in the following order:
+    - The IP Address of the device of the SEB client as long as the SEB has sent any user authentication yet.
+    - The machine name of the client device as soon as the SEB has sent it to SEB Server.
+    - The user login on the client machine as soon as the SEB has sent it to SEB Server.
+    - The user login on the LMS/Assessment Tool as soon as the SEB has sent it to SEB Server and SEB Server was able to resolve the login name via LMS/Assessment Tool
 - **Connection Info** The IP address of the device the connected SEB client is running plus some additional information about the operating system and the SEB version.
 - **Status** The status of the SEB client connection.
 
 The following SEB connection states are defined:
 
-- **Connection Requested** This state appears from when a SEB client contacted to SEB Server the first time until the SEB client has finished up the hand-shake protocol with the SEB Server and the student has logged into the LMS.
-- **Active** This state appears after successful hand-shake and login into LMS and stays as long as the SEB connection is available and not closed or terminated
+- **Connection Requested** This state appears from when a SEB client contacted to SEB Server the first time until the SEB client has finished up the hand-shake protocol with the SEB Server and the student has logged into the LMS/Assessment Tool.
+- **Active** This state appears after successful hand-shake and login into LMS/Assessment Tool and stays as long as the SEB connection is available and not closed or terminated
 - **Missing** This state appears when a SEB connection is currently in active state but has missing ping (last ping last longer than the highest ping threshold of the ping indicator).
 - **Closed** This state marks a closed SEB connection that was once active.
 - **Canceled** This state marks a SEB connection that has been canceled.
@@ -87,6 +91,37 @@ are there for an exam and in which state.
 .. note::
     When a certain state filter is set to hide, and a particular SEB client connection switches into that state, it will automatically disappear from the list.
 
+**New Issue and Group Filter**
+
+A new SEB client group filter was added in SEB Server Version 1.6 to filter out certain configured SEB client groups. And since SEB Server Version 1.6
+there is a new Issue filter for ASK (Application Security Key) checks as well as vor SEB client Version checks if they are enabled for an exam.
+
+- For more information about SEB client groups, go to: :ref:`examClientgroups-label`
+- For more information about ASK (Application Security Key), go to: :ref:`examASK-label`
+- for more information about SEB client version restriction, please have a look into the :ref:`exam-configuration-label` SEB Settings
+
+With the new Issue Filter it is possible to quickly filter out all SEB connections that do not have a certain issue. Or the other way
+around, if you quickly want to show only the SEB client connections with a certain issue, you can use this filter.
+
+- **ASK Issue Filter** This issue filter can be used to show only the SEB clients that has an ASK grant deny.
+This is also possible for already closed SEB connections where you don's see the state of ASK grant within the status column anymore.
+The image below shows active and inactive filter for active SEB connection as well as for inactive SEB connections.
+
+.. image:: images/monitoring/issueFilter2.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/issueFilter2.png
+
+.. image:: images/monitoring/issueFilter3.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/issueFilter3.png
+
+- **SEB Client Group Filter** This issue filter filter all SEB client connection that are attached to a certain SEB client group.
+
+.. image:: images/monitoring/issueFilter1.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/issueFilter1.png
+
+
 Detailed View
 -------------
 
@@ -105,16 +140,15 @@ overview temporary network latency or other irregularities, when those two time 
 
 In the detail view you are also able to use the instructions "Quit SEB Client" and "Mark as Canceled" for the selected SEB client connection.
 
-Optional Live Proctoring
+(Deprecated) Live Proctoring
 ------------------------
 
 .. attention::
 
-    Deprecation
+    Deprecation Note:
 
-    The SEB Server live proctoring integration with Zoom and Jitsi Meet will be deprecated within the next upcoming version of SEB Server 1.6.
-
-    This means live proctoring is still available for dedicated SEB versions, but not actively maintained and supported any more.
+    The SEB Server live proctoring integration with Zoom and Jitsi Meet is deprecated in SEB Server 1.6.
+    The upcoming version of SEB Server, targeted for August 2024, will remove the live proctoring integration with Zoom and Jitsi Meet.
 
 Live proctoring is a new and yet experimental feature of SEB and SEB Server. The feature is fully optional and not enabled by default.
 This section is about the live proctoring on monitoring a running exam and using the optional live proctoring within.

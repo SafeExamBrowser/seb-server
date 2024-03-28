@@ -1,17 +1,17 @@
 .. _sebProctoringSettings-label:
 
-Optional Live Proctoring
+Live Proctoring (Deprecated)
 ========================
 
 .. attention::
 
-    Deprecation
+    Deprecation Note:
 
-    The SEB Server live proctoring integration with Zoom and Jitsi Meet will be deprecated within the next upcoming version of SEB Server 1.6.
+    The SEB Server live proctoring integration with Zoom and Jitsi Meet is deprecated in SEB Server 1.6.
+    The upcoming version of SEB Server, targeted for August 2024, will remove the live proctoring integration with Zoom and Jitsi Meet.
 
-    This means live proctoring is still available for dedicated SEB versions, but not actively maintained and supported any more.
 
-Live proctoring is a new and yet experimental feature of SEB and SEB Server. The feature is fully optional and not enabled by default.
+Live proctoring is experimental feature of SEB and SEB Server. The feature is fully optional and not enabled by default.
 The main goal of the live proctoring feature is to support the integration
 of an external meeting service like Jitsi Meet or Zoom for example, within a SEB and SEB Server setup for an exam.
 In this scenario a SEB client is able to join a meeting and send audio and video data to the meeting where a proctor can watch the students during 

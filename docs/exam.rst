@@ -1,7 +1,7 @@
 Prepare Exam 
 =============
 
-This chapter is about setting up and prepare a already imported exam on SEB Server. If you don't have imported a course or quiz from LMS
+This chapter is about setting up and prepare a already imported exam on SEB Server. If you don't have imported a course or quiz from LMS/Assessment Tool
 as an exam into SEB Server, please see the previous chapter for detailed guidance about hot to import an exam.
 
 To find a specific exam that has already been imported, go to "Exam Administration" / "Exam" on the navigation menu on the left hand side to
@@ -9,12 +9,12 @@ see a list of all available exams. You are able to filter and sort the list as u
 
 .. note::
     The Date-Filter above "Start-Time" is usually set to the date one year before now or to some other default date in the past
-    and is applied to the end-date of the exam or quiz. The list shows all running or up-comming exams and only hides finished or
+    and is applied to the end-date of the exam or quiz. The list shows all running or up-coming exams and only hides finished or
     archived exams that has an end-date before the Date-Filter date. 
     
 Double click on the list entry of the exam or select the list entry and use the "View Exam" action of the action pane on the right hand side to
 open the exam in the detail view. Within the detail view of the exam you are able to edit the exam attributes, apply SEB exam configuration and
-indicators for monitoring as well as defining details of the SEB restriction if this feature is available from the LMS.
+indicators for monitoring as well as defining details of the SEB restriction if this feature is available from the LMS/Assessment Tool.
 
 .. note::
     If an exam is already running but is missing some essential setup, this is noted by the system. In the exam detail view the system
@@ -28,12 +28,12 @@ indicators for monitoring as well as defining details of the SEB restriction if 
 
 At the beginning of the page - if there is no note - you see all the details of the exam. 
 
-- **Name**: Is the name of the course, defines on the LMS
-- **LMS Setup**: Is the name of the LMS Setup on the SEB Server from which the course was imported
-- **Start-Time**: Is the date and time when the exam is starting. This is defined on the LMS
-- **End-Time**: Is the date and time when the exam ends. This is defined on the LMS
-- **LMS Exam Identifier**: Is the identity of the course on the LMS (external identifier/primary key)
-- **LMS Exam URL**: Is the start URL of the course/exam
+- **Name**: Is the name of the course, defines on the LMS/Assessment Tool
+- **LMS/Assessment Tool Setup**: Is the name of the LMS/Assessment Tool Setup on the SEB Server from which the course was imported
+- **Start-Time**: Is the date and time when the exam is starting. This is defined on the LMS/Assessment Tool
+- **End-Time**: Is the date and time when the exam ends. This is defined on the LMS/Assessment Tool
+- **LMS/Assessment Tool Exam Identifier**: Is the identity of the course on the LMS/Assessment Tool (external identifier/primary key)
+- **LMS/Assessment Tool Exam URL**: Is the start URL of the course/exam
 
 To edit the SEB Server relevant attributes you can use
 the "Edit Exam" action from the action pane on the right hand side to switch to the exam edit mode. In the exam edit mode you can modify
@@ -73,9 +73,19 @@ the pop-up shows the description and the status of the selected configuration.
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/addExamConfig.png
     
 There is also the possibility to encrypt the SEB exam configuration by a password. This is done before the SEB configuration is send to a connecting 
-SEB client. Since in the moste cases the SEB client connections are over HTTPS / TSL there is alrady a good protection in place and an 
+SEB client. Since in the most cases the SEB client connections are over HTTPS / TSL there is already a good protection in place and an
 additional encryption of the SEB exam configuration is not recommended. Anyway, if you decide the use the additional password encryption, the SEB 
-client that receives the encrypted SEB exam configuration will prompt the user for the password to proceed and connect to the LMS.
+client that receives the encrypted SEB exam configuration will prompt the user for the password to proceed and connect to the LMS/Assessment Tool.
+
+With SEB Server Version 1.6 it is possible to change the Exam Configuration encryption password of an applied Exam Configuration.
+The new action "Edit Encryption Password" can be used to open up the original apply dialog and to change the password:
+
+.. note::
+    The Encryption Password for applied Exam Configuration can only be changes when there are no active SEB clients available for the exam.
+
+.. image:: images/exam/editEncryptionPassword.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editEncryptionPassword.png
 
 .. note::
     If you need to use the same SEB exam configuration for different exams, you can just make a copy of a SEB exam configuration that is already used
@@ -86,19 +96,19 @@ client that receives the encrypted SEB exam configuration will prompt the user f
     generate a copy of the original SEB exam configuration with the new name and description and will lead you to the details page of the copy configuration.
 
 Click the "OK" button on the pop-up to apply the selected SEB exam configuration. You will see the applied SEB exam configuration in the list.
-If the automated SEB restriction feature is supported by the LMS of the exam, the application of a SEB exam configuration will automatically update
+If the automated SEB restriction feature is supported by the LMS/Assessment Tool of the exam, the application of a SEB exam configuration will automatically update
 the SEB restriction details with the generated Config-Key. See :ref:`sebRestriction-label` for more information.
 
 .. image:: images/exam/examConfig.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examConfig.png
     
-To just generate the Config-Key for testing purposes or to manually apply it on an LMS without the automated SEB restriction feature you can
+To just generate the Config-Key for testing purposes or to manually apply it on an LMS/Assessment Tool without the automated SEB restriction feature you can
 use the "Export Config-Key" action to generate the key. The Config-Key is presented by a pop-up and can be selected and copied to the clip-board.
 For more information about the Config-Key its purpose and use, please visit the `SEB documentation <https://www.safeexambrowser.org/developer/seb-config-key.html>`_.
 
 To remove an already applied SEB exam configuration from the exam, select the SEB exam configuration in the table and use the "Delete Exam Configuration"
-action form the right action pane. If the automated SEB restriction feature is supported by the LMS of the exam, the removal of a SEB exam configuration will 
+action form the right action pane. If the automated SEB restriction feature is supported by the LMS/Assessment Tool of the exam, the removal of a SEB exam configuration will
 automatically update the SEB restriction details and remove the Config-Key form the restriction details. See :ref:`sebRestriction-label` for more information.
 Once you have removed a SEB exam configuration from the exam you are able to apply another one to the exam.
 
@@ -152,7 +162,7 @@ your institution use the type information of the exam to set them into context.
 **Archive an exam**
 
 Since SEB Server version 1.4 it is possible to archive an exam that has been finished. An archived exam and all its data is still available
-on the SEB Server but read only and the exam is not been updated from the LMS data anymore and it is not possible to run this exam again.
+on the SEB Server but read only and the exam is not been updated from the LMS/Assessment Tool data anymore and it is not possible to run this exam again.
 
 This is a good use-case to organize your exams since archived exam are not shown in the Exam list with the default filter anymore. They are
 only shown if the status filter of the exam list is explicitly set to Archived status. An they are shown within the new "Finished Exam"
@@ -162,8 +172,8 @@ section in the monitoring view.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/archiveExamsFilter.png
 
-This is also a good use-case if you want to remove an LMS and LMS Setup but still want to be able to access the exams data on the SEB Server.
-In this case you can archive all exams from that LMS Setup before deactivating or deleting the respective LMS Setup.
+This is also a good use-case if you want to remove an LMS/Assessment Tool and LMS/Assessment Tool Setup but still want to be able to access the exams data on the SEB Server.
+In this case you can archive all exams from that LMS/Assessment Tool Setup before deactivating or deleting the respective LMS/Assessment Tool Setup.
 
 To archive a finished exam you just have to use the "Archive Exam" action on the right action pane of the exam view:
 
