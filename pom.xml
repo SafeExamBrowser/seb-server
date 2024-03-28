@@ -70,7 +70,7 @@
         <profile>
             <id>let_reporting</id>
             <properties>
-                <java.version>1.8</java.version>
+                <java.version>17</java.version>
             </properties>
             <build>
                 <plugins>
@@ -79,8 +79,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <source>17</source>
+                            <target>17</target>
                         </configuration>
                     </plugin>
 
