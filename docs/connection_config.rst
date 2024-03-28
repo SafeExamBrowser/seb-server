@@ -115,7 +115,7 @@ these exams with the multi selector. It is also possible to filter the list by t
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/connection_config/examSelection.png
 
-___________________________
+
 
 Use Cases
 ---------
