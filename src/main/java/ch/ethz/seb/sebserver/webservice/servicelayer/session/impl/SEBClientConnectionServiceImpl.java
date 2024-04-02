@@ -8,23 +8,36 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import java.security.Principal;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
+import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,25 +47,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
-import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Lazy
 @Service
@@ -79,6 +87,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SecurityKeyService securityKeyService;
     private final SEBClientEventBatchService sebClientEventBatchService;
     private final SEBClientInstructionService sebClientInstructionService;
+    private final ClientConfigService clientConfigService;
     private final JSONMapper jsonMapper;
     private final boolean isDistributedSetup;
 
@@ -92,6 +101,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final WebserviceInfo webserviceInfo,
             final SEBClientEventBatchService sebClientEventBatchService,
             final SEBClientInstructionService sebClientInstructionService,
+            final ClientConfigService clientConfigService,
             final JSONMapper jsonMapper) {
 
         this.examSessionService = examSessionService;
@@ -105,6 +115,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.isDistributedSetup = webserviceInfo.isDistributed();
         this.sebClientEventBatchService = sebClientEventBatchService;
         this.sebClientInstructionService = sebClientInstructionService;
+        this.clientConfigService = clientConfigService;
         this.jsonMapper = jsonMapper;
     }
 
@@ -620,6 +631,42 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     APIMessage.ErrorMessage.GENERIC.of(e.getMessage()));
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             writeSEBClientErrors(response, errorMessages);
+        }
+    }
+
+    public void streamLightExamConfig(final String modelId, final HttpServletResponse response) throws IOException{
+
+        final ServletOutputStream outputStream = response.getOutputStream();
+        PipedOutputStream pout;
+        PipedInputStream pin;
+
+        try {
+            pout = new PipedOutputStream();
+            pin = new PipedInputStream(pout);
+
+            this.clientConfigService.exportSEBClientConfiguration(
+                    pout,
+                    modelId,
+                    null);
+
+            IOUtils.copyLarge(pin, outputStream);
+
+            response.setStatus(HttpStatus.OK.value());
+
+        }catch(Exception e){
+            final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
+            outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+
+        } finally {
+
+            try {
+                outputStream.flush();
+                outputStream.close();
+
+            } catch (IOException e) {
+                 log.error("error while flushing / closing output stream", e);
+            }
         }
     }
 

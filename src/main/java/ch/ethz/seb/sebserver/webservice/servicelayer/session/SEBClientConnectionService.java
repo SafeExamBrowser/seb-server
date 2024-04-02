@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Collection;
 
@@ -172,5 +173,9 @@ public interface SEBClientConnectionService {
             String connectionToken,
             String ipAddress,
             HttpServletResponse response);
+
+    void streamLightExamConfig(
+            String modelId,
+            HttpServletResponse response) throws IOException;
 
 }
