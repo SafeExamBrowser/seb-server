@@ -101,12 +101,18 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
                     moodleRestTemplateFactory,
                     this.examConfigurationValueService);
 
+            final MoodlePluginFullIntegration moodlePluginFullIntegration = new MoodlePluginFullIntegration(
+                    this.jsonMapper,
+                    moodleRestTemplateFactory
+            );
+
             return new LmsAPITemplateAdapter(
                     this.asyncService,
                     this.environment,
                     apiTemplateDataSupplier,
                     moodlePluginCourseAccess,
-                    moodlePluginCourseRestriction);
+                    moodlePluginCourseRestriction,
+                    moodlePluginFullIntegration);
         });
     }
 

@@ -34,13 +34,16 @@ public class WebClientDetailsService implements ClientDetailsService {
 
     private final ClientConfigService sebClientConfigService;
     private final AdminAPIClientDetails adminClientDetails;
+    private final LmsAPIClientDetails lmsAPIClientDetails;
 
     public WebClientDetailsService(
             final AdminAPIClientDetails adminClientDetails,
-            final ClientConfigService sebClientConfigService) {
+            final ClientConfigService sebClientConfigService,
+            final LmsAPIClientDetails lmsAPIClientDetails) {
 
         this.adminClientDetails = adminClientDetails;
         this.sebClientConfigService = sebClientConfigService;
+        this.lmsAPIClientDetails = lmsAPIClientDetails;
     }
 
     /** Load a client by the client id. This method must not return null.
@@ -62,6 +65,10 @@ public class WebClientDetailsService implements ClientDetailsService {
 
         if (clientId.equals(this.adminClientDetails.getClientId())) {
             return this.adminClientDetails;
+        }
+
+        if (clientId.equals(this.lmsAPIClientDetails.getClientId())) {
+            return this.lmsAPIClientDetails;
         }
 
         return getForExamClientAPI(clientId)

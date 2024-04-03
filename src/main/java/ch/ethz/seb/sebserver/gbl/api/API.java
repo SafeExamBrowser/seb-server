@@ -157,6 +157,9 @@ public final class API {
             + LMS_SETUP_TEST_PATH_SEGMENT
             + LMS_SETUP_TEST_AD_HOC_PATH_SEGMENT;
 
+    public static final String LMS_FULL_INTEGRATION_REFRESH_TOKEN_ENDPOINT = "/refresh-access-token";
+    public static final String LMS_FULL_INTEGRATION_LMS_UUID = "lms_uuid";
+
     public static final String USER_ACCOUNT_ENDPOINT = "/useraccount";
 
     public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";

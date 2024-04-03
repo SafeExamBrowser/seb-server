@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 import java.util.Collection;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -28,10 +29,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.CourseAccessAPI;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionAPI;
 
 public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
@@ -39,6 +36,8 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
     private final CourseAccessAPI courseAccessAPI;
     private final SEBRestrictionAPI sebRestrictionAPI;
+
+    private final FullLmsIntegrationAPI lmsIntegrationAPI;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
 
     /** CircuitBreaker for protected lmsTestRequest */
@@ -57,18 +56,36 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     private final CircuitBreaker<SEBRestriction> restrictionRequest;
     private final CircuitBreaker<Exam> releaseRestrictionRequest;
 
+    private final CircuitBreaker<Void> lmsAccessRequest;
+
     public LmsAPITemplateAdapter(
             final AsyncService asyncService,
             final Environment environment,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final CourseAccessAPI courseAccessAPI,
-            final SEBRestrictionAPI sebRestrictionAPI) {
+            final SEBRestrictionAPI sebRestrictionAPI,
+            final FullLmsIntegrationAPI lmsIntegrationAPI) {
 
         this.courseAccessAPI = courseAccessAPI;
         this.sebRestrictionAPI = sebRestrictionAPI;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
+        this.lmsIntegrationAPI = lmsIntegrationAPI;
 
         this.lmsTestRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
+                        Integer.class,
+                        2),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 20),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.timeToRecover",
+                        Long.class,
+                        0L));
+
+        lmsAccessRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
                         Integer.class,
@@ -210,7 +227,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 log.debug("Test Course Access API for LMSSetup: {}", lmsSetup());
             }
 
-            return this.lmsTestRequest.protectedRun(() -> this.courseAccessAPI.testCourseAccessAPI())
+            return this.lmsTestRequest.protectedRun(this.courseAccessAPI::testCourseAccessAPI)
                     .onError(error -> log.error(
                             "Failed to run protectedQuizzesRequest: {}",
                             error.getMessage()))
@@ -408,14 +425,12 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Apply course restriction: {} for LMSSetup: {}", exam, lmsSetup());
         }
 
-        final Result<SEBRestriction> protectedRun = this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
+        return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .applySEBClientRestriction(exam, sebRestrictionData)
                 .onError(error -> log.error(
                         "Failed to apply SEB restrictions: {}",
                         error.getMessage()))
                 .getOrThrow());
-
-        return protectedRun;
     }
 
     @Override
@@ -446,4 +461,57 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
         return protectedRun;
     }
 
+    @Override
+    public Result<Void> createConnectionDetails() {
+        if (this.lmsIntegrationAPI == null) {
+            return Result.ofError(
+                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Create LMS connection details for LMSSetup: {}", lmsSetup());
+        }
+
+        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.createConnectionDetails()
+                .onError(error -> log.error(
+                        "Failed to run protected createConnectionDetails: {}",
+                        error.getMessage()))
+                .getOrThrow());
+    }
+
+    @Override
+    public Result<Void> updateConnectionDetails() {
+        if (this.lmsIntegrationAPI == null) {
+            return Result.ofError(
+                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Update LMS connection details for LMSSetup: {}", lmsSetup());
+        }
+
+        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.updateConnectionDetails()
+                .onError(error -> log.error(
+                        "Failed to run protected updateConnectionDetails: {}",
+                        error.getMessage()))
+                .getOrThrow());
+    }
+
+    @Override
+    public Result<Void> deleteConnectionDetails() {
+        if (this.lmsIntegrationAPI == null) {
+            return Result.ofError(
+                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Delete LMS connection details for LMSSetup: {}", lmsSetup());
+        }
+
+        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.deleteConnectionDetails()
+                .onError(error -> log.error(
+                        "Failed to run protected deleteConnectionDetails: {}",
+                        error.getMessage()))
+                .getOrThrow());
+    }
 }

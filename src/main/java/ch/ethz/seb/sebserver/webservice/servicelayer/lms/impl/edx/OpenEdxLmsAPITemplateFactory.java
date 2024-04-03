@@ -100,7 +100,8 @@ public class OpenEdxLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.environment,
                     apiTemplateDataSupplier,
                     openEdxCourseAccess,
-                    openEdxCourseRestriction);
+                    openEdxCourseRestriction,
+                    null);
         });
     }
 

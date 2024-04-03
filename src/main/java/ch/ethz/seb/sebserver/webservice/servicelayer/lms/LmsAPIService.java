@@ -26,7 +26,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
 /** Defines the LMS API access service interface with all functionality needed to access
  * a LMS API within a given LmsSetup configuration.
- *
+ * <p>
  * There are LmsAPITemplate implementations for each type of supported LMS that are managed
  * in reference to a LmsSetup configuration within this service. This means actually that
  * this service caches requested LmsAPITemplate (that holds the LMS API connection) as long
@@ -100,7 +100,7 @@ public interface LmsAPIService {
      * Now supports name and startTime filtering
      *
      * @param filterMap the FilterMap containing the filter criteria
-     * @return true if the given QuizzData passes the filter */
+     * @return filter predicate */
     static Predicate<QuizData> quizFilterPredicate(final FilterMap filterMap) {
         if (filterMap == null) {
             return q -> true;

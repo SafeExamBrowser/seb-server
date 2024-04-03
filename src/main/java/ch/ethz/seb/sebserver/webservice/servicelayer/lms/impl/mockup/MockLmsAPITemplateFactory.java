@@ -53,14 +53,13 @@ public class MockLmsAPITemplateFactory implements LmsAPITemplateFactory {
                 apiTemplateDataSupplier,
                 this.webserviceInfo);
 
-        final MockSEBRestrictionAPI mockSEBRestrictionAPI = new MockSEBRestrictionAPI();
-
         return Result.tryCatch(() -> new LmsAPITemplateAdapter(
                 this.asyncService,
                 this.environment,
                 apiTemplateDataSupplier,
                 mockCourseAccessAPI,
-                mockSEBRestrictionAPI));
+                new MockSEBRestrictionAPI(),
+                new MockupFullIntegration()));
     }
 
 }

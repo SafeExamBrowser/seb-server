@@ -32,8 +32,12 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
     public static final String ADMIN_API_RESOURCE_ID = "seb-server-administration-api";
     /** The resource identifier of the Exam API resources */
     public static final String EXAM_API_RESOURCE_ID = "seb-server-exam-api";
+    public static final String LMS_API_RESOURCE_ID = "seb-server-lms-api";
     @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
     private String examAPIDiscoveryEndpoint;
+    @Value("${sebserver.webservice.lms.api.endpoint}")
+    private String lmsAPIEndpoint;
+
 
     public WebserviceResourceConfiguration(
             final TokenStore tokenStore,
@@ -87,6 +91,8 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
                 .antMatchers(configurerAdapter.apiEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(configurerAdapter.apiEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(configurerAdapter.apiEndpoint + API.REGISTER_ENDPOINT).permitAll()
+                .antMatchers(this.lmsAPIEndpoint + API.LMS_FULL_INTEGRATION_REFRESH_TOKEN_ENDPOINT).permitAll()
+
                 .and()
                 .antMatcher(configurerAdapter.apiEndpoint + "/**")
                 .authorizeRequests()
