@@ -33,7 +33,7 @@ jobs:
       name: Checkout repository
       uses: actions/checkout@v4
     -
-      name: Set up JDK 8
+      name: Build Test Reporting
       uses: actions/setup-java@v4
       with:
         java-version: '17'

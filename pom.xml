@@ -70,7 +70,7 @@
         <profile>
             <id>let_reporting</id>
             <properties>
-                <java.version>1.8</java.version>
+                <java.version>17</java.version>
             </properties>
             <build>
                 <plugins>
@@ -79,8 +79,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <release>${java.version}</release>
+                            <encoding>UTF-8</encoding>
                         </configuration>
                     </plugin>
 
@@ -89,6 +89,9 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <encoding>UTF-8</encoding>
+                            <systemPropertyVariables>
+                                <file.encoding>UTF-8</file.encoding>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
 
@@ -100,7 +103,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-pmd-plugin</artifactId>
-                        <version>3.10.0</version>
                         <configuration>
                             <skipEmptyReport>false</skipEmptyReport>
                             <failOnViolation>false</failOnViolation>
@@ -119,27 +121,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!--          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>findbugs-maven-plugin</artifactId>
-            <version>3.0.4</version>
-            <configuration>
-              <effort>Max</effort>
-              <failOnError>false</failOnError>
-              <threshold>Low</threshold>
-              <xmlOutput>true</xmlOutput>
-              <excludeFilterFile>findbugs-excludes.xml</excludeFilterFile>
-            </configuration>
-            <executions>
-              <execution>
-                <id>analyze-compile</id>
-                <phase>compile</phase>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>-->
                     <plugin>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs-maven-plugin</artifactId>
@@ -163,7 +144,7 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.3</version>
+                        <version>0.8.12</version>
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>
