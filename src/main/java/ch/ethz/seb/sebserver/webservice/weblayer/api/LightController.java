@@ -125,8 +125,21 @@ public class LightController {
 
 }
 
-record UsernamePasswordView(String username, String password) {
+class UsernamePasswordView{
+    private final String username;
+    private final String password;
+
     @JsonCreator
-    UsernamePasswordView {
+    public UsernamePasswordView(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }
