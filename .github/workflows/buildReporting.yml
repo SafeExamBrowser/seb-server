@@ -50,16 +50,6 @@ jobs:
       run: mvn clean install -e -P let_reporting -Dsebserver-version="${{ env.TAG_NAME }}-${{ env.SHA }}"
       env:
         sebserver-version: ${{ env.TAG_NAME }}-${{ env.SHA }}
-    -
-      name: Reporting
-      uses: codecov/codecov-action@v4
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      with:
-        flags: unittests 
-        name: SEB Server Build 
-        fail_ci_if_error: false 
-        verbose: false
 
     - name: Simplify package name
       run: mv target/seb-server-${{ env.TAG_NAME }}-${{ env.SHA }}.jar target/seb-server.jar
