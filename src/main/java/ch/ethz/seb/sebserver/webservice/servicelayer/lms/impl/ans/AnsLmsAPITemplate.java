@@ -420,6 +420,21 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                 .map(x -> exam);
     }
 
+    @Override
+    public Result<Void> createConnectionDetails() {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
+    @Override
+    public Result<Void> updateConnectionDetails() {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
+    @Override
+    public Result<Void> deleteConnectionDetails() {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
     private enum LinkRel {
         FIRST, LAST, PREV, NEXT
     }

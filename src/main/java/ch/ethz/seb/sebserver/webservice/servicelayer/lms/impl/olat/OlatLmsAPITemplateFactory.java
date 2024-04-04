@@ -87,7 +87,8 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.environment,
                     apiTemplateDataSupplier,
                     olatLmsAPITemplate,
-                    olatLmsAPITemplate);
+                    olatLmsAPITemplate,
+                    null);
         });
     }
 

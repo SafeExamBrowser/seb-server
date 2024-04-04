@@ -13,7 +13,6 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import org.apache.catalina.filters.RemoteIpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,6 @@ import org.springframework.security.oauth2.provider.token.UserAuthenticationConv
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.PreAuthProvider;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
@@ -85,7 +83,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private TokenStore tokenStore;
     @Autowired
-    private WebClientDetailsService webServiceClientDetails;
+    private WebClientDetailsService webClientDetailsService;
     @Autowired
     private PreAuthProvider preAuthProvider;
 
@@ -93,6 +91,8 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private String adminAPIEndpoint;
     @Value("${sebserver.webservice.api.exam.endpoint}")
     private String examAPIEndpoint;
+    @Value("${sebserver.webservice.lms.api.endpoint}")
+    private String lmsAPIEndpoint;
     @Value("${management.endpoints.web.base-path:NONE}")
     private String actuatorEndpoint;
     @Value("${sebserver.webservice.http.redirect.gui}")
@@ -104,9 +104,12 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private Integer adminRefreshTokenValSec;
     @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}")
     private Integer examAccessTokenValSec;
+    @Value("${sebserver.webservice.lms.api.accessTokenValiditySeconds:-1}")
+    private Integer lmsAccessTokenValSec;
+
 
     /** Used to get real remote IP address by using "X-Forwarded-For" and "X-Forwarded-Proto" header.
-     * https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html
+     * <a href="https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html">see</a>
      *
      * @return RemoteIpFilter instance */
     @Bean
@@ -132,8 +135,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     @Bean(AUTHENTICATION_MANAGER)
     public AuthenticationManager authenticationManagerBean() throws Exception {
-        final AuthenticationManager authenticationManagerBean = super.authenticationManagerBean();
-        return authenticationManagerBean;
+        return super.authenticationManagerBean();
     }
 
     @Override
@@ -162,7 +164,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     protected ResourceServerConfiguration sebServerAdminAPIResources() throws Exception {
         return new AdminAPIResourceServerConfiguration(
                 this.tokenStore,
-                this.webServiceClientDetails,
+                this.webClientDetailsService,
                 authenticationManagerBean(),
                 this.adminAPIEndpoint,
                 this.unauthorizedRedirect,
@@ -174,30 +176,24 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     protected ResourceServerConfiguration sebServerExamAPIResources() throws Exception {
         return new ExamAPIClientResourceServerConfiguration(
                 this.tokenStore,
-                this.webServiceClientDetails,
+                this.webClientDetailsService,
                 authenticationManagerBean(),
                 this.examAPIEndpoint,
                 this.examAccessTokenValSec);
     }
 
     @Bean
-    protected ResourceServerConfiguration sebServerActuatorResources() throws Exception {
-        if ("NONE".equals(this.actuatorEndpoint)) {
-            return null;
-        }
-
-        return new ActuatorResourceServerConfiguration(
+    protected ResourceServerConfiguration sebServerLMSAPIResources() throws Exception {
+        return new LMSAPIClientResourceServerConfiguration(
                 this.tokenStore,
-                this.webServiceClientDetails,
+                this.webClientDetailsService,
                 authenticationManagerBean(),
-                this.actuatorEndpoint,
-                this.unauthorizedRedirect,
-                this.adminAccessTokenValSec,
-                this.adminRefreshTokenValSec);
+                this.lmsAPIEndpoint,
+                this.lmsAccessTokenValSec);
     }
 
-    // NOTE: We need two different class types here to support Spring configuration for different
-    //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
+
+    // NOTE: We need different class types here to support Spring configuration for different
     private static final class AdminAPIResourceServerConfiguration extends WebserviceResourceConfiguration {
 
         public AdminAPIResourceServerConfiguration(
@@ -223,8 +219,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
-    // NOTE: We need two different class types here to support Spring configuration for different
-    //       ResourceServerConfiguration. There is a class type now for the Admin API as well as for the Exam API
+    // NOTE: We need different class types here to support Spring configuration for different
     private static final class ExamAPIClientResourceServerConfiguration extends WebserviceResourceConfiguration {
 
         public ExamAPIClientResourceServerConfiguration(
@@ -254,40 +249,33 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
-    private static final class ActuatorResourceServerConfiguration extends WebserviceResourceConfiguration {
+    // NOTE: We need different class types here to support Spring configuration for different
+    private static final class LMSAPIClientResourceServerConfiguration extends WebserviceResourceConfiguration {
 
-        public ActuatorResourceServerConfiguration(
+        public LMSAPIClientResourceServerConfiguration(
                 final TokenStore tokenStore,
                 final WebClientDetailsService webServiceClientDetails,
                 final AuthenticationManager authenticationManager,
                 final String apiEndpoint,
-                final String redirect,
-                final int adminAccessTokenValSec,
-                final int adminRefreshTokenValSec) {
+                final int accessTokenValSec) {
 
             super(
                     tokenStore,
                     webServiceClientDetails,
                     authenticationManager,
-                    new LoginRedirectOnUnauthorized(redirect),
-                    ADMIN_API_RESOURCE_ID,
+                    (request, response, exception) -> {
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        log.warn("Unauthorized Request: {}", request, exception);
+                        log.info("Redirect to login after unauthorized request");
+                        response.getOutputStream().println("{ \"error\": \"" + exception.getMessage() + "\" }");
+                    },
+                    EXAM_API_RESOURCE_ID,
                     apiEndpoint,
                     true,
                     4,
-                    adminAccessTokenValSec,
-                    adminRefreshTokenValSec);
-        }
-
-        @Override
-        protected void addConfiguration(
-                final ConfigurerAdapter configurerAdapter,
-                final HttpSecurity http) throws Exception {
-
-            http.antMatcher(configurerAdapter.apiEndpoint + "/**")
-                    .authorizeRequests()
-
-                    .anyRequest()
-                    .hasAuthority(UserRole.SEB_SERVER_ADMIN.name());
+                    accessTokenValSec,
+                    1);
         }
     }
 

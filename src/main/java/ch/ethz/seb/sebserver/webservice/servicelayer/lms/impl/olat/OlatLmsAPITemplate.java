@@ -407,6 +407,21 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 .map(x -> exam);
     }
 
+    @Override
+    public Result<Void> createConnectionDetails() {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
+    @Override
+    public Result<Void> updateConnectionDetails() {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
+    @Override
+    public Result<Void> deleteConnectionDetails() {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
     private <T> T apiGet(final RestTemplate restTemplate, final String url, final Class<T> type) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final ResponseEntity<T> res = restTemplate.exchange(
@@ -488,5 +503,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             return this.cachedRestTemplate;
         });
     }
+
 
 }

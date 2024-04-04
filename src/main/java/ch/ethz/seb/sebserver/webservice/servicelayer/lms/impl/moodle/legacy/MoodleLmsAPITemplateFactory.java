@@ -91,7 +91,8 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.environment,
                     apiTemplateDataSupplier,
                     moodleCourseAccess,
-                    new MoodleCourseRestriction());
+                    new MoodleCourseRestriction(),
+                    null);
 
         });
     }

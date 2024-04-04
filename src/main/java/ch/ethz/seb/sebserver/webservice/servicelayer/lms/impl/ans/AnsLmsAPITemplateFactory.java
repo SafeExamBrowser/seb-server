@@ -74,7 +74,8 @@ public class AnsLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.environment,
                     apiTemplateDataSupplier,
                     ansLmsAPITemplate,
-                    ansLmsAPITemplate);
+                    ansLmsAPITemplate,
+                    null);
         });
     }
 

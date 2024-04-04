@@ -51,7 +51,10 @@ public final class LmsSetup implements GrantEntity, Activatable {
         SEB_RESTRICTION,
         /** Indicates if the LMS integration has some process for course recovery
          * after backup-restore process for example. */
-        COURSE_RECOVERY
+        COURSE_RECOVERY,
+
+        /** Indicates if the LMS integration has some deeper integration that involves LMS calls to SEB Server*/
+        LMS_FULL_INTEGRATION
     }
 
     /** Defines the supported types if LMS bindings.
@@ -64,7 +67,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         /** The Moodle binding features only the course access API so far */
         MOODLE(Features.COURSE_API, Features.COURSE_RECOVERY /* , Features.SEB_RESTRICTION */),
         /** The Moodle binding features with SEB Server integration plugin for fully featured */
-        MOODLE_PLUGIN(Features.COURSE_API, Features.COURSE_RECOVERY, Features.SEB_RESTRICTION),
+        MOODLE_PLUGIN(Features.COURSE_API, Features.COURSE_RECOVERY, Features.SEB_RESTRICTION, Features.LMS_FULL_INTEGRATION),
         /** The Ans Delft binding is on the way */
         ANS_DELFT(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The OpenOLAT binding is on the way */

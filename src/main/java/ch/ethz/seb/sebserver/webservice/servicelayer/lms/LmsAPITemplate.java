@@ -63,7 +63,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCour
  * or partial API Access and can flag missing or wrong {@link LmsSetup } attributes with the resulting
  * {@link LmsSetupTestResult }.</br>
  * SEB Server than uses an instance of this template to communicate with the an LMS. */
-public interface LmsAPITemplate extends CourseAccessAPI, SEBRestrictionAPI {
+public interface LmsAPITemplate extends CourseAccessAPI, SEBRestrictionAPI, FullLmsIntegrationAPI {
 
     /** Get the LMS type of the concrete template implementation
      *
