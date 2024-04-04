@@ -56,13 +56,23 @@ public abstract class MoodleUtils {
     private static String maskShortName(final String shortname) {
         return shortname
                 .replace(Constants.SEMICOLON.toString(), "_SC_")
-                .replace(Constants.COLON.toString(), "_COLON_");
+                .replace(Constants.COLON.toString(), "_COLON_")
+                .replace(Constants.SLASH.toString(), "_SL_")
+                .replace(Constants.BACKSLASH.toString(), "_BSL_")
+                .replace(Constants.AMPERSAND.toString(), "_AMP_")
+                .replace(Constants.ANGLE_BRACE_OPEN.toString(), "_AO_")
+                .replace(Constants.ANGLE_BRACE_CLOSE.toString(), "_AC_");
     }
 
     private static String unmaskShortName(final String shortname) {
         return shortname
                 .replace("_SC_", Constants.SEMICOLON.toString())
-                .replace("_COLON_", Constants.COLON.toString());
+                .replace("_COLON_", Constants.COLON.toString())
+                .replace("_SL_", Constants.SLASH.toString())
+                .replace("_BSL_", Constants.BACKSLASH.toString())
+                .replace("_AMP_", Constants.AMPERSAND.toString())
+                .replace("_AO_", Constants.ANGLE_BRACE_OPEN.toString())
+                .replace("_AC_", Constants.ANGLE_BRACE_CLOSE.toString());
     }
 
     public static String getQuizId(final String internalQuizId) {
