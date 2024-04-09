@@ -11,8 +11,12 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
+
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -39,20 +43,62 @@ public class LmsIntegrationController {
     }
 
     @RequestMapping(
-            path = API.LMS_FULL_INTEGRATION_REFRESH_TOKEN_ENDPOINT,
+            path = API.LMS_FULL_INTEGRATION_EXAM_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public void refreshAccessToken(
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID, required = true) final String lmsUUID,
+    public void createExam(
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID, required = true) final String lmsUUId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID, required = true) final String courseId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID, required = true) final String quizId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID, required = true) final String templateId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_PASSWORD, required = false) final String quitPassword,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final String quitLink,
             final HttpServletResponse response) {
 
-        final Result<Void> result = fullLmsIntegrationService.refreshAccessToken(lmsUUID)
-                .onError(e -> log.error("Failed to refresh access token for LMS Setup: {}", lmsUUID, e));
+        final Exam exam = fullLmsIntegrationService.importExam(lmsUUId, courseId, quizId, templateId, quitPassword, quitLink)
+                .onError(e -> log.error(
+                        "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {}",
+                        lmsUUId, courseId, quizId, templateId, e))
+                .getOrThrow();
 
-        if (result.hasError()) {
-            response.setStatus(HttpStatus.NOT_FOUND.value());
-        } else {
-            response.setStatus(HttpStatus.OK.value());
-        }
+        log.info("Auto import of exam successful: {}", exam);
+    }
+
+    @RequestMapping(
+            path = API.LMS_FULL_INTEGRATION_EXAM_ENDPOINT,
+            method = RequestMethod.DELETE,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public void deleteExam(
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID, required = true) final String lmsUUId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID, required = true) final String courseId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID, required = true) final String quizId,
+            final HttpServletResponse response) {
+
+        final EntityKey examID = fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
+                .onError(e -> log.error(
+                        "Failed to delete exam: lmsId:{}, courseId: {}, quizId: {}",
+                        lmsUUId, courseId, quizId, e))
+                .getOrThrow();
+
+        log.info("Auto delete of exam successful: {}", examID);
+    }
+
+    @RequestMapping(
+            path = API.LMS_FULL_INTEGRATION_EXAM_ENDPOINT,
+            method = RequestMethod.DELETE,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public void getConnectionConfiguration(
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID, required = true) final String lmsUUId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID, required = true) final String courseId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID, required = true) final String quizId,
+            final HttpServletResponse response) throws IOException {
+
+            fullLmsIntegrationService.streamConnectionConfiguration(lmsUUId, courseId, quizId, response.getOutputStream())
+                    .onError(e -> log.error(
+                            "Failed to stream connection configuration for exam: lmsId:{}, courseId: {}, quizId: {}",
+                            lmsUUId, courseId, quizId, e))
+                    .getOrThrow();
+
     }
 }

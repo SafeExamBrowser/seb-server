@@ -157,8 +157,16 @@ public final class API {
             + LMS_SETUP_TEST_PATH_SEGMENT
             + LMS_SETUP_TEST_AD_HOC_PATH_SEGMENT;
 
-    public static final String LMS_FULL_INTEGRATION_REFRESH_TOKEN_ENDPOINT = "/refresh-access-token";
-    public static final String LMS_FULL_INTEGRATION_LMS_UUID = "lms_uuid";
+    public static final String LMS_FULL_INTEGRATION_EXAM_ENDPOINT = "/exam";
+    public static final String LMS_FULL_INTEGRATION_CONNECTION_CONFIG_ENDPOINT = "/seb_config";
+    public static final String LMS_FULL_INTEGRATION_LOGIN_TOKEN_ENDPOINT = "/login_token";
+    public static final String LMS_FULL_INTEGRATION_LMS_UUID = "id";
+    public static final String LMS_FULL_INTEGRATION_COURSE_ID = "course_id";
+    public static final String LMS_FULL_INTEGRATION_QUIZ_ID = "quiz_id";
+    public static final String LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID = "exam_template_id";
+    public static final String LMS_FULL_INTEGRATION_QUIT_PASSWORD = "quit_password";
+    public static final String LMS_FULL_INTEGRATION_QUIT_LINK = "quit_link";
+
 
     public static final String USER_ACCOUNT_ENDPOINT = "/useraccount";
 

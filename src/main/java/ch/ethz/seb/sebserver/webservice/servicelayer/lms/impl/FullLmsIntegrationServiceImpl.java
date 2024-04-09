@@ -8,9 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import java.io.OutputStream;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -33,7 +36,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     @Override
-    public Result<Void> applyFullLmsIntegration(final Long lmsSetupId, final boolean refreshToken) {
+    public Result<Void> applyFullLmsIntegration(final Long lmsSetupId) {
         return Result.ofRuntimeError("TODO");
     }
 
@@ -52,7 +55,31 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String lmsUUID,
             final String courseId,
             final String quizId,
-            final String examTemplateId) {
+            final String examTemplateId,
+            final String quitPassword,
+            final String quitLink) {
         return Result.ofRuntimeError("TODO");
+    }
+
+    @Override
+    public Result<EntityKey> deleteExam(
+            final String lmsUUID,
+            final String courseId,
+            final String quizId) {
+        return Result.ofRuntimeError("TODO");
+    }
+
+    @Override
+    public Result<Void> streamConnectionConfiguration(
+            final String lmsUUID,
+            final String courseId,
+            final String quizId,
+            final OutputStream out) {
+        return Result.ofRuntimeError("TODO");
+    }
+
+    private Long findLMSSetup(final String lmsUUID) {
+        // TODO
+        return null;
     }
 }

@@ -91,7 +91,6 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
                 .antMatchers(configurerAdapter.apiEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(configurerAdapter.apiEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(configurerAdapter.apiEndpoint + API.REGISTER_ENDPOINT).permitAll()
-                .antMatchers(this.lmsAPIEndpoint + API.LMS_FULL_INTEGRATION_REFRESH_TOKEN_ENDPOINT).permitAll()
 
                 .and()
                 .antMatcher(configurerAdapter.apiEndpoint + "/**")
