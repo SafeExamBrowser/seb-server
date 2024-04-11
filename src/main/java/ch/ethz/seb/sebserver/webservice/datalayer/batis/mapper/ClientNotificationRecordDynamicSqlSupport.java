@@ -6,28 +6,28 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ClientNotificationRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.420+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source Table: client_notification")
     public static final ClientNotificationRecord clientNotificationRecord = new ClientNotificationRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.420+02:00", comments="Source field: client_notification.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source field: client_notification.id")
     public static final SqlColumn<Long> id = clientNotificationRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.421+02:00", comments="Source field: client_notification.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source field: client_notification.client_connection_id")
     public static final SqlColumn<Long> clientConnectionId = clientNotificationRecord.clientConnectionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.421+02:00", comments="Source field: client_notification.event_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source field: client_notification.event_type")
     public static final SqlColumn<Integer> eventType = clientNotificationRecord.eventType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.421+02:00", comments="Source field: client_notification.notification_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source field: client_notification.notification_type")
     public static final SqlColumn<Integer> notificationType = clientNotificationRecord.notificationType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.421+02:00", comments="Source field: client_notification.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source field: client_notification.value")
     public static final SqlColumn<Long> value = clientNotificationRecord.value;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.421+02:00", comments="Source field: client_notification.text")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source field: client_notification.text")
     public static final SqlColumn<String> text = clientNotificationRecord.text;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.420+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.446+02:00", comments="Source Table: client_notification")
     public static final class ClientNotificationRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

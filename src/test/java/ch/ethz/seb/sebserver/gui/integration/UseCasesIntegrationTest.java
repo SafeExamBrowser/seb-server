@@ -752,6 +752,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         lmsSetup.proxyAuthUsername,
                         lmsSetup.proxyAuthSecret,
                         lmsSetup.active,
+                        null,
                         null))
                 .call();
 

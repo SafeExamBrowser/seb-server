@@ -48,7 +48,8 @@ public class OlatLmsAPITemplateTest extends AdministrationAPIIntegrationTester {
         final OlatLmsRestTemplate restTemplateMock = Mockito.mock(OlatLmsRestTemplate.class);
         final APITemplateDataSupplier apiTemplateDataSupplier = Mockito.mock(APITemplateDataSupplier.class);
         Mockito.when(apiTemplateDataSupplier.getLmsSetup()).thenReturn(new LmsSetup(
-                1L, 1L, null, null, null, null, null, null, null, null, null, null, false, null));
+                1L, 1L, null, null, null, null, null, null, null, null, null, null, false, null,
+                null));
 
         final OlatLmsAPITemplate olatLmsAPITemplate = new OlatLmsAPITemplate(
                 null,

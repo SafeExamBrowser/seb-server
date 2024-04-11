@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
   `lms_proxy_auth_secret` VARCHAR(255) NULL,
   `update_time` BIGINT UNSIGNED NULL,
   `active` INT(1) NOT NULL,
+  `connection_id` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
   INDEX `setupInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `setupInstitutionRef`

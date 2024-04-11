@@ -131,7 +131,8 @@ public class MoodlePluginCourseRestrictionTest {
         final JSONMapper jsonMapper = new JSONMapper();
         final LmsSetup lmsSetup =
                 new LmsSetup(1L, 1L, "test-Moodle", LmsType.MOODLE_PLUGIN, "lms-user", "lms-user-secret",
-                        "https://test.org/", null, null, null, null, null, null, null);
+                        "https://test.org/", null, null, null, null, null, null, null,
+                        null);
 
         final APITemplateDataSupplier apiTemplateDataSupplier = new APITemplateDataSupplier() {
 

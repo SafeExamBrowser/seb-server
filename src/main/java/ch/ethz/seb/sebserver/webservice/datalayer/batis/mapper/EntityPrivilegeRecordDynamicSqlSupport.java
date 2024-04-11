@@ -6,25 +6,25 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class EntityPrivilegeRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.424+02:00", comments="Source Table: entity_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.449+02:00", comments="Source Table: entity_privilege")
     public static final EntityPrivilegeRecord entityPrivilegeRecord = new EntityPrivilegeRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.424+02:00", comments="Source field: entity_privilege.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.449+02:00", comments="Source field: entity_privilege.id")
     public static final SqlColumn<Long> id = entityPrivilegeRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.424+02:00", comments="Source field: entity_privilege.entity_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.449+02:00", comments="Source field: entity_privilege.entity_type")
     public static final SqlColumn<String> entityType = entityPrivilegeRecord.entityType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.424+02:00", comments="Source field: entity_privilege.entity_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.449+02:00", comments="Source field: entity_privilege.entity_id")
     public static final SqlColumn<Long> entityId = entityPrivilegeRecord.entityId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.424+02:00", comments="Source field: entity_privilege.user_uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.449+02:00", comments="Source field: entity_privilege.user_uuid")
     public static final SqlColumn<String> userUuid = entityPrivilegeRecord.userUuid;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.424+02:00", comments="Source field: entity_privilege.privilege_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.449+02:00", comments="Source field: entity_privilege.privilege_type")
     public static final SqlColumn<Byte> privilegeType = entityPrivilegeRecord.privilegeType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.424+02:00", comments="Source Table: entity_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.449+02:00", comments="Source Table: entity_privilege")
     public static final class EntityPrivilegeRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

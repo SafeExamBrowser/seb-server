@@ -3,50 +3,53 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class LmsSetupRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_type")
     private String lmsType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_url")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_url")
     private String lmsUrl;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_clientname")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_clientname")
     private String lmsClientname;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_clientsecret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_clientsecret")
     private String lmsClientsecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_rest_api_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_rest_api_token")
     private String lmsRestApiToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_host")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_host")
     private String lmsProxyHost;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_port")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_port")
     private Integer lmsProxyPort;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_auth_username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_auth_username")
     private String lmsProxyAuthUsername;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_auth_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_auth_secret")
     private String lmsProxyAuthSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.update_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.update_time")
     private Long updateTime;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.active")
     private Integer active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source Table: lms_setup")
-    public LmsSetupRecord(Long id, Long institutionId, String name, String lmsType, String lmsUrl, String lmsClientname, String lmsClientsecret, String lmsRestApiToken, String lmsProxyHost, Integer lmsProxyPort, String lmsProxyAuthUsername, String lmsProxyAuthSecret, Long updateTime, Integer active) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.connection_id")
+    private String connectionId;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source Table: lms_setup")
+    public LmsSetupRecord(Long id, Long institutionId, String name, String lmsType, String lmsUrl, String lmsClientname, String lmsClientsecret, String lmsRestApiToken, String lmsProxyHost, Integer lmsProxyPort, String lmsProxyAuthUsername, String lmsProxyAuthSecret, Long updateTime, Integer active, String connectionId) {
         this.id = id;
         this.institutionId = institutionId;
         this.name = name;
@@ -61,83 +64,89 @@ public class LmsSetupRecord {
         this.lmsProxyAuthSecret = lmsProxyAuthSecret;
         this.updateTime = updateTime;
         this.active = active;
+        this.connectionId = connectionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_type")
     public String getLmsType() {
         return lmsType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_url")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_url")
     public String getLmsUrl() {
         return lmsUrl;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_clientname")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_clientname")
     public String getLmsClientname() {
         return lmsClientname;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_clientsecret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_clientsecret")
     public String getLmsClientsecret() {
         return lmsClientsecret;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_rest_api_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_rest_api_token")
     public String getLmsRestApiToken() {
         return lmsRestApiToken;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_host")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_host")
     public String getLmsProxyHost() {
         return lmsProxyHost;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_port")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_port")
     public Integer getLmsProxyPort() {
         return lmsProxyPort;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_auth_username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_auth_username")
     public String getLmsProxyAuthUsername() {
         return lmsProxyAuthUsername;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.lms_proxy_auth_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.lms_proxy_auth_secret")
     public String getLmsProxyAuthSecret() {
         return lmsProxyAuthSecret;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.update_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.update_time")
     public Long getUpdateTime() {
         return updateTime;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-09T13:46:22.405+02:00", comments="Source field: lms_setup.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.active")
     public Integer getActive() {
         return active;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.439+02:00", comments="Source field: lms_setup.connection_id")
+    public String getConnectionId() {
+        return connectionId;
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table lms_setup
      *
-     * @mbg.generated Tue Apr 09 13:46:22 CEST 2024
+     * @mbg.generated Wed Apr 10 08:52:05 CEST 2024
      */
     @Override
     public String toString() {
@@ -159,6 +168,7 @@ public class LmsSetupRecord {
         sb.append(", lmsProxyAuthSecret=").append(lmsProxyAuthSecret);
         sb.append(", updateTime=").append(updateTime);
         sb.append(", active=").append(active);
+        sb.append(", connectionId=").append(connectionId);
         sb.append("]");
         return sb.toString();
     }
@@ -167,7 +177,7 @@ public class LmsSetupRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table lms_setup
      *
-     * @mbg.generated Tue Apr 09 13:46:22 CEST 2024
+     * @mbg.generated Wed Apr 10 08:52:05 CEST 2024
      */
     @Override
     public boolean equals(Object that) {
@@ -194,14 +204,15 @@ public class LmsSetupRecord {
             && (this.getLmsProxyAuthUsername() == null ? other.getLmsProxyAuthUsername() == null : this.getLmsProxyAuthUsername().equals(other.getLmsProxyAuthUsername()))
             && (this.getLmsProxyAuthSecret() == null ? other.getLmsProxyAuthSecret() == null : this.getLmsProxyAuthSecret().equals(other.getLmsProxyAuthSecret()))
             && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()))
-            && (this.getActive() == null ? other.getActive() == null : this.getActive().equals(other.getActive()));
+            && (this.getActive() == null ? other.getActive() == null : this.getActive().equals(other.getActive()))
+            && (this.getConnectionId() == null ? other.getConnectionId() == null : this.getConnectionId().equals(other.getConnectionId()));
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table lms_setup
      *
-     * @mbg.generated Tue Apr 09 13:46:22 CEST 2024
+     * @mbg.generated Wed Apr 10 08:52:05 CEST 2024
      */
     @Override
     public int hashCode() {
@@ -221,6 +232,7 @@ public class LmsSetupRecord {
         result = prime * result + ((getLmsProxyAuthSecret() == null) ? 0 : getLmsProxyAuthSecret().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
         result = prime * result + ((getActive() == null) ? 0 : getActive().hashCode());
+        result = prime * result + ((getConnectionId() == null) ? 0 : getConnectionId().hashCode());
         return result;
     }
 }

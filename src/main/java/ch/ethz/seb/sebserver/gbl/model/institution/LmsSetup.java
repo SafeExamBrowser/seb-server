@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -132,6 +133,9 @@ public final class LmsSetup implements GrantEntity, Activatable {
     @JsonProperty(LMS_SETUP.ATTR_UPDATE_TIME)
     public final Long updateTime;
 
+    @JsonProperty(LMS_SETUP.ATTR_CONNECTION_ID)
+    public final String connectionId;
+
     @JsonCreator
     public LmsSetup(
             @JsonProperty(LMS_SETUP.ATTR_ID) final Long id,
@@ -147,7 +151,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
             @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME) final String proxyAuthUsername,
             @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET) final String proxyAuthSecret,
             @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active,
-            @JsonProperty(LMS_SETUP.ATTR_UPDATE_TIME) final Long updateTime) {
+            @JsonProperty(LMS_SETUP.ATTR_UPDATE_TIME) final Long updateTime,
+            @JsonProperty(LMS_SETUP.ATTR_CONNECTION_ID) final String connectionId) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -163,6 +168,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.proxyAuthSecret = proxyAuthSecret;
         this.active = (active != null) ? active : Boolean.FALSE;
         this.updateTime = updateTime;
+        this.connectionId = connectionId;
     }
 
     public LmsSetup(final String modelId, final POSTMapper mapper) {
@@ -180,6 +186,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.proxyAuthSecret = mapper.getString(LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET);
         this.active = mapper.getBooleanObject(LMS_SETUP.ATTR_ACTIVE);
         this.updateTime = mapper.getLong(LMS_SETUP.ATTR_UPDATE_TIME);
+        this.connectionId = mapper.getString(LMS_SETUP.ATTR_CONNECTION_ID);
     }
 
     @Override
@@ -254,6 +261,14 @@ public final class LmsSetup implements GrantEntity, Activatable {
         return this.active;
     }
 
+    public Long getUpdateTime() {
+        return updateTime;
+    }
+
+    public String getConnectionId() {
+        return connectionId;
+    }
+
     @Override
     public Entity printSecureCopy() {
         return new LmsSetup(
@@ -270,7 +285,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
                 this.proxyAuthUsername,
                 Constants.EMPTY_NOTE,
                 this.active,
-                this.updateTime);
+                this.updateTime,
+                this.connectionId);
     }
 
     @Override
@@ -315,7 +331,19 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     public static LmsSetup createNew(final Long institutionId) {
         return new LmsSetup(
-                null, institutionId, null, null, null, null, null, null, null, null, null, null, false, null);
+                null, institutionId,
+                null, null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                UUID.randomUUID().toString());
     }
 
 }

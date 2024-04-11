@@ -10,11 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -170,11 +166,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             checkUniqueName(lmsSetup);
 
-//            final LmsSetupRecord savedRecord = recordById(lmsSetup.id)
-//                    .getOrThrow();
-
-//            final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
-//            final ClientCredentials proxyCredentials = createProxyClientCredentials(lmsSetup);
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     lmsSetup.id,
                     lmsSetup.institutionId,
@@ -189,7 +180,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsSetup.proxyAuthUsername,
                     this.encryptForSave(lmsSetup.proxyAuthSecret),
                     System.currentTimeMillis(),
-                    null);
+                    null,
+                    createConnectionIdIfNotExists(lmsSetup.id));
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
@@ -198,12 +190,15 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 .onError(TransactionHandler::rollback);
     }
 
+
+
     @Override
     @Transactional
     public Result<LmsSetup> createNew(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
             checkUniqueName(lmsSetup);
+            final String connectionId = UUID.randomUUID().toString();
 
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     null,
@@ -219,7 +214,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsSetup.proxyAuthUsername,
                     this.encryptForSave(lmsSetup.proxyAuthSecret),
                     System.currentTimeMillis(),
-                    BooleanUtils.toInteger(false));
+                    BooleanUtils.toInteger(false),
+                    connectionId);
 
             this.lmsSetupRecordMapper.insert(newRecord);
             return newRecord;
@@ -241,7 +237,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
                     null, null, null, null, null, null, null, null, null, null, null, null,
                     System.currentTimeMillis(),
-                    BooleanUtils.toIntegerObject(active));
+                    BooleanUtils.toIntegerObject(active), null);
 
             this.lmsSetupRecordMapper.updateByExampleSelective(lmsSetupRecord)
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
@@ -397,7 +393,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getLmsProxyAuthUsername(),
                 record.getLmsProxyAuthSecret(),
                 BooleanUtils.toBooleanObject(record.getActive()),
-                record.getUpdateTime()));
+                record.getUpdateTime(),
+                record.getConnectionId()));
     }
 
     private String encryptForSave(final String input) {
@@ -428,6 +425,19 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     Domain.LMS_SETUP.ATTR_NAME,
                     "lmsSetup:name:name.notunique"));
+        }
+    }
+
+    private String createConnectionIdIfNotExists(final Long id) {
+        try {
+            final LmsSetupRecord rec = recordById(id).getOrThrow();
+            if (StringUtils.isBlank(rec.getConnectionId())) {
+                return UUID.randomUUID().toString();
+            }
+            return null;
+        } catch (final Exception e) {
+            log.warn("Failed to check connection id", e);
+            return null;
         }
     }
 
