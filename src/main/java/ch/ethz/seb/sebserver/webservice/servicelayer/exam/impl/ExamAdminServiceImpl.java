@@ -9,10 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -41,16 +45,13 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 @Lazy
@@ -71,6 +72,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final ExamConfigurationValueService examConfigurationValueService;
     private final SEBRestrictionService sebRestrictionService;
 
+    private final ExamTemplateService examTemplateService;
+
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
             final ProctoringAdminService proctoringAdminService,
@@ -80,6 +83,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final LmsAPIService lmsAPIService,
             final ExamConfigurationValueService examConfigurationValueService,
             final SEBRestrictionService sebRestrictionService,
+            final ExamTemplateService examTemplateService,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.numerical.threshold:2}") int defaultNumericalTrustThreshold) {
 
@@ -93,11 +97,66 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.appSignatureKeyEnabled = appSignatureKeyEnabled;
         this.defaultNumericalTrustThreshold = defaultNumericalTrustThreshold;
         this.sebRestrictionService = sebRestrictionService;
+        this.examTemplateService = examTemplateService;
     }
 
     @Override
     public ProctoringAdminService getProctoringAdminService() {
         return this.proctoringAdminService;
+    }
+
+    @Override
+    public Result<Exam> applyPostCreationInitialization(final Exam exam) {
+        final List<APIMessage> errors = new ArrayList<>();
+
+        this.initAdditionalAttributes(exam)
+                .onErrorDo(error -> {
+                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
+                    return exam;
+                })
+                .flatMap(this.examTemplateService::addDefinedIndicators)
+                .onErrorDo(error -> {
+                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error));
+                    return exam;
+                })
+                .flatMap(this.examTemplateService::addDefinedClientGroups)
+                .onErrorDo(error -> {
+                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS.of(error));
+                    return exam;
+                })
+                .flatMap(this.examTemplateService::initAdditionalTemplateAttributes)
+                .onErrorDo(error -> {
+                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
+                    return exam;
+                })
+                .flatMap(this.examTemplateService::initExamConfiguration)
+                .onErrorDo(error -> {
+                    if (error instanceof APIMessageException) {
+                        errors.addAll(((APIMessageException) error).getAPIMessages());
+                    } else {
+                        errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG.of(error));
+                    }
+                    return exam;
+                })
+                .flatMap(this::applyAdditionalSEBRestrictions)
+                .onErrorDo(error -> {
+                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error));
+                    return exam;
+                });
+
+        this.applyQuitPassword(exam);
+
+        if (!errors.isEmpty()) {
+            errors.add(0, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
+                    exam.getModelId(),
+                    API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + exam.getModelId()));
+
+            log.warn("Exam successfully created but some initialization did go wrong: {}", errors);
+
+            throw new APIMessageException(errors);
+        } else {
+            return this.examDAO.byPK(exam.id);
+        }
     }
 
     @Override
@@ -341,6 +400,35 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 .flatMap(id -> this.sebRestrictionService.applySEBClientRestriction(exam))
                 .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
                 .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
+    }
+
+    @Override
+    public Result<Exam> findExamByLmsIdentity(
+            final String courseId,
+            final String quizId,
+            final String identity) {
+
+        for (final LmsType lmsType : LmsType.values()) {
+            switch (lmsType) {
+                case MOODLE_PLUGIN -> {
+                    if (StringUtils.isBlank(quizId) || StringUtils.isBlank(courseId)) {
+                        return Result.ofError(new APIMessageException(
+                                APIMessage.ErrorMessage.FIELD_VALIDATION.of("Missing courseId or quizId")));
+                    }
+
+                    return examDAO.byExternalIdLike(MoodleUtils.getInternalQuizId(
+                            quizId,
+                            courseId,
+                            Constants.PERCENTAGE_STRING,
+                            Constants.PERCENTAGE_STRING));
+                }
+                // TODO add other LMS types if they support full integration
+            }
+        }
+
+        return Result.ofError(
+                new ResourceNotFoundException(EntityType.EXAM,
+                        "Not found by LMS identity [" + courseId + "|"+ quizId+ "|"+ identity + "]"));
     }
 
     private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {

@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -41,11 +42,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDyn
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.LmsSetupRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
@@ -73,6 +69,23 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> byPK(final Long id) {
         return recordById(id)
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Long> getLmsSetupIdByConnectionId(final String connectionId) {
+        return Result.tryCatch(() -> {
+            final List<Long> find = lmsSetupRecordMapper.selectIdsByExample()
+                    .where(LmsSetupRecordDynamicSqlSupport.connectionId, isEqualTo(connectionId))
+                    .build()
+                    .execute();
+
+            if (find == null || find.isEmpty()) {
+                throw new NoResourceFoundException(EntityType.LMS_SETUP, "No LMSSetup with connection_id:" + connectionId);
+            }
+
+            return find.get(0);
+        });
     }
 
     @Override

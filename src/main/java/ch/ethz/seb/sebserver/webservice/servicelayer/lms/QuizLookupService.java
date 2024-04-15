@@ -68,7 +68,6 @@ public interface QuizLookupService {
      * @param sortAttribute the sort attribute for the new Page
      * @param pageNumber the number of the Page to build
      * @param pageSize the size of the Page to build
-     * @param complete indicates if the quiz lookup that uses this page function has been completed yet
      * @return A Page of QuizData extracted from a given list of QuizData */
     static Function<LookupResult, Page<QuizData>> quizzesToPageFunction(
             final String sortAttribute,

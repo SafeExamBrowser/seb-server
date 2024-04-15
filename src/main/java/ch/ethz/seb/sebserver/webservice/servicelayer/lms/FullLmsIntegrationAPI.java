@@ -12,9 +12,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface FullLmsIntegrationAPI {
 
-    Result<Void> createConnectionDetails();
-
-    Result<Void> updateConnectionDetails();
+    Result<Void> applyConnectionDetails(FullLmsIntegrationService.IntegrationData data);
 
     Result<Void> deleteConnectionDetails();
 

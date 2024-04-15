@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -90,13 +91,13 @@ public class ClientGroupController extends EntityController<ClientGroup, ClientG
     @Override
     protected Result<ClientGroup> validForCreate(final ClientGroup entity) {
         return super.validForCreate(entity)
-                .map(ExamAdminService::checkClientGroupConsistency);
+                .map(ExamUtils::checkClientGroupConsistency);
     }
 
     @Override
     protected Result<ClientGroup> validForSave(final ClientGroup entity) {
         return super.validForSave(entity)
-                .map(ExamAdminService::checkClientGroupConsistency);
+                .map(ExamUtils::checkClientGroupConsistency);
     }
 
     @Override

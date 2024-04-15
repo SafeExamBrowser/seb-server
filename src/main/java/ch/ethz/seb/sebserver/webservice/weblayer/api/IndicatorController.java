@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -90,7 +91,7 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
     protected Result<Indicator> validForCreate(final Indicator entity) {
         return super.validForCreate(entity)
                 .map(indicator -> {
-                    ExamAdminService.checkThresholdConsistency(indicator.thresholds);
+                    ExamUtils.checkThresholdConsistency(indicator.thresholds);
                     return indicator;
                 });
     }
@@ -99,7 +100,7 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
     protected Result<Indicator> validForSave(final Indicator entity) {
         return super.validForSave(entity)
                 .map(indicator -> {
-                    ExamAdminService.checkThresholdConsistency(indicator.thresholds);
+                    ExamUtils.checkThresholdConsistency(indicator.thresholds);
                     return indicator;
                 });
     }

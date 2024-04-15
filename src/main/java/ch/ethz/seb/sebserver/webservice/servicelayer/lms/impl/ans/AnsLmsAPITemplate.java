@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -421,12 +422,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     }
 
     @Override
-    public Result<Void> createConnectionDetails() {
-        return Result.ofRuntimeError("Not Supported");
-    }
-
-    @Override
-    public Result<Void> updateConnectionDetails() {
+    public Result<Void> applyConnectionDetails(final FullLmsIntegrationService.IntegrationData data) {
         return Result.ofRuntimeError("Not Supported");
     }
 

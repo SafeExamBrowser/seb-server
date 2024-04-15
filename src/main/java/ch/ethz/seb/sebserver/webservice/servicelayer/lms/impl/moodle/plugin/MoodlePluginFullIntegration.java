@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationAPI;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 
 public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
@@ -27,12 +28,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
     }
 
     @Override
-    public Result<Void> createConnectionDetails() {
-        return Result.ofRuntimeError("TODO");
-    }
-
-    @Override
-    public Result<Void> updateConnectionDetails() {
+    public Result<Void> applyConnectionDetails(FullLmsIntegrationService.IntegrationData data) {
         return Result.ofRuntimeError("TODO");
     }
 

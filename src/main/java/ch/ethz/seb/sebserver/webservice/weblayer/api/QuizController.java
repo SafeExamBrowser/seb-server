@@ -60,8 +60,8 @@ public class QuizController {
 
     /** This is called by Spring to initialize the WebDataBinder and is used here to
      * initialize the default value binding for the institutionId request-parameter
-     * that has the current users insitutionId as default.
-     *
+     * that has the current users institutionId as default.
+     * <p>
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {

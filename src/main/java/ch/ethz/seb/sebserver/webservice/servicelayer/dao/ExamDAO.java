@@ -25,6 +25,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCac
 /** Concrete EntityDAO interface of Exam entities */
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
 
+    /** Use this to find an imported Exam with external id with like match
+     *
+     * @param internalQuizIdLike like match string that will be applied to like SQL match
+     * @return Result refer to Exam that matches the query. If more then one matches, error is reported.*/
+    Result<Exam> byExternalIdLike(String internalQuizIdLike);
+
     /** Get a GrantEntity for the exam of specified id (PK)
      * This is actually a Exam instance but with no course data loaded.
      *
@@ -230,4 +236,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
 
     void updateQuitPassword(Exam exam, String quitPassword);
+
+
 }

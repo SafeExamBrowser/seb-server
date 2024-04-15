@@ -462,7 +462,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
-    public Result<Void> createConnectionDetails() {
+    public Result<Void> applyConnectionDetails(final FullLmsIntegrationService.IntegrationData data) {
         if (this.lmsIntegrationAPI == null) {
             return Result.ofError(
                     new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
@@ -472,27 +472,9 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Create LMS connection details for LMSSetup: {}", lmsSetup());
         }
 
-        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.createConnectionDetails()
+        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.applyConnectionDetails(data)
                 .onError(error -> log.error(
                         "Failed to run protected createConnectionDetails: {}",
-                        error.getMessage()))
-                .getOrThrow());
-    }
-
-    @Override
-    public Result<Void> updateConnectionDetails() {
-        if (this.lmsIntegrationAPI == null) {
-            return Result.ofError(
-                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Update LMS connection details for LMSSetup: {}", lmsSetup());
-        }
-
-        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.updateConnectionDetails()
-                .onError(error -> log.error(
-                        "Failed to run protected updateConnectionDetails: {}",
                         error.getMessage()))
                 .getOrThrow());
     }
@@ -514,4 +496,5 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                         error.getMessage()))
                 .getOrThrow());
     }
+
 }

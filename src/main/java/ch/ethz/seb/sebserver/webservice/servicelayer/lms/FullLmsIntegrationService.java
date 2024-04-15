@@ -14,10 +14,10 @@ import java.util.Map;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public interface FullLmsIntegrationService {
-
-    Result<LmsAPITemplate> getLmsAPITemplate(String lmsUUID);
 
     Result<Void> refreshAccessToken(String lmsUUID);
 
@@ -45,4 +45,32 @@ public interface FullLmsIntegrationService {
             String courseId,
             String quizId,
             OutputStream out);
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    final class IntegrationData {
+        @JsonProperty("id")
+        public final String id;
+        @JsonProperty("name")
+        public final String name;
+        @JsonProperty("url")
+        public final String url;
+        @JsonProperty("access_token")
+        public final String access_token;
+        @JsonProperty("exam_templates")
+        public final Map<String, String> exam_templates;
+
+        public IntegrationData(
+                @JsonProperty("id") final String id,
+                @JsonProperty("name") final String name,
+                @JsonProperty("url") final String url,
+                @JsonProperty("access_token") final String access_token,
+                @JsonProperty("exam_templates") final Map<String, String> exam_templates) {
+
+            this.id = id;
+            this.name = name;
+            this.url = url;
+            this.access_token = access_token;
+            this.exam_templates = exam_templates;
+        }
+    }
 }

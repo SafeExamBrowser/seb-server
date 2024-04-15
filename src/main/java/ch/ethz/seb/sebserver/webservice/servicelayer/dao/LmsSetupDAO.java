@@ -31,10 +31,16 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, B
     Result<ProxyData> getLmsAPIAccessProxyData(String lmsSetupId);
 
     /** Checks if the given LmsSetup instance is in sync with the version on
-     * data base by matching the update_time field
+     * database by matching the update_time field
      *
-     * @param lmsSetup LmsSetup instance to check if it is up to date
+     * @param lmsSetup LmsSetup instance to check if it is up-to-date
      * @return true if the update_time has the same value on persistent */
     boolean isUpToDate(LmsSetup lmsSetup);
+
+    /** This wil find the internal LMSSetup with the universal connectionId if it exists on this server.
+     *
+     * @param connectionId The connectionId UUID (unique ID)
+     * @return the local LMSSetup DB PK ID */
+    Result<Long> getLmsSetupIdByConnectionId(String connectionId);
 
 }

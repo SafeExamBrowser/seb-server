@@ -10,13 +10,16 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -25,9 +28,16 @@ import org.springframework.stereotype.Service;
 @Service
 @WebServiceProfile
 public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService {
-    @Override
-    public Result<LmsAPITemplate> getLmsAPITemplate(final String lmsUUID) {
-        return Result.ofRuntimeError("TODO");
+
+    private final LmsSetupDAO lmsSetupDAO;
+    private final LmsAPIService lmsAPIService;
+
+    public FullLmsIntegrationServiceImpl(
+            final LmsSetupDAO lmsSetupDAO,
+            final LmsAPIService lmsAPIService) {
+
+        this.lmsSetupDAO = lmsSetupDAO;
+        this.lmsAPIService = lmsAPIService;
     }
 
     @Override
@@ -58,8 +68,15 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String examTemplateId,
             final String quitPassword,
             final String quitLink) {
-        return Result.ofRuntimeError("TODO");
+
+        return lmsSetupDAO.getLmsSetupIdByConnectionId(lmsUUID)
+                .flatMap(lmsAPIService::getLmsAPITemplate)
+                .map(findQuizData(courseId, quizId))
+                .map(createExam(examTemplateId, quitPassword, quitLink));
+
     }
+
+
 
     @Override
     public Result<EntityKey> deleteExam(
@@ -78,8 +95,30 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         return Result.ofRuntimeError("TODO");
     }
 
-    private Long findLMSSetup(final String lmsUUID) {
-        // TODO
-        return null;
+    private Function<LmsAPITemplate, QuizData> findQuizData(
+            final String courseId,
+            final String quizId) {
+
+        return LmsAPITemplate -> {
+            // TODO find quiz data for quizId and courseId on LMS
+            return null;
+        };
     }
+
+    private Function<QuizData, Exam> createExam(
+            final String examTemplateId,
+            final String quitPassword,
+            final String quitLink) {
+
+        return quizData -> {
+            // TODO create and store Exam with DAO and apply all post processing needed for import
+            return null;
+        };
+    }
+
+    private Exam createAdHocSupporterAccount(Exam exam) {
+        // TODO create an ad hoc supporter account for this exam and apply it to the exam
+        return exam;
+    }
+
 }

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -34,7 +35,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -67,7 +67,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
@@ -88,7 +87,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final UserDAO userDAO;
     private final ExamAdminService examAdminService;
     private final RemoteProctoringRoomService remoteProctoringRoomService;
-    private final ExamTemplateService examTemplateService;
     private final LmsAPIService lmsAPIService;
     private final ExamSessionService examSessionService;
     private final SEBRestrictionService sebRestrictionService;
@@ -106,7 +104,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final UserDAO userDAO,
             final ExamAdminService examAdminService,
             final RemoteProctoringRoomService remoteProctoringRoomService,
-            final ExamTemplateService examTemplateService,
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
             final SecurityKeyService securityKeyService,
@@ -123,7 +120,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.userDAO = userDAO;
         this.examAdminService = examAdminService;
         this.remoteProctoringRoomService = remoteProctoringRoomService;
-        this.examTemplateService = examTemplateService;
         this.lmsAPIService = lmsAPIService;
         this.examSessionService = examSessionService;
         this.sebRestrictionService = sebRestrictionService;
@@ -596,7 +592,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         // NO LMS based exam is possible since v1.6
         if (quizId == null) {
-            ExamAdminService.newExamFieldValidation(postParams);
+            ExamUtils.newExamFieldValidation(postParams);
             return new Exam(postParams);
         } else {
             return this.lmsAPIService
@@ -613,57 +609,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @Override
     protected Result<Exam> notifyCreated(final Exam entity) {
-        final List<APIMessage> errors = new ArrayList<>();
-
-        this.examAdminService
-                .initAdditionalAttributes(entity)
-                .onErrorDo(error -> {
-                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
-                    return entity;
-                })
-                .flatMap(this.examTemplateService::addDefinedIndicators)
-                .onErrorDo(error -> {
-                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error));
-                    return entity;
-                })
-                .flatMap(this.examTemplateService::addDefinedClientGroups)
-                .onErrorDo(error -> {
-                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS.of(error));
-                    return entity;
-                })
-                .flatMap(this.examTemplateService::initAdditionalTemplateAttributes)
-                .onErrorDo(error -> {
-                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
-                    return entity;
-                })
-                .flatMap(this.examTemplateService::initExamConfiguration)
-                .onErrorDo(error -> {
-                    if (error instanceof APIMessageException) {
-                        errors.addAll(((APIMessageException) error).getAPIMessages());
-                    } else {
-                        errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG.of(error));
-                    }
-                    return entity;
-                })
-                .flatMap(this.examAdminService::applyAdditionalSEBRestrictions)
-                .onErrorDo(error -> {
-                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error));
-                    return entity;
-                });
-
-        this.examAdminService.applyQuitPassword(entity);
-
-        if (!errors.isEmpty()) {
-            errors.add(0, ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
-                    entity.getModelId(),
-                    API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + entity.getModelId()));
-
-            log.warn("Exam successfully created but some initialization did go wrong: {}", errors);
-
-            throw new APIMessageException(errors);
-        } else {
-            return this.examDAO.byPK(entity.id);
-        }
+        return examAdminService.applyPostCreationInitialization(entity);
     }
 
     @Override
@@ -683,7 +629,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> validForSave(final Exam entity) {
         return super.validForSave(entity)
                 .map(this::checkExamSupporterRole)
-                .map(ExamAdminService::noLMSFieldValidation)
+                .map(ExamUtils::noLMSFieldValidation)
                 .map(this::checkQuitPasswordChange);
     }
 

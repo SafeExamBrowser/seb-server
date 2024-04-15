@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -381,7 +382,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                         null,
                         postMap.getLong(ClientGroupTemplate.ATTR_EXAM_TEMPLATE_ID),
                         postMap))
-                .map(ExamAdminService::checkClientGroupConsistency)
+                .map(ExamUtils::checkClientGroupConsistency)
                 .flatMap(this.examTemplateDAO::createNewClientGroupTemplate)
                 .flatMap(this.userActivityLogDAO::logCreate)
                 .getOrThrow();
@@ -403,7 +404,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         this.checkModifyPrivilege(institutionId);
         return this.beanValidationService
                 .validateBean(modifyData)
-                .map(ExamAdminService::checkClientGroupConsistency)
+                .map(ExamUtils::checkClientGroupConsistency)
                 .flatMap(this.examTemplateDAO::saveClientGroupTemplate)
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
@@ -547,7 +548,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     }
 
     private IndicatorTemplate checkIndicatorConsistency(final IndicatorTemplate indicatorTemplate) {
-        ExamAdminService.checkThresholdConsistency(indicatorTemplate.thresholds);
+        ExamUtils.checkThresholdConsistency(indicatorTemplate.thresholds);
         return indicatorTemplate;
     }
 

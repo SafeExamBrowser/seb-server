@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -408,12 +409,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     @Override
-    public Result<Void> createConnectionDetails() {
-        return Result.ofRuntimeError("Not Supported");
-    }
-
-    @Override
-    public Result<Void> updateConnectionDetails() {
+    public Result<Void> applyConnectionDetails(final FullLmsIntegrationService.IntegrationData data) {
         return Result.ofRuntimeError("Not Supported");
     }
 

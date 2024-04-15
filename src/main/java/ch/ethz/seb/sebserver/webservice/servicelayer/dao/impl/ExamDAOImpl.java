@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
@@ -54,10 +55,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
@@ -91,6 +88,27 @@ public class ExamDAOImpl implements ExamDAO {
         return this.examRecordDAO
                 .recordById(id)
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Exam> byExternalIdLike(final String internalQuizIdLike) {
+        return Result.tryCatch(() -> {
+            final List<ExamRecord> execute = examRecordMapper.selectByExample()
+                    .where(externalId, isLike(internalQuizIdLike))
+                    .build()
+                    .execute();
+
+            if (execute == null || execute.isEmpty()) {
+                throw new NoResourceFoundException(EntityType.EXAM, "No exam found for external_id like" + internalQuizIdLike);
+            }
+
+            if (execute.size() > 1) {
+                throw new IllegalStateException("To many exams found for external_id like" + internalQuizIdLike);
+            }
+
+            return execute.get(0);
+        }).flatMap(this::toDomainModel);
     }
 
     @Override
