@@ -609,7 +609,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @Override
     protected Result<Exam> notifyCreated(final Exam entity) {
-        return examAdminService.applyPostCreationInitialization(entity);
+        return examAdminService.applyExamImportInitialization(entity);
     }
 
     @Override

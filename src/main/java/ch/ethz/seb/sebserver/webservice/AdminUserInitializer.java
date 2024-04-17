@@ -146,7 +146,7 @@ class AdminUserInitializer {
                         null,
                         null,
                         new HashSet<>(this.webserviceInfo.isLightSetup() ?
-                                UserRole.getNamesForAllRoles() :
+                                UserRole.getLightSetupRoles() :
                                 List.of(UserRole.SEB_SERVER_ADMIN.name())
                         )))
                         .flatMap(account -> this.userDAO.setActive(account, true))

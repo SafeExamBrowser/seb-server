@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -55,8 +56,8 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
     private final CircuitBreaker<SEBRestriction> restrictionRequest;
     private final CircuitBreaker<Exam> releaseRestrictionRequest;
-
-    private final CircuitBreaker<Void> lmsAccessRequest;
+    private final CircuitBreaker<IntegrationData> lmsAccessRequest;
+    private final CircuitBreaker<Void> deleteLmsAccessRequest;
 
     public LmsAPITemplateAdapter(
             final AsyncService asyncService,
@@ -86,6 +87,20 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                         0L));
 
         lmsAccessRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
+                        Integer.class,
+                        2),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 20),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.timeToRecover",
+                        Long.class,
+                        0L));
+
+        deleteLmsAccessRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
                         Integer.class,
@@ -462,7 +477,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
-    public Result<Void> applyConnectionDetails(final FullLmsIntegrationService.IntegrationData data) {
+    public Result<IntegrationData> applyConnectionDetails(final IntegrationData data) {
         if (this.lmsIntegrationAPI == null) {
             return Result.ofError(
                     new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
@@ -490,7 +505,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Delete LMS connection details for LMSSetup: {}", lmsSetup());
         }
 
-        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.deleteConnectionDetails()
+        return this.deleteLmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.deleteConnectionDetails()
                 .onError(error -> log.error(
                         "Failed to run protected deleteConnectionDetails: {}",
                         error.getMessage()))

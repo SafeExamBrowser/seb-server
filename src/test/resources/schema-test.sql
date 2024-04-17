@@ -451,6 +451,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   `language` VARCHAR(45) NOT NULL,
   `timeZone` VARCHAR(45) NOT NULL,
   `active` INT(1) NOT NULL,
+  `direct_login` INT(1) NOT NULL DEFAULT 1,
+  `local_account` INT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   INDEX `institutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `userInstitutionRef`

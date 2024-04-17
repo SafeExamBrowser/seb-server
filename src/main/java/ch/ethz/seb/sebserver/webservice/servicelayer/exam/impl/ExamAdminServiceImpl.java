@@ -106,43 +106,27 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<Exam> applyPostCreationInitialization(final Exam exam) {
+    public Result<Exam> applyExamImportInitialization(final Exam exam) {
         final List<APIMessage> errors = new ArrayList<>();
 
         this.initAdditionalAttributes(exam)
-                .onErrorDo(error -> {
-                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
-                    return exam;
-                })
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error)))
                 .flatMap(this.examTemplateService::addDefinedIndicators)
-                .onErrorDo(error -> {
-                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error));
-                    return exam;
-                })
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error)))
                 .flatMap(this.examTemplateService::addDefinedClientGroups)
-                .onErrorDo(error -> {
-                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS.of(error));
-                    return exam;
-                })
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS.of(error)))
                 .flatMap(this.examTemplateService::initAdditionalTemplateAttributes)
-                .onErrorDo(error -> {
-                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
-                    return exam;
-                })
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error)))
                 .flatMap(this.examTemplateService::initExamConfiguration)
-                .onErrorDo(error -> {
+                .onError(error -> {
                     if (error instanceof APIMessageException) {
                         errors.addAll(((APIMessageException) error).getAPIMessages());
                     } else {
                         errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG.of(error));
                     }
-                    return exam;
                 })
                 .flatMap(this::applyAdditionalSEBRestrictions)
-                .onErrorDo(error -> {
-                    errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error));
-                    return exam;
-                });
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error)));
 
         this.applyQuitPassword(exam);
 

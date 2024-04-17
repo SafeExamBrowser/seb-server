@@ -9,10 +9,11 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
 
 public interface FullLmsIntegrationAPI {
 
-    Result<Void> applyConnectionDetails(FullLmsIntegrationService.IntegrationData data);
+    Result<IntegrationData> applyConnectionDetails(IntegrationData data);
 
     Result<Void> deleteConnectionDetails();
 

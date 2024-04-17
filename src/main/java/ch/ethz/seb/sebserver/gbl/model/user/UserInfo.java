@@ -18,7 +18,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import ch.ethz.seb.sebserver.gbl.api.authorization.RoleTypeKey;
 import com.fasterxml.jackson.annotation.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -94,6 +93,13 @@ public final class UserInfo implements UserAccount, Serializable {
     @JsonProperty(USER.ATTR_ACTIVE)
     public final Boolean active;
 
+    @JsonProperty(USER.ATTR_DIRECT_LOGIN)
+    public final Boolean directLogin;
+
+    @JsonProperty(USER.ATTR_LOCAL_ACCOUNT)
+    public final Boolean localAccount;
+
+
     /** The users locale */
     @NotNull(message = "user:language:notNull")
     @JsonProperty(USER.ATTR_LANGUAGE)
@@ -130,6 +136,8 @@ public final class UserInfo implements UserAccount, Serializable {
             @JsonProperty(USER.ATTR_USERNAME) final String username,
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
+            @JsonProperty(USER.ATTR_DIRECT_LOGIN) final Boolean directLogin,
+            @JsonProperty(USER.ATTR_LOCAL_ACCOUNT) final Boolean localAccount,
             @JsonProperty(USER.ATTR_LANGUAGE) final Locale language,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
             @JsonProperty(USER_ROLE.REFERENCE_NAME) final Set<String> roles,
@@ -144,6 +152,8 @@ public final class UserInfo implements UserAccount, Serializable {
         this.username = username;
         this.email = email;
         this.active = BooleanUtils.isTrue(active);
+        this.directLogin = BooleanUtils.isTrue(directLogin);
+        this.localAccount = BooleanUtils.isTrue(localAccount);
         this.language = language;
         this.timeZone = timeZone;
         this.roles = Utils.immutableSetOf(roles);
@@ -345,6 +355,8 @@ public final class UserInfo implements UserAccount, Serializable {
                 userInfo.getSurname(),
                 userInfo.getEmail(),
                 userInfo.getActive(),
+                userInfo.directLogin,
+                userInfo.localAccount,
                 userInfo.getLanguage(),
                 userInfo.getTimeZone(),
                 userInfo.roles,
@@ -382,6 +394,8 @@ public final class UserInfo implements UserAccount, Serializable {
                 (username != null) ? username : userInfo.getUsername(),
                 (email != null) ? email : userInfo.getEmail(),
                 userInfo.getActive(),
+                userInfo.directLogin,
+                userInfo.localAccount,
                 (language != null) ? language : userInfo.getLanguage(),
                 (timeZone != null) ? timeZone : userInfo.getTimeZone(),
                 (roles != null) ? new HashSet<>(Arrays.asList(roles)) : userInfo.roles,

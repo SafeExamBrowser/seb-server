@@ -63,6 +63,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"username\":\"admin\","
                         + "\"email\":\"admin1@nomail.nomail\","
                         + "\"active\":true,"
+                        + "\"directLogin\":true,"
+                        + "\"localAccount\":true,"
                         + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
                         + "\"userRoles\":[\"EXAM_ADMIN\",\"EXAM_SUPPORTER\",\"SEB_SERVER_ADMIN\",\"INSTITUTIONAL_ADMIN\"]}",
@@ -83,6 +85,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin2@nomail.nomail\","
                         + "\"active\":true,"
+                        + "\"directLogin\":true,"
+                        + "\"localAccount\":true,"
                         + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
                         + "\"userRoles\":[\"INSTITUTIONAL_ADMIN\"]}",
@@ -108,6 +112,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                         + "\"username\":\"inst1Admin\","
                         + "\"email\":\"admin2@nomail.nomail\","
                         + "\"active\":true,"
+                        + "\"directLogin\":true,"
+                        + "\"localAccount\":true,"
                         + "\"language\":\"en\","
                         + "\"timezone\":\"UTC\","
                         + "\"userRoles\":[\"INSTITUTIONAL_ADMIN\"]}",
@@ -591,6 +597,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 "newUser1",
                 "newUser@nomail.nomail",
                 user.getActive(),
+                true,
+                true,
                 user.getLanguage(),
                 user.getTimeZone(),
                 Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet()),
@@ -752,7 +760,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         final UserInfo userInfo = new UserInfo(
                 "NewTestUser", 2L, new DateTime(0, DateTimeZone.UTC), "NewTestUser", "", "NewTestUser",
-                "", true, Locale.CANADA, DateTimeZone.UTC,
+                "", true,true, true,  Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())),
                 Collections.emptyList(),
                 Collections.emptyList());
@@ -781,7 +789,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         final UserInfo userInfo = new UserInfo(
                 "NewTestUser", 2L, new DateTime(0, DateTimeZone.UTC), "NewTestUser", "", "NewTestUser",
-                "", true, Locale.CANADA, DateTimeZone.UTC,
+                "", true, true, true, Locale.CANADA, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())),
                 Collections.emptyList(),
                 Collections.emptyList());

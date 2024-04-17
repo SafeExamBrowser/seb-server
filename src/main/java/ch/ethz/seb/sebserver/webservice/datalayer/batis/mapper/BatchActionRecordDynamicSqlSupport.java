@@ -6,37 +6,37 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class BatchActionRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source Table: batch_action")
     public static final BatchActionRecord batchActionRecord = new BatchActionRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.id")
     public static final SqlColumn<Long> id = batchActionRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.institution_id")
     public static final SqlColumn<Long> institutionId = batchActionRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.owner")
     public static final SqlColumn<String> owner = batchActionRecord.owner;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.action_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.action_type")
     public static final SqlColumn<String> actionType = batchActionRecord.actionType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.attributes")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.attributes")
     public static final SqlColumn<String> attributes = batchActionRecord.attributes;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.source_ids")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.source_ids")
     public static final SqlColumn<String> sourceIds = batchActionRecord.sourceIds;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.successful")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.successful")
     public static final SqlColumn<String> successful = batchActionRecord.successful;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.last_update")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.last_update")
     public static final SqlColumn<Long> lastUpdate = batchActionRecord.lastUpdate;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source field: batch_action.processor_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source field: batch_action.processor_id")
     public static final SqlColumn<String> processorId = batchActionRecord.processorId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.445+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.131+02:00", comments="Source Table: batch_action")
     public static final class BatchActionRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

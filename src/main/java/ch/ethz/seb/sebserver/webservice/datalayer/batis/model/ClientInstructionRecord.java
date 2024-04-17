@@ -3,28 +3,28 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ClientInstructionRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.connection_token")
     private String connectionToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.type")
     private String type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.attributes")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.attributes")
     private String attributes;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.needs_confirmation")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.needs_confirmation")
     private Integer needsConfirmation;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.timestamp")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.timestamp")
     private Long timestamp;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source Table: client_instruction")
     public ClientInstructionRecord(Long id, Long examId, String connectionToken, String type, String attributes, Integer needsConfirmation, Long timestamp) {
         this.id = id;
         this.examId = examId;
@@ -35,37 +35,37 @@ public class ClientInstructionRecord {
         this.timestamp = timestamp;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.connection_token")
     public String getConnectionToken() {
         return connectionToken;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.type")
     public String getType() {
         return type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.attributes")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.attributes")
     public String getAttributes() {
         return attributes;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.needs_confirmation")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.needs_confirmation")
     public Integer getNeedsConfirmation() {
         return needsConfirmation;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.435+02:00", comments="Source field: client_instruction.timestamp")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.116+02:00", comments="Source field: client_instruction.timestamp")
     public Long getTimestamp() {
         return timestamp;
     }
@@ -74,7 +74,7 @@ public class ClientInstructionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_instruction
      *
-     * @mbg.generated Wed Apr 10 08:52:05 CEST 2024
+     * @mbg.generated Tue Apr 16 08:47:55 CEST 2024
      */
     @Override
     public String toString() {
@@ -97,7 +97,7 @@ public class ClientInstructionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_instruction
      *
-     * @mbg.generated Wed Apr 10 08:52:05 CEST 2024
+     * @mbg.generated Tue Apr 16 08:47:55 CEST 2024
      */
     @Override
     public boolean equals(Object that) {
@@ -124,7 +124,7 @@ public class ClientInstructionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_instruction
      *
-     * @mbg.generated Wed Apr 10 08:52:05 CEST 2024
+     * @mbg.generated Tue Apr 16 08:47:55 CEST 2024
      */
     @Override
     public int hashCode() {

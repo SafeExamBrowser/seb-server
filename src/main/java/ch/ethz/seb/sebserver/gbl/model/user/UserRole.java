@@ -24,7 +24,8 @@ public enum UserRole implements Entity, GrantedAuthority {
     SEB_SERVER_ADMIN,
     INSTITUTIONAL_ADMIN,
     EXAM_ADMIN,
-    EXAM_SUPPORTER;
+    EXAM_SUPPORTER,
+    TEACHER;
 
     @Override
     public EntityType entityType() {
@@ -49,7 +50,7 @@ public enum UserRole implements Entity, GrantedAuthority {
     public static List<UserRole> publicRolesForUser(final UserInfo user) {
         final EnumSet<UserRole> roles = user.getUserRoles();
         if (roles.contains(SEB_SERVER_ADMIN)) {
-            return Arrays.asList(UserRole.values());
+            return Arrays.asList(SEB_SERVER_ADMIN, INSTITUTIONAL_ADMIN, EXAM_ADMIN, EXAM_SUPPORTER);
         } else if (roles.contains(INSTITUTIONAL_ADMIN)) {
             return Arrays.asList(INSTITUTIONAL_ADMIN, EXAM_ADMIN, EXAM_SUPPORTER);
         } else if (roles.contains(EXAM_ADMIN)) {
@@ -61,10 +62,8 @@ public enum UserRole implements Entity, GrantedAuthority {
         }
     }
 
-    public static List<String> getNamesForAllRoles(){
-        return Arrays.stream(UserRole.values())
-                .map(UserRole::getName)
-                .toList();
+    public static List<String> getLightSetupRoles(){
+        return Arrays.asList(SEB_SERVER_ADMIN.name(), INSTITUTIONAL_ADMIN.name(), EXAM_ADMIN.name(), EXAM_SUPPORTER.name());
     }
 
 }

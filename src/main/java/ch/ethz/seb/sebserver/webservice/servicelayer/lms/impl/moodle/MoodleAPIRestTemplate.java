@@ -37,6 +37,8 @@ public interface MoodleAPIRestTemplate {
 
     String callMoodleAPIFunction(String functionName);
 
+    String postToMoodleAPIFunction(String functionName, String body);
+
     String callMoodleAPIFunction(
             final String functionName,
             final MultiValueMap<String, String> queryAttributes);

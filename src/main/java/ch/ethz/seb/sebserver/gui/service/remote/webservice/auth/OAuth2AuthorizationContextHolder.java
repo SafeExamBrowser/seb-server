@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -235,6 +236,15 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 this.restTemplate.getAccessToken();
                 log.debug("Got token for user: {}", username);
                 this.loggedInUser = getLoggedInUser();
+                // check valid login
+                if (!this.loggedInUser.hasError()) {
+                    final UserInfo userInfo = loggedInUser.get();
+                    // TODO check directLogin here instead of role
+                    if (!BooleanUtils.isTrue(userInfo.directLogin)) {
+                        log.warn("No direct Login for this account available: {}", username);
+                        throw new AccessDeniedException("No direct Login for this account available");
+                    }
+                }
                 // call log login on webservice API
                 try {
                     final ResponseEntity<Void> response = this.restTemplate.postForEntity(
@@ -253,6 +263,12 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 log.info("Access Denied for user: {}", username);
                 return false;
             }
+        }
+
+        @Override
+        public boolean autoLogin(final String oneTimeToken) {
+            // TODO call auto-login API on Webservice to verify the oneTimeToken and
+            return false;
         }
 
         @Override

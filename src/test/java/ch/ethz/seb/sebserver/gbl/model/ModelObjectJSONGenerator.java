@@ -84,7 +84,8 @@ public class ModelObjectJSONGenerator {
         final ObjectWriter writerWithDefaultPrettyPrinter = mapper.writerWithDefaultPrettyPrinter();
 
         Object domainObject = new UserInfo("uuid", 1L, DateTime.now(), "name", "surname", "username", "email",
-                true, Locale.ENGLISH, DateTimeZone.UTC,
+                true, true, true,
+                Locale.ENGLISH, DateTimeZone.UTC,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name())),
                 Collections.emptyList(),
                 Collections.emptyList());

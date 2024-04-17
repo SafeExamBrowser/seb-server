@@ -55,7 +55,7 @@ public class OrientationAPITest extends AdministrationAPIIntegrationTester {
     public void init() {
         this.userServiceImpl.setAuthenticationIfAbsent(new SEBServerUser(
                 -1L,
-                new UserInfo("user1", 1L, null, "admin", null, null, null, true, null, null,
+                new UserInfo("user1", 1L, null, "admin", null, null, null, true, true, true, null, null,
                         EnumSet.allOf(UserRole.class).stream().map(r -> r.name()).collect(Collectors.toSet()),
                         Collections.emptyList(),
                         Collections.emptyList()),

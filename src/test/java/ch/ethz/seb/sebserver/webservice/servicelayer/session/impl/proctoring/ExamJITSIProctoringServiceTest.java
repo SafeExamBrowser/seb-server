@@ -147,7 +147,7 @@ public class ExamJITSIProctoringServiceTest {
         final UserService userService = Mockito.mock(UserService.class);
         Mockito.when(userService.getCurrentUser()).thenReturn(new SEBServerUser(1L,
                 new UserInfo("1", 1L, null, "proctor-user", null,
-                        null, null, null, null, null, null,
+                        null, null, null, true, true,  null, null, null,
                         Collections.emptyList(),
                         Collections.emptyList())
                 , ""));

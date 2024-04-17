@@ -145,7 +145,10 @@ public class UserServiceImpl implements UserService {
 
     private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
             -1L,
-            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, null, "anonymous", "anonymous", "anonymous", null, false,
+            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, null, "anonymous", "anonymous", "anonymous", null,
+                    false,
+                    false,
+                    true,
                     null, null,
                     Arrays.stream(UserRole.values())
                             .map(Enum::name)

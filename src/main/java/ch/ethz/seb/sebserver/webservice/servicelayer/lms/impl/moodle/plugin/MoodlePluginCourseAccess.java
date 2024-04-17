@@ -214,7 +214,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final Set<String> missingIds = new HashSet<>(ids);
             final Collection<QuizData> result = new ArrayList<>();
             final Set<String> fromCache = ids.stream()
-                    .map(id -> super.getFromCache(id))
+                    .map(super::getFromCache)
                     .filter(Objects::nonNull)
                     .map(qd -> {
                         result.add(qd);
@@ -226,7 +226,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
                 result.addAll(getRestTemplate()
                         .map(template -> getQuizzesForIds(template, ids))
-                        .map(q -> super.putToCache(q))
+                        .map(super::putToCache)
                         .onError(error -> log.error("Failed to get courses for: {}", ids, error))
                         .getOrElse(Collections::emptyList));
             }
@@ -247,7 +247,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
             final Iterator<QuizData> iterator = getRestTemplate()
                     .map(template -> getQuizzesForIds(template, ids))
-                    .map(q -> super.putToCache(q))
+                    .map(super::putToCache)
                     .getOr(Collections.emptyList())
                     .iterator();
 
@@ -487,7 +487,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 MoodleUtils.logMoodleWarning(coursePage.warnings, lmsName, COURSES_API_FUNCTION_NAME);
             }
 
-            Collection<CourseData> result;
+            final Collection<CourseData> result;
             if (coursePage.results == null || coursePage.results.isEmpty()) {
                 if (log.isDebugEnabled()) {
                     log.debug("LMS Setup: {} No courses found on page: {}", lmsName, page);
@@ -603,8 +603,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             if (templateRequest.hasError()) {
                 return templateRequest;
             } else {
-                final MoodleAPIRestTemplate moodleAPIRestTemplate = templateRequest.get();
-                this.restTemplate = moodleAPIRestTemplate;
+                this.restTemplate = templateRequest.get();
             }
         }
 

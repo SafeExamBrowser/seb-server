@@ -10,13 +10,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationAPI;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
 
 public class MockupFullIntegration implements FullLmsIntegrationAPI {
 
 
     @Override
-    public Result<Void> applyConnectionDetails(FullLmsIntegrationService.IntegrationData data) {
+    public Result<IntegrationData> applyConnectionDetails(final IntegrationData data) {
         return Result.ofRuntimeError("TODO");
     }
 

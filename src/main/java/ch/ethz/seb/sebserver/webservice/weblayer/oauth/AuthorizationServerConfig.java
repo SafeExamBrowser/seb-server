@@ -37,7 +37,7 @@ import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceSecurityConfig;
 import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
 
 /** This is the main Spring configuration of OAuth2 Authorization Server.
- *
+ * <p>
  * Currently supporting two client types for the two different API's on
  * SEB Server webservice;
  * - Administration API for administrative purpose using password grant type with refresh token

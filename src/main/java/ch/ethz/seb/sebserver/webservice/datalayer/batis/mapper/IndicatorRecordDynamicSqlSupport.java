@@ -6,31 +6,31 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class IndicatorRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source Table: indicator")
     public static final IndicatorRecord indicatorRecord = new IndicatorRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source field: indicator.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source field: indicator.id")
     public static final SqlColumn<Long> id = indicatorRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source field: indicator.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source field: indicator.exam_id")
     public static final SqlColumn<Long> examId = indicatorRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source field: indicator.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source field: indicator.type")
     public static final SqlColumn<String> type = indicatorRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source field: indicator.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source field: indicator.name")
     public static final SqlColumn<String> name = indicatorRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source field: indicator.color")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source field: indicator.color")
     public static final SqlColumn<String> color = indicatorRecord.color;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source field: indicator.icon")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source field: indicator.icon")
     public static final SqlColumn<String> icon = indicatorRecord.icon;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source field: indicator.tags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source field: indicator.tags")
     public static final SqlColumn<String> tags = indicatorRecord.tags;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-10T08:52:05.436+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-16T08:47:55.117+02:00", comments="Source Table: indicator")
     public static final class IndicatorRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

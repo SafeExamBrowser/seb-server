@@ -8,11 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -51,7 +47,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
     Result<T> byPK(Long id);
 
     /** Use this to get an Entity instance of concrete type by model identifier
-     *
+     * <p>
      * NOTE: A model identifier may differ from the string representation of the database identifier
      * but usually they are the same.
      *
@@ -117,9 +113,19 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      *         happened */
     Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
+    @Transactional
+    default Result<EntityKey> deleteOne(final Long examId) {
+        if (examId == null) {
+            return Result.ofRuntimeError("exam Id has null reference");
+        }
+        return delete( new HashSet<>(Arrays.asList(new EntityKey(examId, EntityType.EXAM))))
+                .map(set -> set.iterator().next())
+                .onError(TransactionHandler::rollback);
+    }
+
     /** Get a (unordered) collection of all Entities that matches the given filter criteria.
      * The possible filter criteria for a specific Entity type is defined by the entity type.
-     *
+     * <p>
      * This adds filtering in SQL level by creating the select where clause from related
      * filter criteria of the specific Entity type. If the filterMap contains a value for
      * a particular filter criteria the value is extracted from the map and added to the where
@@ -134,13 +140,13 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
 
     /** Get a (unordered) collection of all Entities that matches a given filter criteria
      * and a given predicate.
-     *
+     * <p>
      * The possible filter criteria for a specific Entity type is defined by the entity type.
      * This adds filtering in SQL level by creating the select where clause from related
      * filter criteria of the specific Entity type. If the filterMap contains a value for
      * a particular filter criteria the value is extracted from the map and added to the where
      * clause of the SQL select statement.
-     *
+     * <p>
      * The predicate is applied after the SQL query by filtering the resulting list with the
      * predicate after on the SQL query result, before returning.
      *
@@ -173,7 +179,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
     /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
      * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
      * convert the matching EntityKey's to id's (PK's)
-     *
+     * <p>
      * Use this if you need to transform a Collection of EntityKey into a extracted Set of id's of a specified
      * EntityType
      *
@@ -186,7 +192,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
     /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
      * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
      * convert the matching EntityKey's to id's (PK's)
-     *
+     * <p>
      * Use this if you need to transform a Collection of EntityKey into a extracted List of id's of a specified
      * EntityType
      *
@@ -199,7 +205,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
     /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
      * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
      * convert the matching EntityKey's to id's (PK's)
-     *
+     * <p>
      * Use this if you need to transform a Collection of EntityKey into a extracted Set of id's of a specified
      * EntityType
      *

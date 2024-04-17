@@ -1,4 +1,12 @@
 -- ----------------------------------------------------------------
+-- Add direct_login and local_account to user table SEBSERV-417
+-- ----------------------------------------------------------------
+
+ALTER TABLE `user`
+ADD COLUMN IF NOT EXISTS `direct_login` INT(1) NOT NULL DEFAULT 1,
+ADD COLUMN IF NOT EXISTS `local_account` INT(1) NOT NULL DEFAULT 1;
+
+-- ----------------------------------------------------------------
 -- Add connection_id to lms_setup table SEBSERV-417
 -- ----------------------------------------------------------------
 

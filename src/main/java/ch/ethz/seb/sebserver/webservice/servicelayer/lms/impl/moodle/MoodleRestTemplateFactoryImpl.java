@@ -292,11 +292,32 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             return callMoodleAPIFunction(functionName, null, null);
         }
 
+
+
         @Override
         public String callMoodleAPIFunction(
                 final String functionName,
                 final MultiValueMap<String, String> queryAttributes) {
             return callMoodleAPIFunction(functionName, null, queryAttributes);
+        }
+
+        @Override
+        public String postToMoodleAPIFunction(final String functionName, final String body) {
+            getAccessToken();
+
+            final UriComponentsBuilder queryParam = UriComponentsBuilder
+                    .fromHttpUrl(this.serverURL + MOODLE_DEFAULT_REST_API_PATH)
+                    .queryParam(REST_REQUEST_TOKEN_NAME, this.accessToken)
+                    .queryParam(REST_REQUEST_FUNCTION_NAME, functionName)
+                    .queryParam(REST_REQUEST_FORMAT_NAME, "json");
+
+            final HttpHeaders headers = new HttpHeaders();
+            headers.set(
+                    HttpHeaders.CONTENT_TYPE,
+                    MediaType.APPLICATION_JSON_VALUE);
+            HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
+
+            return doRequest(functionName, queryParam, true, httpEntity);
         }
 
         @Override
@@ -331,6 +352,15 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             } else {
                 functionReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
             }
+
+            return doRequest(functionName, queryParam, usePOST, functionReqEntity);
+        }
+
+        private String doRequest(
+                final String functionName,
+                final UriComponentsBuilder queryParam,
+                final boolean usePOST,
+                final HttpEntity<?> functionReqEntity) {
 
             final ResponseEntity<String> response = super.exchange(
                     queryParam.toUriString(),

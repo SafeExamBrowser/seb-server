@@ -28,8 +28,7 @@ public class DefaultTokenServicesFallback extends DefaultTokenServices {
     }
 
     @Override
-    public OAuth2AccessToken createAccessToken(final OAuth2Authentication authentication)
-            throws AuthenticationException {
+    public OAuth2AccessToken createAccessToken(final OAuth2Authentication authentication) throws AuthenticationException {
 
         try {
             return super.createAccessToken(authentication);

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -249,7 +251,9 @@ public class UserDAOImpl implements UserDAO {
                     userMod.email,
                     userMod.language.toLanguageTag(),
                     userMod.timeZone.getID(),
-                    BooleanUtils.toInteger(false));
+                    BooleanUtils.toInteger(false),
+                    BooleanUtils.toInteger(true),
+                    BooleanUtils.toInteger(true));
 
             this.userRecordMapper.insert(recordToSave);
             final Long newUserPK = recordToSave.getId();
@@ -268,20 +272,13 @@ public class UserDAOImpl implements UserDAO {
     public Result<UserInfo> changePassword(final String modelId, final CharSequence newPassword) {
         return recordByUUID(modelId)
                 .map(record -> {
-                    final UserRecord newRecord = new UserRecord(
-                            record.getId(),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            this.userPasswordEncoder.encode(newPassword),
-                            null,
-                            null,
-                            null,
-                            null);
-                    this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
+
+                    UpdateDSL.updateWithMapper(userRecordMapper::update, userRecord)
+                            .set(password).equalTo(this.userPasswordEncoder.encode(newPassword))
+                            .where(id, isEqualTo(record::getId))
+                            .build()
+                            .execute();
+
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
                 })
                 .flatMap(this::toDomainModel)
@@ -309,7 +306,7 @@ public class UserDAOImpl implements UserDAO {
                             (userInfo.email == null) ? "" : userInfo.email,
                             userInfo.language.toLanguageTag(),
                             userInfo.timeZone.getID(),
-                            null);
+                            null, null, null);
 
                     this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
                     updateRolesForUser(record.getId(), userInfo.roles);
@@ -329,12 +326,9 @@ public class UserDAOImpl implements UserDAO {
                 return Collections.emptyList();
             }
 
-            final UserRecord userRecord = new UserRecord(
-                    null, null, null, null, null, null, null, null, null, null, null,
-                    BooleanUtils.toIntegerObject(active));
-
-            this.userRecordMapper.updateByExampleSelective(userRecord)
-                    .where(UserRecordDynamicSqlSupport.id, isIn(ids))
+            UpdateDSL.updateWithMapper(userRecordMapper::update, userRecord)
+                    .set(UserRecordDynamicSqlSupport.active).equalTo(BooleanUtils.toIntegerObject(active))
+                    .where(id, isIn(ids))
                     .build()
                     .execute();
 
@@ -546,6 +540,8 @@ public class UserDAOImpl implements UserDAO {
                     record.getUsername(),
                     record.getEmail(),
                     BooleanUtils.toBooleanObject(record.getActive()),
+                    BooleanUtils.toBooleanObject(record.getDirectLogin()),
+                    BooleanUtils.toBooleanObject(record.getLocalAccount()),
                     Locale.forLanguageTag(record.getLanguage()),
                     DateTimeZone.forID(record.getTimezone()),
                     userRoles,

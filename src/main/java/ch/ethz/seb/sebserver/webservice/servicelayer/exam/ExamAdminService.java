@@ -8,34 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.validation.FieldError;
 
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientOS;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 public interface ExamAdminService {
 
     ProctoringAdminService getProctoringAdminService();
 
-    Result<Exam> applyPostCreationInitialization(Exam exam);
+    Result<Exam> applyExamImportInitialization(Exam exam);
 
     /** Get the exam domain object for the exam identifier (PK).
      *

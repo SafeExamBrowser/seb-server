@@ -37,6 +37,8 @@ public interface SEBServerAuthorizationContext {
      * @return true if login was successful, false if no */
     boolean login(String username, CharSequence password);
 
+    boolean autoLogin(String oneTimeToken);
+
     /** Requests a logout on SEB Server webservice if a user is currently logged in
      * This uses OAuth 2 and Springs OAuth2RestTemplate to make a revoke token request for the
      * currently logged in user and also invalidates this SEBServerAuthorizationContext
