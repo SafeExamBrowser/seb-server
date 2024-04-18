@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -61,7 +63,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private final ExamTemplateDAO examTemplateDAO;
     private final WebserviceInfo webserviceInfo;
 
-    //private final ClientCredentialsResourceDetails resource;
+    private final ClientCredentialsResourceDetails resource;
 
     private final OAuth2RestTemplate restTemplate;
 
@@ -83,7 +85,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.examTemplateDAO = examTemplateDAO;
         this.webserviceInfo = webserviceInfo;
 
-        final ClientCredentialsResourceDetails resource = new ClientCredentialsResourceDetails();
+        resource = new ClientCredentialsResourceDetails();
         resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
         resource.setClientId(clientId);
         resource.setClientSecret(clientSecret);
@@ -104,10 +106,18 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     @Override
     public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
         final LmsSetup lmsSetup = event.getLmsSetup();
-        if (lmsSetup.integrationActive) {
+        if (!lmsSetup.getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            return;
+        }
+
+        if (lmsSetup.active) {
             applyFullLmsIntegration(lmsSetup.id)
                     .onError(error -> log.warn("Failed to update LMS integration for: {}", lmsSetup, error))
-                    .onSuccess( data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+                    .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+        } else if (lmsSetup.integrationActive) {
+            deleteFullLmsIntegration(lmsSetup.id)
+                    .onError(error -> log.warn("Failed to delete LMS integration for: {}", lmsSetup, error))
+                    .onSuccess(data -> log.debug("Successfully deleted LMS integration for: {} data: {}", lmsSetup, data));
         }
     }
 
@@ -144,11 +154,16 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         throw new IllegalStateException("No LMS Setup connectionId available for: " + lmsSetup);
                     }
 
+                    // reset old token to get actual one
+                    resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
+                    restTemplate.getOAuth2ClientContext().setAccessToken(null);
+                    final String accessToken = restTemplate.getAccessToken().getValue();
+
                     final IntegrationData data = new IntegrationData(
                             connectionId,
                             lmsSetup.name,
                             webserviceInfo.getExternalServerURL(),
-                            restTemplate.getAccessToken().getValue(),
+                            accessToken,
                             this.getIntegrationTemplates(lmsSetup.institutionId)
                     );
 

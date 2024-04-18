@@ -68,7 +68,7 @@ public class WebClientDetailsService implements ClientDetailsService {
         }
 
         if (clientId.equals(this.lmsAPIClientDetails.getClientId())) {
-            return this.lmsAPIClientDetails;
+            return this.lmsAPIClientDetails.getClientDetails();
         }
 
         return getForExamClientAPI(clientId)

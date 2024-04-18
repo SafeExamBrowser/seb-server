@@ -46,6 +46,8 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
 
     private final APITemplateDataSupplier apiTemplateDataSupplier;
 
+    private Result<MoodleAPIRestTemplate> template = null;
+
     public MoodleMockupRestTemplateFactory(final APITemplateDataSupplier apiTemplateDataSupplier) {
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
     }
@@ -68,13 +70,24 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
     }
 
     @Override
+    public Result<MoodleAPIRestTemplate> getRestTemplate() {
+        return createRestTemplate("");
+    }
+
+    @Override
     public Result<MoodleAPIRestTemplate> createRestTemplate(final String service) {
-        return Result.of(new MockupMoodleRestTemplate(this.apiTemplateDataSupplier.getLmsSetup().lmsApiUrl));
+        if (template == null) {
+            template = Result.of(new MockupMoodleRestTemplate(this.apiTemplateDataSupplier.getLmsSetup().lmsApiUrl));
+        }
+        return template;
     }
 
     @Override
     public Result<MoodleAPIRestTemplate> createRestTemplate(final String service, final String accessTokenPath) {
-        return Result.of(new MockupMoodleRestTemplate(this.apiTemplateDataSupplier.getLmsSetup().lmsApiUrl));
+        if (template == null) {
+            template = Result.of(new MockupMoodleRestTemplate(this.apiTemplateDataSupplier.getLmsSetup().lmsApiUrl));
+        }
+        return template;
     }
 
     public static final class MockupMoodleRestTemplate implements MoodleAPIRestTemplate {

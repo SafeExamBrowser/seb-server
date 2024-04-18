@@ -8,12 +8,18 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationAPI;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
 
 public class MockupFullIntegration implements FullLmsIntegrationAPI {
 
+    @Override
+    public LmsSetupTestResult testFullIntegrationAPI() {
+        return LmsSetupTestResult.ofAPINotSupported(LmsSetup.LmsType.MOODLE_PLUGIN);
+    }
 
     @Override
     public Result<IntegrationData> applyConnectionDetails(final IntegrationData data) {

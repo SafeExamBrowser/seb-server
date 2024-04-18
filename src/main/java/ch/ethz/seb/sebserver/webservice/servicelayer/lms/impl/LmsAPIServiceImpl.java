@@ -156,8 +156,17 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final LmsSetupTestResult lmsSetupTestResult = template.testCourseRestrictionAPI();
             if (!lmsSetupTestResult.isOk()) {
                 this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
+                return lmsSetupTestResult;
             }
-            return lmsSetupTestResult;
+
+        }
+
+        if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            final LmsSetupTestResult lmsSetupTestResult = template.testFullIntegrationAPI();
+            if (!lmsSetupTestResult.isOk()) {
+                this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
+                return lmsSetupTestResult;
+            }
         }
 
         return LmsSetupTestResult.ofOkay(template.lmsSetup().getLmsType());
@@ -184,8 +193,19 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return testCourseAccessAPI;
         }
 
-        if (lmsSetupTemplate.lmsSetup().getLmsType().features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
-            return lmsSetupTemplate.testCourseRestrictionAPI();
+        final LmsType lmsType = lmsSetupTemplate.lmsSetup().getLmsType();
+        if (lmsType.features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
+            final LmsSetupTestResult lmsSetupTestResult = lmsSetupTemplate.testCourseRestrictionAPI();
+            if (!lmsSetupTestResult.isOk()) {
+                return lmsSetupTestResult;
+            }
+        }
+
+        if (lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            final LmsSetupTestResult lmsSetupTestResult = lmsSetupTemplate.testFullIntegrationAPI();
+            if (!lmsSetupTestResult.isOk()) {
+                return lmsSetupTestResult;
+            }
         }
 
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());

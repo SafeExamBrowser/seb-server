@@ -422,6 +422,11 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     }
 
     @Override
+    public LmsSetupTestResult testFullIntegrationAPI() {
+        return LmsSetupTestResult.ofAPINotSupported(LmsType.ANS_DELFT);
+    }
+
+    @Override
     public Result<IntegrationData> applyConnectionDetails(final IntegrationData data) {
         return Result.ofRuntimeError("Not Supported");
     }

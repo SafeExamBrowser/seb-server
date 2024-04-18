@@ -98,8 +98,6 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     private final int cutoffTimeOffset;
     private final boolean applyNameCriteria;
 
-    private MoodleAPIRestTemplate restTemplate;
-
     public MoodlePluginCourseAccess(
             final JSONMapper jsonMapper,
             final AsyncService asyncService,
@@ -595,19 +593,12 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
-
-        if (this.restTemplate == null) {
-
-            final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
-                    .createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
-            if (templateRequest.hasError()) {
-                return templateRequest;
-            } else {
-                this.restTemplate = templateRequest.get();
-            }
+        final Result<MoodleAPIRestTemplate> result = this.restTemplateFactory.getRestTemplate();
+        if (!result.hasError()) {
+            return result;
         }
 
-        return Result.of(this.restTemplate);
+        return this.restTemplateFactory.createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
     }
 
     protected String toTestString() {
@@ -619,7 +610,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         builder.append(", cutoffTimeOffset=");
         builder.append(this.cutoffTimeOffset);
         builder.append(", restTemplate=");
-        builder.append(this.restTemplate);
+        builder.append(this.getRestTemplate().getOr(null));
         builder.append("]");
         return builder.toString();
     }

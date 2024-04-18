@@ -409,6 +409,11 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     @Override
+    public LmsSetupTestResult testFullIntegrationAPI() {
+        return LmsSetupTestResult.ofAPINotSupported(LmsType.OPEN_OLAT);
+    }
+
+    @Override
     public Result<IntegrationData> applyConnectionDetails(final IntegrationData data) {
         return Result.ofRuntimeError("Not Supported");
     }

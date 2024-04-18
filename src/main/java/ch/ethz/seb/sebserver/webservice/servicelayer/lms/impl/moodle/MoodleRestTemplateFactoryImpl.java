@@ -63,6 +63,8 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
     public final ClientCredentialService clientCredentialService;
     public final Set<String> knownTokenAccessPaths;
 
+    private Result<MoodleAPIRestTemplate> activeRestTemplate = Result.ofRuntimeError("Not Initialized");
+
     public MoodleRestTemplateFactoryImpl(
             final JSONMapper jsonMapper,
             final APITemplateDataSupplier apiTemplateDataSupplier,
@@ -86,6 +88,11 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
     @Override
     public Set<String> getKnownTokenAccessPaths() {
         return this.knownTokenAccessPaths;
+    }
+
+    @Override
+    public Result<MoodleAPIRestTemplate> getRestTemplate() {
+        return activeRestTemplate;
     }
 
     @Override
@@ -139,13 +146,12 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
     public Result<MoodleAPIRestTemplate> createRestTemplate(final String service) {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-
-        return this.knownTokenAccessPaths
+        this. activeRestTemplate = this.knownTokenAccessPaths
                 .stream()
                 .map(path -> this.createRestTemplate(service, path))
                 .map(result -> {
                     if (result.hasError()) {
-                        log.warn("Failed to get access token for LMS: {}({})",
+                        log.warn("Failed to get access token for LMS: {}({}), error {}",
                                 lmsSetup.name,
                                 lmsSetup.id,
                                 result.getError().getMessage());
@@ -158,6 +164,10 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                         "Failed to gain any access for LMS " +
                                 lmsSetup.name + "(" + lmsSetup.id +
                                 ") on paths: " + this.knownTokenAccessPaths));
+
+        log.info("Created new MoodleAPIRestTemplate for service: {} factory: {}", service, this.hashCode());
+
+        return activeRestTemplate;
     }
 
     @Override
@@ -199,6 +209,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                         ") on path: " + accessTokenPath);
             }
 
+            activeRestTemplate = Result.of(restTemplate);
             return restTemplate;
         });
     }
@@ -266,7 +277,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                         WebserviceInfo.class);
 
                 if (StringUtils.isBlank(webserviceInfo.username) || StringUtils.isBlank(webserviceInfo.userid)) {
-                    throw new RuntimeException("Invalid WebserviceInfo: " + webserviceInfo);
+                    throw new RuntimeException("Invalid WebserviceInfo Response");
                 }
 
                 if (functions != null) {
@@ -281,8 +292,10 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 }
 
             } catch (final RuntimeException re) {
+                log.warn("Failed to Moodle API access: {}", re.getMessage());
                 throw re;
             } catch (final Exception e) {
+                log.warn("Failed to Moodle API access: {}", e.getMessage());
                 throw new RuntimeException("Failed to test Moodle rest API: ", e);
             }
         }

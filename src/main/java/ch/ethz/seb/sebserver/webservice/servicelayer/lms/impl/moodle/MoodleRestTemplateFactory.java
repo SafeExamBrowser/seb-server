@@ -32,6 +32,8 @@ public interface MoodleRestTemplateFactory {
      * @return Set of known and configured API access token paths */
     Set<String> getKnownTokenAccessPaths();
 
+    Result<MoodleAPIRestTemplate> getRestTemplate();
+
     /** Creates a MoodleAPIRestTemplate for the bundled LMSSetup of this factory.
      *
      * @param service The moodle web service name to within requesting an access token for

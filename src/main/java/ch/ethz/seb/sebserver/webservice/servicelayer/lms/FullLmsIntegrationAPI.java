@@ -8,10 +8,19 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
 
 public interface FullLmsIntegrationAPI {
+
+    /** Performs a test for the underling {@link LmsSetup } configuration and checks if the
+     * LMS and the full LMS integration API of the LMS can be accessed or if there are some difficulties,
+     * missing API functions
+     *
+     * @return {@link LmsSetupTestResult } instance with the test result report */
+    LmsSetupTestResult testFullIntegrationAPI();
 
     Result<IntegrationData> applyConnectionDetails(IntegrationData data);
 

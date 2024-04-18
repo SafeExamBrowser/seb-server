@@ -397,10 +397,6 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             return this.sebRestrictionAPI.testCourseRestrictionAPI();
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Test course restriction API for LMSSetup: {}", lmsSetup());
-        }
-
         return LmsSetupTestResult.ofAPINotSupported(getType());
     }
 
@@ -474,6 +470,16 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             }
         }
         return protectedRun;
+    }
+
+
+    @Override
+    public LmsSetupTestResult testFullIntegrationAPI() {
+        if (this.lmsIntegrationAPI != null) {
+            return this.lmsIntegrationAPI.testFullIntegrationAPI();
+        }
+
+        return LmsSetupTestResult.ofAPINotSupported(getType());
     }
 
     @Override

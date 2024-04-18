@@ -286,7 +286,7 @@ public class WebserviceInfo {
     }
 
     public String getOAuthTokenURI() {
-        return getExternalServerURL() + API.OAUTH_ENDPOINT + API.OAUTH_TOKEN_ENDPOINT;
+        return getExternalServerURL() + API.OAUTH_TOKEN_ENDPOINT;
     }
 
     public boolean isLightSetup() {

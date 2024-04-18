@@ -135,6 +135,27 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<Long>> allIdsFullIntegration() {
+        return Result.tryCatch(() -> {
+            final List<String> types = Arrays.stream(LmsType.values())
+                    .filter(type -> type.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION))
+                    .map(LmsType::name)
+                    .collect(Collectors.toList());
+
+            return this.lmsSetupRecordMapper.selectIdsByExample()
+                    .where(
+                            LmsSetupRecordDynamicSqlSupport.active,
+                            isEqualTo(1))
+                    .and(
+                            lmsType,
+                            isIn(types))
+                    .build()
+                    .execute();
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<LmsSetup>> allMatching(
             final FilterMap filterMap,
             final Predicate<LmsSetup> predicate) {

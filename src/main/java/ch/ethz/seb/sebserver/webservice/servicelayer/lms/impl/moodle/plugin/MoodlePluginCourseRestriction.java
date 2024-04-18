@@ -55,8 +55,6 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     private final MoodleRestTemplateFactory restTemplateFactory;
     private final ExamConfigurationValueService examConfigurationValueService;
 
-    private MoodleAPIRestTemplate restTemplate;
-
     public MoodlePluginCourseRestriction(
             final JSONMapper jsonMapper,
             final MoodleRestTemplateFactory restTemplateFactory,
@@ -90,7 +88,6 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                     RESTRICTION_SET_FUNCTION_NAME);
 
         } catch (final RuntimeException e) {
-            log.error("Failed to access Moodle course API: ", e);
             return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.MOODLE_PLUGIN, e.getMessage());
         }
 
@@ -285,24 +282,18 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
-        if (this.restTemplate == null) {
-
-            final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
-                    .createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
-            if (templateRequest.hasError()) {
-                return templateRequest;
-            } else {
-                this.restTemplate = templateRequest.get();
-            }
+        final Result<MoodleAPIRestTemplate> result = this.restTemplateFactory.getRestTemplate();
+        if (!result.hasError()) {
+            return result;
         }
 
-        return Result.of(this.restTemplate);
+        return this.restTemplateFactory.createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
     }
 
     public String toTestString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("MoodlePluginCourseRestriction [restTemplate=");
-        builder.append(this.restTemplate);
+        builder.append(this.getRestTemplate().getOr(null));
         builder.append("]");
         return builder.toString();
     }

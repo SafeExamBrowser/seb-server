@@ -47,11 +47,13 @@ public class MoodlePluginCourseAccessTest {
     public void testSetup() {
         final MoodlePluginCourseAccess candidate = crateMockup();
 
-        assertEquals("MoodlePluginCourseAccess ["
-                + "pageSize=500, "
-                + "maxSize=10000, "
-                + "cutoffTimeOffset=3, "
-                + "restTemplate=null]", candidate.toTestString());
+        assertEquals(
+                "MoodlePluginCourseAccess [" +
+                "pageSize=500, " +
+                "maxSize=10000, " +
+                "cutoffTimeOffset=3, " +
+                "restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[], callLog=[]]]",
+                candidate.toTestString());
 
         final LmsSetupTestResult testCourseAccessAPI = candidate.testCourseAccessAPI();
 

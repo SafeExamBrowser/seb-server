@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationAPI;
@@ -32,14 +33,40 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
 
-    private MoodleAPIRestTemplate restTemplate;
-
     public MoodlePluginFullIntegration(
             final JSONMapper jsonMapper,
             final MoodleRestTemplateFactory restTemplateFactory) {
 
         this.jsonMapper = jsonMapper;
         this.restTemplateFactory = restTemplateFactory;
+    }
+
+    @Override
+    public LmsSetupTestResult testFullIntegrationAPI() {
+        final LmsSetupTestResult attributesCheck = this.restTemplateFactory.test();
+        if (!attributesCheck.isOk()) {
+            return attributesCheck;
+        }
+
+        final Result<MoodleAPIRestTemplate> restTemplateRequest = getRestTemplate();
+        if (restTemplateRequest.hasError()) {
+            final String message = "Failed to gain access token from Moodle Rest API:\n tried token endpoints: " +
+                    this.restTemplateFactory.getKnownTokenAccessPaths();
+            log.error(message + " cause: {}", restTemplateRequest.getError().getMessage());
+            return LmsSetupTestResult.ofTokenRequestError(LmsSetup.LmsType.MOODLE_PLUGIN, message);
+        }
+
+        try {
+            final MoodleAPIRestTemplate restTemplate = restTemplateRequest.get();
+            restTemplate.testAPIConnection(
+                    FUNCTION_NAME_SEBSERVER_CONNECTION,
+                    FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE);
+
+        } catch (final RuntimeException e) {
+            return LmsSetupTestResult.ofQuizAccessAPIError(LmsSetup.LmsType.MOODLE_PLUGIN, e.getMessage());
+        }
+
+        return LmsSetupTestResult.ofOkay(LmsSetup.LmsType.MOODLE_PLUGIN);
     }
 
     @Override
@@ -116,17 +143,11 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
 
-        if (this.restTemplate == null) {
-
-            final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
-                    .createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
-            if (templateRequest.hasError()) {
-                return templateRequest;
-            } else {
-                this.restTemplate = templateRequest.get();
-            }
+        final Result<MoodleAPIRestTemplate> result = this.restTemplateFactory.getRestTemplate();
+        if (!result.hasError()) {
+            return result;
         }
 
-        return Result.of(this.restTemplate);
+        return this.restTemplateFactory.createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
     }
 }

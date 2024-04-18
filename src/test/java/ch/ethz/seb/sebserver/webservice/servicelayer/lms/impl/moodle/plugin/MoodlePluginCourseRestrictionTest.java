@@ -36,7 +36,7 @@ public class MoodlePluginCourseRestrictionTest {
 
         final MoodlePluginCourseRestriction candidate = crateMockup();
 
-        assertEquals("MoodlePluginCourseRestriction [restTemplate=null]", candidate.toTestString());
+        assertEquals("MoodlePluginCourseRestriction [restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[], callLog=[]]]", candidate.toTestString());
 
         final LmsSetupTestResult testCourseRestrictionAPI = candidate.testCourseRestrictionAPI();
 

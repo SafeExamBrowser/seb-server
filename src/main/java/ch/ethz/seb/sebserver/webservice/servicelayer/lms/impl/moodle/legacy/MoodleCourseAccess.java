@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MooldePluginLmsAPITemplateFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -103,7 +104,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     private final int pageSize;
     private final int maxSize;
 
-    private MoodleAPIRestTemplate restTemplate;
 
     public MoodleCourseAccess(
             final JSONMapper jsonMapper,
@@ -583,17 +583,12 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
-        if (this.restTemplate == null) {
-            final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
-                    .createRestTemplate(MoodleLmsAPITemplateFactory.MOODLE_MOBILE_APP_SERVICE);
-            if (templateRequest.hasError()) {
-                return templateRequest;
-            } else {
-                this.restTemplate = templateRequest.get();
-            }
+        final Result<MoodleAPIRestTemplate> result = this.restTemplateFactory.getRestTemplate();
+        if (!result.hasError()) {
+            return result;
         }
 
-        return Result.of(this.restTemplate);
+        return this.restTemplateFactory.createRestTemplate(MoodleLmsAPITemplateFactory.MOODLE_MOBILE_APP_SERVICE);
     }
 
     private Collection<CourseData> getCoursesPage(

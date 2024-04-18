@@ -118,7 +118,7 @@ public abstract class MoodleUtils {
         return idNumber.equals(Constants.EMPTY_NOTE) ? null : idNumber;
     }
 
-    public static final void logMoodleWarning(
+    public static void logMoodleWarning(
             final Collection<Warning> warnings,
             final String lmsSetupName,
             final String function) {
@@ -148,7 +148,7 @@ public abstract class MoodleUtils {
     private static final Pattern ACCESS_DENIED_PATTERN_2 =
             Pattern.compile(Pattern.quote("access denied"), Pattern.CASE_INSENSITIVE);
 
-    public static final boolean checkAccessDeniedError(final String courseKeyPageJSON) {
+    public static boolean checkAccessDeniedError(final String courseKeyPageJSON) {
         return ACCESS_DENIED_PATTERN_1
                 .matcher(courseKeyPageJSON)
                 .find() ||

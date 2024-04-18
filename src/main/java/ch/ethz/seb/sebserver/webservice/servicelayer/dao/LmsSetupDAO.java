@@ -53,4 +53,6 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, B
     Result<LmsSetup> setIntegrationActive(Long lmsSetupId, boolean active);
 
     Result<Collection<Long>> idsOfActiveWithFullIntegration(Long institutionId);
+
+    Result<Collection<Long>> allIdsFullIntegration();
 }

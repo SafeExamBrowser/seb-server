@@ -47,6 +47,8 @@ public class MoodleCourseAccessTest {
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
                 .thenReturn(Result.of(moodleAPIRestTemplate));
+        when(moodleRestTemplateFactory.getRestTemplate())
+                .thenReturn(Result.of(moodleAPIRestTemplate));
         when(moodleAPIRestTemplate.callMoodleAPIFunction(
                 anyString(),
                 any())).thenReturn("[\r\n" +
@@ -122,6 +124,8 @@ public class MoodleCourseAccessTest {
         final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
                 .thenReturn(Result.ofRuntimeError("Error1"));
+        when(moodleRestTemplateFactory.getRestTemplate())
+                .thenReturn(Result.ofRuntimeError("Error1"));
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
@@ -142,6 +146,8 @@ public class MoodleCourseAccessTest {
         final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
+                .thenReturn(Result.of(moodleAPIRestTemplate));
+        when(moodleRestTemplateFactory.getRestTemplate())
                 .thenReturn(Result.of(moodleAPIRestTemplate));
         doThrow(RuntimeException.class).when(moodleAPIRestTemplate).testAPIConnection(any());
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
@@ -164,6 +170,8 @@ public class MoodleCourseAccessTest {
         final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
+                .thenReturn(Result.of(moodleAPIRestTemplate));
+        when(moodleRestTemplateFactory.getRestTemplate())
                 .thenReturn(Result.of(moodleAPIRestTemplate));
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
