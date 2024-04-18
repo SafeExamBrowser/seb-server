@@ -9,24 +9,30 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -34,7 +40,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.stereotype.Service;
 
 @Lazy
@@ -48,20 +58,78 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private final LmsAPIService lmsAPIService;
     private final ExamAdminService examAdminService;
     private final ExamDAO examDAO;
+    private final ExamTemplateDAO examTemplateDAO;
     private final WebserviceInfo webserviceInfo;
+
+    //private final ClientCredentialsResourceDetails resource;
+
+    private final OAuth2RestTemplate restTemplate;
 
     public FullLmsIntegrationServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
             final LmsAPIService lmsAPIService,
             final ExamAdminService examAdminService,
             final ExamDAO examDAO,
-            final WebserviceInfo webserviceInfo) {
+            final ExamTemplateDAO examTemplateDAO,
+            final WebserviceInfo webserviceInfo,
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            @Value("${sebserver.webservice.lms.api.clientId}") final String clientId,
+            @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret) {
 
         this.lmsSetupDAO = lmsSetupDAO;
         this.lmsAPIService = lmsAPIService;
         this.examAdminService = examAdminService;
         this.examDAO = examDAO;
+        this.examTemplateDAO = examTemplateDAO;
         this.webserviceInfo = webserviceInfo;
+
+        final ClientCredentialsResourceDetails resource = new ClientCredentialsResourceDetails();
+        resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
+        resource.setClientId(clientId);
+        resource.setClientSecret(clientSecret);
+        resource.setGrantType(API.GRANT_TYPE_CLIENT);
+        resource.setScope(API.RW_SCOPES);
+
+        this.restTemplate = new OAuth2RestTemplate(resource);
+        clientHttpRequestFactoryService
+                .getClientHttpRequestFactory()
+                .onSuccess(this.restTemplate::setRequestFactory)
+                .onError(error -> log.warn("Failed to set HTTP request factory: ", error));
+        //this.restTemplate.setErrorHandler(new OAuth2AuthorizationContextHolder.OAuth2AuthorizationContext.ErrorHandler(this.resource));
+        this.restTemplate
+                .getMessageConverters()
+                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
+        final LmsSetup lmsSetup = event.getLmsSetup();
+        if (lmsSetup.integrationActive) {
+            applyFullLmsIntegration(lmsSetup.id)
+                    .onError(error -> log.warn("Failed to update LMS integration for: {}", lmsSetup, error))
+                    .onSuccess( data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+        }
+    }
+
+    @Override
+    public void notifyExamTemplateChange(final ExamTemplateChangeEvent event) {
+            final ExamTemplate examTemplate = event.getExamTemplate();
+            if (examTemplate == null) {
+                return;
+            }
+
+            lmsSetupDAO.idsOfActiveWithFullIntegration(examTemplate.institutionId)
+                    .onSuccess(all -> all.stream()
+                            .map(this::applyFullLmsIntegration)
+                            .forEach(res -> {
+                                res.onError(error -> log.warn(
+                                        "Failed to update LMS Full Integration: {}",
+                                        error.getMessage()) );
+                            }))
+                    .onError(error -> log.warn(
+                            "Failed to apply LMS Full Integration change caused by Exam Template: {}",
+                            examTemplate,
+                            error));
     }
 
     @Override
@@ -80,34 +148,38 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                             connectionId,
                             lmsSetup.name,
                             webserviceInfo.getExternalServerURL(),
-                            this.getIntegrationAccessToken(lmsSetup),
-                            this.getIntegrationTemplates()
+                            restTemplate.getAccessToken().getValue(),
+                            this.getIntegrationTemplates(lmsSetup.institutionId)
                     );
 
                     return lmsAPIService.getLmsAPITemplate(lmsSetupId)
                             .getOrThrow()
                             .applyConnectionDetails(data)
+                            .onError(error -> lmsSetupDAO
+                                    .setIntegrationActive(lmsSetupId, false)
+                                    .onError(er -> log.error("Failed to set LMS integration inactive", er)))
+                            .onSuccess( d -> lmsSetupDAO
+                                    .setIntegrationActive(lmsSetupId, true)
+                                    .onError(er -> log.error("Failed to set LMS integration active", er)))
                             .getOrThrow();
                 });
     }
 
-    private String getIntegrationAccessToken(LmsSetup lmsSetup) {
-        // TODO
-        return null;
-    };
-
-    private Collection<ExamTemplateSelection> getIntegrationTemplates() {
-        // TODO
-        return null;
+    private Collection<ExamTemplateSelection> getIntegrationTemplates(final Long institutionId) {
+        return examTemplateDAO
+                .getAllForLMSIntegration(institutionId)
+                .map(all -> all
+                        .stream()
+                        .map(one -> new ExamTemplateSelection(
+                        one.getModelId(),
+                                one.name,
+                                one.description))
+                        .collect(Collectors.toList()))
+                .getOrThrow();
     }
 
     @Override
     public Result<Void> deleteFullLmsIntegration(final Long lmsSetupId) {
-        return Result.ofRuntimeError("TODO");
-    }
-
-    @Override
-    public Result<Map<String, String>> getExamTemplateSelection() {
         return Result.ofRuntimeError("TODO");
     }
 

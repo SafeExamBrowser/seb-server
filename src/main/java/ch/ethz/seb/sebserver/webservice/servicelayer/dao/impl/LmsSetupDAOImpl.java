@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.*;
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,6 +118,23 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<Long>> idsOfActiveWithFullIntegration(final Long institutionId) {
+        return Result.tryCatch(() -> this.lmsSetupRecordMapper.selectIdsByExample()
+                .where(
+                        LmsSetupRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(institutionId))
+                .and(
+                        LmsSetupRecordDynamicSqlSupport.active,
+                        isEqualTo(1))
+                .and(
+                        integrationActive,
+                        isEqualTo(1))
+                .build()
+                .execute());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<LmsSetup>> allMatching(
             final FilterMap filterMap,
             final Predicate<LmsSetup> predicate) {
@@ -194,7 +213,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     this.encryptForSave(lmsSetup.proxyAuthSecret),
                     System.currentTimeMillis(),
                     null,
-                    createConnectionIdIfNotExists(lmsSetup.id));
+                    createConnectionIdIfNotExists(lmsSetup.id),
+                    null);
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
@@ -228,7 +248,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     this.encryptForSave(lmsSetup.proxyAuthSecret),
                     System.currentTimeMillis(),
                     BooleanUtils.toInteger(false),
-                    connectionId);
+                    connectionId,
+                    0);
 
             this.lmsSetupRecordMapper.insert(newRecord);
             return newRecord;
@@ -247,12 +268,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 return Collections.emptyList();
             }
 
-            final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
-                    null, null, null, null, null, null, null, null, null, null, null, null,
-                    System.currentTimeMillis(),
-                    BooleanUtils.toIntegerObject(active), null);
-
-            this.lmsSetupRecordMapper.updateByExampleSelective(lmsSetupRecord)
+            UpdateDSL.updateWithMapper(lmsSetupRecordMapper::update, lmsSetupRecord)
+                    .set(updateTime).equalTo(System.currentTimeMillis())
+                    .set(LmsSetupRecordDynamicSqlSupport.active).equalTo(BooleanUtils.toIntegerObject(active))
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
@@ -261,6 +279,24 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .map(id -> new EntityKey(id, EntityType.LMS_SETUP))
                     .collect(Collectors.toList());
         });
+    }
+
+    @Override
+    @Transactional
+    public Result<LmsSetup> setIntegrationActive(final Long id, final boolean active) {
+        return Result.tryCatch(() -> {
+
+            UpdateDSL.updateWithMapper(lmsSetupRecordMapper::update, lmsSetupRecord)
+                    .set(updateTime).equalTo(System.currentTimeMillis())
+                    .set(integrationActive).equalTo(BooleanUtils.toIntegerObject(active))
+                    .where(LmsSetupRecordDynamicSqlSupport.id, isEqualTo(id))
+                    .build()
+                    .execute();
+
+            return recordById(id).getOrThrow();
+        })
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -407,7 +443,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getLmsProxyAuthSecret(),
                 BooleanUtils.toBooleanObject(record.getActive()),
                 record.getUpdateTime(),
-                record.getConnectionId()));
+                record.getConnectionId(),
+                BooleanUtils.toBooleanObject(record.getIntegrationActive())));
     }
 
     private String encryptForSave(final String input) {

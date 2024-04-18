@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -43,4 +45,12 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, B
      * @return the local LMSSetup DB PK ID */
     Result<Long> getLmsSetupIdByConnectionId(String connectionId);
 
+    /** Set or reset LMS integration active flag.
+     *
+     * @param lmsSetupId LMS Setup id
+     * @param active true when mark for active, false for inactive
+     * @return Result refers to the specified LMS Setup or to en error when happened */
+    Result<LmsSetup> setIntegrationActive(Long lmsSetupId, boolean active);
+
+    Result<Collection<Long>> idsOfActiveWithFullIntegration(Long institutionId);
 }

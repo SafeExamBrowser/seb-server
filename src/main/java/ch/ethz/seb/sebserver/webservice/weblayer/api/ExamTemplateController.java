@@ -14,12 +14,16 @@ import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,7 +55,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -65,6 +68,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     private final ExamTemplateDAO examTemplateDAO;
     private final ProctoringAdminService proctoringServiceSettingsService;
     private final ExamConfigurationValueService examConfigurationValueService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     protected ExamTemplateController(
             final AuthorizationService authorization,
@@ -74,7 +78,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final ProctoringAdminService proctoringServiceSettingsService,
-            final ExamConfigurationValueService examConfigurationValueService) {
+            final ExamConfigurationValueService examConfigurationValueService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         super(
                 authorization,
@@ -87,6 +92,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         this.examTemplateDAO = entityDAO;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
         this.examConfigurationValueService = examConfigurationValueService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @RequestMapping(
@@ -118,6 +124,29 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .map(this::applyQuitPasswordIfNeeded);
     }
 
+    @Override
+    protected Result<ExamTemplate> notifyCreated(final ExamTemplate entity) {
+        return super.notifyCreated(entity);
+    }
+
+    @Override
+    protected Result<ExamTemplate> notifySaved(final ExamTemplate entity) {
+        return super.notifySaved(entity);
+    }
+
+    @Override
+    protected Result<Pair<ExamTemplate, EntityProcessingReport>> notifyDeleted(final Pair<ExamTemplate, EntityProcessingReport> pair) {
+        return super.notifyDeleted(pair);
+    }
+
+    private void notifyChanged(final ExamTemplate examTemplate) {
+        try {
+            applicationEventPublisher.publishEvent(new ExamTemplateChangeEvent(examTemplate));
+        } catch (final Exception e) {
+            log.error("Failed to notify Exam Template change: ", e);
+        }
+    }
+
     private ExamTemplate applyQuitPasswordIfNeeded(final ExamTemplate entity) {
         if (entity.configTemplateId != null) {
             try {
@@ -134,6 +163,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                         entity.supporter,
                         entity.configTemplateId,
                         entity.institutionalDefault,
+                        entity.lmsIntegration,
                         entity.indicatorTemplates,
                         entity.clientGroupTemplates,
                         attributes

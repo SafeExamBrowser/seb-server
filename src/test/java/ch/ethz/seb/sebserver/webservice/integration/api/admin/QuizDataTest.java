@@ -176,7 +176,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 null,
-                null);
+                null, false);
 
         lmsSetup = tester.restAPITestHelper()
                 .withAccessToken(token)

@@ -17,6 +17,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,11 +26,15 @@ import org.springframework.context.event.EventListener;
 
 public interface FullLmsIntegrationService {
 
+    @EventListener
+    void notifyLmsSetupChange(final LmsSetupChangeEvent event);
+
+    @EventListener
+    void notifyExamTemplateChange(final ExamTemplateChangeEvent event);
+
     Result<IntegrationData> applyFullLmsIntegration(Long lmsSetupId);
 
     Result<Void> deleteFullLmsIntegration(Long lmsSetupId);
-
-    Result<Map<String, String>> getExamTemplateSelection();
 
     Result<Exam> importExam(
             String lmsUUID,

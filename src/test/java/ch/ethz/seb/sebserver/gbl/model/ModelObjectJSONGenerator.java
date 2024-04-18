@@ -113,7 +113,7 @@ public class ModelObjectJSONGenerator {
         domainObject = new LmsSetup(
                 1L, 1L, "name", LmsType.OPEN_EDX, "lmsApiAccountName", "lmsApiAccountPassword",
                 "lmsApiUrl", "lmsApiToken", "proxyHost", 8085, "proxyAuthUsername", "proxyAuthSecret", true,
-                System.currentTimeMillis(), null);
+                System.currentTimeMillis(), null, false);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

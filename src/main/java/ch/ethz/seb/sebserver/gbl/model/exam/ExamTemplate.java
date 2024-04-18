@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -75,6 +72,9 @@ public class ExamTemplate implements GrantEntity {
     @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT)
     public final Boolean institutionalDefault;
 
+    @JsonProperty(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION)
+    public final Boolean lmsIntegration;
+
     @JsonCreator
     public ExamTemplate(
             @JsonProperty(EXAM_TEMPLATE.ATTR_ID) final Long id,
@@ -85,6 +85,7 @@ public class ExamTemplate implements GrantEntity {
             @JsonProperty(EXAM_TEMPLATE.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID) final Long configTemplateId,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT) final Boolean institutionalDefault,
+            @JsonProperty(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION) final Boolean lmsIntegration,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<IndicatorTemplate> indicatorTemplates,
             @JsonProperty(ATTR_CLIENT_GROUP_TEMPLATES) final Collection<ClientGroupTemplate> clientGroupTemplates,
             @JsonProperty(ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
@@ -99,6 +100,7 @@ public class ExamTemplate implements GrantEntity {
         this.indicatorTemplates = Utils.immutableCollectionOf(indicatorTemplates);
         this.clientGroupTemplates = Utils.immutableCollectionOf(clientGroupTemplates);
         this.institutionalDefault = BooleanUtils.toBoolean(institutionalDefault);
+        this.lmsIntegration = BooleanUtils.toBoolean(lmsIntegration);
         if (examAttributes != null && examAttributes.containsKey(ATTR_CLIENT_GROUP_TEMPLATES)) {
             final HashMap<String, String> attrs = new HashMap<>(examAttributes);
             attrs.remove(ATTR_CLIENT_GROUP_TEMPLATES);
@@ -120,6 +122,7 @@ public class ExamTemplate implements GrantEntity {
         this.supporter = mapper.getStringSet(EXAM_TEMPLATE.ATTR_SUPPORTER);
         this.configTemplateId = mapper.getLong(Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID);
         this.institutionalDefault = mapper.getBooleanObject(Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT);
+        this.lmsIntegration = mapper.getBooleanObject(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION);
         this.indicatorTemplates = Collections.emptyList();
         this.clientGroupTemplates = Collections.emptyList();
         this.examAttributes = Utils.immutableMapOf(null);
@@ -163,6 +166,10 @@ public class ExamTemplate implements GrantEntity {
         return this.institutionalDefault;
     }
 
+    public Boolean getLmsIntegration() {
+        return lmsIntegration;
+    }
+
     public Collection<IndicatorTemplate> getIndicatorTemplates() {
         return this.indicatorTemplates;
     }
@@ -183,35 +190,18 @@ public class ExamTemplate implements GrantEntity {
         return this.supporter;
     }
 
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        result = prime * result + ((this.institutionId == null) ? 0 : this.institutionId.hashCode());
-        return result;
+        return Objects.hash(id);
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final ExamTemplate other = (ExamTemplate) obj;
-        if (this.id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!this.id.equals(other.id))
-            return false;
-        if (this.institutionId == null) {
-            if (other.institutionId != null)
-                return false;
-        } else if (!this.institutionId.equals(other.institutionId))
-            return false;
-        return true;
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final ExamTemplate that = (ExamTemplate) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override
@@ -239,12 +229,14 @@ public class ExamTemplate implements GrantEntity {
         builder.append(this.examAttributes);
         builder.append(", institutionalDefault=");
         builder.append(this.institutionalDefault);
+        builder.append(", lmsIntegration=");
+        builder.append(this.lmsIntegration);
         builder.append("]");
         return builder.toString();
     }
 
     public static ExamTemplate createNew(final Long institutionId) {
-        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, null, null, null);
+        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, false, null, null, null);
     }
 
 }

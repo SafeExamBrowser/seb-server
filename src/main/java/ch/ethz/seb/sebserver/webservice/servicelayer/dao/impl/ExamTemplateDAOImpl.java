@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -21,11 +22,13 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -124,6 +127,24 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<ExamTemplate>> getAllForLMSIntegration(final Long institutionId) {
+        return Result.tryCatch(() -> this.examTemplateRecordMapper.selectByExample()
+                .where(
+                        ExamTemplateRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(institutionId))
+                .and(
+                        lmsIntegration,
+                        isNotEqualTo(1))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<ExamTemplate>> allOf(final Set<Long> pks) {
         return Result.tryCatch(() -> {
 
@@ -208,7 +229,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
                     indicatorsJSON,
-                    BooleanUtils.toInteger(data.institutionalDefault));
+                    BooleanUtils.toInteger(data.institutionalDefault),
+                    BooleanUtils.toInteger(data.lmsIntegration));
 
             final String quitPassword = data.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
             if (StringUtils.isNotBlank(quitPassword)) {
@@ -247,7 +269,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
                     null,
-                    BooleanUtils.toInteger(data.institutionalDefault));
+                    BooleanUtils.toInteger(data.institutionalDefault),
+                    BooleanUtils.toInteger(data.lmsIntegration));
 
             this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
 
@@ -332,7 +355,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
             if (log.isDebugEnabled()) {
                 log.debug(
-                        "Delete indicator template for exam template: {} indicator template id",
+                        "Delete indicator template for exam template: {} indicator template id {}",
                         examTemplateId,
                         indicatorTemplateId);
             }
@@ -417,7 +440,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
             if (log.isDebugEnabled()) {
                 log.debug(
-                        "Delete client group template for exam template: {} indicator template id",
+                        "Delete client group template for exam template: {} indicator template id {}",
                         examTemplateId,
                         clientGroupTemplateId);
             }
@@ -518,10 +541,10 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     .getAdditionalAttributes(EntityType.EXAM_TEMPLATE, record.getId())
                     .map(attrs -> attrs.stream()
                             .collect(Collectors.toMap(
-                                    attr -> attr.getName(),
-                                    attr -> attr.getValue())))
+                                    AdditionalAttributeRecord::getName,
+                                    AdditionalAttributeRecord::getValue)))
                     .onError(error -> log.error("Failed to load exam attributes for template: {}", record, error))
-                    .getOrElse(() -> Collections.emptyMap());
+                    .getOrElse(Collections::emptyMap);
 
             final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
@@ -542,6 +565,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     supporter,
                     record.getConfigurationTemplateId(),
                     BooleanUtils.toBooleanObject(record.getInstitutionalDefault()),
+                    BooleanUtils.toBooleanObject(record.getLmsIntegration()),
                     indicators,
                     clientGroupTemplates,
                     examAttributes);
@@ -589,11 +613,11 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     private void resetDefault(final ExamTemplateRecord record) {
         try {
 
-            this.examTemplateRecordMapper
-                    .updateByPrimaryKeySelective(new ExamTemplateRecord(
-                            record.getId(),
-                            null, null, null, null, null, null, null,
-                            0));
+            UpdateDSL.updateWithMapper(examTemplateRecordMapper::update, examTemplateRecord)
+                    .set(institutionalDefault).equalTo(0)
+                    .where(id, isEqualTo(record::getId))
+                    .build()
+                    .execute();
 
         } catch (final Exception e) {
             log.error("Failed to reset institutional default for exam template: {}", record, e);
@@ -617,10 +641,10 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     private void checkUniqueClientGroupName(
             final ClientGroupTemplate clientGroupTemplate,
-            final Collection<ClientGroupTemplate> clietnGroups) {
+            final Collection<ClientGroupTemplate> clientGroups) {
 
         // check unique name
-        clietnGroups.stream()
+        clientGroups.stream()
                 .filter(it -> !Objects.equals(it.id, clientGroupTemplate.id)
                         && Objects.equals(it.name, clientGroupTemplate.name))
                 .findAny()
@@ -666,13 +690,12 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
                 .selectByPrimaryKey(examTemplatePK);
         final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
-        final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
+        return (StringUtils.isNotBlank(indicatorTemplatesJSON))
                 ? this.jsonMapper.readValue(
                         indicatorTemplatesJSON,
                         new TypeReference<Collection<IndicatorTemplate>>() {
                         })
                 : Collections.emptyList();
-        return indicators;
     }
 
     private void storeIndicatorTemplates(final Long examTemplatePK, final List<IndicatorTemplate> newIndicators)
@@ -682,11 +705,11 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 ? StringUtils.EMPTY
                 : this.jsonMapper.writeValueAsString(newIndicators);
 
-        final ExamTemplateRecord newRecord = new ExamTemplateRecord(
-                examTemplatePK, null, null, null, null, null, null,
-                newIndicatorTemplatesJSON, null);
-
-        this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+        UpdateDSL.updateWithMapper(examTemplateRecordMapper::update, examTemplateRecord)
+                .set(indicatorTemplates).equalTo(newIndicatorTemplatesJSON)
+                .where(id, isEqualTo(examTemplatePK))
+                .build()
+                .execute();
     }
 
     private void storeClientGroupTemplates(final Long examTemplateId, final List<ClientGroupTemplate> newClientGroups)
@@ -712,16 +735,15 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                         EntityType.EXAM_TEMPLATE,
                         examTemplatePK,
                         ExamTemplate.ATTR_CLIENT_GROUP_TEMPLATES)
-                .map(rec -> rec.getValue())
+                .map(AdditionalAttributeRecord::getValue)
                 .getOr(StringUtils.EMPTY);
 
-        final Collection<ClientGroupTemplate> clientGroups = (StringUtils.isNotBlank(clientGroupTemplatesJSON))
+        return (StringUtils.isNotBlank(clientGroupTemplatesJSON))
                 ? this.jsonMapper.readValue(
                         clientGroupTemplatesJSON,
                         new TypeReference<Collection<ClientGroupTemplate>>() {
                         })
                 : Collections.emptyList();
-        return clientGroups;
     }
 
 }

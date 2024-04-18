@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpSession;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -143,10 +144,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
     private static final class OAuth2AuthorizationContext implements SEBServerAuthorizationContext {
 
-        private static final String GRANT_TYPE = "password";
-        private static final List<String> SCOPES = Collections.unmodifiableList(
-                Arrays.asList("read", "write"));
-
         private boolean valid = true;
 
         private final ResourceOwnerPasswordResourceDetails resource;
@@ -168,8 +165,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             this.resource.setAccessTokenUri(webserviceURIService.getOAuthTokenURI());
             this.resource.setClientId(guiClientId);
             this.resource.setClientSecret(guiClientSecret);
-            this.resource.setGrantType(GRANT_TYPE);
-            this.resource.setScope(SCOPES);
+            this.resource.setGrantType(API.GRANT_TYPE_PASSWORD);
+            this.resource.setScope(API.RW_SCOPES);
 
             this.restTemplate = new DisposableOAuth2RestTemplate(this.resource);
             this.restTemplate.setRequestFactory(clientHttpRequestFactory);

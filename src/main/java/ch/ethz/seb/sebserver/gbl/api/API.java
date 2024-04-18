@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 
 public final class API {
@@ -62,6 +66,11 @@ public final class API {
     public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token";
     public static final String OAUTH_JWTTOKEN_ENDPOINT = OAUTH_ENDPOINT + "/jwttoken";
     public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token";
+
+    public static final String GRANT_TYPE_PASSWORD = "password";
+    public static final String GRANT_TYPE_CLIENT = "client_credentials";
+    public static final List<String> RW_SCOPES = Collections.unmodifiableList(
+            Arrays.asList("read", "write"));
 
     public static final String CURRENT_USER_PATH_SEGMENT = "/me";
     public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + CURRENT_USER_PATH_SEGMENT;

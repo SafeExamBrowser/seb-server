@@ -753,7 +753,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         lmsSetup.proxyAuthSecret,
                         lmsSetup.active,
                         null,
-                        null))
+                        null, false))
                 .call();
 
         assertNotNull(newLMSCall);
@@ -3108,6 +3108,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         null,
                         Long.parseLong(configTemplateName.modelId), // assosiate with given config template
                         true,
+                        false,
                         null,
                         null,
                         null))

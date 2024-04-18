@@ -11,7 +11,15 @@ ADD COLUMN IF NOT EXISTS `local_account` INT(1) NOT NULL DEFAULT 1;
 -- ----------------------------------------------------------------
 
 ALTER TABLE `lms_setup`
-ADD COLUMN IF NOT EXISTS `connection_id` VARCHAR(255) NULL;
+ADD COLUMN IF NOT EXISTS `connection_id` VARCHAR(255) NULL,
+ADD COLUMN IF NOT EXISTS `integration_active` INT(1) NOT NULL;
+
+-- ----------------------------------------------------------------
+-- Add lms_integration to exam_template table SEBSERV-417
+-- ----------------------------------------------------------------
+
+ALTER TABLE `exam_template`
+ADD COLUMN IF NOT EXISTS `lms_integration` INT(1) NOT NULL DEFAULT 0;
 
 -- ----------------------------------------------------------------
 -- Add clipboard policy to GUI SEBSERV-534

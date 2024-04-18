@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
@@ -23,6 +25,8 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
      * @param institutionId The institution identifier
      * @return Result refer to the ExamTemplate instance or to an error when happened */
     Result<ExamTemplate> getInstitutionalDefault(Long institutionId);
+
+    Result<Collection<ExamTemplate>> getAllForLMSIntegration(Long institutionId);
 
     /** Creates a new indicator template
      *
@@ -61,5 +65,6 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
      * @param clientGroupTemplateId the id of the ClientGroupTemplate to delete
      * @return Result refer to the EntityKey of the deleted ClientGroupTemplate or to an error when happened */
     Result<EntityKey> deleteClientGroupTemplate(String examTemplateId, String clientGroupTemplateId);
+
 
 }

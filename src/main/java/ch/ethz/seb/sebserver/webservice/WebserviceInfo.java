@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
@@ -284,6 +285,10 @@ public class WebserviceInfo {
         return this.serverURLPrefix;
     }
 
+    public String getOAuthTokenURI() {
+        return getExternalServerURL() + API.OAUTH_ENDPOINT + API.OAUTH_TOKEN_ENDPOINT;
+    }
+
     public boolean isLightSetup() {
         return this.isLightSetup;
     }
@@ -343,6 +348,8 @@ public class WebserviceInfo {
         builder.append("]");
         return builder.toString();
     }
+
+
 
     public static final class ScreenProctoringServiceBundle implements SPSAPIAccessData {
 

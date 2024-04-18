@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `lms_setup` (
   `update_time` BIGINT UNSIGNED NULL,
   `active` INT(1) NOT NULL,
   `connection_id` VARCHAR(255) NULL,
+  `integration_active` INT(1) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `setupInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `setupInstitutionRef`
@@ -666,6 +667,7 @@ CREATE TABLE IF NOT EXISTS `exam_template` (
   `supporter` VARCHAR(4000) NULL,
   `indicator_templates` VARCHAR(6000) NULL,
   `institutional_default` INT(1) UNSIGNED NOT NULL DEFAULT 0,
+  `lms_integration` INT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   INDEX `examTemplateInstitutionRef_idx` (`institution_id` ASC),
   INDEX `examTemplateConfigTemplateRef_idx` (`configuration_template_id` ASC),

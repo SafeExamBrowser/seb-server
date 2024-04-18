@@ -296,7 +296,7 @@ public class MoodlePluginCourseAccessTest {
         final LmsSetup lmsSetup =
                 new LmsSetup(1L, 1L, "test-Moodle", LmsType.MOODLE_PLUGIN, "lms-user", "lms-user-secret",
                         "https://test.org/", null, null, null, null, null, null, null,
-                        null);
+                        null, false);
 
         final APITemplateDataSupplier apiTemplateDataSupplier = new APITemplateDataSupplier() {
 

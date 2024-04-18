@@ -87,7 +87,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 null,
-                null);
+                null, false);
 
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
@@ -436,7 +436,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 null,
-                null);
+                null, false);
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
@@ -477,7 +477,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 null,
-                null);
+                null, false);
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
