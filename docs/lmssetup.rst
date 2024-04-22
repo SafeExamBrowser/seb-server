@@ -74,8 +74,8 @@ SEB Server internally. Use the **"Type"** selector to specify the type of the LM
 - **Ans Delft**: This type is to bind SEB Server with an `Ans Delft <https://ans.app/>`_ LMS/Assessment Tool. With the API credentials from an Ans Delft instance, SEB Server is able
   to connect to the Ans LMS/Assessment Tool and provide the common features for Course-Access, SEB Restriction and LMS/Assessment Tool User Session resolving.
   
-- **Open Olat**: This type is to bind SEB Server with an `Open Olat <https://www.openolat.com/>`_ LMS/Assessment Tool. With the API credentials from an Open Olat instance, SEB Server is able
-  to connect to the Olat LMS/Assessment Tool and provide the common features for Course-Access, SEB Restriction and LMS/Assessment Tool User Session resolving. For more information please contact the Olat Development-Team at `OpenOLAT UZH <https://www.zi.uzh.ch/en/teaching-and-research/software-elearning/olat.html>`_
+- **OLAT**: This type is to bind SEB Server with an `OLAT <https://www.olat.org/>`_ LMS/Assessment Tool. With the API credentials from an PéAT instance, SEB Server is able
+  to connect to the OLAT LMS/Assessment Tool and provide the common features for Course-Access, SEB Restriction and LMS/Assessment Tool User Session resolving. For more information please contact the OLAT Development-Team at `OLAT UZH <https://www.zi.uzh.ch/en/support/e-learning-and-examination/staff/olat.html>`_
 
 The **"LMS/Assessment Tool Server Address"** is the root URL to connect to the LMS/Assessment Tool server with HTTP over the Internet or intranet. This is usually the URL that is
 also used with the Browser to connect to the main page of the LMS/Assessment Tool system. And additionally the credentials that have been created with the creation of the :ref:`lms-api-account-label` has to be set in the LMS/Assessment Tool Setup the make the SEB Server

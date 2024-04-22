@@ -35,7 +35,7 @@ public class UserFeatures {
         LMS_SETUP_MOODLE_PLUGIN("lms.setup.type.MOODLE_PLUGIN"),
         LMS_SETUP_OPEN_EDX("lms.setup.type.OPEN_EDX"),
         LMS_SETUP_ANS("lms.setup.type.ANS_DELFT"),
-        LMS_SETUP_OPEN_OLAT("lms.setup.type.OPEN_OLAT"),
+        LMS_SETUP_OLAT("lms.setup.type.OLAT"),
 
         QUIZ_LOOKUP("lms.quiz.lookup"),
 
