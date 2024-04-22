@@ -392,7 +392,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
             // NOTE: for some unknown reason, Moodles API error responses come with a 200 OK response HTTP Status
             //       So this is a special Moodle specific error handling here...
-            if (body.startsWith("{exception") || body.contains("\"exception\":")) {
+            if (body != null && (body.startsWith("{exception") || body.contains("\"exception\":"))) {
                 // if no courses has been found for this page, just return (Plugin)
                 if (body.contains("nocoursefound")) {
                     return body;

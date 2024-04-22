@@ -82,9 +82,9 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             if (StringUtils.isBlank( data.access_token)) {
                 throw new APIMessage.FieldValidationException("lmsFullIntegration:access_token", "access_token is mandatory");
             }
-            if (data.exam_templates.isEmpty()) {
-                throw new APIMessage.FieldValidationException("lmsFullIntegration:exam_templates", "exam_templates is mandatory");
-            }
+//            if (data.exam_templates.isEmpty()) {
+//                throw new APIMessage.FieldValidationException("lmsFullIntegration:exam_templates", "exam_templates is mandatory");
+//            }
 
             // apply
             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
