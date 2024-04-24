@@ -558,6 +558,16 @@ public enum ActionDefinition {
             ImageIcon.VISIBILITY_OFF,
             PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
             ActionCategory.FORM),
+    EXAM_TEMPLATE_SCREEN_PROCTORING_ON(
+            new LocTextKey("sebserver.examtemplate.sps.actions.open"),
+            ImageIcon.SCREEN_PROC_ON,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+    EXAM_TEMPLATE_SCREEN_PROCTORING_OFF(
+            new LocTextKey("sebserver.examtemplate.sps.actions.open"),
+            ImageIcon.SCREEN_PROC_OFF,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
 
     INDICATOR_TEMPLATE_NEW(
             new LocTextKey("sebserver.examtemplate.indicator.action.list.new"),

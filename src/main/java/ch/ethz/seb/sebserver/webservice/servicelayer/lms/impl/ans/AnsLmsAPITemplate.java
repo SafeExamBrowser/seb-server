@@ -432,7 +432,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     }
 
     @Override
-    public Result<Void> deleteConnectionDetails() {
+    public Result<String> deleteConnectionDetails() {
         return Result.ofRuntimeError("Not Supported");
     }
 

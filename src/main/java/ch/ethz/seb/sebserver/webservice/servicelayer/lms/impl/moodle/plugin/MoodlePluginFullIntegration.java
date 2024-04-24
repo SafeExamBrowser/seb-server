@@ -92,7 +92,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
             final String response = rest.postToMoodleAPIFunction(FUNCTION_NAME_SEBSERVER_CONNECTION, jsonPayload);
 
-            if (response.startsWith("{\"exception\":")) {
+            if (response != null && response.startsWith("{\"exception\":")) {
                 // Seems there was an error response from Moodle side.
                 // How do we know now what is active on Moodle side?
                 // Shall we mark the connection as invalid here?
@@ -116,7 +116,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
     }
 
     @Override
-    public Result<Void> deleteConnectionDetails() {
+    public Result<String> deleteConnectionDetails() {
         return Result.tryCatch(() -> {
             // get connection identifier
             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
@@ -138,6 +138,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             }
 
             log.info("Successfully deleted SEB Server connection for Moodle. LMS Setup: {}", lmsSetup);
+            return response;
         });
     }
 

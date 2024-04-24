@@ -72,7 +72,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                     .getAdditionalAttributes(entityKey.entityType, entityId)
                     .map(attrs -> attrs.stream()
                             .collect(Collectors.toMap(
-                                    attr -> attr.getName(),
+                                    AdditionalAttributeRecord::getName,
                                     Function.identity())))
                     .map(mapping -> {
                         return new ProctoringServiceSettings(
@@ -171,7 +171,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                     .getAdditionalAttributes(entityKey.entityType, entityId)
                     .map(attrs -> attrs.stream()
                             .collect(Collectors.toMap(
-                                    attr -> attr.getName(),
+                                    AdditionalAttributeRecord::getName,
                                     Function.identity())))
                     .map(mapping -> {
                         return new ScreenProctoringSettings(
@@ -332,8 +332,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
             try {
                 final String value = mapping.get(ProctoringServiceSettings.ATTR_ENABLED_FEATURES).getValue();
                 return StringUtils.isNotBlank(value)
-                        ? EnumSet.copyOf(Arrays.asList(StringUtils.split(value, Constants.LIST_SEPARATOR))
-                                .stream()
+                        ? EnumSet.copyOf(Arrays.stream(StringUtils.split(value, Constants.LIST_SEPARATOR))
                                 .map(str -> {
                                     try {
                                         return ProctoringFeature.valueOf(str);

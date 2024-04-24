@@ -15,6 +15,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -446,12 +447,17 @@ public class LmsSetupForm implements TemplateComposer {
 
         // ... and handle the response
         if (result.hasError()) {
-            if (formHandle != null && formHandle.handleError(result.getError())) {
-                throw new PageMessageException(
-                        new LocTextKey("sebserver.lmssetup.action.test.missingParameter"));
+            final Exception error = result.getError();
+            if (error instanceof final RestCallError restError) {
+                final String message = restError.getMessage();
+                if (message != null && message.contains("url")) {
+                    action.pageContext().notifyError(new LocTextKey("sebserver.lmssetup.action.test.serviceUnavailable"), null);
+                }
+            } else if (formHandle != null && formHandle.handleError(result.getError())) {
+                action.pageContext().notifyActivationError(EntityType.LMS_SETUP, error);
+            } else {
+                result.getOrThrow();
             }
-
-            result.getOrThrow();
         }
 
         return handleTestResult(
@@ -488,6 +494,11 @@ public class LmsSetupForm implements TemplateComposer {
                     if (error.message.contains("quizaccess_sebserver_get_exams")) {
                         throw new PageMessageException(new LocTextKey(
                                 "sebserver.lmssetup.action.test.quizRequestError.moodle.missing.plugin",
+                                Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
+                    }
+                    if (error.message.contains("sebserver_connection")) {
+                        throw new PageMessageException(new LocTextKey(
+                                "sebserver.lmssetup.action.test.quizRequestError.moodle.missing.plugin.v2",
                                 Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                     }
                     throw new PageMessageException(new LocTextKey(

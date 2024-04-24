@@ -27,7 +27,7 @@ public class MockupFullIntegration implements FullLmsIntegrationAPI {
     }
 
     @Override
-    public Result<Void> deleteConnectionDetails() {
+    public Result<String> deleteConnectionDetails() {
         return Result.ofRuntimeError("TODO");
     }
 }

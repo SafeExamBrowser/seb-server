@@ -75,6 +75,9 @@ public class ExamTemplate implements GrantEntity {
     @JsonProperty(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION)
     public final Boolean lmsIntegration;
 
+    @JsonProperty(EXAM_TEMPLATE.ATTR_CLIENT_CONFIGURATION_ID)
+    public final Long clientConfigurationId;
+
     @JsonCreator
     public ExamTemplate(
             @JsonProperty(EXAM_TEMPLATE.ATTR_ID) final Long id,
@@ -86,6 +89,7 @@ public class ExamTemplate implements GrantEntity {
             @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID) final Long configTemplateId,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT) final Boolean institutionalDefault,
             @JsonProperty(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION) final Boolean lmsIntegration,
+            @JsonProperty(EXAM_TEMPLATE.ATTR_CLIENT_CONFIGURATION_ID) final Long clientConfigurationId,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<IndicatorTemplate> indicatorTemplates,
             @JsonProperty(ATTR_CLIENT_GROUP_TEMPLATES) final Collection<ClientGroupTemplate> clientGroupTemplates,
             @JsonProperty(ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
@@ -101,6 +105,7 @@ public class ExamTemplate implements GrantEntity {
         this.clientGroupTemplates = Utils.immutableCollectionOf(clientGroupTemplates);
         this.institutionalDefault = BooleanUtils.toBoolean(institutionalDefault);
         this.lmsIntegration = BooleanUtils.toBoolean(lmsIntegration);
+        this.clientConfigurationId = clientConfigurationId;
         if (examAttributes != null && examAttributes.containsKey(ATTR_CLIENT_GROUP_TEMPLATES)) {
             final HashMap<String, String> attrs = new HashMap<>(examAttributes);
             attrs.remove(ATTR_CLIENT_GROUP_TEMPLATES);
@@ -121,8 +126,9 @@ public class ExamTemplate implements GrantEntity {
         this.examType = mapper.getEnum(EXAM_TEMPLATE.ATTR_EXAM_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.supporter = mapper.getStringSet(EXAM_TEMPLATE.ATTR_SUPPORTER);
         this.configTemplateId = mapper.getLong(Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID);
-        this.institutionalDefault = mapper.getBooleanObject(Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT);
-        this.lmsIntegration = mapper.getBooleanObject(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION);
+        this.institutionalDefault = mapper.getBoolean(Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT);
+        this.lmsIntegration = mapper.getBoolean(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION);
+        this.clientConfigurationId = mapper.getLong(EXAM_TEMPLATE.ATTR_CLIENT_CONFIGURATION_ID);
         this.indicatorTemplates = Collections.emptyList();
         this.clientGroupTemplates = Collections.emptyList();
         this.examAttributes = Utils.immutableMapOf(null);
@@ -168,6 +174,10 @@ public class ExamTemplate implements GrantEntity {
 
     public Boolean getLmsIntegration() {
         return lmsIntegration;
+    }
+
+    public Long getClientConfigurationId() {
+        return clientConfigurationId;
     }
 
     public Collection<IndicatorTemplate> getIndicatorTemplates() {
@@ -236,7 +246,7 @@ public class ExamTemplate implements GrantEntity {
     }
 
     public static ExamTemplate createNew(final Long institutionId) {
-        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, false, null, null, null);
+        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, false, null, null, null, null);
     }
 
 }

@@ -19,7 +19,8 @@ ADD COLUMN IF NOT EXISTS `integration_active` INT(1) NOT NULL;
 -- ----------------------------------------------------------------
 
 ALTER TABLE `exam_template`
-ADD COLUMN IF NOT EXISTS `lms_integration` INT(1) NOT NULL DEFAULT 0;
+ADD COLUMN IF NOT EXISTS `lms_integration` INT(1) NOT NULL DEFAULT 0,
+ADD COLUMN IF NOT EXISTS `client_configuration_id` BIGINT NULL;
 
 -- ----------------------------------------------------------------
 -- Add clipboard policy to GUI SEBSERV-534

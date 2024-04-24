@@ -3,34 +3,34 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class BatchActionRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.owner")
     private String owner;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.action_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.action_type")
     private String actionType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.attributes")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.attributes")
     private String attributes;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.source_ids")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.source_ids")
     private String sourceIds;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.successful")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.successful")
     private String successful;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.last_update")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.last_update")
     private Long lastUpdate;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.processor_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.processor_id")
     private String processorId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source Table: batch_action")
     public BatchActionRecord(Long id, Long institutionId, String owner, String actionType, String attributes, String sourceIds, String successful, Long lastUpdate, String processorId) {
         this.id = id;
         this.institutionId = institutionId;
@@ -43,47 +43,47 @@ public class BatchActionRecord {
         this.processorId = processorId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.owner")
     public String getOwner() {
         return owner;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.action_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.action_type")
     public String getActionType() {
         return actionType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.attributes")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.attributes")
     public String getAttributes() {
         return attributes;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.source_ids")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.source_ids")
     public String getSourceIds() {
         return sourceIds;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.successful")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.successful")
     public String getSuccessful() {
         return successful;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.last_update")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.last_update")
     public Long getLastUpdate() {
         return lastUpdate;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-18T08:15:10.174+02:00", comments="Source field: batch_action.processor_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.984+02:00", comments="Source field: batch_action.processor_id")
     public String getProcessorId() {
         return processorId;
     }
@@ -92,7 +92,7 @@ public class BatchActionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table batch_action
      *
-     * @mbg.generated Thu Apr 18 08:15:10 CEST 2024
+     * @mbg.generated Mon Apr 22 15:58:16 CEST 2024
      */
     @Override
     public String toString() {
@@ -117,7 +117,7 @@ public class BatchActionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table batch_action
      *
-     * @mbg.generated Thu Apr 18 08:15:10 CEST 2024
+     * @mbg.generated Mon Apr 22 15:58:16 CEST 2024
      */
     @Override
     public boolean equals(Object that) {
@@ -146,7 +146,7 @@ public class BatchActionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table batch_action
      *
-     * @mbg.generated Thu Apr 18 08:15:10 CEST 2024
+     * @mbg.generated Mon Apr 22 15:58:16 CEST 2024
      */
     @Override
     public int hashCode() {

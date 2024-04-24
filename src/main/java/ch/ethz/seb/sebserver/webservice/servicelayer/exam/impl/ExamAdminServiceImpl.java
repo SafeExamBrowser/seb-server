@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import org.apache.commons.lang3.BooleanUtils;
@@ -32,12 +33,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
-import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -126,9 +122,12 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     }
                 })
                 .flatMap(this::applyAdditionalSEBRestrictions)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error)));
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error)))
+                .flatMap(this::applyQuitPassword)
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_QUIT_PASSWORD.of(error)))
+                .flatMap(examTemplateService::applyScreenProctoringSettingsForExam)
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS.of(error)));
 
-        this.applyQuitPassword(exam);
 
         if (!errors.isEmpty()) {
             errors.add(0, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
@@ -385,6 +384,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
                 .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
     }
+
+
 
     @Override
     public Result<Exam> findExamByLmsIdentity(

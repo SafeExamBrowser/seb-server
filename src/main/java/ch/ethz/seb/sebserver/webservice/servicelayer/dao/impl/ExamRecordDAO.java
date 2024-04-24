@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.*;
-import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.quitPassword;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.*;
@@ -274,14 +273,13 @@ public class ExamRecordDAO {
                         }
                     }
 
-                    final ExamRecord newExamRecord = new ExamRecord(
-                            examRecord.getId(),
-                            null, null, null, null, null, null, null, null,
-                            status.name(),
-                            null, null, null, null, null,
-                            Utils.getMillisecondsNow(), null, null, null, null);
+                    UpdateDSL.updateWithMapper(examRecordMapper::update, ExamRecordDynamicSqlSupport.examRecord)
+                            .set(ExamRecordDynamicSqlSupport.status).equalTo(status.name())
+                            .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                            .where(id,  isEqualTo(examRecord.getId()))
+                            .build()
+                            .execute();
 
-                    this.examRecordMapper.updateByPrimaryKeySelective(newExamRecord);
                     return this.examRecordMapper.selectByPrimaryKey(examId);
                 })
                 .onError(TransactionHandler::rollback);
@@ -371,17 +369,14 @@ public class ExamRecordDAO {
                 throw new IllegalStateException("Exam is currently locked: " + examId);
             }
 
-            final ExamRecord examRecord = new ExamRecord(
-                    examId,
-                    null, null, null, null, null, null, null, null, null,
-                    null, null,
-                    updateId,
-                    null, null,
-                    Utils.getMillisecondsNow(),
-                    null, null, null,
-                    BooleanUtils.toIntegerObject(available));
+            UpdateDSL.updateWithMapper(examRecordMapper::update, ExamRecordDynamicSqlSupport.examRecord)
+                    .set(lastupdate).equalTo(updateId)
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .set(lmsAvailable).equalTo(BooleanUtils.toIntegerObject(available))
+                    .where(id,  isEqualTo(examId))
+                    .build()
+                    .execute();
 
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);
         })
                 .onError(TransactionHandler::rollback);
@@ -397,16 +392,14 @@ public class ExamRecordDAO {
                 throw new IllegalStateException("Exam is currently locked: " + examId);
             }
 
-            final ExamRecord examRecord = new ExamRecord(
-                    examId,
-                    null, null, null, null, null, null, null, null,
-                    ExamStatus.ARCHIVED.name(),
-                    null, null, null, null, null,
-                    Utils.getMillisecondsNow(),
-                    null, null, null,
-                    BooleanUtils.toIntegerObject(false));
+            UpdateDSL.updateWithMapper(examRecordMapper::update, ExamRecordDynamicSqlSupport.examRecord)
+                    .set(status).equalTo(ExamStatus.ARCHIVED.name())
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .set(lmsAvailable).equalTo(BooleanUtils.toIntegerObject(false))
+                    .where(id,  isEqualTo(examId))
+                    .build()
+                    .execute();
 
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);
         })
                 .onError(TransactionHandler::rollback);
@@ -416,15 +409,13 @@ public class ExamRecordDAO {
     public Result<ExamRecord> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return Result.tryCatch(() -> {
 
-            final ExamRecord examRecord = new ExamRecord(
-                    examId,
-                    null, null, null, null, null, null, null, null, null,
-                    BooleanUtils.toInteger(sebRestriction),
-                    null, null, null, null,
-                    Utils.getMillisecondsNow(),
-                    null, null, null, null);
+            UpdateDSL.updateWithMapper(examRecordMapper::update, ExamRecordDynamicSqlSupport.examRecord)
+                    .set(lmsSebRestriction).equalTo(BooleanUtils.toInteger(sebRestriction))
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .where(id,  isEqualTo(examId))
+                    .build()
+                    .execute();
 
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);
         })
                 .onError(TransactionHandler::rollback);

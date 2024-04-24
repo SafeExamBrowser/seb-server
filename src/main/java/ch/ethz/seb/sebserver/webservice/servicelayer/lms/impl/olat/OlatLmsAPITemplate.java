@@ -419,7 +419,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     @Override
-    public Result<Void> deleteConnectionDetails() {
+    public Result<String> deleteConnectionDetails() {
         return Result.ofRuntimeError("Not Supported");
     }
 

@@ -8,8 +8,19 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import java.util.List;
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_SCREEN_PROCTORING;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.*;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigs;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -20,11 +31,6 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -42,11 +48,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroupTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplatePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.DeleteExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplateProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.NewExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -70,10 +71,15 @@ public class ExamTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.examtemplate.form.description");
     private static final LocTextKey FORM_DEFAULT_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.default");
+    private static final LocTextKey FORM_LMS_INTEGRATION_TEXT_KEY =
+            new LocTextKey("sebserver.examtemplate.form.lms.integration");
     private static final LocTextKey FORM_TYPE_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.examType");
     private static final LocTextKey FORM_CONFIG_TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.examConfigTemplate");
+
+    private static final LocTextKey FORM_CONNECTION_CONFIG_TEXT_KEY =
+            new LocTextKey("sebserver.examtemplate.form.connectionConfig");
     private static final LocTextKey FORM_SUPPORTER_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.supporter");
 
@@ -118,15 +124,19 @@ public class ExamTemplateForm implements TemplateComposer {
     private final RestService restService;
     private final ProctoringSettingsPopup proctoringSettingsPopup;
 
+    private final ScreenProctoringSettingsPopup screenProctoringSettingsPopup;
+
     public ExamTemplateForm(
             final PageService pageService,
-            final ProctoringSettingsPopup proctoringSettingsPopup) {
+            final ProctoringSettingsPopup proctoringSettingsPopup,
+            final ScreenProctoringSettingsPopup screenProctoringSettingsPopup) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = pageService.getRestService();
         this.proctoringSettingsPopup = proctoringSettingsPopup;
+        this.screenProctoringSettingsPopup = screenProctoringSettingsPopup;
     }
 
     @Override
@@ -158,6 +168,19 @@ public class ExamTemplateForm implements TemplateComposer {
                 titleKey);
 
         final List<Tuple<String>> examConfigTemplateResources = this.resourceService.getExamConfigTemplateResources();
+        final List<Tuple<String>> connectionConfigsResources =
+                Stream.concat(
+                    Stream.of(new Tuple<>("", "")),
+                    this.pageService.getRestService()
+                    .getBuilder(GetClientConfigs.class)
+                    .withQueryParam(SEBClientConfig.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
+                    .withQueryParam(Entity.FILTER_ATTR_INSTITUTION,  String.valueOf(examTemplate.institutionId))
+                    .call()
+                    .getOrThrow()
+                    .stream()
+                    .filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
+                    .map(config -> new Tuple<>(config.getModelId(), config.name)))
+                .toList();
 
         // The Exam Template form
         final FormHandle<ExamTemplate> formHandle = this.pageService.formBuilder(
@@ -187,6 +210,11 @@ public class ExamTemplateForm implements TemplateComposer {
                         FORM_DEFAULT_TEXT_KEY,
                         String.valueOf(examTemplate.getInstitutionalDefault())))
 
+                .addField(FormBuilder.checkbox(
+                        Domain.EXAM_TEMPLATE.ATTR_LMS_INTEGRATION,
+                        FORM_LMS_INTEGRATION_TEXT_KEY,
+                        String.valueOf(examTemplate.getLmsIntegration())))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM_TEMPLATE.ATTR_EXAM_TYPE,
                         FORM_TYPE_TEXT_KEY,
@@ -200,7 +228,14 @@ public class ExamTemplateForm implements TemplateComposer {
                                 Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID,
                                 FORM_CONFIG_TEMPLATE_TEXT_KEY,
                                 String.valueOf(examTemplate.configTemplateId),
-                                this.resourceService::getExamConfigTemplateResources))
+                                        () -> examConfigTemplateResources))
+
+                .addField(
+                        FormBuilder.singleSelection(
+                                Domain.EXAM_TEMPLATE.ATTR_CLIENT_CONFIGURATION_ID,
+                                FORM_CONNECTION_CONFIG_TEXT_KEY,
+                                String.valueOf(examTemplate.clientConfigurationId),
+                                () -> connectionConfigsResources))
 
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM_TEMPLATE.ATTR_SUPPORTER,
@@ -217,6 +252,15 @@ public class ExamTemplateForm implements TemplateComposer {
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .map(ProctoringServiceSettings::getEnableProctoring)
+                .getOr(false);
+
+        final boolean lpEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_LIVE_PROCTORING);
+        final boolean spsFeatureEnabled = currentUser.isFeatureEnabled(EXAM_SCREEN_PROCTORING);
+        final boolean screenProctoringEnabled = readonly && spsFeatureEnabled && this.restService
+                .getBuilder(GetExamTemplateScreenProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .map(ScreenProctoringSettings::getEnableScreenProctoring)
                 .getOr(false);
 
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(examTemplate);
@@ -248,13 +292,29 @@ public class ExamTemplateForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrantCheck.m()))
                 .noEventPropagation()
-                .publishIf(() -> proctoringEnabled && readonly)
+                .publishIf(() -> lpEnabled && proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_PROCTORING_OFF)
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrantCheck.m()))
                 .noEventPropagation()
-                .publishIf(() -> !proctoringEnabled && readonly);
+                .publishIf(() -> lpEnabled && !proctoringEnabled && readonly)
+
+                .newAction(ActionDefinition.EXAM_TEMPLATE_SCREEN_PROCTORING_ON)
+                .withEntityKey(entityKey)
+                .withExec(
+                        this.screenProctoringSettingsPopup.settingsFunction(this.pageService, userGrantCheck.m()))
+                .noEventPropagation()
+                .publishIf(() ->  spsFeatureEnabled && screenProctoringEnabled && readonly)
+
+                .newAction(ActionDefinition.EXAM_TEMPLATE_SCREEN_PROCTORING_OFF)
+                .withEntityKey(entityKey)
+                .withExec(
+                        this.screenProctoringSettingsPopup.settingsFunction(this.pageService, userGrantCheck.m()))
+                .noEventPropagation()
+                .publishIf(
+                        () -> spsFeatureEnabled && !screenProctoringEnabled && readonly)
+        ;
 
         if (readonly) {
 

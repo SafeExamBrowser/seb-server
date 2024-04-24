@@ -76,7 +76,8 @@ public class ScreenProctoringSettingsPopup {
             new LocTextKey("sebserver.exam.sps.form.accountId");
     private final static LocTextKey FORM_ACCOUNT_SECRET_SPS =
             new LocTextKey("sebserver.exam.sps.form.accountSecret");
-
+    private final static LocTextKey BUNDLED_ACTIVATION_ERROR =
+            new LocTextKey("sebserver.exam.sps.form.saveSettings.error");
     private final static LocTextKey SAVE_TEXT_KEY =
             new LocTextKey("sebserver.exam.sps.form.saveSettings");
 
@@ -202,6 +203,8 @@ public class ScreenProctoringSettingsPopup {
         } else {
             final String bundled = formHandle.getForm().getStaticValue(ScreenProctoringSettings.ATTR_SPS_BUNDLED);
             if (bundled != null) {
+                pageContext.notifyError(BUNDLED_ACTIVATION_ERROR, null);
+            } else {
                 pageContext.notifyActivationError(EntityType.SCREEN_PROCTORING_GROUP, saveRequest.getError());
             }
         }

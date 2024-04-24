@@ -55,7 +55,7 @@ public interface CourseAccessAPI {
 
     /** Get all {@link QuizData } for the set of {@link QuizData } identifiers from LMS API in a collection
      * of Result. If particular quizzes cannot be loaded because of errors or deletion,
-     * the the referencing QuizData will not be in the resulting list and an error is logged.
+     * the referencing QuizData will not be in the resulting list and an error is logged.
      *
      * @param ids the Set of Quiz identifiers to get the {@link QuizData } for
      * @return Collection of all {@link QuizData } from the given id set */

@@ -13,6 +13,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -30,14 +35,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
@@ -63,6 +61,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private final AdditionalAttributesDAO additionalAttributesDAO;
 
     private final ExamTemplateDAO examTemplateDAO;
+
+    private final ProctoringAdminService proctoringAdminService;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final IndicatorDAO indicatorDAO;
@@ -79,6 +79,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     public ExamTemplateServiceImpl(
             final AdditionalAttributesDAO additionalAttributesDAO,
             final ExamTemplateDAO examTemplateDAO,
+            final ProctoringAdminService proctoringAdminService,
             final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final IndicatorDAO indicatorDAO,
@@ -94,6 +95,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
         this.examTemplateDAO = examTemplateDAO;
         this.configurationNodeDAO = configurationNodeDAO;
+        this.proctoringAdminService = proctoringAdminService;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.indicatorDAO = indicatorDAO;
@@ -181,6 +183,18 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                             exam.getId(),
                             examTemplate.examAttributes);
                 }
+
+                if (examTemplate.clientConfigurationId != null) {
+                    additionalAttributesDAO.saveAdditionalAttribute(
+                            EntityType.EXAM,
+                            exam.id,
+                            Exam.ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION,
+                            String.valueOf(examTemplate.clientConfigurationId))
+                            .onError(error -> log.warn(
+                                    "Failed to store default connection configuration id from template for exam: {} error: {}",
+                                    exam,
+                                    error.getMessage()));
+                }
             }
 
             return exam;
@@ -237,6 +251,30 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             return exam;
         }).onError(error -> log.error("Failed to create exam configuration defined by template for exam: ", error));
+    }
+
+    @Override
+    public  Result<Exam> applyScreenProctoringSettingsForExam(final Exam exam) {
+        if (exam.examTemplateId == null) {
+            return Result.of(exam);
+        }
+
+        return proctoringAdminService
+                .getScreenProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE))
+                .map(settings -> {
+                    if (BooleanUtils.isTrue(settings.enableScreenProctoring)) {
+                        proctoringAdminService
+                                .saveScreenProctoringSettings(exam.getEntityKey(), settings)
+                                .getOrThrow();
+                    }
+                    return settings;
+                })
+
+                .onError(error -> log.warn(
+                        "Failed to apply screen proctoring settings from Exam Template {} to Exam {}",
+                        exam.examTemplateId,
+                        exam))
+                .map(settings ->  exam);
     }
 
     private ConfigurationNode createOrReuseConfig(final Exam exam, final ExamTemplate examTemplate) {

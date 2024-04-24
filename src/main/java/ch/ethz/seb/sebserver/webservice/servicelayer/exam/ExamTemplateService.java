@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamTemplateService {
@@ -56,5 +57,7 @@ public interface ExamTemplateService {
      * @param exam The Exam to create and add new exam configuration
      * @return Result refer to the created exam or to an error when happened */
     Result<Exam> initExamConfiguration(Exam exam);
+
+     Result<Exam> applyScreenProctoringSettingsForExam(Exam exam);
 
 }

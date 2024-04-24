@@ -57,7 +57,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     private final CircuitBreaker<SEBRestriction> restrictionRequest;
     private final CircuitBreaker<Exam> releaseRestrictionRequest;
     private final CircuitBreaker<IntegrationData> lmsAccessRequest;
-    private final CircuitBreaker<Void> deleteLmsAccessRequest;
+    private final CircuitBreaker<String> deleteLmsAccessRequest;
 
     public LmsAPITemplateAdapter(
             final AsyncService asyncService,
@@ -493,15 +493,13 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Create LMS connection details for LMSSetup: {}", lmsSetup());
         }
 
-        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI.applyConnectionDetails(data)
-                .onError(error -> log.error(
-                        "Failed to run protected createConnectionDetails: {}",
-                        error.getMessage()))
+        return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI
+                .applyConnectionDetails(data)
                 .getOrThrow());
     }
 
     @Override
-    public Result<Void> deleteConnectionDetails() {
+    public Result<String> deleteConnectionDetails() {
         if (this.lmsIntegrationAPI == null) {
             return Result.ofError(
                     new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));

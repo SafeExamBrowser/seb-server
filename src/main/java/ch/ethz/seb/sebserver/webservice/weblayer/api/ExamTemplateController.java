@@ -15,10 +15,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.*;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -40,11 +39,6 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
@@ -55,7 +49,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -126,12 +119,21 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
     @Override
     protected Result<ExamTemplate> notifyCreated(final ExamTemplate entity) {
-        return super.notifyCreated(entity);
+        return notifyExamTemplateChange(entity);
     }
 
     @Override
     protected Result<ExamTemplate> notifySaved(final ExamTemplate entity) {
-        return super.notifySaved(entity);
+        return notifyExamTemplateChange(entity);
+    }
+
+    private Result<ExamTemplate> notifyExamTemplateChange(final ExamTemplate entity) {
+        try {
+            applicationEventPublisher.publishEvent(new ExamTemplateChangeEvent(entity));
+        } catch (final Exception e) {
+            log.error("Failed to notify ExamTemplate change: ", e);
+        }
+        return Result.of(entity);
     }
 
     @Override
@@ -164,6 +166,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                         entity.configTemplateId,
                         entity.institutionalDefault,
                         entity.lmsIntegration,
+                        entity.clientConfigurationId,
                         entity.indicatorTemplates,
                         entity.clientGroupTemplates,
                         attributes
@@ -522,6 +525,58 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     }
 
     // **** Proctoring
+    // ****************************************************************************
+    // ****************************************************************************
+    // **** Screen Proctoring
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ScreenProctoringSettings getScreenProctoringSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
+
+        checkReadPrivilege(institutionId);
+        return this.proctoringServiceSettingsService
+                .getScreenProctoringSettings(new EntityKey(modelId, EntityType.EXAM_TEMPLATE))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate saveScreenProctoringSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Valid @RequestBody final ScreenProctoringSettings screenProctoringSettings) {
+
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO
+                .byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .map(exam -> {
+                    this.proctoringServiceSettingsService
+                            .saveScreenProctoringSettings(
+                                    new EntityKey(examId, EntityType.EXAM_TEMPLATE),
+                                    screenProctoringSettings)
+                            .getOrThrow();
+                    return exam;
+                })
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
+
+    // **** Screen Proctoring
     // ****************************************************************************
 
     @Override

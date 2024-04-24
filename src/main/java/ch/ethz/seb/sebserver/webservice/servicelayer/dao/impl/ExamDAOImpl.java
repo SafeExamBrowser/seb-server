@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.*;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.examRecord;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -245,11 +246,9 @@ public class ExamDAOImpl implements ExamDAO {
                 return Collections.emptyList();
             }
 
-            final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, BooleanUtils.toInteger(active), null,
-                    Utils.getMillisecondsNow(), null, null, null, null);
-
-            this.examRecordMapper.updateByExampleSelective(examRecord)
+            UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .set(ExamRecordDynamicSqlSupport.active).equalTo(BooleanUtils.toInteger(active))
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
                     .and(ExamRecordDynamicSqlSupport.status, isNotEqualTo(ExamStatus.ARCHIVED.name()))
                     .build()
@@ -362,14 +361,13 @@ public class ExamDAOImpl implements ExamDAO {
                         "Exam to place lock is not in expected state: " + examRec.getExternalId());
             }
 
-            final ExamRecord newRecord = new ExamRecord(
-                    examId,
-                    null, null, null, null, null, null, null, null, null, null,
-                    BooleanUtils.toInteger(true),
-                    updateId,
-                    null, null, null, null, null, null, null);
+            UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                    .set(updating).equalTo(BooleanUtils.toInteger(true))
+                    .set(lastupdate).equalTo(updateId)
+                    .where(id, isEqualTo(examId))
+                    .build()
+                    .execute();
 
-            this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
             return examId;
         })
                 .onError(TransactionHandler::rollback);
@@ -392,14 +390,13 @@ public class ExamDAOImpl implements ExamDAO {
                         "Exam to release lock is not in expected state: " + examRec.getExternalId());
             }
 
-            final ExamRecord newRecord = new ExamRecord(
-                    examId,
-                    null, null, null, null, null, null, null, null, null, null,
-                    BooleanUtils.toInteger(false),
-                    updateId,
-                    null, null, null, null, null, null, null);
+            UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                    .set(updating).equalTo(BooleanUtils.toInteger(false))
+                    .set(lastupdate).equalTo(updateId)
+                    .where(id, isEqualTo(examId))
+                    .build()
+                    .execute();
 
-            this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
             return examId;
         })
                 .onError(TransactionHandler::rollback);
@@ -414,14 +411,14 @@ public class ExamDAOImpl implements ExamDAO {
         }
 
         return Result.tryCatch(() -> {
-            final ExamRecord examRecord = new ExamRecord(
-                    examId,
-                    null, null, null, null, null, null, null, null, null, null,
-                    BooleanUtils.toInteger(false),
-                    null, null, null, null, null, null, null, null);
 
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
-            return examRecord.getId();
+        UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                .set(updating).equalTo(BooleanUtils.toInteger(false))
+                .where(id, isEqualTo(examId))
+                .build()
+                .execute();
+
+            return examId;
         })
                 .onError(TransactionHandler::rollback);
     }

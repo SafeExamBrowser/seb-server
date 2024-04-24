@@ -192,9 +192,9 @@ public class ProctoringSettingsPopup {
         Button resetBotton = null;
         boolean enabled = false;
 
-        void set(final Button resetBotton) {
-            this.resetBotton = resetBotton;
-            resetBotton.setEnabled(this.enabled);
+        void set(final Button resetButton) {
+            this.resetBotton = resetButton;
+            resetButton.setEnabled(this.enabled);
         }
 
         void enable(final boolean enable) {

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -165,14 +166,14 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
-    public Result<Exam> applyScreenProctoringForExam(final Long examId) {
+    public Result<Exam> applyScreenProctoringForExam(final EntityKey entityKey) {
 
         return this.examDAO
-                .byPK(examId)
+                .byModelId(entityKey.modelId)
                 .map(exam -> {
 
                     final boolean isSPSActive = this.screenProctoringAPIBinding.isSPSActive(exam);
-                    final boolean isEnabling = this.proctoringSettingsDAO.isScreenProctoringEnabled(examId);
+                    final boolean isEnabling = this.proctoringSettingsDAO.isScreenProctoringEnabled(exam.id);
 
                     if (isEnabling && !isSPSActive) {
 

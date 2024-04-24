@@ -401,9 +401,9 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 // NOTE: find a way to verify token invalidity response from Moodle.
                 //      Unfortunately there is not a lot of Moodle documentation for the API error handling around.
                 this.accessToken = null;
-                throw new RuntimeException(
-                        "Failed to call Moodle webservice API function: " + functionName + " lms setup: " +
-                                lmsSetup + " response: " + body);
+                log.warn(
+                        "Failed to call Moodle webservice API function: {} lms setup: {} response: {}",
+                        functionName, lmsSetup, body);
             }
 
             return body;

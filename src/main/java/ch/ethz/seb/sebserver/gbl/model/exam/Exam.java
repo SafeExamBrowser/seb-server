@@ -62,6 +62,8 @@ public final class Exam implements GrantEntity {
     /** Comma separated String value that defines allowed SEB version from linked Exam Configuration */
     public static final String ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS = "ALLOWED_SEB_VERSIONS";
 
+    public static final String ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION = "DEFAULT_CONNECTION_CONFIGURATION";
+
     public enum ExamStatus {
         UP_COMING,
         RUNNING,

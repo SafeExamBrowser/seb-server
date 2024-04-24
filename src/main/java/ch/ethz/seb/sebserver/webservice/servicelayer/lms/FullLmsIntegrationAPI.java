@@ -24,6 +24,6 @@ public interface FullLmsIntegrationAPI {
 
     Result<IntegrationData> applyConnectionDetails(IntegrationData data);
 
-    Result<Void> deleteConnectionDetails();
+    Result<String> deleteConnectionDetails();
 
 }

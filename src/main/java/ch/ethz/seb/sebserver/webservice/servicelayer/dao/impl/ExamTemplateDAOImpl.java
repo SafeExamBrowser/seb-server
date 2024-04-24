@@ -134,7 +134,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                         isEqualTo(institutionId))
                 .and(
                         lmsIntegration,
-                        isNotEqualTo(1))
+                        isNotEqualTo(0))
                 .build()
                 .execute()
                 .stream()
@@ -230,7 +230,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                             : null,
                     indicatorsJSON,
                     BooleanUtils.toInteger(data.institutionalDefault),
-                    BooleanUtils.toInteger(data.lmsIntegration));
+                    BooleanUtils.toInteger(data.lmsIntegration),
+                    data.clientConfigurationId);
 
             final String quitPassword = data.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
             if (StringUtils.isNotBlank(quitPassword)) {
@@ -256,28 +257,26 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             checkUniqueName(data);
             checkUniqueDefault(data);
 
-            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
-                    data.id,
-                    null,
-                    data.configTemplateId,
-                    data.name,
-                    data.description,
-                    (data.examType != null)
-                            ? data.examType.name()
-                            : null,
-                    (data.supporter != null)
-                            ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
-                            : null,
-                    null,
-                    BooleanUtils.toInteger(data.institutionalDefault),
-                    BooleanUtils.toInteger(data.lmsIntegration));
+            final String supporter = (data.supporter != null)
+                    ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
+                    : null;
 
-            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+            UpdateDSL.updateWithMapper(examTemplateRecordMapper::update, examTemplateRecord)
+                .set(configurationTemplateId).equalTo(data.configTemplateId)
+                .set(name).equalTo(data.name)
+                .set(description).equalTo(data.description)
+                .set(examType).equalToWhenPresent((data.examType != null) ? data.examType.name() : null)
+                .set(ExamTemplateRecordDynamicSqlSupport.supporter).equalTo(supporter)
+                .set(institutionalDefault).equalTo(BooleanUtils.toInteger(data.institutionalDefault))
+                .set(lmsIntegration).equalTo(BooleanUtils.toInteger(data.lmsIntegration))
+                .set(clientConfigurationId).equalTo(data.clientConfigurationId)
+                .where(id, isEqualTo(data.id))
+                .build()
+                .execute();
 
             if (!data.examAttributes.isEmpty()) {
                 data.examAttributes
                         .entrySet()
-                        .stream()
                         .forEach(entry -> this.additionalAttributesDAO.saveAdditionalAttribute(
                                 EntityType.EXAM_TEMPLATE,
                                 data.id,
@@ -487,20 +486,18 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             // notify exam deletion listener about following deletion, to cleanup stuff before deletion
             this.applicationEventPublisher.publishEvent(new ExamTemplateDeletionEvent(ids));
 
-            ids.stream()
-                    .forEach(id -> {
-                        final Collection<EntityKey> deletedReferences = this.examDAO
-                                .deleteTemplateReferences(id)
-                                .getOrThrow();
+            ids.forEach(id -> {
+                final Collection<EntityKey> deletedReferences = this.examDAO
+                        .deleteTemplateReferences(id)
+                        .getOrThrow();
 
-                        if (deletedReferences != null && !deletedReferences.isEmpty()) {
-                            log.info("Deleted template references for exams: {}", deletedReferences);
-                        }
-                    });
+                if (deletedReferences != null && !deletedReferences.isEmpty()) {
+                    log.info("Deleted template references for exams: {}", deletedReferences);
+                }
+            });
 
             // delete all additional attributes
-            ids.stream()
-                    .forEach(id -> this.additionalAttributesDAO.deleteAll(EntityType.EXAM_TEMPLATE, id));
+            ids.forEach(id -> this.additionalAttributesDAO.deleteAll(EntityType.EXAM_TEMPLATE, id));
 
             this.examTemplateRecordMapper.deleteByExample()
                     .where(ExamTemplateRecordDynamicSqlSupport.id, isIn(ids))
@@ -566,6 +563,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     record.getConfigurationTemplateId(),
                     BooleanUtils.toBooleanObject(record.getInstitutionalDefault()),
                     BooleanUtils.toBooleanObject(record.getLmsIntegration()),
+                    record.getClientConfigurationId(),
                     indicators,
                     clientGroupTemplates,
                     examAttributes);
@@ -601,7 +599,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                                 isNotEqualTo(0))
                         .build()
                         .execute()
-                        .stream()
                         .forEach(this::resetDefault);
 
             } catch (final Exception e) {

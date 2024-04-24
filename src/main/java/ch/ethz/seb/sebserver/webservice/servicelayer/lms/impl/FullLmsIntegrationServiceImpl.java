@@ -144,7 +144,8 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     @Override
     public Result<IntegrationData> applyFullLmsIntegration(final Long lmsSetupId) {
-        return lmsSetupDAO.byPK(lmsSetupId)
+        return lmsSetupDAO
+                .byPK(lmsSetupId)
                 .map(lmsSetup -> {
                     String connectionId = lmsSetup.getConnectionId();
                     if (connectionId == null) {
@@ -172,30 +173,37 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                             .applyConnectionDetails(data)
                             .onError(error -> lmsSetupDAO
                                     .setIntegrationActive(lmsSetupId, false)
-                                    .onError(er -> log.error("Failed to set LMS integration inactive", er)))
+                                    .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
                             .onSuccess( d -> lmsSetupDAO
                                     .setIntegrationActive(lmsSetupId, true)
-                                    .onError(er -> log.error("Failed to set LMS integration active", er)))
+                                    .onError(er -> log.error("Failed to mark LMS integration active", er)))
                             .getOrThrow();
                 });
     }
 
-    private Collection<ExamTemplateSelection> getIntegrationTemplates(final Long institutionId) {
-        return examTemplateDAO
-                .getAllForLMSIntegration(institutionId)
-                .map(all -> all
-                        .stream()
-                        .map(one -> new ExamTemplateSelection(
-                        one.getModelId(),
-                                one.name,
-                                one.description))
-                        .collect(Collectors.toList()))
-                .getOrThrow();
-    }
-
     @Override
-    public Result<Void> deleteFullLmsIntegration(final Long lmsSetupId) {
-        return Result.ofRuntimeError("TODO");
+    public Result<Boolean> deleteFullLmsIntegration(final Long lmsSetupId) {
+        return lmsSetupDAO
+                .byPK(lmsSetupId)
+                .map(lmsSetup -> {
+                    if (lmsSetup.getConnectionId() == null) {
+                        log.warn("No LMS Setup connectionId available for: {}", lmsSetup);
+                        return false;
+                    }
+
+                    lmsAPIService.getLmsAPITemplate(lmsSetupId)
+                            .getOrThrow()
+                            .deleteConnectionDetails()
+                            .onError(error -> lmsSetupDAO
+                                    .setIntegrationActive(lmsSetupId, false)
+                                    .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
+                            .onSuccess( d -> lmsSetupDAO
+                                    .setIntegrationActive(lmsSetupId, false)
+                                    .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
+                            .getOrThrow();
+
+                    return true;
+                });
     }
 
     @Override
@@ -296,6 +304,19 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         } catch (final Exception e) {
             log.error("Failed to delete ad hoc account for exam: {}", examId, e);
         }
+    }
+
+    private Collection<ExamTemplateSelection> getIntegrationTemplates(final Long institutionId) {
+        return examTemplateDAO
+                .getAllForLMSIntegration(institutionId)
+                .map(all -> all
+                        .stream()
+                        .map(one -> new ExamTemplateSelection(
+                                one.getModelId(),
+                                one.name,
+                                one.description))
+                        .collect(Collectors.toList()))
+                .getOrThrow();
     }
 
 }

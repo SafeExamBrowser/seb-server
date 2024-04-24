@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import org.springframework.context.event.EventListener;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -45,9 +46,9 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * If screen proctoring is set to disable, this disables the whole service for the
      * given exam also on SPS side.
      *
-     * @param examId use the screen proctoring settings of the exam with the given exam id
+     * @param entityKey use the screen proctoring settings of the exam with the given exam id
      * @return Result refer to the given Exam or to an error when happened */
-    Result<Exam> applyScreenProctoringForExam(Long examId);
+    Result<Exam> applyScreenProctoringForExam(EntityKey entityKey);
 
     /** Get list of all screen proctoring collecting groups for a particular exam.
      *

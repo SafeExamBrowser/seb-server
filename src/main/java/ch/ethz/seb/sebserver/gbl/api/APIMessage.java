@@ -71,6 +71,12 @@ public class APIMessage implements Serializable {
                 "Failed to automatically create pre-defined attributes for the exam"),
         EXAM_IMPORT_ERROR_AUTO_RESTRICTION("1603", HttpStatus.PARTIAL_CONTENT,
                 "Failed to automatically apply SEB restriction for the exam to the involved LMS"),
+
+        EXAM_IMPORT_ERROR_QUIT_PASSWORD("1604", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically apply quit password to Exam Configuration or the involved LMS"),
+
+        EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS("1605", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically apply Screen Proctoring settings for the imported exam"),
         EXAM_IMPORT_ERROR_AUTO_CONFIG("1610", HttpStatus.PARTIAL_CONTENT,
                 "Failed to automatically create and link exam configuration from the exam template to the exam"),
         EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING("1611", HttpStatus.PARTIAL_CONTENT,

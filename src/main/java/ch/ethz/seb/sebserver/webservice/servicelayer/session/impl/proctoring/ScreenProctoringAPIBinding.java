@@ -467,6 +467,7 @@ class ScreenProctoringAPIBinding {
             final SPSData spsData = this.getSPSData(exam.id);
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
             activation(exam, SPS_API.SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, false, apiTemplate);
+            activation(exam, SPS_API.EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
 
             // mark successfully dispose on SPS side
             this.additionalAttributesDAO.saveAdditionalAttribute(
@@ -499,6 +500,7 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
             final SPSData spsData = this.getSPSData(exam.id);
             deletion(SPS_API.SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, apiTemplate);
+            activation(exam, SPS_API.EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
 
             // mark successfully dispose on SPS side
             this.additionalAttributesDAO.saveAdditionalAttribute(

@@ -34,7 +34,7 @@ public interface FullLmsIntegrationService {
 
     Result<IntegrationData> applyFullLmsIntegration(Long lmsSetupId);
 
-    Result<Void> deleteFullLmsIntegration(Long lmsSetupId);
+    Result<Boolean> deleteFullLmsIntegration(Long lmsSetupId);
 
     Result<Exam> importExam(
             String lmsUUID,
