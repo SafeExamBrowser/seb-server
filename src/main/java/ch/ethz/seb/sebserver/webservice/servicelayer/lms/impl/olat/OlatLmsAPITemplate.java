@@ -489,7 +489,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                     .getOrThrow();
 
             final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
-            details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/");
+            details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/{username}?password={password}");
             details.setClientId(plainClientId.toString());
             details.setClientSecret(plainClientSecret.toString());
 
