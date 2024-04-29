@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -20,9 +21,8 @@ public final class OlatLmsData {
         /*
          * OLAT API example:
          * {
-         * "courseName": "course 1",
-         * "dateFrom": 1624420800000,
-         * "dateTo": 1624658400000,
+         * "begin": 1624420800000,
+         * "end": 1624658400000,
          * "description": "",
          * "key": 6356992,
          * “repositoryEntryKey”: 462324,
@@ -33,9 +33,8 @@ public final class OlatLmsData {
         public long repositoryEntryKey;
         public String name;
         public String description;
-        public String courseName;
-        public long dateFrom;
-        public long dateTo;
+        public Long begin;
+        public Long end;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
