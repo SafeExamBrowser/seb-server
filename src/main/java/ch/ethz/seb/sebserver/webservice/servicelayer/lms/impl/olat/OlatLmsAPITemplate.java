@@ -275,7 +275,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
         final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
 
-        String url = "/restapi/assessment_modes/seb?";
+        String url = "/restapi/repo/assessmentmodes?";
         if (fromCutTime != -1) {
             url = String.format("%sdateFrom=%s&", url, fromCutTime);
         }
@@ -295,8 +295,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                             lmsSetup.getLmsType(),
                             a.name,
                             a.description,
-                            Utils.toDateTimeUTC(a.dateFrom),
-                            Utils.toDateTimeUTC(a.dateTo),
+                            Utils.toDateTimeUTC(a.begin - a.leadTime * 1000 * 60),
+                            Utils.toDateTimeUTC(a.end + a.followupTime * 1000 * 60),
                             examUrl(a.repositoryEntryKey),
                             new HashMap<String, String>());
                 })
@@ -316,7 +316,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     private QuizData quizById(final OlatLmsRestTemplate restTemplate, final String id) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-        final String url = String.format("/restapi/assessment_modes/%s", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s", id);
         final AssessmentData a = this.apiGet(restTemplate, url, AssessmentData.class);
         return new QuizData(
                 String.format("%d", a.key),
@@ -325,8 +325,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 lmsSetup.getLmsType(),
                 a.name,
                 a.description,
-                Utils.toDateTimeUTC(a.dateFrom),
-                Utils.toDateTimeUTC(a.dateTo),
+                Utils.toDateTimeUTC(a.begin - a.leadTime * 1000 * 60),
+                Utils.toDateTimeUTC(a.end + a.followupTime * 1000 * 60),
                 examUrl(a.repositoryEntryKey),
                 new HashMap<String, String>());
     }
