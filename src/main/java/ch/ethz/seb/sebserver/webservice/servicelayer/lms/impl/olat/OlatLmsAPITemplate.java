@@ -344,7 +344,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
-        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s/seb", id);
         final RestrictionData r = this.apiGet(restTemplate, url, RestrictionData.class);
         final HashMap<String, String> additionalAttributes = new HashMap<>();
         if (StringUtils.isNotBlank(r.quitLink)) {
@@ -362,7 +362,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final String id,
             final SEBRestriction restriction) {
 
-        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s/seb", id);
         final RestrictionDataPost post = new RestrictionDataPost();
         post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
         post.configKeys = new ArrayList<>(restriction.configKeys);
@@ -377,7 +377,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
-        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s/seb", id);
         final RestrictionData r = this.apiDelete(restTemplate, url, RestrictionData.class);
         // OLAT returns RestrictionData with null values upon deletion.
         // We return it here for consistency, even though SEB server does not need it
