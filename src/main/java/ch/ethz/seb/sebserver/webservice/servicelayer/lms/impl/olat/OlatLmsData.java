@@ -48,13 +48,15 @@ public final class OlatLmsData {
          * "firstName": "OpenOLAT",
          * "key": 360448,
          * "lastName": "Administrator",
-         * "username": "administrator"
+         * "login": "administrator",
+         * "email": "admin@example.org"
          * }
          */
         public long key;
         public String firstName;
         public String lastName;
-        public String username;
+        public String login;
+        public String email;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

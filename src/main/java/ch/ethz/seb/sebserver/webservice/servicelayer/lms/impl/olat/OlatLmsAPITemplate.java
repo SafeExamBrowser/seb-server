@@ -332,14 +332,14 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     private ExamineeAccountDetails getExamineeById(final RestTemplate restTemplate, final String id) {
-        final String url = String.format("/restapi/users/%s/name_username", id);
+        final String url = String.format("/restapi/users/%s", id);
         final UserData u = this.apiGet(restTemplate, url, UserData.class);
         final Map<String, String> attrs = new HashMap<>();
         return new ExamineeAccountDetails(
                 String.valueOf(u.key),
                 u.lastName + ", " + u.firstName,
-                u.username,
-                "OLAT API does not provide email addresses",
+                u.login,
+                u.email,
                 attrs);
     }
 
