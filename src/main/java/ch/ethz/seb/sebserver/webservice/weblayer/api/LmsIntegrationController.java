@@ -84,8 +84,8 @@ public class LmsIntegrationController {
     }
 
     @RequestMapping(
-            path = API.LMS_FULL_INTEGRATION_EXAM_ENDPOINT,
-            method = RequestMethod.DELETE,
+            path = API.LMS_FULL_INTEGRATION_CONNECTION_CONFIG_ENDPOINT,
+            method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void getConnectionConfiguration(

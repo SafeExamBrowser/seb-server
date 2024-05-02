@@ -116,6 +116,10 @@ public class UserServiceImpl implements UserService {
         public SEBServerUser extract(final Principal principal) {
             if (principal instanceof OAuth2Authentication) {
                 final Authentication userAuthentication = ((OAuth2Authentication) principal).getUserAuthentication();
+                if (userAuthentication == null) {
+                    // check if lms integration client
+                    return isLMSIntegrationClient(principal);
+                }
                 if (userAuthentication instanceof UsernamePasswordAuthenticationToken) {
                     final Object userPrincipal = userAuthentication.getPrincipal();
                     if (userPrincipal instanceof SEBServerUser) {
@@ -126,6 +130,26 @@ public class UserServiceImpl implements UserService {
 
             return null;
         }
+    }
+
+    private static SEBServerUser isLMSIntegrationClient(final Principal principal) {
+        final String name = principal.getName();
+        if ("lmsClient".equals(name)) {
+            return new SEBServerUser(
+                    -1L,
+                    new UserInfo("LMS_INTEGRATION_CLIENT", -1L, null, "lmsIntegrationClient", "lmsIntegrationClient", "lmsIntegrationClient", null,
+                            false,
+                            false,
+                            true,
+                            null, null,
+                            Arrays.stream(UserRole.values())
+                                    .map(Enum::name)
+                                    .collect(Collectors.toSet()),
+                            Collections.emptyList(),
+                            Collections.emptyList()),
+                    null);
+        }
+        return null;
     }
 
     // 2. Separated thread strategy

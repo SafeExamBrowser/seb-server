@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.layout.GridData;
@@ -204,7 +205,7 @@ public class ExamForm implements TemplateComposer {
         final boolean editable = modifyGrant && (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.RUNNING);
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
-        final boolean sebRestrictionAvailable = readonly && testSEBRestrictionAPI(exam);
+        final boolean sebRestrictionAvailable = readonly && hasSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
                 .getBuilder(CheckSEBRestriction.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
@@ -742,25 +743,22 @@ public class ExamForm implements TemplateComposer {
         throw new RuntimeException("Error while handle exam import setup failure:", e);
     }
 
-    private boolean testSEBRestrictionAPI(final Exam exam) {
+    private boolean hasSEBRestrictionAPI(final Exam exam) {
         if (exam.lmsSetupId == null || !exam.isLmsAvailable() || exam.status == ExamStatus.ARCHIVED) {
             return false;
         }
 
-        // Call the testing endpoint with the specified data to test
-        final Result<LmsSetupTestResult> result = this.restService.getBuilder(TestLmsSetup.class)
+        // get LMSSetup
+        final Result<LmsSetup> call = this.restService.getBuilder(GetLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
                 .call();
 
-        if (result.hasError()) {
+        if (call.hasError()) {
             return false;
         }
 
-        final LmsSetupTestResult lmsSetupTestResult = result.get();
-        if (!lmsSetupTestResult.lmsType.features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
-            return false;
-        }
-        return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST);
+        final LmsSetup lmsSetup = call.get();
+        return (lmsSetup.getLmsType().features.contains(LmsSetup.Features.SEB_RESTRICTION));
     }
 
     private void showConsistencyChecks(

@@ -270,7 +270,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                         log.info("Redirect to login after unauthorized request");
                         response.getOutputStream().println("{ \"error\": \"" + exception.getMessage() + "\" }");
                     },
-                    EXAM_API_RESOURCE_ID,
+                    LMS_API_RESOURCE_ID,
                     apiEndpoint,
                     true,
                     4,

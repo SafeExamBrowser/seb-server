@@ -10,15 +10,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -26,12 +25,14 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.DeleteExamAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
@@ -39,7 +40,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,33 +61,52 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private static final Logger log = LoggerFactory.getLogger(FullLmsIntegrationServiceImpl.class);
 
     private final LmsSetupDAO lmsSetupDAO;
+    private final UserActivityLogDAO userActivityLogDAO;
+    private final SEBClientConfigDAO sebClientConfigDAO;
+    private final ClientConfigService clientConfigService;
+    private final DeleteExamAction deleteExamAction;
     private final LmsAPIService lmsAPIService;
     private final ExamAdminService examAdminService;
+    private final ExamSessionService examSessionService;
     private final ExamDAO examDAO;
     private final ExamTemplateDAO examTemplateDAO;
     private final WebserviceInfo webserviceInfo;
-
+    private final String lmsAPIEndpoint;
+    private final UserService userService;
     private final ClientCredentialsResourceDetails resource;
-
     private final OAuth2RestTemplate restTemplate;
 
     public FullLmsIntegrationServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
+            final UserActivityLogDAO userActivityLogDAO,
+            final SEBClientConfigDAO sebClientConfigDAO,
+            final ClientConfigService clientConfigService,
+            final DeleteExamAction deleteExamAction,
             final LmsAPIService lmsAPIService,
             final ExamAdminService examAdminService,
+            final ExamSessionService examSessionService,
             final ExamDAO examDAO,
             final ExamTemplateDAO examTemplateDAO,
             final WebserviceInfo webserviceInfo,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            final UserService userService,
+            @Value("${sebserver.webservice.lms.api.endpoint}") final String lmsAPIEndpoint,
             @Value("${sebserver.webservice.lms.api.clientId}") final String clientId,
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret) {
 
         this.lmsSetupDAO = lmsSetupDAO;
+        this.userActivityLogDAO = userActivityLogDAO;
+        this.sebClientConfigDAO = sebClientConfigDAO;
+        this.clientConfigService = clientConfigService;
+        this.deleteExamAction = deleteExamAction;
         this.lmsAPIService = lmsAPIService;
         this.examAdminService = examAdminService;
+        this.examSessionService = examSessionService;
         this.examDAO = examDAO;
         this.examTemplateDAO = examTemplateDAO;
         this.webserviceInfo = webserviceInfo;
+        this.lmsAPIEndpoint = lmsAPIEndpoint;
+        this.userService = userService;
 
         resource = new ClientCredentialsResourceDetails();
         resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
@@ -163,7 +186,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     final IntegrationData data = new IntegrationData(
                             connectionId,
                             lmsSetup.name,
-                            webserviceInfo.getExternalServerURL(),
+                            getAPIRootURL(),
                             accessToken,
                             this.getIntegrationTemplates(lmsSetup.institutionId)
                     );
@@ -180,6 +203,8 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                             .getOrThrow();
                 });
     }
+
+
 
     @Override
     public Result<Boolean> deleteFullLmsIntegration(final Long lmsSetupId) {
@@ -219,8 +244,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .getLmsSetupIdByConnectionId(lmsUUID)
                 .flatMap(lmsAPIService::getLmsAPITemplate)
                 .map(findQuizData(courseId, quizId))
-                .map(createExam(examTemplateId, quitPassword))
-                .map(this::createAdHocSupporterAccount);
+                .map(createAccountAndExam(examTemplateId, quitPassword));
     }
 
     @Override
@@ -229,8 +253,27 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String courseId,
             final String quizId) {
 
-        return findExam(courseId, quizId)
-                .flatMap(exam -> examDAO.deleteOne(exam.id));
+        return lmsSetupDAO
+                .getLmsSetupIdByConnectionId(lmsUUID)
+                .flatMap(lmsAPIService::getLmsAPITemplate)
+                .map(findQuizData(courseId, quizId))
+                .flatMap(this::findExam)
+                .map(this::checkDeletion)
+                .map(this::logExamDeleted)
+                .flatMap(deleteExamAction::deleteExamFromLMSIntegration);
+    }
+
+    private Exam checkDeletion(final Exam exam) {
+        // TODO check if Exam can be deleted according to the Spec
+
+        // check if there are no active SEB client connections
+        if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
+            throw new APIMessage.APIMessageException(
+                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                            .of("Exam currently has active SEB Client connections."));
+        }
+
+        return exam;
     }
 
     @Override
@@ -244,7 +287,39 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String courseId,
             final String quizId,
             final OutputStream out) {
-        return Result.ofRuntimeError("TODO");
+
+        try {
+
+            final Result<Exam> examResult = lmsSetupDAO
+                    .getLmsSetupIdByConnectionId(lmsUUID)
+                    .flatMap(lmsAPIService::getLmsAPITemplate)
+                    .map(findQuizData(courseId, quizId))
+                    .flatMap(this::findExam);
+
+            if (examResult.hasError()) {
+                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
+            }
+
+            final Exam exam = examResult.get();
+
+            String connectionConfigId = exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION);
+            if (StringUtils.isBlank(connectionConfigId)) {
+                connectionConfigId = this.sebClientConfigDAO
+                        .all(exam.institutionId, true)
+                        .map(all -> all.iterator().next())
+                        .map(SEBClientConfig::getModelId)
+                        .getOr(null);
+            }
+            if (StringUtils.isBlank(connectionConfigId)) {
+                return Result.ofRuntimeError("No active Connection Configuration found");
+            }
+
+            this.clientConfigService.exportSEBClientConfiguration(out, connectionConfigId, exam.id);
+            return Result.EMPTY;
+
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
     }
 
     private Function<LmsAPITemplate, QuizData> findQuizData(
@@ -260,42 +335,64 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
             return lmsAPITemplate
                     .getQuiz(internalQuizId)
-                    .getOrThrow();
+                    .onError(error -> log.error("Failed to find quiz-data for id: {}", quizId))
+                    // this is only for debugging until Moodle Plugin is ready
+                    .getOr(new QuizData(
+                            MoodleUtils.getInternalQuizId(quizId, courseId, "MoodlePluginMockQuiz", null),
+                            lmsAPITemplate.lmsSetup().institutionId,
+                            lmsAPITemplate.lmsSetup().id,
+                            lmsAPITemplate.lmsSetup().lmsType,
+                            "MoodlePluginMockQuiz",
+                            "",
+                            DateTime.now(),
+                            DateTime.now().plusDays(1),
+                            "https://mockmoodle/swvgfrwef.sdvw",
+                            null
+                    ));
         };
     }
 
-    private Result<Exam> findExam(
-            final String courseId,
-            final String quizId) {
-
-        final String externalIdLike = quizId + Constants.COLON + courseId + Constants.PERCENTAGE;
-        return examDAO.byExternalIdLike(externalIdLike);
+    private Result<Exam> findExam(final QuizData quizData) {
+        return examDAO.byExternalIdLike(quizData.id);
     }
 
-    private Function<QuizData, Exam> createExam(
+    private Function<QuizData, Exam> createAccountAndExam(
             final String examTemplateId,
             final String quitPassword) {
 
         return quizData -> {
 
+            final SEBServerUser currentUser = userService.getCurrentUser();
+
+            // check if the exam has already been imported, If so return the existing exam
+            final Result<Exam> existingExam = findExam(quizData);
+            if (!existingExam.hasError()) {
+                // TODO do we need to check if ad-hoc account exists and if not, create one?
+                return existingExam.get();
+            }
+
+            // import exam
             final POSTMapper post = new POSTMapper(null, null);
             post.putIfAbsent(Domain.EXAM.ATTR_EXAM_TEMPLATE_ID, examTemplateId);
             if (StringUtils.isNotBlank(quitPassword)) {
                 post.putIfAbsent(Domain.EXAM.ATTR_QUIT_PASSWORD, quitPassword);
             }
 
-            final Exam exam = new Exam(null, quizData, post);
+            final String accountUUID = createAdHocSupporterAccount(quizData);
+            post.putIfAbsent(Domain.EXAM.ATTR_OWNER, accountUUID);
 
+            final Exam exam = new Exam(null, quizData, post);
             return examDAO
                     .createNew(exam)
                     .flatMap(examAdminService::applyExamImportInitialization)
+                    .map(this::logExamCreated)
                     .getOrThrow();
         };
     }
 
-    private Exam createAdHocSupporterAccount(final Exam exam) {
+    private String createAdHocSupporterAccount(final QuizData data) {
         // TODO create an ad hoc supporter account for this exam and apply it to the exam
-        return exam;
+        return "mockAccountUUID";
     }
 
     private void deleteAdHocAccount(final Long examId) {
@@ -317,6 +414,24 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                                 one.description))
                         .collect(Collectors.toList()))
                 .getOrThrow();
+    }
+
+    private String getAPIRootURL() {
+        return webserviceInfo.getExternalServerURL() + lmsAPIEndpoint;
+    }
+
+    private Exam logExamCreated(final Exam exam) {
+        this.userActivityLogDAO
+                .logCreate(exam)
+                .onError(error -> log.warn("Failed to log exam creation from LMS: {}", error.getMessage()));
+        return exam;
+    }
+
+    private Exam logExamDeleted(final Exam exam) {
+        this.userActivityLogDAO
+                .logDelete(exam)
+                .onError(error -> log.warn("Failed to log exam deletion from LMS: {}", error.getMessage()));
+        return exam;
     }
 
 }

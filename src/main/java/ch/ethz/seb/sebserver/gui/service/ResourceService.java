@@ -90,7 +90,7 @@ import ch.ethz.seb.sebserver.gui.service.session.MonitoringEntry;
 @GuiProfile
 /** Defines functionality to get resources or functions of resources to feed e.g. selection or
  * combo-box content.
- * */
+ */
 public class ResourceService {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceService.class);
@@ -653,7 +653,7 @@ public class ResourceService {
     }
 
     public String localizedClientConnectionStatusName(final ConnectionStatus status) {
-        String name;
+        final String name;
         if (status != null) {
             name = status.name();
         } else {

@@ -150,6 +150,4 @@ public interface ExamAdminService {
 
     Result<Exam>  applyQuitPassword(Exam exam);
 
-    Result<Exam> findExamByLmsIdentity(String courseId, String quizId, String identity);
-
 }

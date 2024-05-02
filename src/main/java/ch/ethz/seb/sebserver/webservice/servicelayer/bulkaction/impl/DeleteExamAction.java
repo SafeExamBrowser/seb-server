@@ -99,6 +99,14 @@ public class DeleteExamAction implements BatchActionExec {
                 .onError(TransactionHandler::rollback);
     }
 
+    @Transactional
+    public Result<EntityKey> deleteExamFromLMSIntegration(final Exam exam) {
+        return deleteExamDependencies(exam)
+                .flatMap(this::deleteExamWithRefs)
+                .map(Exam::getEntityKey)
+                .onError(TransactionHandler::rollback);
+    }
+
     private Result<Exam> deleteExamDependencies(final Exam entity) {
         return this.clientConnectionDAO.deleteAllForExam(entity.id)
                 .map(this::logDelete)

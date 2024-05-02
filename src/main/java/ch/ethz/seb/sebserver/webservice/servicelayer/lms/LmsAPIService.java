@@ -72,7 +72,7 @@ public interface LmsAPIService {
      * @return LmsAPITemplate for specified LmsSetup configuration */
     Result<LmsAPITemplate> getLmsAPITemplate(String lmsSetupId);
 
-    /** use this to the the specified LmsAPITemplate.
+    /** use this to the specified LmsAPITemplate.
      *
      * @param template the LmsAPITemplate
      * @return LmsSetupTestResult containing list of errors if happened */

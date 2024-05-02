@@ -33,7 +33,8 @@ public final class LmsSetupTestResult {
         TOKEN_REQUEST,
         QUIZ_ACCESS_API_REQUEST,
         QUIZ_RESTRICTION_API_REQUEST,
-        TEMPLATE_CREATION
+        TEMPLATE_CREATION,
+        APPLY_FULL_INTEGRATION,
     }
 
     @JsonProperty(Domain.LMS_SETUP.ATTR_LMS_TYPE)
@@ -136,6 +137,10 @@ public final class LmsSetupTestResult {
 
     public static LmsSetupTestResult ofQuizRestrictionAPIError(final LmsSetup.LmsType lmsType, final String message) {
         return new LmsSetupTestResult(lmsType, new Error(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
+    }
+
+    public static LmsSetupTestResult ofFullIntegrationAPIError(final LmsSetup.LmsType lmsType, final String message) {
+        return new LmsSetupTestResult(lmsType, new Error(ErrorType.APPLY_FULL_INTEGRATION, message));
     }
 
     public final static class Error {

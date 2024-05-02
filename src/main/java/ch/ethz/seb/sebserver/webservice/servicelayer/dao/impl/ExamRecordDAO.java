@@ -126,10 +126,14 @@ public class ExamRecordDAO {
     @Transactional(readOnly = true)
     public Result<Collection<Long>> allInstitutionIdsByQuizId(final String quizId) {
         return Result.tryCatch(() -> {
+            if (StringUtils.isBlank(quizId)) {
+                return Collections.emptyList();
+            }
+
             return this.examRecordMapper.selectByExample()
                     .where(
                             ExamRecordDynamicSqlSupport.externalId,
-                            isEqualToWhenPresent(quizId))
+                            isEqualTo(quizId))
                     .and(
                             ExamRecordDynamicSqlSupport.active,
                             isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))

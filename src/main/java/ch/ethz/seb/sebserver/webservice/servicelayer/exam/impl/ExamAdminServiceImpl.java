@@ -385,37 +385,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
     }
 
-
-
-    @Override
-    public Result<Exam> findExamByLmsIdentity(
-            final String courseId,
-            final String quizId,
-            final String identity) {
-
-        for (final LmsType lmsType : LmsType.values()) {
-            switch (lmsType) {
-                case MOODLE_PLUGIN -> {
-                    if (StringUtils.isBlank(quizId) || StringUtils.isBlank(courseId)) {
-                        return Result.ofError(new APIMessageException(
-                                APIMessage.ErrorMessage.FIELD_VALIDATION.of("Missing courseId or quizId")));
-                    }
-
-                    return examDAO.byExternalIdLike(MoodleUtils.getInternalQuizId(
-                            quizId,
-                            courseId,
-                            Constants.PERCENTAGE_STRING,
-                            Constants.PERCENTAGE_STRING));
-                }
-                // TODO add other LMS types if they support full integration
-            }
-        }
-
-        return Result.ofError(
-                new ResourceNotFoundException(EntityType.EXAM,
-                        "Not found by LMS identity [" + courseId + "|"+ quizId+ "|"+ identity + "]"));
-    }
-
     private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {
         return Result.tryCatch(() -> {
 

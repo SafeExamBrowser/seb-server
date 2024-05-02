@@ -18,6 +18,8 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -413,6 +415,31 @@ public final class Exam implements GrantEntity {
         }
 
         return this.additionalAttributes.get(attrName);
+    }
+
+    @Override
+    public Exam printSecureCopy() {
+        return new Exam(
+        id,
+        institutionId,
+        lmsSetupId,
+        externalId,
+        lmsAvailable,
+        name,
+        startTime,
+        endTime,
+        type,
+        owner,
+        supporter,
+        status,
+        "--",
+        sebRestriction,
+        "--",
+        active,
+        lastUpdate,
+        examTemplateId,
+        lastModified,
+        Collections.emptyMap());
     }
 
     @Override

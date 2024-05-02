@@ -16,9 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -38,11 +40,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.QuizLookupService;
 
 @Lazy
 @Service
@@ -56,6 +53,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final ClientCredentialService clientCredentialService;
     private final QuizLookupService quizLookupService;
     private final EnumMap<LmsType, LmsAPITemplateFactory> templateFactories;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
@@ -64,17 +62,19 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
             final QuizLookupService quizLookupService,
+            final ApplicationEventPublisher applicationEventPublisher,
             final Collection<LmsAPITemplateFactory> lmsAPITemplateFactories) {
 
         this.webserviceInfo = webserviceInfo;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
         this.quizLookupService = quizLookupService;
+        this.applicationEventPublisher = applicationEventPublisher;
 
         final Map<LmsType, LmsAPITemplateFactory> factories = lmsAPITemplateFactories
                 .stream()
                 .collect(Collectors.toMap(
-                        t -> t.lmsType(),
+                        LmsAPITemplateFactory::lmsType,
                         Function.identity()));
         this.templateFactories = new EnumMap<>(factories);
     }
@@ -158,14 +158,31 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
                 return lmsSetupTestResult;
             }
-
         }
 
         if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            final Long lmsSetupId = template.lmsSetup().id;
             final LmsSetupTestResult lmsSetupTestResult = template.testFullIntegrationAPI();
             if (!lmsSetupTestResult.isOk()) {
                 this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
+                this.lmsSetupDAO
+                        .setIntegrationActive(lmsSetupId, false)
+                        .onError(er -> log.error("Failed to mark LMS integration inactive", er));
                 return lmsSetupTestResult;
+            } else {
+                // try to apply full integration with a change LMSSetup notification
+                try {
+                    applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(template.lmsSetup()));
+                    return lmsSetupTestResult;
+                } catch (final Exception e) {
+                    log.warn(
+                            "Failed to apply full LMS integration on test attempt: lms: {} error: {}",
+                            template.lmsSetup(),
+                            e.getMessage());
+                    return LmsSetupTestResult.ofFullIntegrationAPIError(
+                            template.lmsSetup().lmsType,
+                            "Failed to apply full LMS integration");
+                }
             }
         }
 
