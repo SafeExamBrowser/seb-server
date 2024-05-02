@@ -717,6 +717,24 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> getActiveExamResources() {
+        final UserInfo userInfo = this.currentUser.get();
+        return this.restService.getBuilder(GetExams.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
+                .withQueryParam(Exam.FILTER_CACHED_QUIZZES, Constants.TRUE_STRING)
+                .call()
+                .getOr(Collections.emptyList())
+                .stream()
+                .filter(exam -> exam != null &&
+                        exam.getStatus() != ExamStatus.FINISHED &&
+                        exam.getStatus() != ExamStatus.ARCHIVED)
+                .map(exam -> new Tuple<>(
+                        exam.getModelId(),
+                        StringUtils.isBlank(exam.name) ? exam.externalId : exam.name))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
     public List<Tuple<String>> getExamResources() {
         final UserInfo userInfo = this.currentUser.get();
         return this.restService.getBuilder(GetExamNames.class)
