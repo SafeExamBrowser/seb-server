@@ -90,9 +90,10 @@ public class RealNumberConverter implements AttributeValueConverter {
             realVal = 0;
         }
 
-        // NOTE: this is a special case for screenProctoringImageDownscale selector to get the selected real value
-        //       from the selection-index instead using the index. See SEBSERV-527
-        if ("screenProctoringImageDownscale".equals(attribute.name)) {
+        // NOTE: this is a special case for screenProctoringImageDownscale legacy data. See SEBSERV-527
+        // Legacy data do not affect production data but only testing data so far.
+        // TODO this can be removed after release of 2.0
+        if ("screenProctoringImageDownscale".equals(attribute.name) && realVal > 2.0) {
             realVal = realVal / 10.0 + 1.0;
         }
 

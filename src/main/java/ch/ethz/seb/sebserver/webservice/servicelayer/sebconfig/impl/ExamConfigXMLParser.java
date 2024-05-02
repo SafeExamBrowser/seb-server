@@ -76,6 +76,11 @@ public class ExamConfigXMLParser extends DefaultHandler {
             "whitelistURLFilter",
             "URLFilterIgnoreList"));
 
+    private static final Set<String> DECIMAL_TYPES = Utils.immutableSetOf(Arrays.asList(
+            "defaultPageZoomLevel",
+            "defaultTextZoomLevel",
+            "screenProctoringImageDownscale"));
+
     private static final Set<String> VALUE_ELEMENTS = Utils.immutableSetOf(Arrays.asList(
             Constants.XML_PLIST_BOOLEAN_FALSE,
             Constants.XML_PLIST_BOOLEAN_TRUE,
@@ -456,8 +461,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
                 }
             }
             case INTEGER:
-            case RADIO_SELECTION:
-            case SINGLE_SELECTION: {
+            case RADIO_SELECTION: {
                 try {
                     Integer.parseInt(value);
                     return value;
@@ -468,6 +472,33 @@ public class ExamConfigXMLParser extends DefaultHandler {
                             attribute.type,
                             value);
                     return attribute.defaultValue;
+                }
+            }
+            case SINGLE_SELECTION: {
+                if (DECIMAL_TYPES.contains(attribute.name)) {
+                    try {
+                        Double.parseDouble(value);
+                        return value;
+                    } catch (final Exception e) {
+                        log.warn(
+                                "Invalid attribute value detected. Name: {} type: {} value: {} : import with default value for this attribute",
+                                attribute.name,
+                                attribute.type,
+                                value);
+                        return attribute.defaultValue;
+                    }
+                } else {
+                    try {
+                        Integer.parseInt(value);
+                        return value;
+                    } catch (final Exception e) {
+                        log.warn(
+                                "Invalid attribute value detected. Name: {} type: {} value: {} : import with default value for this attribute",
+                                attribute.name,
+                                attribute.type,
+                                value);
+                        return attribute.defaultValue;
+                    }
                 }
             }
             case DECIMAL: {

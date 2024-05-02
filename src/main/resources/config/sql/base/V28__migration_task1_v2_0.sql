@@ -28,3 +28,9 @@ ADD COLUMN IF NOT EXISTS `client_configuration_id` BIGINT NULL;
 UPDATE orientation SET y_position=21 WHERE config_attribute_id=1578 AND template_id=0;
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (1201, 0, 9, 'clipboardPolicy', 7, 18, 5, 2, 'NONE');
+
+-- ----------------------------------------------------------------
+-- Fix SEBSERV-527
+-- ----------------------------------------------------------------
+
+UPDATE configuration_attribute SET resources='1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0', default_value='1.0' WHERE name='screenProctoringImageDownscale';
