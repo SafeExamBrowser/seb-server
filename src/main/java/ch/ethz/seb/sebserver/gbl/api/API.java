@@ -175,7 +175,7 @@ public final class API {
     public static final String LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID = "exam_template_id";
     public static final String LMS_FULL_INTEGRATION_QUIT_PASSWORD = "quit_password";
     public static final String LMS_FULL_INTEGRATION_QUIT_LINK = "quit_link";
-
+    public static final String LMS_FULL_INTEGRATION_TIME_ZONE = "account_time_zone";
 
     public static final String USER_ACCOUNT_ENDPOINT = "/useraccount";
 

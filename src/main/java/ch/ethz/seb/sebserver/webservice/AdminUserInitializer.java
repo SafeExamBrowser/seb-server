@@ -145,6 +145,8 @@ class AdminUserInitializer {
                         null,
                         null,
                         null,
+                        true,
+                        true,
                         new HashSet<>(this.webserviceInfo.isLightSetup() ?
                                 UserRole.getLightSetupRoles() :
                                 List.of(UserRole.SEB_SERVER_ADMIN.name())

@@ -113,16 +113,6 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      *         happened */
     Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
-    @Transactional
-    default Result<EntityKey> deleteOne(final Long examId) {
-        if (examId == null) {
-            return Result.ofRuntimeError("exam Id has null reference");
-        }
-        return delete( new HashSet<>(Arrays.asList(new EntityKey(examId, EntityType.EXAM))))
-                .map(set -> set.iterator().next())
-                .onError(TransactionHandler::rollback);
-    }
-
     /** Get a (unordered) collection of all Entities that matches the given filter criteria.
      * The possible filter criteria for a specific Entity type is defined by the entity type.
      * <p>

@@ -42,7 +42,8 @@ public interface FullLmsIntegrationService {
             String quizId,
             String examTemplateId,
             String quitPassword,
-            String quitLink);
+            String quitLink,
+            String timezone);
 
     Result<EntityKey> deleteExam(
             String lmsUUID,
@@ -66,6 +67,9 @@ public interface FullLmsIntegrationService {
         public final String name;
         @JsonProperty("url")
         public final String url;
+        @JsonProperty("autologin_url")
+        public final String autoLoginURL;
+
         @JsonProperty("access_token")
         public final String access_token;
         @JsonProperty("exam_templates")
@@ -76,12 +80,14 @@ public interface FullLmsIntegrationService {
                 @JsonProperty("id") final String id,
                 @JsonProperty("name") final String name,
                 @JsonProperty("url") final String url,
+                @JsonProperty("autologin_url") final String autoLoginURL,
                 @JsonProperty("access_token") final String access_token,
                 @JsonProperty("exam_templates") final Collection<ExamTemplateSelection> exam_templates) {
 
             this.id = id;
             this.name = name;
             this.url = url;
+            this.autoLoginURL = autoLoginURL;
             this.access_token = access_token;
             this.exam_templates = Utils.immutableCollectionOf(exam_templates);
         }

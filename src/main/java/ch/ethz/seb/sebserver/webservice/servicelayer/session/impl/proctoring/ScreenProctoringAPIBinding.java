@@ -670,6 +670,8 @@ class ScreenProctoringAPIBinding {
                 userInfo.email,
                 userInfo.language,
                 userInfo.timeZone,
+                true,
+                true,
                 spsUserRoles);
     }
 

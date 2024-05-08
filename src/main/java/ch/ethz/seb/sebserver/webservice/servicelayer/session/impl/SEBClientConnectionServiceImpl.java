@@ -637,8 +637,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public void streamLightExamConfig(final String modelId, final HttpServletResponse response) throws IOException{
 
         final ServletOutputStream outputStream = response.getOutputStream();
-        PipedOutputStream pout;
-        PipedInputStream pin;
+        PipedOutputStream pout = null;
+        PipedInputStream pin= null;
 
         try {
             pout = new PipedOutputStream();

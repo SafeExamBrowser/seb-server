@@ -12,12 +12,15 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -26,8 +29,12 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
@@ -44,6 +51,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigServi
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,6 +70,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     private final LmsSetupDAO lmsSetupDAO;
     private final UserActivityLogDAO userActivityLogDAO;
+    private final UserDAO userDAO;
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final ClientConfigService clientConfigService;
     private final DeleteExamAction deleteExamAction;
@@ -79,6 +88,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     public FullLmsIntegrationServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
             final UserActivityLogDAO userActivityLogDAO,
+            final UserDAO userDAO,
             final SEBClientConfigDAO sebClientConfigDAO,
             final ClientConfigService clientConfigService,
             final DeleteExamAction deleteExamAction,
@@ -96,6 +106,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
         this.lmsSetupDAO = lmsSetupDAO;
         this.userActivityLogDAO = userActivityLogDAO;
+        this.userDAO = userDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientConfigService = clientConfigService;
         this.deleteExamAction = deleteExamAction;
@@ -124,6 +135,11 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.restTemplate
                 .getMessageConverters()
                 .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public void notifyExamDeletion(final ExamDeletionEvent event) {
+        event.ids.forEach(this::deleteAdHocAccount);
     }
 
     @Override
@@ -187,6 +203,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                             connectionId,
                             lmsSetup.name,
                             getAPIRootURL(),
+                            getAutoLoginURL(),
                             accessToken,
                             this.getIntegrationTemplates(lmsSetup.institutionId)
                     );
@@ -238,13 +255,14 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quizId,
             final String examTemplateId,
             final String quitPassword,
-            final String quitLink) {
+            final String quitLink,
+            final String timezone) {
 
         return lmsSetupDAO
                 .getLmsSetupIdByConnectionId(lmsUUID)
                 .flatMap(lmsAPIService::getLmsAPITemplate)
                 .map(findQuizData(courseId, quizId))
-                .map(createAccountAndExam(examTemplateId, quitPassword));
+                .map(createAccountAndExam(examTemplateId, quitPassword, timezone));
     }
 
     @Override
@@ -260,6 +278,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .flatMap(this::findExam)
                 .map(this::checkDeletion)
                 .map(this::logExamDeleted)
+                .map(this::deleteAdHocAccount)
                 .flatMap(deleteExamAction::deleteExamFromLMSIntegration);
     }
 
@@ -276,10 +295,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         return exam;
     }
 
-    @Override
-    public void notifyExamDeletion(final ExamDeletionEvent event) {
-        event.ids.forEach(this::deleteAdHocAccount);
-    }
+
 
     @Override
     public Result<Void> streamConnectionConfiguration(
@@ -306,12 +322,15 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             if (StringUtils.isBlank(connectionConfigId)) {
                 connectionConfigId = this.sebClientConfigDAO
                         .all(exam.institutionId, true)
-                        .map(all -> all.iterator().next())
+                        .map(all -> all.stream().filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
+                                .findFirst()
+                                .orElseThrow(() -> new APIMessage.APIMessageException(
+                                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"))))
                         .map(SEBClientConfig::getModelId)
                         .getOr(null);
             }
             if (StringUtils.isBlank(connectionConfigId)) {
-                return Result.ofRuntimeError("No active Connection Configuration found");
+                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
             }
 
             this.clientConfigService.exportSEBClientConfiguration(out, connectionConfigId, exam.id);
@@ -358,7 +377,8 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     private Function<QuizData, Exam> createAccountAndExam(
             final String examTemplateId,
-            final String quitPassword) {
+            final String quitPassword,
+            final String timezone) {
 
         return quizData -> {
 
@@ -378,8 +398,13 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 post.putIfAbsent(Domain.EXAM.ATTR_QUIT_PASSWORD, quitPassword);
             }
 
-            final String accountUUID = createAdHocSupporterAccount(quizData);
-            post.putIfAbsent(Domain.EXAM.ATTR_OWNER, accountUUID);
+            final String accountUUID = createAdHocSupporterAccount(quizData, timezone);
+            if (accountUUID != null) {
+                post.putIfAbsent(Domain.EXAM.ATTR_OWNER, accountUUID);
+                // TODO do we need to apply the ad-hoc teacher account also as supporter?
+            } else {
+                post.putIfAbsent(Domain.EXAM.ATTR_OWNER, userService.getCurrentUser().uuid());
+            }
 
             final Exam exam = new Exam(null, quizData, post);
             return examDAO
@@ -390,16 +415,81 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         };
     }
 
-    private String createAdHocSupporterAccount(final QuizData data) {
-        // TODO create an ad hoc supporter account for this exam and apply it to the exam
-        return "mockAccountUUID";
+    private String createAdHocSupporterAccount(final QuizData data, final String timezone) {
+        try {
+
+            final String uuid = UUID.randomUUID().toString();
+            final String name = "teacher-" + uuid;
+            DateTimeZone dtz = DateTimeZone.UTC;
+            if (StringUtils.isNotBlank(timezone)) {
+                try {
+                    dtz = DateTimeZone.forID(timezone);
+                } catch (final Exception e) {
+                    log.warn("Failed to set requested time zone for ad-hoc teacher account: {}", timezone);
+                }
+            }
+
+            final UserMod adHocTeacherUser = new UserMod(
+                    uuid,
+                    data.institutionId,
+                    name,
+                    data.id,
+                    name,
+                    uuid,
+                    uuid,
+                    null,
+                    Locale.ENGLISH,
+                    dtz,
+                    true,
+                    false,
+                    Utils.immutableSetOf(UserRole.TEACHER.name()));
+
+            userDAO.createNew(adHocTeacherUser)
+                    .flatMap(account -> userDAO.setActive(account, true))
+                    .getOrThrow();
+
+            return uuid;
+        } catch (final Exception e) {
+            log.error("Failed to create ad-hoc teacher account for importing exam: {}", data, e);
+            return null;
+        }
+    }
+
+    private Exam deleteAdHocAccount(final Exam exam) {
+        deleteAdHocAccount(exam.id);
+        return exam;
     }
 
     private void deleteAdHocAccount(final Long examId) {
         try {
-            // TODO check if exam has an ad-hoc account and if true, delete it
+
+            final Result<Exam> examResult = examDAO.byPK(examId);
+            if (examResult.hasError()) {
+                log.warn("Failed to get exam for id: {}", examId);
+                return;
+            }
+
+            final String externalId = examResult.get().externalId;
+            final FilterMap filter = new FilterMap();
+            filter.putIfAbsent(Domain.USER.ATTR_SURNAME, externalId);
+            final Collection<UserInfo> accounts = userDAO.allMatching(filter).getOrThrow();
+
+            if (accounts.isEmpty()) {
+                return;
+            }
+
+            if (accounts.size() > 1) {
+                log.error("Too many accounts found!?... ad-hoc teacher account mapping: {}", externalId);
+                return;
+            }
+
+            userDAO.delete(Utils.immutableSetOf(new EntityKey(
+                    accounts.iterator().next().uuid,
+                    EntityType.USER)))
+                    .getOrThrow();
+
         } catch (final Exception e) {
-            log.error("Failed to delete ad hoc account for exam: {}", examId, e);
+            log.error("Failed to delete ad-hoc account for exam: {}", examId, e);
         }
     }
 
@@ -418,6 +508,10 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     private String getAPIRootURL() {
         return webserviceInfo.getExternalServerURL() + lmsAPIEndpoint;
+    }
+
+    private String getAutoLoginURL() {
+        return webserviceInfo.getExternalServerURL() + webserviceInfo.getAutoLoginEndpoint();
     }
 
     private Exam logExamCreated(final Exam exam) {

@@ -21,6 +21,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -95,6 +96,12 @@ public final class UserMod implements UserAccount {
     @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD)
     private final CharSequence confirmNewPassword;
 
+    @JsonProperty(USER.ATTR_LOCAL_ACCOUNT)
+    private final Boolean isLocalAccount;
+
+    @JsonProperty(USER.ATTR_DIRECT_LOGIN)
+    private final Boolean hasDirectLogin;
+
     @JsonCreator
     public UserMod(
             @JsonProperty(USER.ATTR_UUID) final String uuid,
@@ -107,6 +114,8 @@ public final class UserMod implements UserAccount {
             @JsonProperty(USER.ATTR_EMAIL) final String email,
             @JsonProperty(USER.ATTR_LANGUAGE) final Locale language,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
+            @JsonProperty(USER.ATTR_LOCAL_ACCOUNT) final Boolean isLocalAccount,
+            @JsonProperty(USER.ATTR_DIRECT_LOGIN) final Boolean hasDirectLogin,
             @JsonProperty(USER_ROLE.REFERENCE_NAME) final Set<String> roles) {
 
         this.uuid = uuid;
@@ -119,6 +128,8 @@ public final class UserMod implements UserAccount {
         this.email = email;
         this.language = (language != null) ? language : Locale.ENGLISH;
         this.timeZone = (timeZone != null) ? timeZone : DateTimeZone.UTC;
+        this.isLocalAccount = BooleanUtils.isNotFalse(isLocalAccount);
+        this.hasDirectLogin = BooleanUtils.isNotFalse(hasDirectLogin);
         this.roles = (roles != null)
                 ? Collections.unmodifiableSet(roles)
                 : Collections.emptySet();
@@ -136,6 +147,8 @@ public final class UserMod implements UserAccount {
         this.language = postAttrMapper.getLocale(USER.ATTR_LANGUAGE);
         this.timeZone = postAttrMapper.getDateTimeZone(USER.ATTR_TIMEZONE);
         this.roles = postAttrMapper.getStringSet(USER_ROLE.REFERENCE_NAME);
+        this.isLocalAccount = BooleanUtils.isNotFalse(postAttrMapper.getBoolean(USER.ATTR_LOCAL_ACCOUNT));
+        this.hasDirectLogin = BooleanUtils.isNotFalse(postAttrMapper.getBoolean(USER.ATTR_DIRECT_LOGIN));
     }
 
     @Override
@@ -237,6 +250,15 @@ public final class UserMod implements UserAccount {
         return false;
     }
 
+
+    public Boolean isLocalAccount() {
+        return isLocalAccount;
+    }
+
+    public Boolean hasDirectLogin() {
+        return hasDirectLogin;
+    }
+
     @JsonIgnore
     @Override
     public EntityKey getEntityKey() {
@@ -279,7 +301,7 @@ public final class UserMod implements UserAccount {
         return new UserMod(
                 UUID.randomUUID().toString(),
                 institutionId,
-                null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, true, true, null);
     }
 
 }

@@ -96,6 +96,7 @@ public class ModelObjectJSONGenerator {
         domainObject = new UserMod(
                 "UUID", 1L, "NAME", "SURNAME", "USERNAME", "newPassword", "confirmNewPassword", "EMAIL",
                 Locale.ENGLISH, DateTimeZone.UTC,
+                true, true,
                 new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name())));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));

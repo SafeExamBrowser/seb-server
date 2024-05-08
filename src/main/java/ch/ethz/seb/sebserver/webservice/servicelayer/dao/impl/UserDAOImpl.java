@@ -252,8 +252,8 @@ public class UserDAOImpl implements UserDAO {
                     userMod.language.toLanguageTag(),
                     userMod.timeZone.getID(),
                     BooleanUtils.toInteger(false),
-                    BooleanUtils.toInteger(true),
-                    BooleanUtils.toInteger(true));
+                    BooleanUtils.toInteger(userMod.hasDirectLogin()),
+                    BooleanUtils.toInteger(userMod.isLocalAccount()));
 
             this.userRecordMapper.insert(recordToSave);
             final Long newUserPK = recordToSave.getId();

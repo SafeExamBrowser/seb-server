@@ -50,6 +50,7 @@ public class WebserviceInfo {
             "sebserver.webservice.api.exam.endpoint.discovery";
     private static final String WEB_SERVICE_EXTERNAL_ADDRESS_ALIAS = "sebserver.webservice.lms.address.alias";
     private static final String WEB_SERVICE_CONTEXT_PATH = "server.servlet.context-path";
+    public static final String SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT = "sebserver.webservice.autologin.endpoint";
 
     private final String sebServerVersion;
     private final String testProperty;
@@ -60,6 +61,8 @@ public class WebserviceInfo {
     private final String webserverPort; // external
     private final String discoveryEndpoint;
     private final String contextPath;
+
+    private final String autoLoginEndpoint;
 
     private final boolean isLightSetup;
     private final String serverURLPrefix;
@@ -104,6 +107,9 @@ public class WebserviceInfo {
         this.webserviceUUID = UUID.randomUUID().toString()
                 + Constants.UNDERLINE
                 + this.sebServerVersion;
+        this.autoLoginEndpoint = environment.getProperty(
+                SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT,
+                "/auto_login");
 
         this.distributedUpdateInterval = environment.getProperty(
                 "sebserver.webservice.distributed.updateInterval",
@@ -235,6 +241,10 @@ public class WebserviceInfo {
 
     public String getDiscoveryEndpoint() {
         return this.discoveryEndpoint;
+    }
+
+    public String getAutoLoginEndpoint() {
+        return autoLoginEndpoint;
     }
 
     public String getDiscoveryEndpointAddress() {
