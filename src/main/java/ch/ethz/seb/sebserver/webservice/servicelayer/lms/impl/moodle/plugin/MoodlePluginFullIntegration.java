@@ -28,8 +28,8 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
 
     private static final Logger log = LoggerFactory.getLogger(MoodlePluginFullIntegration.class);
 
-    private static final String FUNCTION_NAME_SEBSERVER_CONNECTION = "sebserver_connection";
-    private static final String FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE = "sebserver_connection_delete";
+    private static final String FUNCTION_NAME_SEBSERVER_CONNECTION = "quizaccess_sebserver_connection";
+    private static final String FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE = "quizaccess_sebserver_connection_delete";
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
 
@@ -82,9 +82,6 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             if (StringUtils.isBlank( data.access_token)) {
                 throw new APIMessage.FieldValidationException("lmsFullIntegration:access_token", "access_token is mandatory");
             }
-//            if (data.exam_templates.isEmpty()) {
-//                throw new APIMessage.FieldValidationException("lmsFullIntegration:exam_templates", "exam_templates is mandatory");
-//            }
 
             // apply
             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();

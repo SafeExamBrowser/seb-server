@@ -147,8 +147,8 @@ public final class UserMod implements UserAccount {
         this.language = postAttrMapper.getLocale(USER.ATTR_LANGUAGE);
         this.timeZone = postAttrMapper.getDateTimeZone(USER.ATTR_TIMEZONE);
         this.roles = postAttrMapper.getStringSet(USER_ROLE.REFERENCE_NAME);
-        this.isLocalAccount = BooleanUtils.isNotFalse(postAttrMapper.getBoolean(USER.ATTR_LOCAL_ACCOUNT));
-        this.hasDirectLogin = BooleanUtils.isNotFalse(postAttrMapper.getBoolean(USER.ATTR_DIRECT_LOGIN));
+        this.isLocalAccount = BooleanUtils.isNotFalse(postAttrMapper.getBooleanObject(USER.ATTR_LOCAL_ACCOUNT));
+        this.hasDirectLogin = BooleanUtils.isNotFalse(postAttrMapper.getBooleanObject(USER.ATTR_DIRECT_LOGIN));
     }
 
     @Override

@@ -184,7 +184,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                                         exam,
                                         error))
                                 .getOrThrow()
-                                .stream()
                                 .forEach(newGroup -> createNewLocalGroup(exam, newGroup));
 
                         this.examDAO.markUpdate(exam.id);
@@ -225,9 +224,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         log.debug("Update exam data on screen proctoring service for exam: {}", exam);
                     }
 
-                    this.screenProctoringAPIBinding.updateExam(exam);
+                    this.notifyExamSaved(exam);
                     return exam;
-
                 });
     }
 
@@ -239,7 +237,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     .allIdsOfRunningWithScreenProctoringEnabled()
                     .flatMap(this.clientConnectionDAO::getAllForScreenProctoringUpdate)
                     .getOrThrow()
-                    .stream()
                     .forEach(this::applyScreenProctoringSession);
 
         } catch (final Exception e) {
@@ -257,7 +254,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         this.screenProctoringAPIBinding.synchronizeUserAccounts(exam);
-        this.screenProctoringAPIBinding.createExamReadPrivileges(exam);
+        this.screenProctoringAPIBinding.updateExam(exam);
     }
 
     @Override
@@ -445,7 +442,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private Result<Exam> deleteForExam(final Long examId) {
         return this.examDAO
                 .byPK(examId)
-                .flatMap(this.screenProctoringAPIBinding::deleteScreenProctoring)
+                .map(this.screenProctoringAPIBinding::deleteScreenProctoring)
                 .map(this::cleanupAllLocalGroups)
                 .onError(error -> log.error("Failed to delete SPS integration for exam: {}", examId, error));
     }

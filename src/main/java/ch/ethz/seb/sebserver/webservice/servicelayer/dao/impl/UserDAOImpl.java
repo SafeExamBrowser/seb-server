@@ -239,10 +239,12 @@ public class UserDAOImpl implements UserDAO {
             checkUniqueUsername(userMod);
             checkUniqueMailAddress(userMod);
 
+            final String uuid = userMod.uuid != null ? userMod.uuid : UUID.randomUUID().toString();
+
             final UserRecord recordToSave = new UserRecord(
                     null,
                     userMod.institutionId,
-                    UUID.randomUUID().toString(),
+                    uuid,
                     DateTime.now(DateTimeZone.UTC),
                     userMod.name,
                     userMod.surname,
