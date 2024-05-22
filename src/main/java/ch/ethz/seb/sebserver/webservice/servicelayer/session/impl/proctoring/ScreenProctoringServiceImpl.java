@@ -269,6 +269,13 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
+    public void synchronizeSPSUserForExam(final Long examId) {
+        this.examDAO.byPK(examId)
+                .onSuccess(this.screenProctoringAPIBinding::synchronizeUserAccounts)
+                .onError(error -> log.error("Failed to synchronize SPS user accounts for exam: {}", examId, error));
+    }
+
+    @Override
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void deleteSPSUser(final String userUUID) {
 

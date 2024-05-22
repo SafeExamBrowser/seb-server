@@ -348,12 +348,17 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>1.8</version>
+            <version>1.10.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.vladimir-bukhtoyarov</groupId>
             <artifactId>bucket4j-core</artifactId>
             <version>4.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
         </dependency>
 
 

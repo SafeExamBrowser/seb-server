@@ -330,7 +330,7 @@ public class MonitoringProctoringService {
                     String.class);
 
             // JWT token request URL
-            final String jwtTokenURL = settings.spsServiceURL + API.OAUTH_JWTTOKEN_ENDPOINT;
+            final String jwtTokenURL = settings.spsServiceURL + API.SPS_OAUTH_JWT_TOKEN_ENDPOINT;
 
             // Basic Auth header and content type header
             final HttpHeaders httpHeaders = new HttpHeaders();

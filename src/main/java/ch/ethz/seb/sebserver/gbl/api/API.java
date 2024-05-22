@@ -64,8 +64,11 @@ public final class API {
 
     public static final String OAUTH_ENDPOINT = "/oauth";
     public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token";
-    public static final String OAUTH_JWTTOKEN_ENDPOINT = OAUTH_ENDPOINT + "/jwttoken";
+
+    public static final String OAUTH_JWT_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/jwttoken";
+    public static final String OAUTH_JWT_TOKEN_VERIFY_ENDPOINT = OAUTH_JWT_TOKEN_ENDPOINT + "/verify";
     public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token";
+    public static final String SPS_OAUTH_JWT_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/jwttoken";
 
     public static final String GRANT_TYPE_PASSWORD = "password";
     public static final String GRANT_TYPE_CLIENT = "client_credentials";
@@ -175,6 +178,8 @@ public final class API {
     public static final String LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID = "exam_template_id";
     public static final String LMS_FULL_INTEGRATION_QUIT_PASSWORD = "quit_password";
     public static final String LMS_FULL_INTEGRATION_QUIT_LINK = "quit_link";
+    public static final String LMS_FULL_INTEGRATION_USER_ID = "user_id";
+    public static final String LMS_FULL_INTEGRATION_USER_NAME = "user_name";
     public static final String LMS_FULL_INTEGRATION_TIME_ZONE = "account_time_zone";
 
     public static final String USER_ACCOUNT_ENDPOINT = "/useraccount";

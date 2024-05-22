@@ -1004,7 +1004,7 @@ class ScreenProctoringAPIBinding {
                     10 * Constants.SECOND_IN_MILLIS,
                     10 * Constants.SECOND_IN_MILLIS);
 
-            ClientCredentials clientCredentials = new ClientCredentials(
+            final ClientCredentials clientCredentials = new ClientCredentials(
                     spsAPIAccessData.getSpsAPIKey(),
                     spsAPIAccessData.getSpsAPISecret());
 

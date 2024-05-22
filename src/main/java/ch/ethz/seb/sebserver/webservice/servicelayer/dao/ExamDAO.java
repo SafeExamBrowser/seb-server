@@ -228,6 +228,11 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
             key = "#examId")
     void markUpdate(Long examId);
 
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
+            key = "#examId")
+    Result<Exam> applySupporter(Exam exam, String userUUID);
+
     /** This is used by the internal update process to mark exams for which the LMS related data availability
      *
      * @param externalQuizId The exams external UUID or quiz id of the exam to mark
@@ -236,6 +241,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
 
     void updateQuitPassword(Exam exam, String quitPassword);
+
 
 
 }

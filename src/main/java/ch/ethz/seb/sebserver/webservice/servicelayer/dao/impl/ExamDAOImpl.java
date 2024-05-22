@@ -12,6 +12,7 @@ import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecord
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.examRecord;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -189,8 +190,7 @@ public class ExamDAOImpl implements ExamDAO {
             UpdateDSL.updateWithMapper(
                     this.examRecordMapper::update,
                     ExamRecordDynamicSqlSupport.examRecord)
-                    .set(ExamRecordDynamicSqlSupport.lastModified)
-                    .equalTo(millisecondsNow)
+                    .set(ExamRecordDynamicSqlSupport.lastModified).equalTo(millisecondsNow)
                     .where(ExamRecordDynamicSqlSupport.id, isEqualTo(examId))
                     .build()
                     .execute();
@@ -198,6 +198,30 @@ public class ExamDAOImpl implements ExamDAO {
         } catch (final Exception e) {
             log.error("Failed to mark exam for update on distributed setup. exam: {}", examId, e);
         }
+    }
+
+    @Override
+    @Transactional
+    public Result<Exam> applySupporter(final Exam exam, final String userUUID) {
+        return Result.tryCatch(() -> {
+
+            final long millisecondsNow = Utils.getMillisecondsNow();
+            final List<String> newSupporter = new ArrayList<>(exam.supporter);
+             newSupporter.add(userUUID);
+
+            UpdateDSL.updateWithMapper(
+                            this.examRecordMapper::update,
+                            ExamRecordDynamicSqlSupport.examRecord)
+                    .set(supporter).equalTo(StringUtils.join(newSupporter, Constants.LIST_SEPARATOR_CHAR))
+                    .set(ExamRecordDynamicSqlSupport.lastModified).equalTo(millisecondsNow)
+                    .where(ExamRecordDynamicSqlSupport.id, isEqualTo(exam.id))
+                    .build()
+                    .execute();
+
+            return examRecordMapper.selectByPrimaryKey(exam.id);
+        })
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

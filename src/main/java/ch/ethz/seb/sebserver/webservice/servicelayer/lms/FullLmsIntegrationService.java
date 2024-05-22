@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.Map;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -42,8 +41,7 @@ public interface FullLmsIntegrationService {
             String quizId,
             String examTemplateId,
             String quitPassword,
-            String quitLink,
-            String timezone);
+            String quitLink);
 
     Result<EntityKey> deleteExam(
             String lmsUUID,
@@ -58,6 +56,14 @@ public interface FullLmsIntegrationService {
             String courseId,
             String quizId,
             OutputStream out);
+
+    Result<String> getOneTimeLoginToken(
+            String lmsUUId,
+            String courseId,
+            String quizId,
+            String userId,
+            String username,
+            String timezone);
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     final class IntegrationData {
