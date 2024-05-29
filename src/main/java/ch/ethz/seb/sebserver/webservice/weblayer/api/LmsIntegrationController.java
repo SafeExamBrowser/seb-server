@@ -108,8 +108,6 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
             final HttpServletResponse response) throws IOException {
 
-        // TODO change this according to the outcome of discussion about Moodle Connection Configuration handling
-
         final ServletOutputStream outputStream = response.getOutputStream();
         final PipedOutputStream pout;
         final PipedInputStream pin;

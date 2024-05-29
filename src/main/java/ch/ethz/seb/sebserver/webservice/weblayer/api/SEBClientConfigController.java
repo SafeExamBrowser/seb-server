@@ -121,8 +121,8 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
                 .map(this.userActivityLogDAO::logExport);
 
         final ServletOutputStream outputStream = response.getOutputStream();
-        PipedOutputStream pout;
-        PipedInputStream pin;
+        final PipedOutputStream pout;
+        final PipedInputStream pin;
         try {
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);

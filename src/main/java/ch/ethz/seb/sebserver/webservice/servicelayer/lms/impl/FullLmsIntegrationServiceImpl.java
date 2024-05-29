@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,6 +51,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -326,24 +329,28 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
         try {
 
-            final Result<Exam> examResult = lmsSetupDAO
-                    .getLmsSetupIdByConnectionId(lmsUUID)
-                    .flatMap(lmsAPIService::getLmsAPITemplate)
-                    .map(findQuizData(courseId, quizId))
-                    .flatMap(this::findExam);
+            // TODO this is hardcoded for Testing, below out-commented code is real business
 
-            if (examResult.hasError()) {
-                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
-            }
+            this.connectionConfigurationService.exportSEBClientConfiguration(out, "1", null);
 
-            final Exam exam = examResult.get();
-
-            final String connectionConfigId = getConnectionConfigurationId(exam);
-            if (StringUtils.isBlank(connectionConfigId)) {
-                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
-            }
-
-            this.connectionConfigurationService.exportSEBClientConfiguration(out, connectionConfigId, exam.id);
+//            final Result<Exam> examResult = lmsSetupDAO
+//                    .getLmsSetupIdByConnectionId(lmsUUID)
+//                    .flatMap(lmsAPIService::getLmsAPITemplate)
+//                    .map(findQuizData(courseId, quizId))
+//                    .flatMap(this::findExam);
+//
+//            if (examResult.hasError()) {
+//                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
+//            }
+//
+//            final Exam exam = examResult.get();
+//
+//            final String connectionConfigId = getConnectionConfigurationId(exam);
+//            if (StringUtils.isBlank(connectionConfigId)) {
+//                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
+//            }
+//
+//            this.connectionConfigurationService.exportSEBClientConfiguration(out, connectionConfigId, exam.id);
             return Result.EMPTY;
 
         } catch (final Exception e) {
@@ -523,11 +530,27 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     final String connectionConfigId = getConnectionConfigurationId(exam);
 
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    this.connectionConfigurationService
-                            .exportSEBClientConfiguration(out, connectionConfigId, exam.id);
+                    final PipedOutputStream pout;
+                    final PipedInputStream pin;
+                    try {
+                        pout = new PipedOutputStream();
+                        pin = new PipedInputStream(pout);
 
-                    // TODO check if this works as expected
-                    return template.applyConnectionConfiguration(exam, out.toByteArray());
+                        this.connectionConfigurationService
+                                .exportSEBClientConfiguration(pout, connectionConfigId, exam.id);
+
+                        out.flush();
+
+                        IOUtils.copyLarge(pin, out);
+
+                        // TODO check if this works as expected
+                        return template.applyConnectionConfiguration(exam, out.toByteArray());
+
+                    } catch (final Exception e) {
+                        throw new RuntimeException("Failed to stream output", e);
+                    } finally {
+                        IOUtils.closeQuietly(out);
+                    }
                 })
                 .onError(error -> log.error("Failed to apply ConnectionConfiguration for exam: {} error: {}", exam, error.getMessage()))
                 .getOr(exam);
