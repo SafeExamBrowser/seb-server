@@ -25,14 +25,15 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
 
     public static final String ATTR_ENABLE_SCREEN_PROCTORING = "enableScreenProctoring";
     public static final String ATTR_SPS_SERVICE_URL = "spsServiceURL";
-    public static final String ATTR_COLLECTING_STRATEGY = "spsCollectingStrategy";
-    public static final String ATTR_COLLECTING_GROUP_SIZE = "collectingGroupSize";
 
     public static final String ATTR_SPS_API_KEY = "spsAPIKey";
     public static final String ATTR_SPS_API_SECRET = "spsAPISecret";
 
     public static final String ATTR_SPS_ACCOUNT_ID = "spsAccountId";
     public static final String ATTR_SPS_ACCOUNT_PASSWORD = "spsAccountPassword";
+
+    public static final String ATTR_COLLECTING_STRATEGY = "spsCollectingStrategy";
+    public static final String ATTR_COLLECTING_GROUP_SIZE = "spsCollectingGroupSize";
 
     public static final String ATTR_SPS_BUNDLED = "bundled";
 

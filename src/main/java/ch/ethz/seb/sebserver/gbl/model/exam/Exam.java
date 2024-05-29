@@ -18,8 +18,7 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -65,6 +64,7 @@ public final class Exam implements GrantEntity {
     public static final String ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS = "ALLOWED_SEB_VERSIONS";
 
     public static final String ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION = "DEFAULT_CONNECTION_CONFIGURATION";
+    public static final String ADDITIONAL_ATTR_QUIZ_ATTRIBUTES = "ADDITIONAL_QUIZ_ATTRIBUTES";
 
     public enum ExamStatus {
         UP_COMING,
@@ -239,7 +239,15 @@ public final class Exam implements GrantEntity {
     }
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
 
-        final Map<String, String> additionalAttributes = new HashMap<>(quizData.getAdditionalAttributes());
+        String additionalQuizData = null;
+        try {
+            additionalQuizData = new JSONMapper().writeValueAsString(quizData.getAdditionalAttributes());
+        } catch (final Exception ignored) {}
+
+        final Map<String, String> additionalAttributes = new HashMap<>();
+        if (additionalQuizData != null) {
+            additionalAttributes.put(ADDITIONAL_ATTR_QUIZ_ATTRIBUTES, additionalQuizData);
+        }
         additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, quizData.description);
         additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
 

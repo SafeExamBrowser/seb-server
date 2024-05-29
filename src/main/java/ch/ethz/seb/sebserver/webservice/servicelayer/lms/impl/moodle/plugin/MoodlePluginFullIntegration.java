@@ -10,17 +10,21 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.ExamData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationAPI;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleResponseException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -30,6 +34,10 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
 
     private static final String FUNCTION_NAME_SEBSERVER_CONNECTION = "quizaccess_sebserver_connection";
     private static final String FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE = "quizaccess_sebserver_connection_delete";
+    private static final String FUNCTION_NAME_SET_EXAM_DATA = "quizaccess_sebserver_set_exam_data";
+
+    private static final String UPLOAD_ENDPOINT = "/mod/quiz/accessrule/sebserver/uploadconfig.php";
+
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
 
@@ -60,7 +68,8 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final MoodleAPIRestTemplate restTemplate = restTemplateRequest.get();
             restTemplate.testAPIConnection(
                     FUNCTION_NAME_SEBSERVER_CONNECTION,
-                    FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE);
+                    FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE,
+                    FUNCTION_NAME_SET_EXAM_DATA);
 
         } catch (final RuntimeException e) {
             return LmsSetupTestResult.ofQuizAccessAPIError(LmsSetup.LmsType.MOODLE_PLUGIN, e.getMessage());
@@ -111,6 +120,70 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             return data;
         });
     }
+
+    @Override
+    public Result<ExamData> applyExamData(final ExamData examData) {
+        return Result.tryCatch(() -> {
+            // validation
+            if (StringUtils.isBlank( examData.id)) {
+                throw new APIMessage.FieldValidationException("ExamData:id", "id is mandatory");
+            }
+            if (StringUtils.isBlank( examData.course_id)) {
+                throw new APIMessage.FieldValidationException("ExamData:course_id", "course_id is mandatory");
+            }
+            if (StringUtils.isBlank( examData.quiz_id)) {
+                throw new APIMessage.FieldValidationException("ExamData:quiz_id", "quiz_id is mandatory");
+            }
+
+            final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
+            final String jsonPayload = jsonMapper.writeValueAsString(examData);
+            final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
+            final String response = rest.postToMoodleAPIFunction(FUNCTION_NAME_SET_EXAM_DATA, jsonPayload);
+
+            if (response != null && (response.startsWith("{\"exception\":") || response.startsWith("0"))) {
+                log.warn("Failed to apply Exam data to moodle: {}", examData);
+            }
+
+            return examData;
+        });
+    }
+
+    @Override
+    public Result<Exam> applyConnectionConfiguration(final Exam exam, final byte[] configData) {
+        return Result.tryCatch(() -> {
+
+            final String quizId = MoodleUtils.getQuizId(exam.externalId);
+            final String fileName = getConnectionConfigFileName(exam);
+
+
+            final MultiValueMap<String, Object> multiPartAttributes = new LinkedMultiValueMap<>();
+            multiPartAttributes.add("quizid", quizId);
+            multiPartAttributes.add("name", fileName);
+            multiPartAttributes.add("filename", fileName);
+            final ByteArrayResource contentsAsResource = new ByteArrayResource(configData) {
+                @Override
+                public String getFilename() {
+                    return fileName; // Filename has to be returned in order to be able to post.
+                }
+            };
+
+            multiPartAttributes.add("file", contentsAsResource);
+
+            final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
+            final String response = rest.uploadMultiPart(UPLOAD_ENDPOINT, multiPartAttributes);
+
+            if (response != null && (response.startsWith("{\"exception\":") || response.startsWith("0"))) {
+                log.warn("Failed to apply Connection Configuration to LMS for Exam: {}", exam.externalId);
+            }
+
+            return exam;
+        });
+    }
+
+    private String getConnectionConfigFileName(final Exam exam) {
+        return "SEBServerConnectionConfiguration-" + exam.id + ".seb";
+    }
+
 
     @Override
     public Result<String> deleteConnectionDetails() {

@@ -40,13 +40,18 @@ public interface MoodleAPIRestTemplate {
     String postToMoodleAPIFunction(String functionName, String body);
 
     String callMoodleAPIFunction(
-            final String functionName,
-            final MultiValueMap<String, String> queryAttributes);
+            String functionName,
+            MultiValueMap<String, String> queryAttributes);
 
     String callMoodleAPIFunction(
-            final String functionName,
-            final MultiValueMap<String, String> queryParams,
-            final MultiValueMap<String, String> queryAttributes);
+            String functionName,
+            MultiValueMap<String, String> queryParams,
+            MultiValueMap<String, String> queryAttributes);
+
+    String uploadMultiPart(
+            String uploadEndpoint,
+            MultiValueMap<String, Object> multiPartAttributes);
+
 
     /** This maps a Moodle warning JSON object */
     @JsonIgnoreProperties(ignoreUnknown = true)

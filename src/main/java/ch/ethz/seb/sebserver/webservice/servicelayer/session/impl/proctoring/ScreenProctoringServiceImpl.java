@@ -71,6 +71,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private final SEBClientInstructionService sebInstructionService;
     private final ExamSessionCacheService examSessionCacheService;
     private final WebserviceInfo webserviceInfo;
+    private final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle;
 
     public ScreenProctoringServiceImpl(
             final Cryptor cryptor,
@@ -94,6 +95,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         this.examSessionCacheService = examSessionCacheService;
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.webserviceInfo = webserviceInfo;
+        this.screenProctoringServiceBundle = webserviceInfo.getScreenProctoringServiceBundle();
+
         this.screenProctoringAPIBinding = new ScreenProctoringAPIBinding(
                 userDAO,
                 cryptor,
@@ -102,6 +105,11 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 proctoringSettingsDAO,
                 additionalAttributesDAO,
                 webserviceInfo);
+    }
+
+    @Override
+    public boolean isScreenProctoringEnabled(final Long examId) {
+        return this.proctoringSettingsDAO.isScreenProctoringEnabled(examId);
     }
 
     @Override
@@ -488,7 +496,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id);
-        final String url = exam.additionalAttributes.get(ScreenProctoringSettings.ATTR_SPS_SERVICE_URL);
+        final String url = screenProctoringServiceBundle.bundled
+                ? screenProctoringServiceBundle.serviceURL
+                : exam.additionalAttributes.get(ScreenProctoringSettings.ATTR_SPS_SERVICE_URL);
         final Map<String, String> attributes = new HashMap<>();
 
         attributes.put(SERVICE_TYPE, SERVICE_TYPE_NAME);

@@ -59,7 +59,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint.RevokeExamTokenEvent;
 
 @Lazy
@@ -722,7 +722,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             // clear cache
             this.cacheManager
-                    .getCache(ClientConfigService.EXAM_CLIENT_DETAILS_CACHE)
+                    .getCache(ConnectionConfigurationService.EXAM_CLIENT_DETAILS_CACHE)
                     .evictIfPresent(rec.getClientName());
 
         } catch (final Exception e) {

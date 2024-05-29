@@ -13,6 +13,7 @@ import java.util.Set;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.ExamData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -55,8 +56,9 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     private final CircuitBreaker<ExamineeAccountDetails> accountDetailRequest;
 
     private final CircuitBreaker<SEBRestriction> restrictionRequest;
-    private final CircuitBreaker<Exam> releaseRestrictionRequest;
+    private final CircuitBreaker<Exam> examRequest;
     private final CircuitBreaker<IntegrationData> lmsAccessRequest;
+    private final CircuitBreaker<ExamData> applyExamDataRequest;
     private final CircuitBreaker<String> deleteLmsAccessRequest;
 
     public LmsAPITemplateAdapter(
@@ -88,15 +90,29 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
         lmsAccessRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
+                        "sebserver.webservice.circuitbreaker.lmsAccessRequest.attempts",
                         Integer.class,
                         2),
                 environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.lmsTestRequest.blockingTime",
+                        "sebserver.webservice.circuitbreaker.lmsAccessRequest.blockingTime",
                         Long.class,
                         Constants.SECOND_IN_MILLIS * 20),
                 environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.lmsTestRequest.timeToRecover",
+                        "sebserver.webservice.circuitbreaker.lmsAccessRequest.timeToRecover",
+                        Long.class,
+                        0L));
+
+        applyExamDataRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.applyExamDataRequest.attempts",
+                        Integer.class,
+                        2),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.applyExamDataRequest.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 20),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.applyExamDataRequest.timeToRecover",
                         Long.class,
                         0L));
 
@@ -198,17 +214,17 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                         Long.class,
                         0L));
 
-        this.releaseRestrictionRequest = asyncService.createCircuitBreaker(
+        this.examRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.sebrestriction.attempts",
+                        "sebserver.webservice.circuitbreaker.examRequest.attempts",
                         Integer.class,
                         2),
                 environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.sebrestriction.blockingTime",
+                        "sebserver.webservice.circuitbreaker.examRequest.blockingTime",
                         Long.class,
                         Constants.SECOND_IN_MILLIS * 10),
                 environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.sebrestriction.timeToRecover",
+                        "sebserver.webservice.circuitbreaker.examRequest.timeToRecover",
                         Long.class,
                         0L));
     }
@@ -456,7 +472,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Release course restriction: {} for LMSSetup: {}", exam.externalId, lmsSetup());
         }
 
-        final Result<Exam> protectedRun = this.releaseRestrictionRequest.protectedRun(() -> this.sebRestrictionAPI
+        final Result<Exam> protectedRun = this.examRequest.protectedRun(() -> this.sebRestrictionAPI
                 .releaseSEBClientRestriction(exam)
                 .onError(error -> log.error(
                         "Failed to release SEB restrictions: {}",
@@ -497,6 +513,39 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 .applyConnectionDetails(data)
                 .getOrThrow());
     }
+
+    @Override
+    public Result<ExamData> applyExamData(final ExamData examData) {
+        if (this.lmsIntegrationAPI == null) {
+            return Result.ofError(
+                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Apply exam data: {} for LMSSetup: {}", examData, lmsSetup());
+        }
+
+        return this.applyExamDataRequest.protectedRun(() -> this.lmsIntegrationAPI
+                .applyExamData(examData)
+                .getOrThrow());
+    }
+
+    @Override
+    public Result<Exam> applyConnectionConfiguration(final Exam exam, final byte[] configData) {
+        if (this.lmsIntegrationAPI == null) {
+            return Result.ofError(
+                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Apply Connection Configuration for exam: {} for LMSSetup: {}", exam, lmsSetup());
+        }
+
+        return this.examRequest.protectedRun(() -> this.lmsIntegrationAPI
+                .applyConnectionConfiguration(exam, configData)
+                .getOrThrow());
+    }
+
 
     @Override
     public Result<String> deleteConnectionDetails() {

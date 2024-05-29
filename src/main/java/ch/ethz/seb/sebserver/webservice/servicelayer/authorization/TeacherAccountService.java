@@ -8,27 +8,33 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 
 public interface TeacherAccountService {
 
+    default String getTeacherAccountIdentifier(
+            final Exam exam,
+            final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
+        return getTeacherAccountIdentifier(exam.getModelId(), adHocAccountData.userId);
+    }
+
+    String getTeacherAccountIdentifier(String examId, String userId);
+
     Result<UserInfo> createNewTeacherAccountForExam(
             Exam exam,
-            String userId,
-            String username,
-            String timezone);
+            final FullLmsIntegrationService.AdHocAccountData adHocAccountData);
 
-    Result<Exam> deleteTeacherAccountsForExam(final Exam exam);
+    Result<Exam> deactivateTeacherAccountsForExam(Exam exam);
 
     Result<String> getOneTimeTokenForTeacherAccount(
             Exam exam,
-            String userId,
-            String username,
-            String timezone,
-            final boolean createIfNotExists);
+            FullLmsIntegrationService.AdHocAccountData adHocAccountData,
+            boolean createIfNotExists);
 
     Result<TokenLoginInfo> verifyOneTimeTokenForTeacherAccount(String token);
 

@@ -18,7 +18,7 @@ import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 
 /** A ClientDetailsService to manage different API clients of SEB Server webservice API.
  * <p>
@@ -32,17 +32,17 @@ public class WebClientDetailsService implements ClientDetailsService {
 
     private static final Logger log = LoggerFactory.getLogger(WebClientDetailsService.class);
 
-    private final ClientConfigService sebClientConfigService;
+    private final ConnectionConfigurationService sebConnectionConfigurationService;
     private final AdminAPIClientDetails adminClientDetails;
     private final LmsAPIClientDetails lmsAPIClientDetails;
 
     public WebClientDetailsService(
             final AdminAPIClientDetails adminClientDetails,
-            final ClientConfigService sebClientConfigService,
+            final ConnectionConfigurationService sebConnectionConfigurationService,
             final LmsAPIClientDetails lmsAPIClientDetails) {
 
         this.adminClientDetails = adminClientDetails;
-        this.sebClientConfigService = sebClientConfigService;
+        this.sebConnectionConfigurationService = sebConnectionConfigurationService;
         this.lmsAPIClientDetails = lmsAPIClientDetails;
     }
 
@@ -81,7 +81,7 @@ public class WebClientDetailsService implements ClientDetailsService {
     }
 
     protected Result<ClientDetails> getForExamClientAPI(final String clientId) {
-        return this.sebClientConfigService.getClientConfigDetails(clientId);
+        return this.sebConnectionConfigurationService.getClientConfigDetails(clientId);
     }
 
 }

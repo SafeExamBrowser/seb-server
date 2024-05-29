@@ -20,9 +20,9 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-public interface ClientConfigService {
+public interface ConnectionConfigurationService {
 
-    Logger log = LoggerFactory.getLogger(ClientConfigService.class);
+    Logger log = LoggerFactory.getLogger(ConnectionConfigurationService.class);
 
     /** The cache name of ClientDetails */
     String EXAM_CLIENT_DETAILS_CACHE = "EXAM_CLIENT_DETAILS_CACHE";

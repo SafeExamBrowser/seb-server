@@ -31,7 +31,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
@@ -87,7 +87,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SecurityKeyService securityKeyService;
     private final SEBClientEventBatchService sebClientEventBatchService;
     private final SEBClientInstructionService sebClientInstructionService;
-    private final ClientConfigService clientConfigService;
+    private final ConnectionConfigurationService connectionConfigurationService;
     private final JSONMapper jsonMapper;
     private final boolean isDistributedSetup;
 
@@ -101,7 +101,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final WebserviceInfo webserviceInfo,
             final SEBClientEventBatchService sebClientEventBatchService,
             final SEBClientInstructionService sebClientInstructionService,
-            final ClientConfigService clientConfigService,
+            final ConnectionConfigurationService connectionConfigurationService,
             final JSONMapper jsonMapper) {
 
         this.examSessionService = examSessionService;
@@ -115,7 +115,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.isDistributedSetup = webserviceInfo.isDistributed();
         this.sebClientEventBatchService = sebClientEventBatchService;
         this.sebClientInstructionService = sebClientInstructionService;
-        this.clientConfigService = clientConfigService;
+        this.connectionConfigurationService = connectionConfigurationService;
         this.jsonMapper = jsonMapper;
     }
 
@@ -644,7 +644,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);
 
-            this.clientConfigService.exportSEBClientConfiguration(
+            this.connectionConfigurationService.exportSEBClientConfiguration(
                     pout,
                     modelId,
                     null);

@@ -13,8 +13,6 @@ import java.util.*;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -28,8 +26,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
 import io.jsonwebtoken.Claims;
@@ -45,7 +43,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Service;
 
 @Lazy
@@ -87,35 +84,41 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         this.adminAPIClientDetails = adminAPIClientDetails;
     }
 
+    @Override
+    public String getTeacherAccountIdentifier(final String examId, final String userId) {
+        if (examId == null || userId == null) {
+            throw new RuntimeException("examId and/or userId cannot be null");
+        }
+
+        return userId + Constants.UNDERLINE + examId;
+    }
 
     @Override
     public Result<UserInfo> createNewTeacherAccountForExam(
             final Exam exam,
-            final String userId,
-            final String username,
-            final String timezone) {
+            final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
 
         return Result.tryCatch(() -> {
 
             final String uuid = UUID.randomUUID().toString();
             DateTimeZone dtz = DateTimeZone.UTC;
-            if (StringUtils.isNotBlank(timezone)) {
+            if (StringUtils.isNotBlank(adHocAccountData.timezone)) {
                 try {
-                    dtz = DateTimeZone.forID(timezone);
+                    dtz = DateTimeZone.forID(adHocAccountData.timezone);
                 } catch (final Exception e) {
-                    log.warn("Failed to set requested time zone for ad-hoc teacher account: {}", timezone);
+                    log.warn("Failed to set requested time zone for ad-hoc teacher account: {}", adHocAccountData.timezone);
                 }
             }
 
             final UserMod adHocTeacherUser = new UserMod(
-                    uuid,
+                    getTeacherAccountIdentifier(exam, adHocAccountData),
                     exam.institutionId,
-                    userId,
-                    getTeacherAccountIdentifier(exam),
-                    username,
+                    adHocAccountData.firstName != null ? adHocAccountData.firstName : adHocAccountData.userId,
+                    adHocAccountData.lastName != null ? adHocAccountData.lastName : adHocAccountData.userId,
+                    adHocAccountData.username != null ? adHocAccountData.username : adHocAccountData.userId,
                     uuid,
                     uuid,
-                    null,
+                    adHocAccountData.userMail,
                     Locale.ENGLISH,
                     dtz,
                     true,
@@ -130,27 +133,14 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     }
 
     @Override
-    public Result<Exam> deleteTeacherAccountsForExam(final Exam exam) {
+    public Result<Exam> deactivateTeacherAccountsForExam(final Exam exam) {
         return Result.tryCatch(() -> {
 
-            final String externalId = exam.externalId;
-            final FilterMap filter = new FilterMap();
-            filter.putIfAbsent(Domain.USER.ATTR_SURNAME, getTeacherAccountIdentifier(exam));
-            final Collection<UserInfo> accounts = userDAO.allMatching(filter).getOrThrow();
-
-            if (accounts.isEmpty()) {
-                return exam;
-            }
-
-            if (accounts.size() > 1) {
-                log.error("Too many accounts found!?... ad-hoc teacher account mapping: {}", externalId);
-                return exam;
-            }
-
-            userDAO.delete(Utils.immutableSetOf(new EntityKey(
-                            accounts.iterator().next().uuid,
-                            EntityType.USER)))
-                    .getOrThrow();
+            exam.supporter.stream()
+                    .map(userUUID -> userDAO.byModelId(userUUID).getOr(null))
+                    .filter(user -> user != null && user.roles.contains(UserRole.TEACHER.name()))
+                    .filter( user -> user.roles.size() == 1)
+                    .forEach( user -> userDAO.setActive(user, false));
 
             return exam;
         });
@@ -159,19 +149,14 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     @Override
     public Result<String> getOneTimeTokenForTeacherAccount(
             final Exam exam,
-            final String userId,
-            final String username,
-            final String timezone,
+            final FullLmsIntegrationService.AdHocAccountData adHocAccountData,
             final boolean createIfNotExists) {
 
         return this.userDAO
-                .byModelId(userId)
-                .onErrorDo(error -> handleAccountDoesNotExistYet(createIfNotExists, exam, userId, username, timezone))
+                .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))
+                .onErrorDo(error -> handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData))
                 .map(account -> applySupporter(account, exam))
-                .map(account -> {
-                    this.screenProctoringService.synchronizeSPSUserForExam(exam.id);
-                    return account;
-                })
+                .map(account -> synchronizeSPSUserForExam(account, exam.id))
                 .map(account -> this.createOneTimeToken(account, exam.id));
     }
 
@@ -209,20 +194,26 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     private UserInfo handleAccountDoesNotExistYet(
             final boolean createIfNotExists,
             final Exam exam,
-            final String userId,
-            final String username,
-            final String timezone) {
+            final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
 
         if (createIfNotExists) {
             return this
-                    .createNewTeacherAccountForExam(exam, userId, username, timezone)
+                    .createNewTeacherAccountForExam(exam, adHocAccountData)
                     .getOrThrow();
         } else {
-            throw new RuntimeException("Teacher Account with userId "+ userId + " and username "+username+" does not exist.");
+            throw new RuntimeException("Teacher Account with user "+ adHocAccountData + " does not exist.");
         }
     }
 
     private UserInfo applySupporter(final UserInfo account, final Exam exam) {
+        // activate ad-hoc account if not active
+        if (!account.isActive()) {
+            userDAO.setActive(account, true)
+                    .onError(error -> log.error(
+                            "Failed to activate ad-hoc teacher account: {}, exam: {}, error {}",
+                            account.uuid, exam.externalId, error.getMessage()));
+        }
+
         if (!exam.supporter.contains(account.uuid)) {
             this.examDAO.applySupporter(exam, account.uuid)
                     .onError(error -> log.error(
@@ -317,7 +308,10 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                 .getOrElse(null);
     }
 
-    private static String getTeacherAccountIdentifier(final Exam exam) {
-        return "AdHoc-Teacher-Account-" + exam.id;
+    private UserInfo synchronizeSPSUserForExam(final UserInfo account, final Long examId) {
+        if (this.screenProctoringService.isScreenProctoringEnabled(examId)) {
+            this.screenProctoringService.synchronizeSPSUserForExam(examId);
+        }
+        return account;
     }
 }

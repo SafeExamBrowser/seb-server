@@ -51,6 +51,14 @@ public interface CourseAccessAPI {
         }
     }
 
+    default String getCourseIdFromExam(final Exam exam) {
+        return exam.externalId;
+    }
+
+    default String getQuizIdFromExam(final Exam exam) {
+        return exam.externalId;
+    }
+
     void fetchQuizzes(FilterMap filterMap, AsyncQuizFetchBuffer asyncQuizFetchBuffer);
 
     /** Get all {@link QuizData } for the set of {@link QuizData } identifiers from LMS API in a collection

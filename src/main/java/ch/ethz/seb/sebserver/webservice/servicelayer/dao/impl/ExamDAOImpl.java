@@ -12,7 +12,6 @@ import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecord
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.examRecord;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +24,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -67,17 +67,20 @@ public class ExamDAOImpl implements ExamDAO {
     private final ExamRecordDAO examRecordDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final JSONMapper jsonMapper;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamRecordDAO examRecordDAO,
             final ApplicationEventPublisher applicationEventPublisher,
-            final AdditionalAttributesDAO additionalAttributesDAO) {
+            final AdditionalAttributesDAO additionalAttributesDAO,
+            final JSONMapper jsonMapper) {
 
         this.examRecordMapper = examRecordMapper;
         this.examRecordDAO = examRecordDAO;
         this.applicationEventPublisher = applicationEventPublisher;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -361,6 +364,25 @@ public class ExamDAOImpl implements ExamDAO {
                 .build()
                 .execute())
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Exam>> allActiveForLMSSetup(final Collection<Long> lmsIds) {
+        return Result.tryCatch(() -> {
+            return this.examRecordMapper.selectByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.active,
+                            isEqualTo(BooleanUtils.toInteger(true)))
+                    .and(
+                            ExamRecordDynamicSqlSupport.lmsSetupId,
+                            isIn(lmsIds))
+                    .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isNotEqualTo(ExamStatus.ARCHIVED.name()))
+                    .build()
+                    .execute();
+        }).flatMap(this::toDomainModel);
     }
 
     @Override
@@ -862,7 +884,15 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     private QuizData saveAdditionalQuizAttributes(final Long examId, final QuizData quizData) {
-        final Map<String, String> additionalAttributes = new HashMap<>(quizData.getAdditionalAttributes());
+        String additionalQuizData = null;
+        try {
+            additionalQuizData = jsonMapper.writeValueAsString(quizData.getAdditionalAttributes());
+        } catch (final Exception ignored) {}
+
+        final Map<String, String> additionalAttributes = new HashMap<>();
+        if (additionalQuizData != null) {
+            additionalAttributes.put(Exam.ADDITIONAL_ATTR_QUIZ_ATTRIBUTES, additionalQuizData);
+        }
         if (StringUtils.isNotBlank(quizData.description)) {
             additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, quizData.description);
         } else {

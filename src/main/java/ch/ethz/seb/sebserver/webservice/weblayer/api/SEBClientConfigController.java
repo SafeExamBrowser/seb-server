@@ -52,7 +52,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -61,7 +61,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONFIG_ENDPOINT)
 public class SEBClientConfigController extends ActivatableEntityController<SEBClientConfig, SEBClientConfig> {
 
-    private final ClientConfigService sebClientConfigService;
+    private final ConnectionConfigurationService sebConnectionConfigurationService;
 
     public SEBClientConfigController(
             final SEBClientConfigDAO sebClientConfigDAO,
@@ -70,7 +70,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             final BulkActionService bulkActionService,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ClientConfigService sebClientConfigService) {
+            final ConnectionConfigurationService sebConnectionConfigurationService) {
 
         super(authorization,
                 bulkActionService,
@@ -79,7 +79,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
                 paginationService,
                 beanValidationService);
 
-        this.sebClientConfigService = sebClientConfigService;
+        this.sebConnectionConfigurationService = sebConnectionConfigurationService;
     }
 
     @RequestMapping(
@@ -127,7 +127,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);
 
-            this.sebClientConfigService.exportSEBClientConfiguration(
+            this.sebConnectionConfigurationService.exportSEBClientConfiguration(
                     pout,
                     modelId,
                     examId);
@@ -182,7 +182,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
     protected Result<SEBClientConfig> notifySaved(final SEBClientConfig entity) {
         if (entity.isActive()) {
             // try to get access token for SEB client
-            this.sebClientConfigService.initialCheckAccess(entity);
+            this.sebConnectionConfigurationService.initialCheckAccess(entity);
         }
         return super.notifySaved(entity);
     }

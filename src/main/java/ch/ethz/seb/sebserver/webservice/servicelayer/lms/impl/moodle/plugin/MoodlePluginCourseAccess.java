@@ -145,6 +145,16 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     }
 
     @Override
+    public String getCourseIdFromExam(final Exam exam) {
+        return MoodleUtils.getCourseId(exam.externalId);
+    }
+
+    @Override
+    public String getQuizIdFromExam(final Exam exam) {
+        return MoodleUtils.getQuizId(exam.externalId);
+    }
+
+    @Override
     public LmsSetupTestResult testCourseAccessAPI() {
         final LmsSetupTestResult attributesCheck = this.restTemplateFactory.test();
         if (!attributesCheck.isOk()) {

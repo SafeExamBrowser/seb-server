@@ -57,7 +57,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.CertificateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
@@ -67,9 +67,9 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfigu
 @Lazy
 @Service
 @WebServiceProfile
-public class ClientConfigServiceImpl implements ClientConfigService {
+public class ConnectionConfigurationServiceImpl implements ConnectionConfigurationService {
 
-    private static final Logger log = LoggerFactory.getLogger(ClientConfigServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionConfigurationServiceImpl.class);
 
     //@formatter:off
     private static final String SEB_CLIENT_CONFIG_EXAM_PROP_NAME = "exam";
@@ -171,7 +171,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private final long defaultPingInterval;
     private final int examAPITokenValiditySeconds;
 
-    protected ClientConfigServiceImpl(
+    protected ConnectionConfigurationServiceImpl(
             final SEBClientConfigDAO sebClientConfigDAO,
             final ClientCredentialService clientCredentialService,
             final SEBConfigEncryptionService sebConfigEncryptionService,

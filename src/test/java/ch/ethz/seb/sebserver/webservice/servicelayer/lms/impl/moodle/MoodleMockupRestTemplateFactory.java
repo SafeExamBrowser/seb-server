@@ -196,6 +196,13 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
         }
 
         @Override
+        public String uploadMultiPart(
+                final String uploadEndpoint,
+                final MultiValueMap<String, Object> multiPartAttributes) {
+            throw new UnsupportedOperationException("Not supported yet");
+        }
+
+        @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();
             builder.append("MockupMoodleRestTemplate [accessToken=");

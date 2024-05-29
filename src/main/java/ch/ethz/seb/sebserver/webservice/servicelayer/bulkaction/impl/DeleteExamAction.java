@@ -100,7 +100,7 @@ public class DeleteExamAction implements BatchActionExec {
     }
 
     @Transactional
-    public Result<EntityKey> deleteExamFromLMSIntegration(final Exam exam) {
+    public Result<EntityKey> deleteExamInternal(final Exam exam) {
         return deleteExamDependencies(exam)
                 .flatMap(this::deleteExamWithRefs)
                 .map(Exam::getEntityKey)

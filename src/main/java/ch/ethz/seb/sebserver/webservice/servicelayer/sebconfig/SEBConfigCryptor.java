@@ -18,7 +18,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
 
 /** Interface for a SEB Configuration encryption and decryption strategy.
- *
+ * <p>
  * To support a new SEB Configuration encryption and decryption strategy use this interface
  * to implement a concrete strategy for encryption and decryption of SEB configurations */
 public interface SEBConfigCryptor {

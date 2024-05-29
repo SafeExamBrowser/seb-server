@@ -8,10 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.IntegrationData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService.ExamData;
 
 public interface FullLmsIntegrationAPI {
 
@@ -23,6 +25,10 @@ public interface FullLmsIntegrationAPI {
     LmsSetupTestResult testFullIntegrationAPI();
 
     Result<IntegrationData> applyConnectionDetails(IntegrationData data);
+
+    Result<ExamData> applyExamData(ExamData examData);
+
+    Result<Exam> applyConnectionConfiguration(Exam exam, byte[] configData);
 
     Result<String> deleteConnectionDetails();
 

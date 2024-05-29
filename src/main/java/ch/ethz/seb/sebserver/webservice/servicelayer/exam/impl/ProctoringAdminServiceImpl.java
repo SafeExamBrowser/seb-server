@@ -100,25 +100,25 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
             checkType(parentEntityKey);
 
-            ScreenProctoringSettings settings = this.proctoringSettingsDAO
+            return this.proctoringSettingsDAO
                     .getScreenProctoringSettings(parentEntityKey)
                     .getOrThrow();
 
-            if (this.screenProctoringServiceBundle.bundled) {
-                settings = new ScreenProctoringSettings(
-                        settings.examId,
-                        settings.enableScreenProctoring,
-                        this.screenProctoringServiceBundle.serviceURL,
-                        this.screenProctoringServiceBundle.clientId,
-                        null,
-                        this.screenProctoringServiceBundle.apiAccountName,
-                        null,
-                        settings.collectingStrategy,
-                        settings.collectingGroupSize,
-                        true);
-            }
-
-            return settings;
+//            if (this.screenProctoringServiceBundle.bundled) {
+//                settings = new ScreenProctoringSettings(
+//                        settings.examId,
+//                        settings.enableScreenProctoring,
+//                        this.screenProctoringServiceBundle.serviceURL,
+//                        this.screenProctoringServiceBundle.clientId,
+//                        null,
+//                        this.screenProctoringServiceBundle.apiAccountName,
+//                        null,
+//                        settings.collectingStrategy,
+//                        settings.collectingGroupSize,
+//                        true);
+//            }
+//
+//            return settings;
         });
     }
 

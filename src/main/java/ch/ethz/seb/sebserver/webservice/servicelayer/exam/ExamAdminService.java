@@ -18,19 +18,11 @@ public interface ExamAdminService {
 
     ProctoringAdminService getProctoringAdminService();
 
-    Result<Exam> applyExamImportInitialization(Exam exam);
-
     /** Get the exam domain object for the exam identifier (PK).
      *
      * @param examId the exam identifier
      * @return Result refer to the domain object or to an error when happened */
     Result<Exam> examForPK(Long examId);
-
-    /** Initializes initial additional attributes for a yet created exam.
-     *
-     * @param exam The exam that has been created
-     * @return The exam with the initial additional attributes */
-    Result<Exam> initAdditionalAttributes(final Exam exam);
 
     /** Saves the security key settings for an specific exam.
      *
@@ -44,13 +36,6 @@ public interface ExamAdminService {
             Long examId,
             Boolean enabled,
             Integer numThreshold);
-
-    /** Applies all additional SEB restriction attributes that are defined by the
-     * type of the LMS of a given Exam to this given Exam.
-     *
-     * @param exam the Exam to apply all additional SEB restriction attributes
-     * @return Result refer to the created exam or to an error when happened */
-    Result<Exam> applyAdditionalSEBRestrictions(Exam exam);
 
     /** Indicates whether a specific exam is being restricted with SEB restriction feature on the LMS or not.
      *

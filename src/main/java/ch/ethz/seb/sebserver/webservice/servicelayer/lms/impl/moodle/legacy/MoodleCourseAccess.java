@@ -61,9 +61,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
- *
+ * <p>
  * See also: https://docs.moodle.org/dev/Web_service_API_functions
- *
+ * <p>
  * NOTE: Because of the missing integration on Moodle side so far the MoodleCourseAccess
  * needs to deal with Moodle's standard API functions that don't allow to filter and page course/quiz data
  * in an easy and proper way. Therefore we have to fetch all course and quiz data from Moodle before
@@ -139,6 +139,16 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
     APITemplateDataSupplier getApiTemplateDataSupplier() {
         return this.restTemplateFactory.getApiTemplateDataSupplier();
+    }
+
+    @Override
+    public String getCourseIdFromExam(final Exam exam) {
+        return MoodleUtils.getCourseId(exam.externalId);
+    }
+
+    @Override
+    public String getQuizIdFromExam(final Exam exam) {
+        return MoodleUtils.getQuizId(exam.externalId);
     }
 
     @Override

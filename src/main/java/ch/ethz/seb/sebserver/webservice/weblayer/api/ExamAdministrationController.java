@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
@@ -81,11 +82,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAdministrationController.class);
 
-    // TODO reduce dependencies here.
-    // Move SecurityKeyService, SEBRestrictionService RemoteProctoringRoomService into ExamAdminService
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
     private final ExamAdminService examAdminService;
+    private final ExamImportService examImportService;
     private final RemoteProctoringRoomService remoteProctoringRoomService;
     private final LmsAPIService lmsAPIService;
     private final ExamSessionService examSessionService;
@@ -103,6 +103,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final LmsAPIService lmsAPIService,
             final UserDAO userDAO,
             final ExamAdminService examAdminService,
+            final ExamImportService examImportService,
             final RemoteProctoringRoomService remoteProctoringRoomService,
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
@@ -119,6 +120,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.examDAO = examDAO;
         this.userDAO = userDAO;
         this.examAdminService = examAdminService;
+        this.examImportService = examImportService;
         this.remoteProctoringRoomService = remoteProctoringRoomService;
         this.lmsAPIService = lmsAPIService;
         this.examSessionService = examSessionService;
@@ -609,7 +611,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @Override
     protected Result<Exam> notifyCreated(final Exam entity) {
-        return examAdminService.applyExamImportInitialization(entity);
+        return examImportService.applyExamImportInitialization(entity);
     }
 
     @Override

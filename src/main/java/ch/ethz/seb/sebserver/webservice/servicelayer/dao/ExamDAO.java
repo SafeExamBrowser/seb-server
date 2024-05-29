@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -108,6 +109,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *
      * @return Result refer to all exams for LMS update or to an error when happened */
     Result<Collection<Exam>> allForLMSUpdate();
+
+    Result<Collection<Exam>> allActiveForLMSSetup(Collection<Long> lmsId);
 
     /** This is used to get all Exams that potentially needs a state change.
      * Checks if the stored running time frame of the exam is not in sync with the current state and return
@@ -241,7 +244,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
 
     void updateQuitPassword(Exam exam, String quitPassword);
-
 
 
 }

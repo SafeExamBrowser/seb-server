@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,15 +51,18 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
 
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
+    private final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle;
     private final Cryptor cryptor;
 
     public ProctoringSettingsDAOImpl(
             final AdditionalAttributesDAO additionalAttributesDAO,
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
+            final WebserviceInfo webserviceInfo,
             final Cryptor cryptor) {
 
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
+        this.screenProctoringServiceBundle = webserviceInfo.getScreenProctoringServiceBundle();
         this.cryptor = cryptor;
     }
 
@@ -165,8 +169,6 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         return Result.tryCatch(() -> {
             final Long entityId = Long.parseLong(entityKey.modelId);
 
-            //checkType(parentEntityKey);
-
             return this.additionalAttributesDAO
                     .getAdditionalAttributes(entityKey.entityType, entityId)
                     .map(attrs -> attrs.stream()
@@ -174,16 +176,31 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                                     AdditionalAttributeRecord::getName,
                                     Function.identity())))
                     .map(mapping -> {
-                        return new ScreenProctoringSettings(
-                                entityId,
-                                getScreenproctoringEnabled(mapping),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_SERVICE_URL),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_KEY),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_SECRET),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
-                                getScreenProctoringCollectingStrategy(mapping),
-                                getScreenProctoringCollectingSize(mapping));
+                        if (screenProctoringServiceBundle.bundled) {
+                            return new ScreenProctoringSettings(
+                                    entityId,
+                                    getScreenproctoringEnabled(mapping),
+                                    screenProctoringServiceBundle.serviceURL,
+                                    screenProctoringServiceBundle.clientId,
+                                    screenProctoringServiceBundle.clientSecret.toString(),
+                                    screenProctoringServiceBundle.apiAccountName,
+                                    screenProctoringServiceBundle.apiAccountPassword.toString(),
+                                    getScreenProctoringCollectingStrategy(mapping),
+                                    getScreenProctoringCollectingSize(mapping),
+                                    true);
+                        } else {
+                            return new ScreenProctoringSettings(
+                                    entityId,
+                                    getScreenproctoringEnabled(mapping),
+                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_SERVICE_URL),
+                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_KEY),
+                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_SECRET),
+                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
+                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
+                                    getScreenProctoringCollectingStrategy(mapping),
+                                    getScreenProctoringCollectingSize(mapping),
+                                    false);
+                        }
                     })
                     .getOrThrow();
         });
@@ -203,33 +220,43 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
             attributes.put(
                     ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING,
                     String.valueOf(screenProctoringSettings.enableScreenProctoring));
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
-                    StringUtils.trim(screenProctoringSettings.spsServiceURL));
+
+            // we need to store this only if it is an unbundled setup otherwise attributes are known by the service
+            if (!screenProctoringServiceBundle.bundled) {
+                attributes.put(
+                        ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
+                        StringUtils.trim(screenProctoringSettings.spsServiceURL));
+                attributes.put(
+                        ScreenProctoringSettings.ATTR_SPS_API_KEY,
+                        StringUtils.trim(screenProctoringSettings.spsAPIKey));
+                attributes.put(
+                        ScreenProctoringSettings.ATTR_SPS_API_SECRET,
+                        encryptSecret(Utils.trim(screenProctoringSettings.spsAPISecret)));
+                attributes.put(
+                        ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID,
+                        StringUtils.trim(screenProctoringSettings.spsAccountId));
+                attributes.put(
+                        ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD,
+                        encryptSecret(Utils.trim(screenProctoringSettings.spsAccountPassword)));
+            }
+
             attributes.put(
                     ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY,
                     String.valueOf(screenProctoringSettings.collectingStrategy));
             attributes.put(
                     ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE,
                     String.valueOf(screenProctoringSettings.collectingGroupSize));
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_SPS_API_KEY,
-                    StringUtils.trim(screenProctoringSettings.spsAPIKey));
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_SPS_API_SECRET,
-                    encryptSecret(Utils.trim(screenProctoringSettings.spsAPISecret)));
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID,
-                    StringUtils.trim(screenProctoringSettings.spsAccountId));
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD,
-                    encryptSecret(Utils.trim(screenProctoringSettings.spsAccountPassword)));
+
 
             this.additionalAttributesDAO.saveAdditionalAttributes(
                     entityKey.entityType,
                     entityId,
                     attributes,
-                    true);
+                    true)
+                    .onError(error -> log.warn(
+                            "Failed to store SPS attributes for Exam: {} error: {}",
+                            entityKey,
+                            error.getMessage()));
 
             return screenProctoringSettings;
         });

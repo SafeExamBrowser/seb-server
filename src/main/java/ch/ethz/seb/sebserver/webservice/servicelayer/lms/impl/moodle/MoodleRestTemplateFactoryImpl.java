@@ -149,14 +149,13 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         this. activeRestTemplate = this.knownTokenAccessPaths
                 .stream()
                 .map(path -> this.createRestTemplate(service, path))
-                .map(result -> {
+                .peek(result -> {
                     if (result.hasError()) {
                         log.warn("Failed to get access token for LMS: {}({}), error {}",
                                 lmsSetup.name,
                                 lmsSetup.id,
                                 result.getError().getMessage());
                     }
-                    return result;
                 })
                 .filter(Result::hasValue)
                 .findFirst()
@@ -284,7 +283,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
                     final List<String> missingAPIFunctions = Arrays.stream(functions)
                             .filter(f -> !webserviceInfo.functions.containsKey(f))
-                            .collect(Collectors.toList());
+                            .toList();
 
                     if (!missingAPIFunctions.isEmpty()) {
                         throw new RuntimeException("Missing Moodle Webservice API functions: " + missingAPIFunctions);
@@ -328,7 +327,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             headers.set(
                     HttpHeaders.CONTENT_TYPE,
                     MediaType.APPLICATION_JSON_VALUE);
-            HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
+            final HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
 
             return doRequest(functionName, queryParam, true, httpEntity);
         }
@@ -367,6 +366,22 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             }
 
             return doRequest(functionName, queryParam, usePOST, functionReqEntity);
+        }
+
+        @Override
+        public String uploadMultiPart(
+                final String uploadEndpoint,
+                final MultiValueMap<String, Object> multiPartAttributes) {
+
+            final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+            final String uri = lmsSetup.lmsApiUrl + uploadEndpoint;
+            getAccessToken();
+            multiPartAttributes.add("token", this.accessToken);
+
+            return super.postForObject(
+                    uploadEndpoint,
+                    multiPartAttributes,
+                    String.class);
         }
 
         private String doRequest(
@@ -474,7 +489,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         final String privatetoken;
 
         @JsonCreator
-        protected MoodleToken(
+        private MoodleToken(
                 @JsonProperty(value = "token") final String token,
                 @JsonProperty(value = "privatetoken", required = false) final String privatetoken) {
 
@@ -491,7 +506,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         Map<String, FunctionInfo> functions;
 
         @JsonCreator
-        protected WebserviceInfo(
+        private WebserviceInfo(
                 @JsonProperty(value = "username") final String username,
                 @JsonProperty(value = "userid") final String userid,
                 @JsonProperty(value = "functions") final Collection<FunctionInfo> functions) {
@@ -513,7 +528,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         String version;
 
         @JsonCreator
-        protected FunctionInfo(
+        private FunctionInfo(
                 @JsonProperty(value = "name") final String name,
                 @JsonProperty(value = "version") final String version) {
 
