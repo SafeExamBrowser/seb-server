@@ -233,7 +233,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
-            key = "#examId")
+            key = "#exam.id")
     Result<Exam> applySupporter(Exam exam, String userUUID);
 
     /** This is used by the internal update process to mark exams for which the LMS related data availability

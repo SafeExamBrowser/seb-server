@@ -17,12 +17,14 @@ import java.util.Collection;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -62,6 +64,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class SEBClientConfigController extends ActivatableEntityController<SEBClientConfig, SEBClientConfig> {
 
     private final ConnectionConfigurationService sebConnectionConfigurationService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public SEBClientConfigController(
             final SEBClientConfigDAO sebClientConfigDAO,
@@ -70,7 +73,8 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             final BulkActionService bulkActionService,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ConnectionConfigurationService sebConnectionConfigurationService) {
+            final ConnectionConfigurationService sebConnectionConfigurationService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         super(authorization,
                 bulkActionService,
@@ -80,6 +84,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
                 beanValidationService);
 
         this.sebConnectionConfigurationService = sebConnectionConfigurationService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @RequestMapping(
@@ -183,6 +188,10 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
         if (entity.isActive()) {
             // try to get access token for SEB client
             this.sebConnectionConfigurationService.initialCheckAccess(entity);
+            // notify all
+            applicationEventPublisher.publishEvent(new ConnectionConfigurationChangeEvent(
+                    entity.institutionId,
+                    entity.id));
         }
         return super.notifySaved(entity);
     }

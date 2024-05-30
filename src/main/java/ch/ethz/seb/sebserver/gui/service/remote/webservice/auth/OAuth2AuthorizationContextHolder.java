@@ -11,13 +11,11 @@ package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import javax.servlet.http.HttpSession;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,9 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -146,12 +142,14 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         private boolean valid = true;
 
+        private final ClientHttpRequestFactory clientHttpRequestFactory;
         private final ResourceOwnerPasswordResourceDetails resource;
         private final DisposableOAuth2RestTemplate restTemplate;
         private final String revokeTokenURI;
         private final String currentUserURI;
         private final String loginLogURI;
         private final String logoutLogURI;
+        private final String jwtTokenVerificationURI;
 
         private Result<UserInfo> loggedInUser = null;
 
@@ -161,6 +159,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 final WebserviceURIService webserviceURIService,
                 final ClientHttpRequestFactory clientHttpRequestFactory) {
 
+            this.clientHttpRequestFactory = clientHttpRequestFactory;
             this.resource = new ResourceOwnerPasswordResourceDetails();
             this.resource.setAccessTokenUri(webserviceURIService.getOAuthTokenURI());
             this.resource.setClientId(guiClientId);
@@ -179,6 +178,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();
             this.loginLogURI = webserviceURIService.getLoginLogPostURI();
             this.logoutLogURI = webserviceURIService.getLogoutLogPostURI();
+            this.jwtTokenVerificationURI = webserviceURIService.getJWTTokenVerificationURI();
         }
 
         @Override
@@ -192,9 +192,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
                 return false;
             }
-
-            // TODO check if this is needed. If not remove it.
-            //      This gets called many times for a page load
 
             try {
                 final ResponseEntity<String> forEntity =
@@ -264,8 +261,32 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         @Override
         public boolean autoLogin(final String oneTimeToken) {
-            // TODO call auto-login API on Webservice to verify the oneTimeToken and
-            return false;
+            try {
+                // Create ad-hoc RestTemplate and call token verification
+                final RestTemplate verifyTemplate = new RestTemplate(this.clientHttpRequestFactory);
+                final HttpHeaders httpHeaders = new HttpHeaders();
+                httpHeaders.set("ONE_TIME_TOKEN_TO_VERIFY", oneTimeToken);
+                httpHeaders.setBasicAuth(resource.getClientId(), resource.getClientSecret());
+
+                final ResponseEntity<TokenLoginInfo> response = verifyTemplate.exchange(
+                        this.jwtTokenVerificationURI,
+                        HttpMethod.POST,
+                        new HttpEntity<TokenLoginInfo>(null, httpHeaders),
+                        TokenLoginInfo.class);
+
+                if (response.getStatusCodeValue() != HttpStatus.OK.value()) {
+                    log.warn("Autologin failed due to error response: {}", response);
+                    return false;
+                }
+
+                final TokenLoginInfo loginInfo = response.getBody();
+                this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
+
+                return this.isLoggedIn();
+            } catch (final Exception e) {
+                log.warn("Autologin failed due to unexpected error: {}", e.getMessage());
+                return false;
+            }
         }
 
         @Override

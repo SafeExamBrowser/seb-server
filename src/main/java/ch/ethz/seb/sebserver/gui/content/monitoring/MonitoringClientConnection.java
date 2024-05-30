@@ -205,7 +205,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
                 .getOrThrow();
         final UserInfo user = currentUser.get();
-        final boolean supporting = user.hasRole(UserRole.EXAM_SUPPORTER) &&
+        final boolean supporting = user.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.TEACHER) &&
                 exam.supporter.contains(user.uuid);
         final BooleanSupplier isExamSupporter = () -> supporting || user.hasRole(UserRole.EXAM_ADMIN);
 

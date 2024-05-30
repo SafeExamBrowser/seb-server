@@ -13,6 +13,7 @@ import java.util.*;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -22,9 +23,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -42,6 +41,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserException;
 import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.stereotype.Service;
 
@@ -56,13 +56,10 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     private static final String USER_CLAIM = "usr";
     private static final String EXAM_ID_CLAIM = "exam";
 
-    private static final String EXAM_OTT_SUBJECT_PREFIX = "EXAM_OTT_SUBJECT_";
-
     private final UserDAO userDAO;
     private final ScreenProctoringService screenProctoringService;
     private final ExamDAO examDAO;
     private final Cryptor cryptor;
-    private final AdditionalAttributesDAO additionalAttributesDAO;
     final TokenEndpoint tokenEndpoint;
     private final AdminAPIClientDetails adminAPIClientDetails;
 
@@ -71,7 +68,6 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final ScreenProctoringService screenProctoringService,
             final ExamDAO examDAO,
             final Cryptor cryptor,
-            final AdditionalAttributesDAO additionalAttributesDAO,
             final TokenEndpoint tokenEndpoint,
             final AdminAPIClientDetails adminAPIClientDetails) {
 
@@ -79,7 +75,6 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         this.screenProctoringService = screenProctoringService;
         this.examDAO = examDAO;
         this.cryptor = cryptor;
-        this.additionalAttributesDAO = additionalAttributesDAO;
         this.tokenEndpoint = tokenEndpoint;
         this.adminAPIClientDetails = adminAPIClientDetails;
     }
@@ -90,7 +85,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             throw new RuntimeException("examId and/or userId cannot be null");
         }
 
-        return userId + Constants.UNDERLINE + examId;
+        return userId;
     }
 
     @Override
@@ -164,7 +159,12 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     public Result<TokenLoginInfo> verifyOneTimeTokenForTeacherAccount(final String loginToken) {
         return Result.tryCatch(() -> {
 
-            final Claims claims = checkJWTValid(loginToken);
+            final Claims claims;
+            try {
+                claims = checkJWTValid(loginToken);
+            } catch (final Exception e) {
+                throw new UnauthorizedUserException("Invalid One Time JWT", e);
+            }
             final String userId = claims.get(USER_CLAIM, String.class);
 
             // check if requested user exists
@@ -174,20 +174,24 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
             // login the user by getting access token
             final Map<String, String> params = new HashMap<>();
-            params.put("grant_type", "password");
-            params.put("username", user.username);
-            params.put("password", user.uuid);
-            //final WebAuthenticationDetails details = new WebAuthenticationDetails("localhost", null);
+            params.put(Constants.OAUTH2_GRANT_TYPE, Constants.OAUTH2_GRANT_TYPE_PASSWORD);
+            params.put(Constants.OAUTH2_USER_NAME, user.username);
+            params.put(Constants.OAUTH2_GRANT_TYPE_PASSWORD, claims.get(SUBJECT_CLAIM_NAME, String.class));
             final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                     new UsernamePasswordAuthenticationToken(
-                            this.adminAPIClientDetails, // TODO are this the correct details?
-                            null,
+                            this.adminAPIClientDetails.getClientId(),
+                            "N/A",
                             Collections.emptyList());
             final ResponseEntity<OAuth2AccessToken> accessToken =
                     this.tokenEndpoint.postAccessToken(usernamePasswordAuthenticationToken, params);
             final OAuth2AccessToken token = accessToken.getBody();
 
-            return new TokenLoginInfo(user.username, user.uuid, null, token);
+            final String examId = claims.get(EXAM_ID_CLAIM, String.class);
+            final EntityKey redirectTo = (StringUtils.isNotBlank(examId))
+                    ? new EntityKey(examId, EntityType.EXAM)
+                    : null;
+
+            return new TokenLoginInfo(user.username, user.uuid, redirectTo, token);
         });
     }
 
@@ -225,9 +229,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     private String createOneTimeToken(final UserInfo account, final Long examId) {
 
-        // create a subject claim for this token only
         final String subjectClaim = UUID.randomUUID().toString();
-        this.storeSubjectForExam(examId, account.uuid, subjectClaim);
+        userDAO.changePassword(account.uuid, subjectClaim);
 
         final Map<String, Object> claims = new HashMap<>();
         claims.put(USER_CLAIM, account.uuid);
@@ -276,36 +279,11 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         final Long examPK = Long.parseLong(examId);
 
         // check subject
-        final String subjectClaim = getSubjectForExam(examPK, userId);
-        if (StringUtils.isBlank(subjectClaim)) {
-            throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.UNAUTHORIZED.of("Subject not found"));
-        }
         final String subject = claims.get(SUBJECT_CLAIM_NAME, String.class);
-        if (!subjectClaim.equals(subject)) {
+        if (StringUtils.isBlank(subject)) {
             throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.UNAUTHORIZED.of("Token subject mismatch"));
         }
         return claims;
-    }
-
-    private void storeSubjectForExam(final Long examId, final String userId, final String subject) {
-        additionalAttributesDAO.saveAdditionalAttribute(
-                EntityType.EXAM,
-                examId,
-                EXAM_OTT_SUBJECT_PREFIX + userId,
-                subject)
-                .getOrThrow();
-    }
-
-    private void deleteSubjectForExam(final Long examId, final String userId) {
-        additionalAttributesDAO.delete(EntityType.EXAM, examId, EXAM_OTT_SUBJECT_PREFIX + userId);
-    }
-
-    private String getSubjectForExam(final Long examId, final String userId) {
-        return additionalAttributesDAO
-                .getAdditionalAttribute(EntityType.EXAM, examId, EXAM_OTT_SUBJECT_PREFIX + userId)
-                .map(AdditionalAttributeRecord::getValue)
-                .onError(error -> log.warn("Failed to get OTT subject from exam: {}", error.getMessage()))
-                .getOrElse(null);
     }
 
     private UserInfo synchronizeSPSUserForExam(final UserInfo account, final Long examId) {

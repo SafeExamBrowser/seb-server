@@ -91,6 +91,7 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**").permitAll()
                 .antMatchers(adminAPIEndpoint + API.REGISTER_ENDPOINT).permitAll()
+                .antMatchers(API.OAUTH_JWT_TOKEN_ENDPOINT + "/**").permitAll()
                 .and()
                 .antMatcher("/**")
                 .authorizeRequests()

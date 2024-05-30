@@ -21,6 +21,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -49,6 +51,8 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 @Lazy
 @Component
@@ -116,6 +120,20 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             final HttpServletResponse response,
             final AuthenticationException authException) throws IOException, ServletException {
 
+        final String jwt = request.getParameter("jwt");
+        if (StringUtils.isNotBlank(jwt)) {
+            final WebApplicationContext webApplicationContext = WebApplicationContextUtils
+                    .getRequiredWebApplicationContext(request.getServletContext());
+            final AuthorizationContextHolder authorizationContextHolder = webApplicationContext
+                    .getBean(AuthorizationContextHolder.class);
+            final SEBServerAuthorizationContext authorizationContext = authorizationContextHolder
+                    .getAuthorizationContext(request.getSession());
+            if (authorizationContext.autoLogin(jwt)) {
+                forwardToEntryPoint(request, response, this.guiEntryPoint, true);
+                return;
+            }
+        }
+
         final String institutionalEndpoint = extractInstitutionalEndpoint(request);
 
         if (StringUtils.isNotBlank(institutionalEndpoint)) {
@@ -168,7 +186,6 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
         request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         forwardToEntryPoint(request, response, this.guiEntryPoint, institutionalEndpoint == null);
-
     }
 
     private void forwardToEntryPoint(

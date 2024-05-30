@@ -379,7 +379,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             multiPartAttributes.add("token", this.accessToken);
 
             return super.postForObject(
-                    uploadEndpoint,
+                    uri,
                     multiPartAttributes,
                     String.class);
         }

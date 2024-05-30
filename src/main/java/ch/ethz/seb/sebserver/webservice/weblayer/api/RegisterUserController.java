@@ -68,7 +68,7 @@ public class RegisterUserController {
         this.userActivityLogDAO = userActivityLogDAO;
         this.userDAO = userDAO;
         this.beanValidationService = beanValidationService;
-        this. registeringEnabled = BooleanUtils.isTrue(features.get(UserFeatures.Feature.ADMIN_USER_ACCOUNT_SELF_REGISTERING.featureName));
+        this.registeringEnabled = BooleanUtils.isTrue(features.get(UserFeatures.Feature.ADMIN_USER_ACCOUNT_SELF_REGISTERING.featureName));
         this.autoActivation = BooleanUtils.isTrue(features.get(UserFeatures.Feature.ADMIN_USER_ACCOUNT_SELF_REGISTERING_AUTO_ACTIVATION.featureName));
         this.requestRateLimitBucket = rateLimitService.createRequestLimitBucker();
         this.createRateLimitBucket = rateLimitService.createCreationLimitBucker();

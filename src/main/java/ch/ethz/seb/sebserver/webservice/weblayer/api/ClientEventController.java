@@ -221,7 +221,9 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                 .getUserService()
                 .getCurrentUser()
                 .getUserRoles();
-        final boolean isSupporterOnly = userRoles.size() == 1 && userRoles.contains(UserRole.EXAM_SUPPORTER);
+        final boolean isSupporterOnly = userRoles.size() == 1 &&
+                (userRoles.contains(UserRole.EXAM_SUPPORTER) || userRoles.contains(UserRole.TEACHER));
+
 
         return Result.tryCatch(() -> {
 

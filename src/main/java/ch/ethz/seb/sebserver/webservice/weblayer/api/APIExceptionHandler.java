@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             ((OnlyMessageLogExceptionWrapper) ex).log(log);
             return new ResponseEntity<>(status);
         } else {
-            log.error("Unexpected generic error catched at the API endpoint: ", ex);
+            log.error("Unexpected generic error caught at the API endpoint: ", ex);
         }
 
         final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()));
@@ -158,6 +159,15 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.warn("Illegal argument or state detected: {}\n    send 400 Bad Request response", ex.getMessage());
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Object> handleNoResourceFoundException(
+            final NoResourceFoundException ex,
+            final WebRequest request) {
+
+        return APIMessage.ErrorMessage.RESOURCE_NOT_FOUND
+                .createErrorResponse(ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

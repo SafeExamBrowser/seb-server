@@ -95,6 +95,9 @@ public class FinishedExamList implements TemplateComposer {
         final RestService restService = this.resourceService.getRestService();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
 
+        boolean roleBasedAccess = currentUser.get()
+                .hasAnyRole(UserRole.EXAM_SUPPORTER);
+
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
@@ -165,7 +168,7 @@ public class FinishedExamList implements TemplateComposer {
                         table::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
+                .publishIf(() -> roleBasedAccess, false);
 
     }
 

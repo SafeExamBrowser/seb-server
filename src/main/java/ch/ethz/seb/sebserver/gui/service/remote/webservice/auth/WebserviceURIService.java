@@ -83,4 +83,11 @@ public class WebserviceURIService {
                 .path(API.USER_ACCOUNT_ENDPOINT + API.LOGOUT_PATH_SEGMENT)
                 .toUriString();
     }
+
+    public String getJWTTokenVerificationURI() {
+        return UriComponentsBuilder.fromHttpUrl(this.webserviceServerAddress)
+                .path(this.contextPath)
+                .path(API.OAUTH_JWT_TOKEN_VERIFY_ENDPOINT)
+                .toUriString();
+    }
 }

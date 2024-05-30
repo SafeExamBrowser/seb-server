@@ -552,7 +552,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         IOUtils.closeQuietly(out);
                     }
                 })
-                .onError(error -> log.error("Failed to apply ConnectionConfiguration for exam: {} error: {}", exam, error.getMessage()))
+                .onError(error -> log.error("Failed to apply ConnectionConfiguration for exam: {} error: ", exam, error))
                 .getOr(exam);
     }
 

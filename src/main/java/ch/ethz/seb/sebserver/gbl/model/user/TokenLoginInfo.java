@@ -8,26 +8,27 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 
 public class TokenLoginInfo {
-    @JsonProperty
+    @JsonProperty("username")
     public final String username;
-    @JsonProperty
+    @JsonProperty("userUUID")
     public final String userUUID;
-    @JsonProperty
-    public final String redirect;
-    @JsonProperty
+    @JsonProperty("redirect")
+    public final EntityKey redirect;
+    @JsonProperty("login")
     public final OAuth2AccessToken login;
 
     @JsonCreator
     public TokenLoginInfo(
-            @JsonProperty final String username,
-            @JsonProperty final String userUUID,
-            @JsonProperty final String redirect,
-            @JsonProperty final OAuth2AccessToken login) {
+            @JsonProperty("username") final String username,
+            @JsonProperty("userUUID") final String userUUID,
+            @JsonProperty("redirect") final EntityKey redirect,
+            @JsonProperty("login") final OAuth2AccessToken login) {
 
         this.username = username;
         this.userUUID = userUUID;

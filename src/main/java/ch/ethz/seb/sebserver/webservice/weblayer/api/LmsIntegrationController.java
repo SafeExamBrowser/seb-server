@@ -90,8 +90,8 @@ public class LmsIntegrationController {
 
         final EntityKey examID = fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
                 .onError(e -> log.error(
-                        "Failed to delete exam: lmsId:{}, courseId: {}, quizId: {}",
-                        lmsUUId, courseId, quizId, e))
+                        "Failed to delete exam: lmsId:{}, courseId: {}, quizId: {}, error: {}",
+                        lmsUUId, courseId, quizId, e.getMessage()))
                 .getOrThrow();
 
         log.info("Auto delete of exam successful: {}", examID);
@@ -141,8 +141,7 @@ public class LmsIntegrationController {
     @RequestMapping(
             path = API.LMS_FULL_INTEGRATION_LOGIN_TOKEN_ENDPOINT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public FullLmsIntegrationService.TokenLoginResponse getOneTimeLoginToken(
             @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
@@ -166,7 +165,7 @@ public class LmsIntegrationController {
 
         final String token = this.fullLmsIntegrationService
                 .getOneTimeLoginToken(lmsUUId, courseId, quizId, adHocAccountData)
-                .onError(error -> log.error("Failed to create ad-hoc account with one time login token: ", error))
+                .onError(error -> log.error("Failed to create ad-hoc account with one time login token, error: {}", error.getMessage()))
                 .getOrThrow();
 
         return new FullLmsIntegrationService.TokenLoginResponse(

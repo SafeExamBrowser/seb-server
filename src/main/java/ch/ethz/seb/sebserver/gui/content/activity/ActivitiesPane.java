@@ -93,102 +93,104 @@ public class ActivitiesPane implements TemplateComposer {
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext);
 
+        final boolean isTeacherOnly = this.currentUser.get().hasAnyRole(UserRole.TEACHER) &&
+                !this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER) &&
+                !this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN) ;
+
         //--------------------------------------------------------------------------------------
         // ---- SEB ADMIN ----------------------------------------------------------------------
 
         final boolean isServerOrInstAdmin = this.currentUser.get()
                 .hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN);
 
-        // SEB Server Administration
-        final TreeItem sebAdmin = this.widgetFactory.treeItemLocalized(
-                navigation,
-                ActivityDefinition.SEB_ADMINISTRATION.displayName);
+        if (isServerOrInstAdmin) {
+            // SEB Server Administration
+            final TreeItem sebAdmin = this.widgetFactory.treeItemLocalized(
+                    navigation,
+                    ActivityDefinition.SEB_ADMINISTRATION.displayName);
 
-        // Institution
+            // Institution
 
-        if (currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)) {
-            // If current user has SEB Server Admin role, show the Institution list
-            if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
-                // institutions (list) as root
-                final TreeItem institutions = this.widgetFactory.treeItemLocalized(
+            if (currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)) {
+                // If current user has SEB Server Admin role, show the Institution list
+                if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
+                    // institutions (list) as root
+                    final TreeItem institutions = this.widgetFactory.treeItemLocalized(
+                            sebAdmin,
+                            ActivityDefinition.INSTITUTION.displayName);
+                    injectActivitySelection(
+                            institutions,
+                            actionBuilder
+                                    .newAction(ActionDefinition.INSTITUTION_VIEW_LIST)
+                                    .create());
+
+                } else if (userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
+                    // otherwise show the form of the institution for current user
+                    final TreeItem institutions = this.widgetFactory.treeItemLocalized(
+                            sebAdmin,
+                            ActivityDefinition.INSTITUTION.displayName);
+                    injectActivitySelection(
+                            institutions,
+                            actionBuilder.newAction(ActionDefinition.INSTITUTION_VIEW_FORM)
+                                    .withEntityKey(userInfo.institutionId, EntityType.INSTITUTION)
+                                    .withAttribute(AttributeKeys.READ_ONLY, "true")
+                                    .create());
+                }
+            }
+
+            // User Account
+            // if current user has role seb-server admin or institutional-admin, show list
+            if (!pageService.isLightSetup() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)) {
+
+                final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                         sebAdmin,
-                        ActivityDefinition.INSTITUTION.displayName);
+                        ActivityDefinition.USER_ACCOUNT.displayName);
                 injectActivitySelection(
-                        institutions,
+                        userAccounts,
                         actionBuilder
-                                .newAction(ActionDefinition.INSTITUTION_VIEW_LIST)
+                                .newAction(ActionDefinition.USER_ACCOUNT_VIEW_LIST)
                                 .create());
-
-            } else if (userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
-                // otherwise show the form of the institution for current user
-                final TreeItem institutions = this.widgetFactory.treeItemLocalized(
+            } else if (currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ACCOUNT)) {
+                // otherwise show the user account form for current user
+                final TreeItem userAccounts = pageService.isLightSetup() || !currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)
+                        ? this.widgetFactory.treeItemLocalized(
                         sebAdmin,
-                        ActivityDefinition.INSTITUTION.displayName);
+                        ActivityDefinition.USER_ACCOUNT.displayName)
+                        : this.widgetFactory.treeItemLocalized(
+                        navigation,
+                        ActivityDefinition.USER_ACCOUNT.displayName);
                 injectActivitySelection(
-                        institutions,
-                        actionBuilder.newAction(ActionDefinition.INSTITUTION_VIEW_FORM)
-                                .withEntityKey(userInfo.institutionId, EntityType.INSTITUTION)
+                        userAccounts,
+                        actionBuilder.newAction(ActionDefinition.USER_ACCOUNT_VIEW_FORM)
+                                .withEntityKey(this.currentUser.get().getEntityKey())
                                 .withAttribute(AttributeKeys.READ_ONLY, "true")
                                 .create());
             }
+
+            // User Activity Logs
+            final boolean viewUserActivityLogs = this.currentUser.hasInstitutionalPrivilege(
+                    PrivilegeType.READ,
+                    EntityType.USER_ACTIVITY_LOG)
+                    && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_AUDIT_LOGS);
+            if (viewUserActivityLogs) {
+                final TreeItem activityLogs = this.widgetFactory.treeItemLocalized(
+                        sebAdmin,
+                        ActivityDefinition.USER_ACTIVITY_LOGS.displayName);
+                injectActivitySelection(
+                        activityLogs,
+                        actionBuilder
+                                .newAction(ActionDefinition.LOGS_USER_ACTIVITY_LIST)
+                                .create());
+            }
+
+            if (sebAdmin.getItemCount() > 0) {
+                sebAdmin.setExpanded(this.currentUser.get().hasAnyRole(
+                        UserRole.SEB_SERVER_ADMIN,
+                        UserRole.INSTITUTIONAL_ADMIN));
+            } else {
+                sebAdmin.dispose();
+            }
         }
-
-        // User Account
-        // if current user has role seb-server admin or institutional-admin, show list
-        if (isServerOrInstAdmin
-                && !pageService.isLightSetup()
-                && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)) {
-
-            final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
-                    sebAdmin,
-                    ActivityDefinition.USER_ACCOUNT.displayName);
-            injectActivitySelection(
-                    userAccounts,
-                    actionBuilder
-                            .newAction(ActionDefinition.USER_ACCOUNT_VIEW_LIST)
-                            .create());
-        } else if (currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ACCOUNT)) {
-            // otherwise show the user account form for current user
-            final TreeItem userAccounts = pageService.isLightSetup() || !currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)
-                    ? this.widgetFactory.treeItemLocalized(
-                            sebAdmin,
-                            ActivityDefinition.USER_ACCOUNT.displayName)
-                    : this.widgetFactory.treeItemLocalized(
-                            navigation,
-                            ActivityDefinition.USER_ACCOUNT.displayName);
-            injectActivitySelection(
-                    userAccounts,
-                    actionBuilder.newAction(ActionDefinition.USER_ACCOUNT_VIEW_FORM)
-                            .withEntityKey(this.currentUser.get().getEntityKey())
-                            .withAttribute(AttributeKeys.READ_ONLY, "true")
-                            .create());
-        }
-
-        // User Activity Logs
-        final boolean viewUserActivityLogs = this.currentUser.hasInstitutionalPrivilege(
-                PrivilegeType.READ,
-                EntityType.USER_ACTIVITY_LOG)
-                && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_AUDIT_LOGS);
-        if (viewUserActivityLogs) {
-            final TreeItem activityLogs = this.widgetFactory.treeItemLocalized(
-                    sebAdmin,
-                    ActivityDefinition.USER_ACTIVITY_LOGS.displayName);
-            injectActivitySelection(
-                    activityLogs,
-                    actionBuilder
-                            .newAction(ActionDefinition.LOGS_USER_ACTIVITY_LIST)
-                            .create());
-        }
-
-        if (sebAdmin.getItemCount() > 0) {
-            sebAdmin.setExpanded(this.currentUser.get().hasAnyRole(
-                    UserRole.SEB_SERVER_ADMIN,
-                    UserRole.INSTITUTIONAL_ADMIN));
-        } else {
-            sebAdmin.dispose();
-        }
-
-
 
         // ---- SEB ADMIN ----------------------------------------------------------------------
         //--------------------------------------------------------------------------------------
@@ -252,7 +254,7 @@ public class ActivitiesPane implements TemplateComposer {
             }
 
             // Certificate management
-            if (!isSupporterOnly && certificatesEnabled) {
+            if (certificatesEnabled) {
                 final TreeItem examConfigTemplate = this.widgetFactory.treeItemLocalized(
                         sebConfigs,
                         ActivityDefinition.SEB_CERTIFICATE_MANAGEMENT.displayName);
@@ -283,7 +285,7 @@ public class ActivitiesPane implements TemplateComposer {
         final boolean examTemplateEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_TEMPLATE);
         final boolean anyExamAdminEnabled = lmsSetupEnabled || quizLookupEnabled || examEnabled || examTemplateEnabled;
 
-        if (anyExamAdminEnabled) {
+        if (anyExamAdminEnabled && !isTeacherOnly) {
             // Exam Administration
             final TreeItem examAdmin = this.widgetFactory.treeItemLocalized(
                     navigation,
@@ -369,7 +371,7 @@ public class ActivitiesPane implements TemplateComposer {
                     ActivityDefinition.MONITORING.displayName);
 
             // Monitoring exams
-            if (isSupporter) {
+            if (isSupporter || isTeacherOnly) {
 
                 if (monitoringEnabled) {
                     final TreeItem monitoringExams = this.widgetFactory.treeItemLocalized(
@@ -382,7 +384,7 @@ public class ActivitiesPane implements TemplateComposer {
                                     .create());
                 }
 
-                if (finishedEnabled) {
+                if (finishedEnabled && !isTeacherOnly) {
                     final TreeItem finishedExams = this.widgetFactory.treeItemLocalized(
                             monitoring,
                             ActivityDefinition.FINISHED_EXAMS.displayName);
@@ -395,7 +397,7 @@ public class ActivitiesPane implements TemplateComposer {
             }
 
             // SEB Client Logs
-            if (viewSEBClientLogs) {
+            if (viewSEBClientLogs && !isTeacherOnly) {
                 final TreeItem sebLogs = (isSupporter)
                         ? this.widgetFactory.treeItemLocalized(
                                 monitoring,
@@ -414,7 +416,7 @@ public class ActivitiesPane implements TemplateComposer {
                 monitoring.setExpanded(
                         this.currentUser
                                 .get()
-                                .hasAnyRole(UserRole.EXAM_SUPPORTER));
+                                .hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.TEACHER));
             } else {
                 monitoring.dispose();
             }
@@ -486,7 +488,7 @@ public class ActivitiesPane implements TemplateComposer {
                 return findItemByActionDefinition(
                         navigation.getItems(),
                         ActivityDefinition.SEB_EXAM_CONFIG);
-            } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
+            } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.TEACHER)) {
                 return findItemByActionDefinition(
                         navigation.getItems(),
                         ActivityDefinition.MONITORING_EXAMS);

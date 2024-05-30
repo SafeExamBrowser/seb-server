@@ -169,7 +169,7 @@ public class ExamMonitoringController {
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER,
+                UserRole.EXAM_SUPPORTER, UserRole.TEACHER,
                 UserRole.EXAM_ADMIN);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
@@ -230,7 +230,7 @@ public class ExamMonitoringController {
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER,
+                UserRole.EXAM_SUPPORTER, UserRole.TEACHER,
                 UserRole.EXAM_ADMIN);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
@@ -511,7 +511,7 @@ public class ExamMonitoringController {
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER,
+                UserRole.EXAM_SUPPORTER, UserRole.TEACHER,
                 UserRole.EXAM_ADMIN);
 
         // check exam running

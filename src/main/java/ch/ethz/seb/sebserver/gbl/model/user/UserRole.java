@@ -50,7 +50,7 @@ public enum UserRole implements Entity, GrantedAuthority {
     public static List<UserRole> publicRolesForUser(final UserInfo user) {
         final EnumSet<UserRole> roles = user.getUserRoles();
         if (roles.contains(SEB_SERVER_ADMIN)) {
-            return Arrays.asList(SEB_SERVER_ADMIN, INSTITUTIONAL_ADMIN, EXAM_ADMIN, EXAM_SUPPORTER);
+            return Arrays.asList(SEB_SERVER_ADMIN, INSTITUTIONAL_ADMIN, EXAM_ADMIN, EXAM_SUPPORTER, TEACHER);
         } else if (roles.contains(INSTITUTIONAL_ADMIN)) {
             return Arrays.asList(INSTITUTIONAL_ADMIN, EXAM_ADMIN, EXAM_SUPPORTER);
         } else if (roles.contains(EXAM_ADMIN)) {

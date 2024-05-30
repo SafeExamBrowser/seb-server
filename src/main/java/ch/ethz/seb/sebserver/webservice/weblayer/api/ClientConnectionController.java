@@ -192,8 +192,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         this.authorization.checkRole(
                 institution,
                 EntityType.CLIENT_EVENT,
-                UserRole.EXAM_ADMIN,
-                UserRole.EXAM_SUPPORTER);
+                UserRole.EXAM_ADMIN, UserRole.EXAM_SUPPORTER, UserRole.TEACHER);
     }
 
     private Result<Collection<ClientConnectionData>> getAllData(final FilterMap filterMap) {

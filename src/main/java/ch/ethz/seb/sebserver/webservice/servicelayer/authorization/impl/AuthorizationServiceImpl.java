@@ -123,6 +123,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.ASSIGNED)
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.ASSIGNED)
+                .withOwnerPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for exam templates
