@@ -122,9 +122,14 @@ public class ClientHttpRequestFactoryService {
                 log.debug("Initialize ClientHttpRequestFactory with proxy: {}", proxy);
             }
 
+            final SSLContext sslContext = org.apache.http.ssl.SSLContexts
+                    .custom()
+                    .loadTrustMaterial(null, new TrustAllStrategy())
+                    .build();
+
             final HttpComponentsClientHttpRequestFactory factory =
                     new HttpComponentsClientHttpRequestFactory();
-            factory.setHttpClient(this.createProxiedClient(proxy, null));
+            factory.setHttpClient(this.createProxiedClient(proxy, sslContext));
             factory.setBufferRequestBody(false);
             factory.setConnectionRequestTimeout(this.connectionRequestTimeout);
             factory.setConnectTimeout(this.connectTimeout);
@@ -133,8 +138,14 @@ public class ClientHttpRequestFactoryService {
 
         } else {
 
-            final HttpComponentsClientHttpRequestFactory devClientHttpRequestFactory =
-                    new HttpComponentsClientHttpRequestFactory();
+            final SSLContext sslContext = org.apache.http.ssl.SSLContexts
+                    .custom()
+                    .loadTrustMaterial(null, new TrustAllStrategy())
+                    .build();
+            final HttpClient client = HttpClients.custom()
+                    .setSSLContext(sslContext)
+                    .build();
+            final HttpComponentsClientHttpRequestFactory devClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(client);
 
             devClientHttpRequestFactory.setBufferRequestBody(false);
             devClientHttpRequestFactory.setConnectionRequestTimeout(this.connectionRequestTimeout);
@@ -163,7 +174,7 @@ public class ClientHttpRequestFactoryService {
         final String truststoreFilePath = this.environment
                 .getProperty("server.ssl.trust-store", "");
 
-        SSLContext sslContext;
+        final SSLContext sslContext;
         if (StringUtils.isBlank(truststoreFilePath)) {
 
             if (log.isDebugEnabled()) {
@@ -263,6 +274,8 @@ public class ClientHttpRequestFactoryService {
 
         if (sslContext != null) {
             clientBuilder.setSSLContext(sslContext);
+        } else {
+
         }
 
         return clientBuilder.build();
