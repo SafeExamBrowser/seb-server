@@ -166,9 +166,11 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         }
 
         if (lmsSetup.active) {
-            applyFullLmsIntegration(lmsSetup.id)
-                    .onError(error -> log.warn("Failed to update LMS integration for: {}", lmsSetup, error))
-                    .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+            if (!lmsSetup.integrationActive) {
+                applyFullLmsIntegration(lmsSetup.id)
+                        .onError(error -> log.warn("Failed to update LMS integration for: {}", lmsSetup, error))
+                        .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+            }
         } else if (lmsSetup.integrationActive) {
             deleteFullLmsIntegration(lmsSetup.id)
                     .onError(error -> log.warn("Failed to delete LMS integration for: {}", lmsSetup, error))

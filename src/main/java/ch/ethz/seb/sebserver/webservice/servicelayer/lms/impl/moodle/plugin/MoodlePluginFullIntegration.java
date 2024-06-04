@@ -111,7 +111,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 log.warn(
                         "Failed to apply SEB Server connection details to Moodle for full integration. Moodle error {}, lmsSetup: {} data: {}",
                         response,
-                        lmsSetup,
+                        lmsSetup.name,
                         data
                 );
 

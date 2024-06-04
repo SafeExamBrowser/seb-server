@@ -53,7 +53,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final ClientCredentialService clientCredentialService;
     private final QuizLookupService quizLookupService;
     private final EnumMap<LmsType, LmsAPITemplateFactory> templateFactories;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final FullLmsIntegrationService fullLmsIntegrationService;
 
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
@@ -62,14 +62,14 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
             final QuizLookupService quizLookupService,
-            final ApplicationEventPublisher applicationEventPublisher,
+            final FullLmsIntegrationService fullLmsIntegrationService,
             final Collection<LmsAPITemplateFactory> lmsAPITemplateFactories) {
 
         this.webserviceInfo = webserviceInfo;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
         this.quizLookupService = quizLookupService;
-        this.applicationEventPublisher = applicationEventPublisher;
+        this.fullLmsIntegrationService = fullLmsIntegrationService;
 
         final Map<LmsType, LmsAPITemplateFactory> factories = lmsAPITemplateFactories
                 .stream()
@@ -170,15 +170,11 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         .onError(er -> log.error("Failed to mark LMS integration inactive", er));
                 return lmsSetupTestResult;
             } else {
-                // try to apply full integration with a change LMSSetup notification
-                try {
-                    applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(template.lmsSetup()));
-                    return lmsSetupTestResult;
-                } catch (final Exception e) {
-                    log.warn(
-                            "Failed to apply full LMS integration on test attempt: lms: {} error: {}",
-                            template.lmsSetup(),
-                            e.getMessage());
+
+                final Result<FullLmsIntegrationService.IntegrationData> integrationDataResult = fullLmsIntegrationService
+                        .applyFullLmsIntegration(template.lmsSetup().id);
+
+                if (integrationDataResult.hasError()) {
                     return LmsSetupTestResult.ofFullIntegrationAPIError(
                             template.lmsSetup().lmsType,
                             "Failed to apply full LMS integration");
