@@ -96,6 +96,11 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
             final String jsonPayload = jsonMapper.writeValueAsString(data);
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
+
+            //if (log.isDebugEnabled()) {
+                log.info("Try to connect to Moodle Plugin 2.0 with: {}", jsonPayload);
+            //}
+
             final String response = rest.postToMoodleAPIFunction(FUNCTION_NAME_SEBSERVER_CONNECTION, jsonPayload);
 
             if (response != null && response.startsWith("{\"exception\":")) {
