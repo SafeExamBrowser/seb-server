@@ -3,7 +3,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
       <encoder>
-        <pattern>%d{HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
+        <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
       </encoder>
     </appender>
     
@@ -11,7 +11,7 @@
       <file>log/sebserver.log</file>
       <append>true</append>
       <encoder>
-         <pattern>%d{HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
+         <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
       </encoder>
    </appender>
 
