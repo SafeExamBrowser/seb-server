@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,17 +59,20 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     private final LmsAPIService lmsAPIService;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ExamConfigService examConfigService;
+    private final ExamConfigurationValueService examConfigurationValueService;
 
     protected SEBRestrictionServiceImpl(
             final ExamDAO examDAO,
             final LmsAPIService lmsAPIService,
             final AdditionalAttributesDAO additionalAttributesDAO,
-            final ExamConfigService examConfigService) {
+            final ExamConfigService examConfigService,
+            final ExamConfigurationValueService examConfigurationValueService) {
 
         this.examDAO = examDAO;
         this.lmsAPIService = lmsAPIService;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.examConfigService = examConfigService;
+        this.examConfigurationValueService = examConfigurationValueService;
     }
 
     @Override
@@ -92,6 +96,25 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         }
 
         return true;
+    }
+
+    @Override
+    public Result<Exam> applyQuitPassword(final Exam exam) {
+        return this.examConfigurationValueService
+                .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
+                .map(id -> applySEBRestrictionIfExamRunning(exam))
+                .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t));
+    }
+
+    private Exam applySEBRestrictionIfExamRunning(final Exam exam) {
+        if (exam.status != Exam.ExamStatus.RUNNING) {
+            return exam;
+        }
+
+        return this.applySEBClientRestriction(exam)
+                .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
+                .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t))
+                .getOr(exam);
     }
 
     @Override

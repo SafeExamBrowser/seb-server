@@ -37,7 +37,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
 @Component
@@ -53,7 +52,6 @@ public class DeleteExamAction implements BatchActionExec {
     private final IndicatorDAO indicatorDAO;
     private final AuthorizationService authorization;
     private final UserActivityLogDAO userActivityLogDAO;
-    private final ExamSessionService examSessionService;
 
     public DeleteExamAction(
             final ExamDAO examDAO,
@@ -62,8 +60,7 @@ public class DeleteExamAction implements BatchActionExec {
             final ClientGroupDAO clientGroupDAO,
             final IndicatorDAO indicatorDAO,
             final AuthorizationService authorization,
-            final UserActivityLogDAO userActivityLogDAO,
-            final ExamSessionService examSessionService) {
+            final UserActivityLogDAO userActivityLogDAO) {
 
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
@@ -72,7 +69,6 @@ public class DeleteExamAction implements BatchActionExec {
         this.indicatorDAO = indicatorDAO;
         this.authorization = authorization;
         this.userActivityLogDAO = userActivityLogDAO;
-        this.examSessionService = examSessionService;
     }
 
     @Override
@@ -149,13 +145,23 @@ public class DeleteExamAction implements BatchActionExec {
     }
 
     private Result<Exam> checkNoActiveSEBClientConnections(final Exam exam) {
-        if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
-            return Result.ofError(new APIMessageException(
-                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION
-                            .of("Exam currently has active SEB Client connections.")));
+        if (exam.status != Exam.ExamStatus.RUNNING) {
+            return Result.of(exam);
         }
 
-        return Result.of(exam);
+        final Integer active = this.clientConnectionDAO
+                .getAllActiveConnectionTokens(exam.id)
+                .map(Collection::size)
+                .onError(error -> log.warn("Failed to get active access tokens for exam: {}", error.getMessage()))
+                .getOr(1);
+
+        if (active == null || active == 0) {
+            return Result.of(exam);
+        }
+
+        return Result.ofError(new APIMessageException(
+                APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                        .of("Exam currently has active SEB Client connections.")));
     }
 
     private Result<Exam> logDeleted(final Exam entity, final BatchAction batchAction) {

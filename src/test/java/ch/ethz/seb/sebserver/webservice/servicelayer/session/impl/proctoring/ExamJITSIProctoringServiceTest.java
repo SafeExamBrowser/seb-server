@@ -14,6 +14,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -84,7 +85,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn(Result.of("fbvgeghergrgrthrehreg123"));
         final JitsiProctoringService examJITSIProctoringService =
-                new JitsiProctoringService(null, null, cryptorMock, null, new JSONMapper(), null);
+                new JitsiProctoringService(null, null, null, cryptorMock, null, new JSONMapper(), null);
 
         String accessToken = examJITSIProctoringService.createPayload(
                 "test-app",
@@ -118,7 +119,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn(Result.of("fbvgeghergrgrthrehreg123"));
         final JitsiProctoringService examJITSIProctoringService =
-                new JitsiProctoringService(null, null, cryptorMock, null, new JSONMapper(), null);
+                new JitsiProctoringService(null, null, null, cryptorMock, null, new JSONMapper(), null);
         final ProctoringRoomConnection data = examJITSIProctoringService.createProctoringConnection(
                 "connectionToken",
                 "https://seb-jitsi.example.ch",
@@ -154,7 +155,7 @@ public class ExamJITSIProctoringServiceTest {
 
         final AuthorizationService authorizationService = Mockito.mock(AuthorizationService.class);
         Mockito.when(authorizationService.getUserService()).thenReturn(userService);
-        final ExamSessionService examSessionService = Mockito.mock(ExamSessionService.class);
+        final ExamSessionCacheService examSessionCacheService = Mockito.mock(ExamSessionCacheService.class);
         final Cryptor cryptor = Mockito.mock(Cryptor.class);
         Mockito.when(cryptor.decrypt(Mockito.any())).thenReturn(Result.of("pwd"));
 
@@ -164,7 +165,8 @@ public class ExamJITSIProctoringServiceTest {
 
         return new JitsiProctoringService(
                 authorizationService,
-                examSessionService,
+                null,
+                examSessionCacheService,
                 cryptor,
                 clientHttpRequestFactoryService,
                 jsonMapper, null);

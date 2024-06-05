@@ -27,10 +27,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
@@ -51,16 +49,15 @@ public class ExamImportServiceImpl implements ExamImportService {
     private static final Logger log = LoggerFactory.getLogger(ExamImportServiceImpl.class);
 
     private final ExamDAO examDAO;
-   // private final FullLmsIntegrationService fullLmsIntegrationService;
     private final ExamTemplateService examTemplateService;
-    private final ExamAdminService examAdminService;
+    private final SEBRestrictionService sebRestrictionService;
     private final boolean appSignatureKeyEnabled;
     private final int defaultNumericalTrustThreshold;
 
     public ExamImportServiceImpl(
             final ExamDAO examDAO,
             final ExamTemplateService examTemplateService,
-            final ExamAdminService examAdminService,
+            final SEBRestrictionService sebRestrictionService,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final LmsAPIService lmsAPIService,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
@@ -68,7 +65,7 @@ public class ExamImportServiceImpl implements ExamImportService {
 
         this.examDAO = examDAO;
         this.examTemplateService = examTemplateService;
-        this.examAdminService = examAdminService;
+        this.sebRestrictionService = sebRestrictionService;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.lmsAPIService = lmsAPIService;
         this.appSignatureKeyEnabled = appSignatureKeyEnabled;
@@ -102,7 +99,7 @@ public class ExamImportServiceImpl implements ExamImportService {
                 })
                 .flatMap(this::applyAdditionalSEBRestrictions)
                 .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error)))
-                .flatMap(examAdminService::applyQuitPassword)
+                .flatMap(sebRestrictionService::applyQuitPassword)
                 .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_QUIT_PASSWORD.of(error)))
                 .flatMap(examTemplateService::applyScreenProctoringSettingsForExam)
                 .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS.of(error)));

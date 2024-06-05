@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -52,7 +54,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -62,7 +63,6 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 @Lazy
@@ -104,7 +104,8 @@ public class JitsiProctoringService implements RemoteProctoringService {
             .stream().collect(Collectors.toMap(Tuple::get_1, Tuple::get_2)));
 
     private final AuthorizationService authorizationService;
-    private final ExamSessionService examSessionService;
+    private final ClientConnectionDAO clientConnectionDAO;
+    private final ExamSessionCacheService examSessionCacheService;
     private final Cryptor cryptor;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final JSONMapper jsonMapper;
@@ -112,14 +113,16 @@ public class JitsiProctoringService implements RemoteProctoringService {
 
     protected JitsiProctoringService(
             final AuthorizationService authorizationService,
-            final ExamSessionService examSessionService,
+            final ClientConnectionDAO clientConnectionDAO,
+            final ExamSessionCacheService examSessionCacheService,
             final Cryptor cryptor,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final JSONMapper jsonMapper,
             final WebserviceInfo webserviceInfo) {
 
         this.authorizationService = authorizationService;
-        this.examSessionService = examSessionService;
+        this.clientConnectionDAO = clientConnectionDAO;
+        this.examSessionCacheService = examSessionCacheService;
         this.cryptor = cryptor;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.jsonMapper = jsonMapper;
@@ -310,8 +313,9 @@ public class JitsiProctoringService implements RemoteProctoringService {
             final String subject) {
 
         return Result.tryCatch(() -> {
-            final ClientConnectionData clientConnection = this.examSessionService
-                    .getConnectionData(connectionToken)
+
+            final ClientConnection clientConnection = clientConnectionDAO
+                    .byConnectionToken(connectionToken)
                     .getOrThrow();
 
             return createProctoringConnection(
@@ -319,7 +323,7 @@ public class JitsiProctoringService implements RemoteProctoringService {
                     proctoringSettings.serverURL,
                     proctoringSettings.appKey,
                     proctoringSettings.getAppSecret(),
-                    clientConnection.clientConnection.userSessionId,
+                    clientConnection.userSessionId,
                     SEB_CLIENT_KEY,
                     roomName,
                     subject,
@@ -476,13 +480,12 @@ public class JitsiProctoringService implements RemoteProctoringService {
         }
 
         long expTime = System.currentTimeMillis() + Constants.DAY_IN_MILLIS;
-        if (this.examSessionService.isExamRunning(examProctoring.examId)) {
-            final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
-                    .getOrThrow();
-            if (exam.endTime != null) {
-                expTime = exam.endTime.getMillis();
-            }
+
+        final Exam runningExam = examSessionCacheService.getRunningExam(examProctoring.examId);
+        if (runningExam != null && runningExam.endTime != null) {
+            expTime = runningExam.endTime.getMillis();
         }
+
         return expTime;
     }
 

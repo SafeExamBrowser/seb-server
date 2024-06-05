@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
+import java.util.Map;
+
 import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -37,7 +39,10 @@ public interface MoodleAPIRestTemplate {
 
     String callMoodleAPIFunction(String functionName);
 
-    String postToMoodleAPIFunction(String functionName, String body);
+    String postToMoodleAPIFunction(
+            String functionName,
+            MultiValueMap<String, String> queryParams,
+            Map<String, Map<String, String>> queryAttributes);
 
     String callMoodleAPIFunction(
             String functionName,

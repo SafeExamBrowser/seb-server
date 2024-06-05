@@ -130,9 +130,13 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
         }
 
         @Override
-        public String postToMoodleAPIFunction(String functionName, String body) {
+        public String postToMoodleAPIFunction(
+                final String functionName,
+                final MultiValueMap<String, String> queryParams,
+                final Map<String, Map<String, String>> queryAttributes) {
             return null;
         }
+
 
         @Override
         public String callMoodleAPIFunction(

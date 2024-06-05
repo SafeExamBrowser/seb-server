@@ -126,14 +126,6 @@ public class ExamSessionCacheService {
             case RUNNING: {
                 return true;
             }
-            case UP_COMING:
-            case FINISHED: {
-                return false;
-                // TODO do we really need to double-check here?
-//                return this.examUpdateHandler.updateRunning(exam.id)
-//                        .map(e -> e.status == ExamStatus.RUNNING)
-//                        .getOr(false);
-            }
             default: {
                 return false;
             }

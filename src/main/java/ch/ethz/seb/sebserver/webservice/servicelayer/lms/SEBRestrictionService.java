@@ -31,7 +31,7 @@ public interface SEBRestrictionService {
     Result<SEBRestriction> getSEBRestrictionFromExam(Exam exam);
 
     /** Saves the given SEBRestriction for the given Exam.
-     *
+     * <p>
      * The webservice saves the given browser Exam keys within the Exam record
      * and given additional restriction properties within the Additional attributes linked
      * to the given Exam.
@@ -64,5 +64,7 @@ public interface SEBRestrictionService {
      * @return false if the SEB Restriction feature is switched on for the given Exam but the restriction is not applied
      *         to the LMS */
     boolean checkSebRestrictionSet(Exam exam);
+
+    Result<Exam> applyQuitPassword(final Exam exam);
 
 }

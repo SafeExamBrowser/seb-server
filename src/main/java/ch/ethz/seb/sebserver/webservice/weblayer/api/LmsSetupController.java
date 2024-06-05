@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
@@ -50,6 +51,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class LmsSetupController extends ActivatableEntityController<LmsSetup, LmsSetup> {
 
     private final LmsAPIService lmsAPIService;
+    private final LmsTestService lmsTestService;
     final ApplicationEventPublisher applicationEventPublisher;
 
     public LmsSetupController(
@@ -60,6 +62,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final LmsAPIService lmsAPIService,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
+            final LmsTestService lmsTestService,
             final ApplicationEventPublisher applicationEventPublisher) {
 
         super(authorization,
@@ -70,6 +73,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 beanValidationService);
 
         this.lmsAPIService = lmsAPIService;
+        this.lmsTestService = lmsTestService;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -97,7 +101,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
         final LmsSetupTestResult result = this.lmsAPIService
                 .getLmsAPITemplate(modelId)
-                .map(this.lmsAPIService::test)
+                .map(this.lmsTestService::test)
                 .onErrorDo(error -> {
                     final LmsType lmsType = this.entityDAO.byPK(modelId).get().lmsType;
                     return new LmsSetupTestResult(
@@ -122,7 +126,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
         this.authorization.checkModify(lmsSetup);
 
-        final LmsSetupTestResult result = this.lmsAPIService.testAdHoc(lmsSetup);
+        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(lmsSetup);
         if (result.missingLMSSetupAttribute != null && !result.missingLMSSetupAttribute.isEmpty()) {
             throw new APIMessageException(result.missingLMSSetupAttribute);
         }

@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -21,6 +24,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRe
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleResponseException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +39,8 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
     private static final String FUNCTION_NAME_SEBSERVER_CONNECTION = "quizaccess_sebserver_connection";
     private static final String FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE = "quizaccess_sebserver_connection_delete";
     private static final String FUNCTION_NAME_SET_EXAM_DATA = "quizaccess_sebserver_set_exam_data";
+    private static final String ATTRIBUTE_CONNECTION = "connection";
+    private static final String ATTRIBUTE_EXAM_DATA = "data";
 
     private static final String UPLOAD_ENDPOINT = "/mod/quiz/accessrule/sebserver/uploadconfig.php";
 
@@ -94,14 +100,20 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
 
             // apply
             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
-            final String jsonPayload = jsonMapper.writeValueAsString(data);
+            final String connectionJSON = jsonMapper.writeValueAsString(data);
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
 
             //if (log.isDebugEnabled()) {
-                log.info("Try to connect to Moodle Plugin 2.0 with: {}", jsonPayload);
+                log.info("Try to connect to Moodle Plugin 2.0 with: {}", connectionJSON);
             //}
 
-            final String response = rest.postToMoodleAPIFunction(FUNCTION_NAME_SEBSERVER_CONNECTION, jsonPayload);
+            final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
+            queryAttributes.add(ATTRIBUTE_CONNECTION, connectionJSON);
+
+            final String response = rest.postToMoodleAPIFunction(
+                    FUNCTION_NAME_SEBSERVER_CONNECTION,
+                    queryAttributes,
+                    null);
 
             if (response != null && response.startsWith("{\"exception\":")) {
                 // Seems there was an error response from Moodle side.
@@ -141,9 +153,31 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             }
 
             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
-            final String jsonPayload = jsonMapper.writeValueAsString(examData);
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
-            final String response = rest.postToMoodleAPIFunction(FUNCTION_NAME_SET_EXAM_DATA, jsonPayload);
+
+            final Map<String, Map<String, String>> attributes = new HashMap<>();
+            final Map<String, String> data_mapping = new HashMap<>();
+            attributes.put(ATTRIBUTE_EXAM_DATA, data_mapping);
+
+            // data[quizid]= int
+            // data[addordelete]= int
+            // data[templateid]= int
+            // data[showquitlink]= int
+            // data[quitsecret]= string
+            data_mapping.put("quizid", examData.quiz_id);
+            if (BooleanUtils.isTrue(examData.exam_created)) {
+                data_mapping.put("addordelete", "1");
+                data_mapping.put("templateid", examData.template_id);
+                data_mapping.put("showquitlink", BooleanUtils.isTrue(examData.show_quit_link) ? "1" : "2");
+                data_mapping.put("quitsecret", examData.quit_password);
+            } else {
+                data_mapping.put("addordelete", "0");
+            }
+
+            final String response = rest.postToMoodleAPIFunction(
+                    FUNCTION_NAME_SET_EXAM_DATA,
+                    null,
+                    attributes);
 
             if (response != null && (response.startsWith("{\"exception\":") || response.startsWith("0"))) {
                 log.warn("Failed to apply Exam data to moodle: {}", examData);

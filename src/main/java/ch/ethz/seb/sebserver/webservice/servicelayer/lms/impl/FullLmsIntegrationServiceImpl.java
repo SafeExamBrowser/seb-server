@@ -44,8 +44,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValue
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateCacheService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
@@ -76,9 +76,9 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final ConnectionConfigurationService connectionConfigurationService;
     private final DeleteExamAction deleteExamAction;
-    private final LmsAPIService lmsAPIService;
+    private final LmsAPITemplateCacheService lmsAPITemplateCacheService;
     private final ExamImportService examImportService;
-    private final ExamSessionService examSessionService;
+    private final ClientConnectionDAO clientConnectionDAO;
     private final ExamConfigurationValueService examConfigurationValueService;
     private final ExamDAO examDAO;
     private final ExamTemplateDAO examTemplateDAO;
@@ -96,16 +96,16 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final ScreenProctoringService screenProctoringService,
             final ConnectionConfigurationService connectionConfigurationService,
             final DeleteExamAction deleteExamAction,
-            final LmsAPIService lmsAPIService,
-            final ExamSessionService examSessionService,
             final ExamConfigurationValueService examConfigurationValueService,
             final ExamDAO examDAO,
+            final ClientConnectionDAO clientConnectionDAO,
             final ExamImportService examImportService,
             final ExamTemplateDAO examTemplateDAO,
             final WebserviceInfo webserviceInfo,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final UserService userService,
             final TeacherAccountServiceImpl teacherAccountServiceImpl,
+            final LmsAPITemplateCacheService lmsAPITemplateCacheService,
             @Value("${sebserver.webservice.lms.api.endpoint}") final String lmsAPIEndpoint,
             @Value("${sebserver.webservice.lms.api.clientId}") final String clientId,
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret) {
@@ -116,8 +116,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.connectionConfigurationService = connectionConfigurationService;
         this.deleteExamAction = deleteExamAction;
-        this.lmsAPIService = lmsAPIService;
-        this.examSessionService = examSessionService;
+        this.lmsAPITemplateCacheService = lmsAPITemplateCacheService;
         this.examDAO = examDAO;
         this.examTemplateDAO = examTemplateDAO;
         this.webserviceInfo = webserviceInfo;
@@ -125,6 +124,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.userService = userService;
         this.examConfigurationValueService = examConfigurationValueService;
         this.examImportService = examImportService;
+        this.clientConnectionDAO = clientConnectionDAO;
 
         resource = new ClientCredentialsResourceDetails();
         resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
@@ -246,7 +246,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                             this.getIntegrationTemplates(lmsSetup.institutionId)
                     );
 
-                    return lmsAPIService.getLmsAPITemplate(lmsSetupId)
+                    return lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId)
                             .getOrThrow()
                             .applyConnectionDetails(data)
                             .onError(error -> lmsSetupDAO
@@ -271,7 +271,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         return false;
                     }
 
-                    lmsAPIService.getLmsAPITemplate(lmsSetupId)
+                    lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId)
                             .getOrThrow()
                             .deleteConnectionDetails()
                             .onError(error -> lmsSetupDAO
@@ -297,7 +297,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
         return lmsSetupDAO
                 .getLmsSetupIdByConnectionId(lmsUUID)
-                .flatMap(lmsAPIService::getLmsAPITemplate)
+                .flatMap(lmsAPITemplateCacheService::getLmsAPITemplate)
                 .map(findQuizData(courseId, quizId))
                 .map(createExam(examTemplateId, quitPassword))
                 .map(exam -> applyExamData(exam, false))
@@ -312,7 +312,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
         return lmsSetupDAO
                 .getLmsSetupIdByConnectionId(lmsUUID)
-                .flatMap(lmsAPIService::getLmsAPITemplate)
+                .flatMap(lmsAPITemplateCacheService::getLmsAPITemplate)
                 .map(findQuizData(courseId, quizId))
                 .flatMap(this::findExam)
                 .map(this::checkDeletion)
@@ -384,7 +384,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
         return lmsSetupDAO
                 .getLmsSetupIdByConnectionId(lmsUUID)
-                .flatMap(lmsAPIService::getLmsAPITemplate)
+                .flatMap(lmsAPITemplateCacheService::getLmsAPITemplate)
                 .map(findQuizData(courseId, quizId))
                 .flatMap(this::findExam)
                 .flatMap(exam  -> this.teacherAccountServiceImpl
@@ -470,14 +470,32 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private Exam checkDeletion(final Exam exam) {
         // TODO check if Exam can be deleted according to the Spec
 
-        // check if there are no active SEB client connections
-        if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
-            throw new APIMessage.APIMessageException(
-                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION
-                            .of("Exam currently has active SEB Client connections."));
+        if (exam.status != Exam.ExamStatus.RUNNING) {
+            return exam;
         }
 
-        return exam;
+        final Integer active = this.clientConnectionDAO
+                .getAllActiveConnectionTokens(exam.id)
+                .map(Collection::size)
+                .onError(error -> log.warn("Failed to get active access tokens for exam: {}", error.getMessage()))
+                .getOr(1);
+
+        if (active == null || active == 0) {
+            return exam;
+        }
+
+        throw new APIMessage.APIMessageException(
+                APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                        .of("Exam currently has active SEB Client connections."));
+
+        // check if there are no active SEB client connections
+//        if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
+//            throw new APIMessage.APIMessageException(
+//                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+//                            .of("Exam currently has active SEB Client connections."));
+//        }
+//
+//        return exam;
     }
 
 
@@ -497,7 +515,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private Exam applyExamData(final Exam exam, final boolean deletion) {
         try {
 
-            final LmsAPITemplate lmsAPITemplate = lmsAPIService
+            final LmsAPITemplate lmsAPITemplate = lmsAPITemplateCacheService
                     .getLmsAPITemplate(exam.lmsSetupId)
                     .getOrThrow();
             final String lmsUUID = lmsAPITemplate.lmsSetup().connectionId;
@@ -526,7 +544,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     private Exam applyConnectionConfiguration(final Exam exam) {
-        return lmsAPIService
+        return lmsAPITemplateCacheService
                 .getLmsAPITemplate(exam.lmsSetupId)
                 .flatMap(template -> {
                     final String connectionConfigId = getConnectionConfigurationId(exam);

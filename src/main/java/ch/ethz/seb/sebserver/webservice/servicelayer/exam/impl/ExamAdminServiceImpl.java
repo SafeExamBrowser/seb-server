@@ -48,7 +48,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final LmsAPIService lmsAPIService;
-
     private final ExamConfigurationValueService examConfigurationValueService;
     private final SEBRestrictionService sebRestrictionService;
 
@@ -248,25 +247,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Exam> applyQuitPassword(final Exam exam) {
-        return this.examConfigurationValueService
-                .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
-                .map(id -> applySEBRestrictionIfExamRunning(exam))
-                .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t));
+        return this.sebRestrictionService.applyQuitPassword(exam);
     }
-
-    private Exam applySEBRestrictionIfExamRunning(final Exam exam) {
-        if (exam.status != ExamStatus.RUNNING) {
-            return exam;
-        }
-
-        return this.sebRestrictionService
-                .applySEBClientRestriction(exam)
-                .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
-                .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t))
-                .getOr(exam);
-    }
-
-
 
     @Override
     public Result<Exam> archiveExam(final Exam exam) {

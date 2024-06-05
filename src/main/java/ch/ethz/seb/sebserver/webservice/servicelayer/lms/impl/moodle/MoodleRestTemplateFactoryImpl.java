@@ -320,7 +320,10 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         }
 
         @Override
-        public String postToMoodleAPIFunction(final String functionName, final String body) {
+        public String postToMoodleAPIFunction(
+                final String functionName,
+                final MultiValueMap<String, String> queryParams,
+                final Map<String, Map<String, String>> queryAttributes) {
             getAccessToken();
 
             final UriComponentsBuilder queryParam = UriComponentsBuilder
@@ -329,13 +332,33 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                     .queryParam(REST_REQUEST_FUNCTION_NAME, functionName)
                     .queryParam(REST_REQUEST_FORMAT_NAME, "json");
 
+            if (queryParams != null && !queryParams.isEmpty()) {
+                queryParam.queryParams(queryParams);
+            }
+
+            final String body = createMoodleFormPostBody(queryAttributes);
+
             final HttpHeaders headers = new HttpHeaders();
             headers.set(
                     HttpHeaders.CONTENT_TYPE,
-                    MediaType.APPLICATION_JSON_VALUE);
+                    MediaType.APPLICATION_FORM_URLENCODED_VALUE);
             final HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
 
             return doRequest(functionName, queryParam, true, httpEntity);
+        }
+
+        private String createMoodleFormPostBody(final Map<String, Map<String, String>> queryAttributes) {
+            if (queryAttributes == null) {
+                return null;
+            }
+
+            final StringBuffer sb = new StringBuffer();
+            queryAttributes.forEach(
+                    (name1, value1) -> value1.forEach(
+                            (key, value) -> sb.append(name1).append("[").append(key).append("]=").append(value).append("&")));
+
+            sb.deleteCharAt(sb.length() - 1);
+            return sb.toString();
         }
 
         @Override

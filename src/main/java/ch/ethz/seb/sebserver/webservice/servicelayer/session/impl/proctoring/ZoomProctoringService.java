@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -134,7 +136,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
                     Constants.FALSE_STRING))
             .stream().collect(Collectors.toMap(Tuple::get_1, Tuple::get_2)));
 
-    private final ExamSessionService examSessionService;
+    private final ExamSessionCacheService examSessionCacheService;
     private final Cryptor cryptor;
     private final AsyncService asyncService;
     private final JSONMapper jsonMapper;
@@ -146,7 +148,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
     private final int tokenExpirySeconds;
 
     public ZoomProctoringService(
-            final ExamSessionService examSessionService,
+            final ExamSessionCacheService examSessionCacheService,
             final Cryptor cryptor,
             final AsyncService asyncService,
             final JSONMapper jsonMapper,
@@ -157,7 +159,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
             @Value("${sebserver.webservice.proctoring.sendRejoinForCollectingRoom:false}") final boolean sendRejoinForCollectingRoom,
             @Value("${sebserver.webservice.proctoring.zoom.tokenexpiry.seconds:86400}") final int tokenExpirySeconds) {
 
-        this.examSessionService = examSessionService;
+        this.examSessionCacheService = examSessionCacheService;
         this.cryptor = cryptor;
         this.asyncService = asyncService;
         this.jsonMapper = jsonMapper;
@@ -326,9 +328,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
                     remoteProctoringRoom.additionalRoomData,
                     AdditionalZoomRoomData.class);
 
-            final ClientConnectionData clientConnection = this.examSessionService
-                    .getConnectionData(connectionToken)
-                    .getOrThrow();
+            final ClientConnectionData clientConnection = this.examSessionCacheService.getClientConnection(connectionToken);
 
             // Note: since SEB Server version 1.5 we work only with SDKKey instead of AppKey which is deprecated
             final ClientCredentials sdkCredentials = new ClientCredentials(
@@ -354,7 +354,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
                     sdkCredentials.accessToken,
                     sdkCredentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
-                    clientConnection.clientConnection.userSessionId,
+                    (clientConnection != null) ? clientConnection.clientConnection.userSessionId : "Unknown",
                     remoteProctoringRoom.additionalRoomData);
         });
     }
@@ -405,10 +405,11 @@ public class ZoomProctoringService implements RemoteProctoringService {
 
     private int getMeetingDuration(final Long examId) {
         try {
-            final DateTime endTime = this.examSessionService
-                    .getRunningExam(examId)
-                    .getOrThrow()
-                    .getEndTime();
+
+            ;
+
+            final DateTime endTime = examSessionCacheService
+                    .getRunningExam(examId).endTime;
             final Long result = new Interval(DateTime.now(DateTimeZone.UTC), endTime)
                     .toDurationMillis() / Constants.MINUTE_IN_MILLIS;
             return result.intValue();
