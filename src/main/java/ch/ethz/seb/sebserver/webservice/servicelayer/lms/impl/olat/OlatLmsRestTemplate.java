@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -116,14 +117,14 @@ public class OlatLmsRestTemplate extends RestTemplate {
         // Authenticate with OLAT and store the received X-OLAT-TOKEN
         this.token = "authenticating";
         final String authUrl = this.details.getAccessTokenUri();
-        final Map<String, String> credentials = new HashMap<>();
-        credentials.put("username", this.details.getClientId());
-        credentials.put("password", this.details.getClientSecret());
+        final Map<String, String> parameters = new HashMap<>();
+        parameters.put("username", this.details.getClientId());
+        parameters.put("password", this.details.getClientSecret());
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("content-type", "application/json");
-        final HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(credentials, httpHeaders);
+        final HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(httpHeaders);
         try {
-            final ResponseEntity<String> response = this.postForEntity(authUrl, requestEntity, String.class);
+            final ResponseEntity<String> response = this.exchange(authUrl, HttpMethod.GET, requestEntity, String.class, parameters);
             final HttpHeaders responseHeaders = response.getHeaders();
 
             if (log.isDebugEnabled()) {
