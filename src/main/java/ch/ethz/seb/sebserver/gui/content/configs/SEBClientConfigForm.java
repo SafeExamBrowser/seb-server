@@ -416,7 +416,7 @@ public class SEBClientConfigForm implements TemplateComposer {
                                 SEBClientConfig.ATTR_EXAM_SELECTION,
                                 FORM_EXAM_SELECTION_TEXT_KEY,
                                 StringUtils.join(clientConfig.selectedExams, Constants.LIST_SEPARATOR),
-                                () -> pageService.getResourceService().getExamLogSelectionResources())
+                                () -> pageService.getResourceService().getActiveExamResources())
                         .withInputSpan(5))
                 .withDefaultSpanEmptyCell(1);
 

@@ -275,7 +275,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
         final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
 
-        String url = "/restapi/assessment_modes/seb?";
+        String url = "/restapi/repo/assessmentmodes?";
         if (fromCutTime != -1) {
             url = String.format("%sdateFrom=%s&", url, fromCutTime);
         }
@@ -295,8 +295,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                             lmsSetup.getLmsType(),
                             a.name,
                             a.description,
-                            Utils.toDateTimeUTC(a.dateFrom),
-                            Utils.toDateTimeUTC(a.dateTo),
+                            Utils.toDateTimeUTC(a.begin - a.leadTime * 1000 * 60),
+                            Utils.toDateTimeUTC(a.end + a.followupTime * 1000 * 60),
                             examUrl(a.repositoryEntryKey),
                             new HashMap<String, String>());
                 })
@@ -316,7 +316,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     private QuizData quizById(final OlatLmsRestTemplate restTemplate, final String id) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-        final String url = String.format("/restapi/assessment_modes/%s", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s", id);
         final AssessmentData a = this.apiGet(restTemplate, url, AssessmentData.class);
         return new QuizData(
                 String.format("%d", a.key),
@@ -325,26 +325,26 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 lmsSetup.getLmsType(),
                 a.name,
                 a.description,
-                Utils.toDateTimeUTC(a.dateFrom),
-                Utils.toDateTimeUTC(a.dateTo),
+                Utils.toDateTimeUTC(a.begin - a.leadTime * 1000 * 60),
+                Utils.toDateTimeUTC(a.end + a.followupTime * 1000 * 60),
                 examUrl(a.repositoryEntryKey),
                 new HashMap<String, String>());
     }
 
     private ExamineeAccountDetails getExamineeById(final RestTemplate restTemplate, final String id) {
-        final String url = String.format("/restapi/users/%s/name_username", id);
+        final String url = String.format("/restapi/users/%s", id);
         final UserData u = this.apiGet(restTemplate, url, UserData.class);
         final Map<String, String> attrs = new HashMap<>();
         return new ExamineeAccountDetails(
                 String.valueOf(u.key),
                 u.lastName + ", " + u.firstName,
-                u.username,
-                "OLAT API does not provide email addresses",
+                u.login,
+                u.email,
                 attrs);
     }
 
     private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
-        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s/seb", id);
         final RestrictionData r = this.apiGet(restTemplate, url, RestrictionData.class);
         final HashMap<String, String> additionalAttributes = new HashMap<>();
         if (StringUtils.isNotBlank(r.quitLink)) {
@@ -362,7 +362,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final String id,
             final SEBRestriction restriction) {
 
-        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s/seb", id);
         final RestrictionDataPost post = new RestrictionDataPost();
         post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
         post.configKeys = new ArrayList<>(restriction.configKeys);
@@ -377,7 +377,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
-        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final String url = String.format("/restapi/repo/assessmentmodes/%s/seb", id);
         final RestrictionData r = this.apiDelete(restTemplate, url, RestrictionData.class);
         // OLAT returns RestrictionData with null values upon deletion.
         // We return it here for consistency, even though SEB server does not need it
@@ -473,7 +473,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                     .getOrThrow();
 
             final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
-            details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/");
+            details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/{username}?password={password}");
             details.setClientId(plainClientId.toString());
             details.setClientSecret(plainClientSecret.toString());
 
@@ -488,5 +488,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             return this.cachedRestTemplate;
         });
     }
+
 
 }

@@ -103,7 +103,7 @@ public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
                     .map(OrientationRecord::getConfigAttributeId)
                     .collect(Collectors.toList());
 
-            if (attributeIds.isEmpty()) {
+            if (attributeIds.isEmpty() || attributeIds.get(0).intValue() == 1201) {
                 return  "No additional SEB Settings orientations for downgrading found.";
             }
 
