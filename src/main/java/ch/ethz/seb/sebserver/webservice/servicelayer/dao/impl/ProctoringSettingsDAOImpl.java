@@ -222,7 +222,8 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                     String.valueOf(screenProctoringSettings.enableScreenProctoring));
 
             // we need to store this only if it is an unbundled setup otherwise attributes are known by the service
-            if (!screenProctoringServiceBundle.bundled) {
+            //todo: find a better way to get the proctoring credentials
+            //if (!screenProctoringServiceBundle.bundled) {
                 attributes.put(
                         ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
                         StringUtils.trim(screenProctoringSettings.spsServiceURL));
@@ -238,7 +239,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                 attributes.put(
                         ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD,
                         encryptSecret(Utils.trim(screenProctoringSettings.spsAccountPassword)));
-            }
+            //}
 
             attributes.put(
                     ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY,
