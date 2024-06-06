@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -62,6 +63,7 @@ class ExamUpdateHandler implements ExamUpdateTask {
     private final SEBRestrictionService sebRestrictionService;
     private final LmsAPIService lmsAPIService;
     private final ScreenProctoringService screenProctoringService;
+    private final JSONMapper jsonMapper;
     private final String updatePrefix;
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
@@ -74,6 +76,7 @@ class ExamUpdateHandler implements ExamUpdateTask {
             final ApplicationEventPublisher applicationEventPublisher,
             final SEBRestrictionService sebRestrictionService,
             final LmsAPIService lmsAPIService,
+            final JSONMapper jsonMapper,
             final WebserviceInfo webserviceInfo,
             final ScreenProctoringService screenProctoringService,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
@@ -86,6 +89,7 @@ class ExamUpdateHandler implements ExamUpdateTask {
         this.applicationEventPublisher = applicationEventPublisher;
         this.sebRestrictionService = sebRestrictionService;
         this.lmsAPIService = lmsAPIService;
+        this.jsonMapper = jsonMapper;
         this.screenProctoringService = screenProctoringService;
         this.updatePrefix = webserviceInfo.getLocalHostAddress()
                 + "_" + webserviceInfo.getServerPort() + "_";
@@ -428,19 +432,33 @@ class ExamUpdateHandler implements ExamUpdateTask {
         }
 
         if (quizData.additionalAttributes != null && !quizData.additionalAttributes.isEmpty()) {
-            for (final Map.Entry<String, String> attr : quizData.additionalAttributes.entrySet()) {
-                final String currentAttrValue = exam.getAdditionalAttribute(attr.getKey());
-                if (!Utils.isEqualsWithEmptyCheck(currentAttrValue, attr.getValue())) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Update difference from LMS: attribute{}, currentValue: {}, lmsValue: {}",
-                                attr.getKey(),
-                                currentAttrValue,
-                                attr.getValue());
-                    }
+            String additionalQuizData = null;
+            try {
+                additionalQuizData = jsonMapper.writeValueAsString(quizData.getAdditionalAttributes());
+            } catch (final Exception ignored) {}
+
+            if (additionalQuizData != null) {
+                final String _quizData = exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_QUIZ_ATTRIBUTES);
+                if (!additionalQuizData.equals(_quizData)) {
                     return true;
                 }
             }
         }
+
+//        if (quizData.additionalAttributes != null && !quizData.additionalAttributes.isEmpty()) {
+//            for (final Map.Entry<String, String> attr : quizData.additionalAttributes.entrySet()) {
+//                final String currentAttrValue = exam.getAdditionalAttribute(attr.getKey());
+//                if (!Utils.isEqualsWithEmptyCheck(currentAttrValue, attr.getValue())) {
+//                    if (log.isDebugEnabled()) {
+//                        log.debug("Update difference from LMS: attribute{}, currentValue: {}, lmsValue: {}",
+//                                attr.getKey(),
+//                                currentAttrValue,
+//                                attr.getValue());
+//                    }
+//                    return true;
+//                }
+//            }
+//        }
 
         return false;
     }
