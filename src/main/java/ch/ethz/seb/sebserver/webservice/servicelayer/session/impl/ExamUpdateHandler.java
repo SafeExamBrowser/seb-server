@@ -445,21 +445,6 @@ class ExamUpdateHandler implements ExamUpdateTask {
             }
         }
 
-//        if (quizData.additionalAttributes != null && !quizData.additionalAttributes.isEmpty()) {
-//            for (final Map.Entry<String, String> attr : quizData.additionalAttributes.entrySet()) {
-//                final String currentAttrValue = exam.getAdditionalAttribute(attr.getKey());
-//                if (!Utils.isEqualsWithEmptyCheck(currentAttrValue, attr.getValue())) {
-//                    if (log.isDebugEnabled()) {
-//                        log.debug("Update difference from LMS: attribute{}, currentValue: {}, lmsValue: {}",
-//                                attr.getKey(),
-//                                currentAttrValue,
-//                                attr.getValue());
-//                    }
-//                    return true;
-//                }
-//            }
-//        }
-
         return false;
     }
 

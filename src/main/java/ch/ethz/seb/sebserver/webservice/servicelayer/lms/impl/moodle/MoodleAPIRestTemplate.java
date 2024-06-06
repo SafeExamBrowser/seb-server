@@ -60,11 +60,11 @@ public interface MoodleAPIRestTemplate {
 
     /** This maps a Moodle warning JSON object */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class Warning {
-        final String item;
-        final String itemid;
-        final String warningcode;
-        final String message;
+    final class Warning {
+        public final String item;
+        public final String itemid;
+        public final String warningcode;
+        public final String message;
 
         @JsonCreator
         public Warning(

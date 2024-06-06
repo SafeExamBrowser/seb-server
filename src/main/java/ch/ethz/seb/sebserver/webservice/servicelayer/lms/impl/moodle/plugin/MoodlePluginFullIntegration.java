@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -131,6 +132,28 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 throw new MoodleResponseException("Failed to apply SEB Server connection: " + lmsSetup, response);
             }
 
+            try {
+                final MoodleUtils.FullConnectionApplyResponse fullConnectionApplyResponse = jsonMapper.readValue(
+                        response,
+                        MoodleUtils.FullConnectionApplyResponse.class);
+
+                if (fullConnectionApplyResponse.success == 0 && !fullConnectionApplyResponse.warnings.isEmpty()) {
+                    fullConnectionApplyResponse.warnings.stream()
+                            .filter(w -> Objects.equals(w.warningcode, "connectiondoesntmatch"))
+                            .findFirst()
+                            .ifPresent( w -> {
+
+                                throw new MoodleResponseException("Failed to apply SEB Server connection due to connection mismatch", response);
+                    });
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Got warnings from Moodle: {}", response);
+                }
+            } catch (final Exception e) {
+                log.warn("Failed to parse Moodle warnings. Error: {}", e.getMessage());
+            }
+
             if (log.isDebugEnabled()) {
                 log.debug("Successfully applied SEB Server connection for Moodle. Connection data: {} LMS Setup: {}", data, lmsSetup);
             }
@@ -184,6 +207,10 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 log.warn("Failed to apply Exam data to moodle: {}", examData);
             }
 
+            if (response != null && (response.startsWith("{\"warnings\":"))) {
+                log.info("Moodle warnings in response: {}", response);
+            }
+
             return examData;
         });
     }
@@ -216,6 +243,10 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 log.warn("Failed to apply Connection Configuration to LMS for Exam: {}", exam.externalId);
             }
 
+            if (response != null && (response.startsWith("{\"warnings\":"))) {
+                log.info("Moodle warnings in response: {}", response);
+            }
+
             return exam;
         });
     }
@@ -243,8 +274,12 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                     null,
                     queryAttributes);
 
-            if (response.startsWith("{\"exception\":")) {
+            if (response != null && response.startsWith("{\"exception\":")) {
                 throw new MoodleResponseException("Failed to delete SEB Server connection: " + lmsSetup, response);
+            }
+
+            if (response != null && (response.startsWith("{\"warnings\":"))) {
+                log.info("Moodle warnings in response: {}", response);
             }
 
             log.info("Successfully deleted SEB Server connection for Moodle. LMS Setup: {}", lmsSetup);
