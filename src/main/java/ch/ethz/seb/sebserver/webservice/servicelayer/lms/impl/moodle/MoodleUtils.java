@@ -563,13 +563,13 @@ public abstract class MoodleUtils {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class FullConnectionApplyResponse {
         @JsonProperty("success")
-        public final int success;
+        public final boolean success;
         @JsonProperty("warnings")
         public final Collection<Warning> warnings;
 
         @JsonCreator
         public FullConnectionApplyResponse(
-                @JsonProperty("success") final int success,
+                @JsonProperty("success") final boolean success,
                 @JsonProperty("warnings")  final Collection<Warning> warnings) {
 
             this.success = success;

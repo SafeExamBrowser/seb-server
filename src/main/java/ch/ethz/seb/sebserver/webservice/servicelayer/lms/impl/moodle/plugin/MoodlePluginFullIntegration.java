@@ -137,7 +137,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                         response,
                         MoodleUtils.FullConnectionApplyResponse.class);
 
-                if (fullConnectionApplyResponse.success == 0 && !fullConnectionApplyResponse.warnings.isEmpty()) {
+                if (!fullConnectionApplyResponse.success && !fullConnectionApplyResponse.warnings.isEmpty()) {
                     fullConnectionApplyResponse.warnings.stream()
                             .filter(w -> Objects.equals(w.warningcode, "connectiondoesntmatch"))
                             .findFirst()
