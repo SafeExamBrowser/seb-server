@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.user.LoginForward;
 import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -67,4 +69,5 @@ public interface SEBServerAuthorizationContext {
 
     CharSequence getUserPassword();
 
+    LoginForward getLoginForward();
 }

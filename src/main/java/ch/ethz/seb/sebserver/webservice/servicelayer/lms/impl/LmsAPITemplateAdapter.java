@@ -252,6 +252,16 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
+    public String getCourseIdFromExam(final Exam exam) {
+        return this.courseAccessAPI.getCourseIdFromExam(exam);
+    }
+
+    @Override
+    public String getQuizIdFromExam(final Exam exam) {
+        return this.courseAccessAPI.getQuizIdFromExam(exam);
+    }
+
+    @Override
     public LmsSetupTestResult testCourseAccessAPI() {
         if (this.courseAccessAPI != null) {
             if (log.isDebugEnabled()) {

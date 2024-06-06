@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -156,7 +157,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
 
             final Map<String, Map<String, String>> attributes = new HashMap<>();
-            final Map<String, String> data_mapping = new HashMap<>();
+            final Map<String, String> data_mapping = new LinkedHashMap<>();
             attributes.put(ATTRIBUTE_EXAM_DATA, data_mapping);
 
             // data[quizid]= int
@@ -168,7 +169,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             if (BooleanUtils.isTrue(examData.exam_created)) {
                 data_mapping.put("addordelete", "1");
                 data_mapping.put("templateid", examData.template_id);
-                data_mapping.put("showquitlink", BooleanUtils.isTrue(examData.show_quit_link) ? "1" : "2");
+                data_mapping.put("showquitlink", BooleanUtils.isTrue(examData.show_quit_link) ? "1" : "0");
                 data_mapping.put("quitsecret", examData.quit_password);
             } else {
                 data_mapping.put("addordelete", "0");

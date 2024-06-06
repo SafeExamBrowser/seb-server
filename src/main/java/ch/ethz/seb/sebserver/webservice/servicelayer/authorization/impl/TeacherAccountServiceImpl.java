@@ -15,10 +15,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.model.user.*;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -187,11 +184,14 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final OAuth2AccessToken token = accessToken.getBody();
 
             final String examId = claims.get(EXAM_ID_CLAIM, String.class);
-            final EntityKey redirectTo = (StringUtils.isNotBlank(examId))
+            final EntityKey key = (StringUtils.isNotBlank(examId))
                     ? new EntityKey(examId, EntityType.EXAM)
                     : null;
+            final LoginForward loginForward = new LoginForward(
+                    key,
+                    "MONITOR_EXAM_FROM_LIST");
 
-            return new TokenLoginInfo(user.username, user.uuid, redirectTo, token);
+            return new TokenLoginInfo(user.username, user.uuid, loginForward, token);
         });
     }
 

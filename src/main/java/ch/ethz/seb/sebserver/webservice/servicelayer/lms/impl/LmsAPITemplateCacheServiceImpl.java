@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.lmsSetupId;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -94,12 +96,13 @@ public class LmsAPITemplateCacheServiceImpl implements LmsAPITemplateCacheServic
     }
 
     @Override
-    public Result<LmsAPITemplate> getLmsAPITemplateForTesting(final String lmsSetupId) {
-        return lmsSetupDAO.byModelId(lmsSetupId)
-                .map(lmsSetup -> new AdHocAPITemplateDataSupplier(
-                        lmsSetup,
-                        this.clientCredentialService))
-                .flatMap(this::createLmsSetupTemplate);
+    public Result<LmsAPITemplate> createInMemoryLmsAPITemplate(final LmsSetup lmsSetup) {
+        return Result.tryCatch(() -> {
+            final AdHocAPITemplateDataSupplier adHocAPITemplateDataSupplier = new AdHocAPITemplateDataSupplier(
+                    lmsSetup,
+                    this.clientCredentialService);
+            return this.createLmsSetupTemplate(adHocAPITemplateDataSupplier).getOrThrow();
+        });
     }
 
     @Override

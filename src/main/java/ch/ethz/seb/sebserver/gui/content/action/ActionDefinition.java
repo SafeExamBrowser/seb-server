@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.action;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gui.content.activity.PageStateDefinitionImpl;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageStateDefinition;

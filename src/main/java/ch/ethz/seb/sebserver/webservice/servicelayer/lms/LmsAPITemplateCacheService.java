@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import org.springframework.context.annotation.Lazy;
@@ -30,7 +31,7 @@ public interface LmsAPITemplateCacheService {
      * @return LmsAPITemplate for specified LmsSetup configuration */
     Result<LmsAPITemplate> getLmsAPITemplate(String lmsSetupId);
 
-    Result<LmsAPITemplate> getLmsAPITemplateForTesting(String lmsSetupId);
+    Result<LmsAPITemplate> createInMemoryLmsAPITemplate(LmsSetup lmsSetup);
 
     void clearCache(String lmsSetupId);
 

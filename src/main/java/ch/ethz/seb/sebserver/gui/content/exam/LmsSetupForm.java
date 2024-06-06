@@ -456,8 +456,9 @@ public class LmsSetupForm implements TemplateComposer {
             } else if (formHandle != null && formHandle.handleError(result.getError())) {
                 action.pageContext().notifyActivationError(EntityType.LMS_SETUP, error);
             } else {
-                result.getOrThrow();
+                action.pageContext().notifyUnexpectedError(result.getError());
             }
+            return action;
         }
 
         return handleTestResult(

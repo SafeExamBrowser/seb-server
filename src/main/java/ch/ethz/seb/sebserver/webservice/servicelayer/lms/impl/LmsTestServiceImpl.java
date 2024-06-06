@@ -87,7 +87,7 @@ public class LmsTestServiceImpl implements LmsTestService {
     public LmsSetupTestResult testAdHoc(final LmsSetup lmsSetup) {
 
         final Result<LmsAPITemplate> createLmsSetupTemplate = lmsAPITemplateCacheService
-                .getLmsAPITemplateForTesting(lmsSetup.getModelId());
+                .createInMemoryLmsAPITemplate(lmsSetup);
         if (createLmsSetupTemplate.hasError()) {
             return new LmsSetupTestResult(
                     lmsSetup.lmsType,

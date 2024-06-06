@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpSession;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.user.LoginForward;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -152,6 +154,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         private final String jwtTokenVerificationURI;
 
         private Result<UserInfo> loggedInUser = null;
+        private LoginForward loginForward = null;
 
         OAuth2AuthorizationContext(
                 final String guiClientId,
@@ -213,6 +216,11 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 return this.resource.getPassword();
             }
             return null;
+        }
+
+        @Override
+        public LoginForward getLoginForward() {
+            return loginForward;
         }
 
         @Override
@@ -282,6 +290,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 final TokenLoginInfo loginInfo = response.getBody();
                 this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
 
+                loginForward = loginInfo.login_forward;
                 return this.isLoggedIn();
             } catch (final Exception e) {
                 log.warn("Autologin failed due to unexpected error: {}", e.getMessage());

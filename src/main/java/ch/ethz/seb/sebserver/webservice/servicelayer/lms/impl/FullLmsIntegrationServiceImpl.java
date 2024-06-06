@@ -49,7 +49,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateCacheServ
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -241,7 +240,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                             connectionId,
                             lmsSetup.name,
                             getAPIRootURL(),
-                            getAutoLoginURL(),
                             accessToken,
                             this.getIntegrationTemplates(lmsSetup.institutionId)
                     );
@@ -317,8 +315,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .flatMap(this::findExam)
                 .map(this::checkDeletion)
                 .map(this::logExamDeleted)
-                .flatMap(teacherAccountServiceImpl::deactivateTeacherAccountsForExam)
-                .map(exam -> applyExamData(exam, true))
                 .flatMap(deleteExamAction::deleteExamInternal);
     }
 

@@ -379,9 +379,9 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 queryParam.queryParams(queryParams);
             }
 
-            final boolean usePOST = queryAttributes != null && !queryAttributes.isEmpty();
+            //final boolean usePOST = queryAttributes != null && !queryAttributes.isEmpty();
             final HttpEntity<?> functionReqEntity;
-            if (usePOST) {
+            if ( queryAttributes != null && !queryAttributes.isEmpty()) {
                 final HttpHeaders headers = new HttpHeaders();
                 headers.set(
                         HttpHeaders.CONTENT_TYPE,
@@ -394,7 +394,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 functionReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
             }
 
-            return doRequest(functionName, queryParam, usePOST, functionReqEntity);
+            return doRequest(functionName, queryParam, true, functionReqEntity);
         }
 
         @Override
@@ -465,7 +465,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
                 final ResponseEntity<String> response = super.exchange(
                         this.serverURL + this.tokenPath,
-                        HttpMethod.GET,
+                        HttpMethod.POST,
                         this.tokenReqEntity,
                         String.class,
                         this.tokenReqURIVars);

@@ -8,8 +8,16 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.function.Consumer;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.user.LoginForward;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -54,13 +62,19 @@ public class MainPage implements TemplateComposer {
 
     private final WidgetFactory widgetFactory;
     private final PolyglotPageService polyglotPageService;
+    private final AuthorizationContextHolder authorizationContextHolder;
+    private final PageService pageService;
 
     public MainPage(
             final WidgetFactory widgetFactory,
-            final PolyglotPageService polyglotPageService) {
+            final PolyglotPageService polyglotPageService,
+            final AuthorizationContextHolder authorizationContextHolder,
+            final PageService pageService) {
 
         this.widgetFactory = widgetFactory;
         this.polyglotPageService = polyglotPageService;
+        this.authorizationContextHolder = authorizationContextHolder;
+        this.pageService = pageService;
     }
 
     @Override
@@ -158,6 +172,19 @@ public class MainPage implements TemplateComposer {
                 pageContext.copyOf(nav));
 
         mainSash.setWeights(DEFAULT_SASH_WEIGHTS);
+
+        final LoginForward loginForward = authorizationContextHolder
+                .getAuthorizationContext()
+                .getLoginForward();
+
+        if (loginForward != null) {
+            final PageAction pageAction = pageService.pageActionBuilder(pageContext)
+                    .newAction( ActionDefinition.valueOf(loginForward.actionName))
+                    .withEntityKey(loginForward.entityKey)
+                    .create();
+
+            pageService.executePageAction(pageAction);
+        }
     }
 
     private static final class ContentActionEventListener implements ActionEventListener {
