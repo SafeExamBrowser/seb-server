@@ -52,6 +52,7 @@ public interface PageContext {
 
     }
 
+    String CONTEXTUAL_ERROR_KEY = "ERROR_MESSAGE_KEY";
     /** The resource-bundle key of the generic load entity error message. */
     String GENERIC_LOAD_ERROR_TEXT_KEY = "sebserver.error.get.entity";
     String GENERIC_REMOVE_ERROR_TEXT_KEY = "sebserver.error.remove.entity";

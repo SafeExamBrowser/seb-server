@@ -326,9 +326,15 @@ public class PageServiceImpl implements PageService {
 
             if (!errors.isEmpty()) {
                 final String entityTypeName = this.resourceService.getEntityTypeName(entityType);
+                final String errorMessageKey = action.pageContext().getAttribute(PageContext.CONTEXTUAL_ERROR_KEY);
                 throw new MultiPageMessageException(
-                        new LocTextKey(PageContext.GENERIC_ACTIVATE_ERROR_TEXT_KEY, entityTypeName),
+                        new LocTextKey(
+                                (errorMessageKey != null)
+                                        ? errorMessageKey
+                                        : PageContext.GENERIC_ACTIVATE_ERROR_TEXT_KEY,
+                                entityTypeName),
                         errors);
+
             }
 
             return action;

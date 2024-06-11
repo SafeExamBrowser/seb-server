@@ -36,6 +36,8 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(LmsAPITemplateAdapter.class);
 
+    private static final int DEFAULT_ATTEMPTS = 1;
+
     private final CourseAccessAPI courseAccessAPI;
     private final SEBRestrictionAPI sebRestrictionAPI;
 
@@ -78,7 +80,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
                         Integer.class,
-                        2),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.blockingTime",
                         Long.class,
@@ -92,7 +94,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsAccessRequest.attempts",
                         Integer.class,
-                        2),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsAccessRequest.blockingTime",
                         Long.class,
@@ -106,7 +108,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.applyExamDataRequest.attempts",
                         Integer.class,
-                        2),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.applyExamDataRequest.blockingTime",
                         Long.class,
@@ -120,7 +122,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
                         Integer.class,
-                        2),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.blockingTime",
                         Long.class,
@@ -134,7 +136,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
-                        1),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
                         Long.class,
@@ -148,7 +150,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
-                        1),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
                         Long.class,
@@ -162,7 +164,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
-                        1),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
                         Long.class,
@@ -176,7 +178,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.chaptersRequest.attempts",
                         Integer.class,
-                        1),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.chaptersRequest.blockingTime",
                         Long.class,
@@ -204,7 +206,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.sebrestriction.attempts",
                         Integer.class,
-                        1),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.sebrestriction.blockingTime",
                         Long.class,
@@ -218,7 +220,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.examRequest.attempts",
                         Integer.class,
-                        2),
+                        DEFAULT_ATTEMPTS),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.examRequest.blockingTime",
                         Long.class,

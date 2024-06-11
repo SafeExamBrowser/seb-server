@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateCacheService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -58,27 +59,8 @@ public class LmsTestServiceImpl implements LmsTestService {
             }
         }
 
-        if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
-            final Long lmsSetupId = template.lmsSetup().id;
-            final LmsSetupTestResult lmsSetupTestResult = template.testFullIntegrationAPI();
-            if (!lmsSetupTestResult.isOk()) {
-                lmsAPITemplateCacheService.clearCache(template.lmsSetup().getModelId());
-                this.lmsSetupDAO
-                        .setIntegrationActive(lmsSetupId, false)
-                        .onError(er -> log.error("Failed to mark LMS integration inactive", er));
-                return lmsSetupTestResult;
-            } else {
-
-                final Result<FullLmsIntegrationService.IntegrationData> integrationDataResult = fullLmsIntegrationService
-                        .applyFullLmsIntegration(template.lmsSetup().id);
-
-                if (integrationDataResult.hasError()) {
-                    return LmsSetupTestResult.ofFullIntegrationAPIError(
-                            template.lmsSetup().lmsType,
-                            "Failed to apply full LMS integration");
-                }
-            }
-        }
+        final LmsSetupTestResult lmsSetupTestResult = fullIntegrationTest(template);
+        if (lmsSetupTestResult != null) return lmsSetupTestResult;
 
         return LmsSetupTestResult.ofOkay(template.lmsSetup().getLmsType());
     }
@@ -110,13 +92,44 @@ public class LmsTestServiceImpl implements LmsTestService {
             }
         }
 
-        if (lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
-            final LmsSetupTestResult lmsSetupTestResult = lmsSetupTemplate.testFullIntegrationAPI();
-            if (!lmsSetupTestResult.isOk()) {
-                return lmsSetupTestResult;
-            }
-        }
+        final LmsSetupTestResult lmsSetupTestResult = fullIntegrationTest(lmsSetupTemplate);
+        if (lmsSetupTestResult != null) return lmsSetupTestResult;
 
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
+    }
+
+    private LmsSetupTestResult fullIntegrationTest(final LmsAPITemplate template) {
+        if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            final Long lmsSetupId = template.lmsSetup().id;
+            final LmsSetupTestResult lmsSetupTestResult = template.testFullIntegrationAPI();
+            if (!lmsSetupTestResult.isOk()) {
+                lmsAPITemplateCacheService.clearCache(template.lmsSetup().getModelId());
+                this.lmsSetupDAO
+                        .setIntegrationActive(lmsSetupId, false)
+                        .onError(er -> log.error("Failed to mark LMS integration inactive", er));
+                return lmsSetupTestResult;
+            } else {
+
+                final Result<FullLmsIntegrationService.IntegrationData> integrationDataResult = fullLmsIntegrationService
+                        .applyFullLmsIntegration(template.lmsSetup().id);
+
+                if (integrationDataResult.hasError()) {
+                    Throwable error = integrationDataResult.getError();
+                    if (error instanceof RuntimeException) {
+                        error = error.getCause();
+                    }
+                    if (error != null && error instanceof MoodleResponseException) {
+                        return LmsSetupTestResult.ofFullIntegrationAPIError(
+                                template.lmsSetup().lmsType,
+                                error.getMessage());
+                    } else {
+                        return LmsSetupTestResult.ofFullIntegrationAPIError(
+                                template.lmsSetup().lmsType,
+                                "Failed to apply full LMS integration");
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

@@ -14,6 +14,7 @@ import java.util.Collection;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
@@ -30,6 +31,8 @@ public interface FullLmsIntegrationService {
 
     @EventListener
     void notifyLmsSetupChange(final LmsSetupChangeEvent event);
+
+    Result<LmsSetup> applyLMSSetupDeactivation(LmsSetup lmsSetup);
 
     @EventListener
     void notifyExamTemplateChange(final ExamTemplateChangeEvent event);

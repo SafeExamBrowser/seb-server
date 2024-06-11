@@ -703,6 +703,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     }
 
     protected Result<T> notifySaved(final T entity) {
+        return notifySaved(entity, Activatable.ActivationAction.NONE);
+    }
+
+    protected Result<T> notifySaved(final T entity, final Activatable.ActivationAction activationAction) {
         return Result.of(entity);
     }
 

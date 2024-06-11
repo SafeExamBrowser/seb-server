@@ -514,6 +514,11 @@ public class LmsSetupForm implements TemplateComposer {
                                     Utils.escapeHTML_XML_EcmaScript(error.message)));
                     return onOK.apply(locTextKey);
                 }
+                case APPLY_FULL_INTEGRATION: {
+                    throw new PageMessageException(new LocTextKey(
+                            "sebserver.lmssetup.action.test.fullintegration.error",
+                            Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
+                }
                 default: {
                     throw new PageMessageException(new LocTextKey(
                             "sebserver.lmssetup.action.test.unknownError",

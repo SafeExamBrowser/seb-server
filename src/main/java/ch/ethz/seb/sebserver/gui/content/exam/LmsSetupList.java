@@ -192,6 +192,7 @@ public class LmsSetupList implements TemplateComposer {
                 .publishIf(userGrant::im, false)
 
                 .newAction(ActionDefinition.LMS_SETUP_TOGGLE_ACTIVITY)
+                .withAttribute(PageContext.CONTEXTUAL_ERROR_KEY, "sebserver.lmssetup.action.activation.error")
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         this.pageService.activationToggleActionFunction(

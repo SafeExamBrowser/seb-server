@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import org.apache.commons.lang3.StringUtils;
@@ -104,6 +105,53 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                 .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
                 .map(id -> applySEBRestrictionIfExamRunning(exam))
                 .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t));
+    }
+
+    @Override
+    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
+        final LmsSetup lmsSetup = event.getLmsSetup();
+        // only relevant for LMS Setups with SEB restriction feature
+        if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
+            return;
+        }
+        try {
+            if (event.activation == Activatable.ActivationAction.ACTIVATE) {
+                examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+                        .getOrThrow()
+                        .forEach(exam -> {
+                            try {
+                                this.applySEBRestrictionIfExamRunning(exam);
+                            } catch (final Exception e) {
+                                log.warn("Failed to update SEB restriction for exam: {} error: {}", exam.name, e.getMessage());
+                            }
+                        });
+            }
+        } catch (final Exception e) {
+            log.error("Failed to update SEB restriction for re-activated exams: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<LmsSetup> applyLMSSetupDeactivation(final LmsSetup lmsSetup) {
+
+        return Result.tryCatch(() -> {
+            // only relevant for LMS Setups with SEB restriction feature
+            if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
+                return lmsSetup;
+            }
+
+            examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+                    .getOrThrow()
+                    .forEach( exam -> {
+                        this.releaseSEBClientRestriction(exam)
+                                .onError(error -> log.warn(
+                                        "Failed to release SEB Restriction for Exam: {} error: {}",
+                                        exam.name,
+                                        error.getMessage()));
+                    });
+
+            return lmsSetup;
+        });
     }
 
     private Exam applySEBRestrictionIfExamRunning(final Exam exam) {

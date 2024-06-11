@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -137,7 +138,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .getClientHttpRequestFactory()
                 .onSuccess(this.restTemplate::setRequestFactory)
                 .onError(error -> log.warn("Failed to set HTTP request factory: ", error));
-        //this.restTemplate.setErrorHandler(new OAuth2AuthorizationContextHolder.OAuth2AuthorizationContext.ErrorHandler(this.resource));
         this.restTemplate
                 .getMessageConverters()
                 .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
@@ -164,17 +164,44 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             return;
         }
 
-        if (lmsSetup.active) {
+        if (event.activation == Activatable.ActivationAction.NONE) {
             if (!lmsSetup.integrationActive) {
                 applyFullLmsIntegration(lmsSetup.id)
-                        .onError(error -> log.warn("Failed to update LMS integration for: {}", lmsSetup, error))
+                        .onError(error -> log.warn("Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
                         .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
             }
-        } else if (lmsSetup.integrationActive) {
-            deleteFullLmsIntegration(lmsSetup.id)
-                    .onError(error -> log.warn("Failed to delete LMS integration for: {}", lmsSetup, error))
-                    .onSuccess(data -> log.debug("Successfully deleted LMS integration for: {} data: {}", lmsSetup, data));
+        } else if (event.activation == Activatable.ActivationAction.ACTIVATE) {
+            applyFullLmsIntegration(lmsSetup.id)
+                    .map(data -> reapplyExistingExams(data,lmsSetup))
+                    .onError(error -> log.warn("Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                    .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
         }
+    }
+
+    @Override
+    public Result<LmsSetup> applyLMSSetupDeactivation(final LmsSetup lmsSetup) {
+        if (!lmsSetup.getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            return Result.of(lmsSetup);
+        }
+
+        return Result.tryCatch(() -> {
+
+            // remove all active exam data for involved exams before deactivate them
+            this.examDAO
+                    .allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+                    .getOrThrow()
+                    .forEach( exam -> {
+                        this.teacherAccountServiceImpl.deactivateTeacherAccountsForExam(exam)
+                                .map(e -> applyExamData(e, true))
+                                .onError(error -> log.warn("Failed delete teacher accounts for exam: {}", exam.name));
+                    });
+
+            // delete full integration on Moodle side before deactivate LMS Setup
+            this.deleteFullLmsIntegration(lmsSetup.id)
+                    .getOrThrow();
+
+            return lmsSetup;
+        });
     }
 
     @Override
@@ -257,8 +284,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 });
     }
 
-
-
     @Override
     public Result<Boolean> deleteFullLmsIntegration(final Long lmsSetupId) {
         return lmsSetupDAO
@@ -327,33 +352,40 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
         try {
 
-            // TODO this is hardcoded for Testing, below out-commented code is real business
+            final Result<Exam> examResult = lmsSetupDAO
+                    .getLmsSetupIdByConnectionId(lmsUUID)
+                    .flatMap(lmsAPITemplateCacheService::getLmsAPITemplate)
+                    .map(findQuizData(courseId, quizId))
+                    .flatMap(this::findExam);
 
-            this.connectionConfigurationService.exportSEBClientConfiguration(out, "1", null);
+            if (examResult.hasError()) {
+                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
+            }
 
-//            final Result<Exam> examResult = lmsSetupDAO
-//                    .getLmsSetupIdByConnectionId(lmsUUID)
-//                    .flatMap(lmsAPIService::getLmsAPITemplate)
-//                    .map(findQuizData(courseId, quizId))
-//                    .flatMap(this::findExam);
-//
-//            if (examResult.hasError()) {
-//                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
-//            }
-//
-//            final Exam exam = examResult.get();
-//
-//            final String connectionConfigId = getConnectionConfigurationId(exam);
-//            if (StringUtils.isBlank(connectionConfigId)) {
-//                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
-//            }
-//
-//            this.connectionConfigurationService.exportSEBClientConfiguration(out, connectionConfigId, exam.id);
+            final Exam exam = examResult.get();
+
+            final String connectionConfigId = getConnectionConfigurationId(exam);
+            if (StringUtils.isBlank(connectionConfigId)) {
+                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
+            }
+
+            this.connectionConfigurationService.exportSEBClientConfiguration(out, connectionConfigId, exam.id);
             return Result.EMPTY;
 
         } catch (final Exception e) {
             return Result.ofError(e);
         }
+    }
+
+    private LmsSetup reapplyExistingExams(
+            final IntegrationData integrationData,
+            final LmsSetup lmsSetup) {
+
+            examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+                    .getOrThrow()
+                    .forEach(exam -> applyExamData(exam, false));
+
+            return lmsSetup;
     }
 
     private String getConnectionConfigurationId(final Exam exam) {

@@ -10,8 +10,13 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,8 +55,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.LMS_SETUP_ENDPOINT)
 public class LmsSetupController extends ActivatableEntityController<LmsSetup, LmsSetup> {
 
+    private static final Logger log = LoggerFactory.getLogger(LmsSetupController.class);
+
     private final LmsAPIService lmsAPIService;
     private final LmsTestService lmsTestService;
+    private final SEBRestrictionService sebRestrictionService;
+    private final FullLmsIntegrationService fullLmsIntegrationService;
     final ApplicationEventPublisher applicationEventPublisher;
 
     public LmsSetupController(
@@ -63,6 +72,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final LmsTestService lmsTestService,
+            final SEBRestrictionService sebRestrictionService,
+            final FullLmsIntegrationService fullLmsIntegrationService,
             final ApplicationEventPublisher applicationEventPublisher) {
 
         super(authorization,
@@ -74,6 +85,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
         this.lmsAPIService = lmsAPIService;
         this.lmsTestService = lmsTestService;
+        this.sebRestrictionService = sebRestrictionService;
+        this.fullLmsIntegrationService = fullLmsIntegrationService;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -148,9 +161,43 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     }
 
     @Override
-    protected Result<LmsSetup> notifySaved(final LmsSetup entity) {
-        this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity));
-        return super.notifySaved(entity);
+    protected Result<LmsSetup> notifySaved(final LmsSetup entity, final Activatable.ActivationAction activation) {
+        this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
+        return super.notifySaved(entity, activation);
     }
 
+    @Override
+    protected Result<LmsSetup> validForActivation(final LmsSetup entity, final boolean activation) {
+        return super.validForActivation(entity, activation)
+                .map(lmsSetup -> {
+                    if (!activation) {
+                        // on deactivation remove all SEB restrictions and delete full integration if in place
+                        return sebRestrictionService
+                                .applyLMSSetupDeactivation(lmsSetup)
+                                .flatMap(fullLmsIntegrationService::applyLMSSetupDeactivation)
+                                .getOrThrow();
+                    }
+                    return entity;
+                });
+    }
+
+    @Override
+    protected Result<LmsSetup> validForDelete(final LmsSetup entity) {
+        return Result.tryCatch(() -> {
+            // if there is a SEB Restriction involved, release all SEB Restriction for exams
+            if (entity.lmsType.features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
+                sebRestrictionService
+                        .applyLMSSetupDeactivation(entity)
+                        .getOrThrow();
+            }
+            // if there is a full LMS integration involved, delete it first on LMS
+            if (entity.lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+                fullLmsIntegrationService
+                        .deleteFullLmsIntegration(entity.id)
+                        .getOrThrow();
+            }
+
+            return entity;
+        });
+    }
 }

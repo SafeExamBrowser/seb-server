@@ -144,9 +144,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             return this.lmsSetupRecordMapper.selectIdsByExample()
                     .where(
-                            LmsSetupRecordDynamicSqlSupport.active,
-                            isEqualTo(1))
-                    .and(
                             lmsType,
                             isIn(types))
                     .build()

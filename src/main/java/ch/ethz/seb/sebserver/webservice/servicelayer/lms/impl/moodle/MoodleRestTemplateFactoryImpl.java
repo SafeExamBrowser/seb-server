@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import javax.net.ssl.SSLContext;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -310,8 +312,6 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             return callMoodleAPIFunction(functionName, null, null);
         }
 
-
-
         @Override
         public String callMoodleAPIFunction(
                 final String functionName,
@@ -337,6 +337,14 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             }
 
             final String body = createMoodleFormPostBody(queryAttributes);
+
+            // TODO remove this after testing
+            try {
+                final String uriString = URLDecoder.decode(queryParam.toUriString(), "UTF8");
+                log.info("POST To Moodle URI (decoded UTF8): {}, body: {}", uriString, body);
+            } catch (final Exception e) {
+                // ignore
+            }
 
             final HttpHeaders headers = new HttpHeaders();
             headers.set(

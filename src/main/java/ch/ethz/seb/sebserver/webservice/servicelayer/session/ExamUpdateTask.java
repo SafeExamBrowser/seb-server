@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
+/** Defines a exam update task. Exam update tasks are called in a fixed time interval on the master
+ * Webservice instance to update various exam data like state, LMS data and so on.
+ * A ExamUpdateTask can define a processing order on with the overall scheduler acts. Lower order first processed.
+ */
 public interface ExamUpdateTask {
 
     int examUpdateTaskProcessingOrder();

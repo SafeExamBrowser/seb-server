@@ -105,9 +105,9 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final String connectionJSON = jsonMapper.writeValueAsString(data);
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
 
-            //if (log.isDebugEnabled()) {
-                log.info("Try to connect to Moodle Plugin 2.0 with: {}", connectionJSON);
-            //}
+            if (log.isDebugEnabled()) {
+                log.debug("Try to connect to Moodle Plugin 2.0 with: {}", connectionJSON);
+            }
 
             final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
             queryAttributes.add(ATTRIBUTE_CONNECTION, connectionJSON);
@@ -141,17 +141,19 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                     fullConnectionApplyResponse.warnings.stream()
                             .filter(w -> Objects.equals(w.warningcode, "connectiondoesntmatch"))
                             .findFirst()
-                            .ifPresent( w -> {
-
-                                throw new MoodleResponseException("Failed to apply SEB Server connection due to connection mismatch", response);
-                    });
+                            .ifPresent(w -> {
+                                throw new MoodleResponseException("Failed to apply SEB Server connection due to connection mismatch\n There seems to be another SEB Server already connected to this LMS instance", response);
+                            });
                 }
 
                 if (log.isDebugEnabled()) {
                     log.debug("Got warnings from Moodle: {}", response);
                 }
+            } catch (final MoodleResponseException mre) {
+                throw mre;
             } catch (final Exception e) {
                 log.warn("Failed to parse Moodle warnings. Error: {}", e.getMessage());
+                throw e;
             }
 
             if (log.isDebugEnabled()) {

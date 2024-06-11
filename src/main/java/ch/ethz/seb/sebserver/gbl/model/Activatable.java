@@ -12,6 +12,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public interface Activatable {
 
+    public enum ActivationAction {
+        NONE,
+        ACTIVATE,
+        DEACTIVATE
+    }
+
     @JsonIgnore
     boolean isActive();
 

@@ -10,7 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
+import org.springframework.context.event.EventListener;
 
 public interface SEBRestrictionService {
 
@@ -66,5 +69,10 @@ public interface SEBRestrictionService {
     boolean checkSebRestrictionSet(Exam exam);
 
     Result<Exam> applyQuitPassword(final Exam exam);
+
+    @EventListener
+    void notifyLmsSetupChange(final LmsSetupChangeEvent event);
+
+    Result<LmsSetup> applyLMSSetupDeactivation(LmsSetup lmsSetup);
 
 }
