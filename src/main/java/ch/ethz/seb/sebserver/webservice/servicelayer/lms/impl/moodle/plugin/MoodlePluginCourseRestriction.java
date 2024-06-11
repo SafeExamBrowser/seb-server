@@ -132,8 +132,6 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
 
             final ArrayList<String> beks = new ArrayList<>(sebRestrictionData.browserExamKeys);
             final ArrayList<String> configKeys = new ArrayList<>(sebRestrictionData.configKeys);
-            final String quitLink = this.examConfigurationValueService.getQuitLink(exam.id);
-            final String quitSecret = this.examConfigurationValueService.getQuitPassword(exam.id);
             String additionalBEK = sebRestrictionData.additionalProperties.get(SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK);
             if (additionalBEK == null) {
                 additionalBEK = exam.getAdditionalAttribute(
@@ -147,8 +145,13 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final LinkedMultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
             queryAttributes.put(ATTRIBUTE_CONFIG_KEYS, configKeys);
             queryAttributes.put(ATTRIBUTE_BROWSER_EXAM_KEYS, beks);
-            queryAttributes.add(ATTRIBUTE_QUIT_URL, quitLink);
-            queryAttributes.add(ATTRIBUTE_QUIT_SECRET, quitSecret);
+
+            if (restTemplate.getMoodlePluginVersion() == MoodleAPIRestTemplate.MoodlePluginVersion.V1_0) {
+                final String quitLink = this.examConfigurationValueService.getQuitLink(exam.id);
+                final String quitSecret = this.examConfigurationValueService.getQuitPassword(exam.id);
+                queryAttributes.add(ATTRIBUTE_QUIT_URL, quitLink);
+                queryAttributes.add(ATTRIBUTE_QUIT_SECRET, quitSecret);
+            }
 
             final String srJSON = restTemplate.callMoodleAPIFunction(
                     RESTRICTION_SET_FUNCTION_NAME,

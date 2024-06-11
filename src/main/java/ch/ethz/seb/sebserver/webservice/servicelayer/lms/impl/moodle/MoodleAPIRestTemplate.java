@@ -18,6 +18,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public interface MoodleAPIRestTemplate {
 
+    public enum MoodlePluginVersion {
+        NONE,
+        V1_0,
+        V2_0,
+    }
+
     String URI_VAR_USER_NAME = "username";
     String URI_VAR_PASSWORD = "pwd";
     String URI_VAR_SERVICE = "service";
@@ -32,6 +38,8 @@ public interface MoodleAPIRestTemplate {
     String REST_REQUEST_FORMAT_NAME = "moodlewsrestformat";
 
     String getService();
+
+    MoodlePluginVersion getMoodlePluginVersion();
 
     CharSequence getAccessToken();
 

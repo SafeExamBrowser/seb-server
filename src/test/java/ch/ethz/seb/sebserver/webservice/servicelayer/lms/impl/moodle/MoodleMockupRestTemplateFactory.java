@@ -115,6 +115,11 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
         }
 
         @Override
+        public MoodlePluginVersion getMoodlePluginVersion() {
+            return MoodlePluginVersion.V1_0;
+        }
+
+        @Override
         public CharSequence getAccessToken() {
             return this.accessToken;
         }

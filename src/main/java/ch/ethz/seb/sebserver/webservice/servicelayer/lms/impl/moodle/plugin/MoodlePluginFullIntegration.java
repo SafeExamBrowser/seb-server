@@ -38,7 +38,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
 
     private static final Logger log = LoggerFactory.getLogger(MoodlePluginFullIntegration.class);
 
-    private static final String FUNCTION_NAME_SEBSERVER_CONNECTION = "quizaccess_sebserver_connection";
+    public static final String FUNCTION_NAME_SEBSERVER_CONNECTION = "quizaccess_sebserver_connection";
     private static final String FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE = "quizaccess_sebserver_connection_delete";
     private static final String FUNCTION_NAME_SET_EXAM_DATA = "quizaccess_sebserver_set_exam_data";
     private static final String ATTRIBUTE_CONNECTION = "connection";

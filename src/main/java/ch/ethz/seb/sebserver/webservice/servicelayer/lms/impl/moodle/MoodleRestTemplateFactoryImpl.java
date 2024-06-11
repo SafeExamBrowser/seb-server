@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginFullIntegration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -237,6 +239,8 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         private final Map<String, String> tokenReqURIVars;
         private final HttpEntity<?> tokenReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
 
+        private MoodlePluginVersion moodlePluginVersion = null;
+
         protected MoodleAPIRestTemplateImpl(
                 final JSONMapper jsonMapper,
                 final APITemplateDataSupplier apiTemplateDataSupplier,
@@ -264,6 +268,30 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         @Override
         public String getService() {
             return this.tokenReqURIVars.get(URI_VAR_SERVICE);
+        }
+
+        @Override
+        public MoodlePluginVersion getMoodlePluginVersion() {
+            if (moodlePluginVersion == null) {
+                try {
+                    final String apiInfo = this.callMoodleAPIFunction(REST_API_TEST_FUNCTION);
+                    final WebserviceInfo webserviceInfo = this.jsonMapper.readValue(
+                            apiInfo,
+                            WebserviceInfo.class);
+                    if (webserviceInfo.functions.containsKey(MoodlePluginCourseRestriction.RESTRICTION_SET_FUNCTION_NAME)) {
+                        if (webserviceInfo.functions.containsKey(MoodlePluginFullIntegration.FUNCTION_NAME_SEBSERVER_CONNECTION)) {
+                            this.moodlePluginVersion = MoodlePluginVersion.V2_0;
+                        } else {
+                            this.moodlePluginVersion = MoodlePluginVersion.V1_0;
+                        }
+                    } else {
+                        this.moodlePluginVersion = MoodlePluginVersion.NONE;
+                    }
+                } catch (final Exception e) {
+                    log.warn("Failed to verify MoodlePluginVersion. Error: {}", e.getMessage());
+                }
+            }
+            return moodlePluginVersion;
         }
 
         @Override
