@@ -622,6 +622,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> notifySaved(final Exam entity) {
         return this.examAdminService.notifyExamSaved(entity)
                 .flatMap(this.examAdminService::applyQuitPassword)
+                .flatMap(this.fullLmsIntegrationService::applyExamDataToLMS)
                 .flatMap(this.examSessionService::flushCache);
     }
 

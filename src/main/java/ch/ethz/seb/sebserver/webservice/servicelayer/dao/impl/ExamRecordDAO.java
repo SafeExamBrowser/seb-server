@@ -317,7 +317,7 @@ public class ExamRecordDAO {
                 .set(quitPassword).equalTo(getEncryptedQuitPassword(exam.quitPassword))
                 .set(browserKeys).equalToWhenPresent(exam.browserExamKeys)
                 .set(lmsSebRestriction).equalTo(1) // seb restriction (deprecated)
-                .set(examTemplateId).equalTo(exam.examTemplateId)
+                .set(examTemplateId).equalTo(oldRecord.getExamTemplateId())
                 .set(lastModified).equalTo(Utils.getMillisecondsNow())
                 .set(quizName).equalToWhenPresent(exam.lmsSetupId == null ? exam.name : null)
                 .set(quizStartTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.startTime : null)

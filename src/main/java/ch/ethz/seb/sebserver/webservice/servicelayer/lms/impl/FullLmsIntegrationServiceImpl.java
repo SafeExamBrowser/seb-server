@@ -541,6 +541,10 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     private Exam applyExamData(final Exam exam, final boolean deletion) {
+        if (exam.examTemplateId == null) {
+            throw new IllegalStateException("Exam has no template id: " + exam.getName());
+        }
+
         try {
 
             final LmsAPITemplate lmsAPITemplate = lmsAPITemplateCacheService
