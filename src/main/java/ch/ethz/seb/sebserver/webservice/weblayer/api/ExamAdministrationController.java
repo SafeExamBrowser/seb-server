@@ -17,6 +17,7 @@ import javax.validation.Valid;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -92,6 +93,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final SEBRestrictionService sebRestrictionService;
     private final SecurityKeyService securityKeyService;
     private final Cryptor cryptor;
+    private final FullLmsIntegrationService fullLmsIntegrationService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -108,7 +110,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
             final SecurityKeyService securityKeyService,
-            final Cryptor cryptor) {
+            final Cryptor cryptor,
+            final FullLmsIntegrationService fullLmsIntegrationService) {
 
         super(authorization,
                 bulkActionService,
@@ -127,6 +130,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.sebRestrictionService = sebRestrictionService;
         this.securityKeyService = securityKeyService;
         this.cryptor = cryptor;
+        this.fullLmsIntegrationService = fullLmsIntegrationService;
     }
 
     @Override
@@ -726,14 +730,17 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                                     .of("The LMS for this Exam has no SEB restriction feature"));
                 }
 
-                if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
-                    throw new APIMessageException(
-                            APIMessage.ErrorMessage.INTEGRITY_VALIDATION
-                                    .of("Exam currently has active SEB Client connections."));
-                }
-
                 return this.checkNoActiveSEBClientConnections(exam)
                         .flatMap(this.sebRestrictionService::applySEBClientRestriction)
+                        // TODO temporary try to fix corrupted data on Moodle site
+                        .onErrorDo(error -> {
+                            if (error.getMessage().contains("error/SEB Server")) {
+                                log.info("**** try to reset exam_data on Moodle 2.0 with temporary hack... ");
+                                fullLmsIntegrationService.applyExamDataToLMS(exam)
+                                        .onError(e -> log.error("Failed to apply exam data: ", error));
+                            }
+                            return this.sebRestrictionService.applySEBClientRestriction(exam).getOrThrow();
+                        })
                         .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict))
                         .getOrThrow();
             } else {

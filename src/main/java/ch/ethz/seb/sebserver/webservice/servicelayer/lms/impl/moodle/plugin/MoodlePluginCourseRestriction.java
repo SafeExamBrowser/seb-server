@@ -174,7 +174,6 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             addQuery.add(ATTRIBUTE_QUIZ_ID, quizId);
 
             final LinkedMultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-
             queryAttributes.add(ATTRIBUTE_CONFIG_KEYS, StringUtils.EMPTY);
             queryAttributes.add(ATTRIBUTE_BROWSER_EXAM_KEYS, StringUtils.EMPTY);
 
