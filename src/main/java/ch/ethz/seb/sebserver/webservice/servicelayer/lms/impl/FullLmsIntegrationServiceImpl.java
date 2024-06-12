@@ -148,7 +148,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         return Result.tryCatch(() -> {
             final LmsSetup lmsSetup = lmsSetupDAO.byPK(exam.lmsSetupId).getOrThrow();
             if (lmsSetup.lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
-                return this.applyExamData(exam, false);
+                return this.applyExamData(exam, !exam.active);
             }
 
             return exam;
@@ -183,17 +183,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     .map(data -> reapplyExistingExams(data,lmsSetup))
                     .onError(error -> log.warn("Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
                     .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
-        }
-    }
-
-    @Override
-    public Result<LmsSetup> applyLMSSetupDeactivation(final LmsSetup lmsSetup) {
-        if (!lmsSetup.getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
-            return Result.of(lmsSetup);
-        }
-
-        return Result.tryCatch(() -> {
-
+        } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
             // remove all active exam data for involved exams before deactivate them
             this.examDAO
                     .allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
@@ -203,13 +193,10 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                                 .map(e -> applyExamData(e, true))
                                 .onError(error -> log.warn("Failed delete teacher accounts for exam: {}", exam.name));
                     });
-
-            // delete full integration on Moodle side before deactivate LMS Setup
+            // delete full integration on Moodle side due to deactivation
             this.deleteFullLmsIntegration(lmsSetup.id)
                     .getOrThrow();
-
-            return lmsSetup;
-        });
+        }
     }
 
     @Override
@@ -300,6 +287,10 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     if (lmsSetup.getConnectionId() == null) {
                         log.warn("No LMS Setup connectionId available for: {}", lmsSetup);
                         return false;
+                    }
+
+                    if (!lmsSetupDAO.isIntegrationActive(lmsSetupId)) {
+                        return true;
                     }
 
                     lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId)

@@ -52,7 +52,12 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, B
      * @return Result refers to the specified LMS Setup or to en error when happened */
     Result<LmsSetup> setIntegrationActive(Long lmsSetupId, boolean active);
 
+    boolean isIntegrationActive(Long lmsSetupId);
+
     Result<Collection<Long>> idsOfActiveWithFullIntegration(Long institutionId);
 
     Result<Collection<Long>> allIdsFullIntegration();
+
+
+
 }

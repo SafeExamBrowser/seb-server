@@ -114,6 +114,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
             return;
         }
+
         try {
             if (event.activation == Activatable.ActivationAction.ACTIVATE) {
                 examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
@@ -125,6 +126,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                                 log.warn("Failed to update SEB restriction for exam: {} error: {}", exam.name, e.getMessage());
                             }
                         });
+            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
+                releaseAllRestrictionsOf(lmsSetup)
+                        .onError(error -> log.warn(
+                                "Failed to remove all SEB Restrictions on LMS Setup deactivation: {}",
+                                error.getMessage()));
             }
         } catch (final Exception e) {
             log.error("Failed to update SEB restriction for re-activated exams: {}", e.getMessage());
@@ -132,8 +138,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     }
 
     @Override
-    public Result<LmsSetup> applyLMSSetupDeactivation(final LmsSetup lmsSetup) {
-
+    public Result<LmsSetup> releaseAllRestrictionsOf(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
             // only relevant for LMS Setups with SEB restriction feature
             if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
@@ -274,7 +279,6 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             // create new ones if needed
             sebRestriction.additionalProperties
                     .entrySet()
-                    .stream()
                     .forEach(entry -> this.additionalAttributesDAO.saveAdditionalAttribute(
                             EntityType.EXAM,
                             exam.id,
@@ -332,7 +336,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             log.debug("ExamDeletionEvent received, process releaseSEBClientRestriction...");
         }
 
-        event.ids.stream().forEach(this::processExamDeletion);
+        event.ids.forEach(this::processExamDeletion);
     }
 
     private Result<Exam> processExamDeletion(final Long examId) {

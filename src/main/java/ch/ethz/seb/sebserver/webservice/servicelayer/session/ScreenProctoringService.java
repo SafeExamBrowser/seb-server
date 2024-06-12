@@ -12,6 +12,8 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import org.springframework.context.event.EventListener;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -76,6 +78,9 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     @EventListener(ExamDeletionEvent.class)
     void notifyExamDeletion(final ExamDeletionEvent event);
 
+    @EventListener
+    void notifyLmsSetupChange(final LmsSetupChangeEvent event);
+
     /** This is used to update the exam equivalent on the screen proctoring service side
      * if screen proctoring is enabled for the specified exam.
      *
@@ -92,6 +97,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUser(final String userUUID);
+
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUserForExam(final Long examId);

@@ -32,7 +32,7 @@ public interface FullLmsIntegrationService {
     @EventListener
     void notifyLmsSetupChange(final LmsSetupChangeEvent event);
 
-    Result<LmsSetup> applyLMSSetupDeactivation(LmsSetup lmsSetup);
+    //Result<LmsSetup> applyLMSSetupDeactivation(LmsSetup lmsSetup);
 
     @EventListener
     void notifyExamTemplateChange(final ExamTemplateChangeEvent event);

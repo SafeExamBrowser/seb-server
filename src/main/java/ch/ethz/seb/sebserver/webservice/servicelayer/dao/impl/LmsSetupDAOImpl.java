@@ -319,6 +319,21 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean isIntegrationActive(final Long lmsSetupId) {
+        try {
+            return this.lmsSetupRecordMapper.countByExample()
+                    .where(LmsSetupRecordDynamicSqlSupport.id, isEqualTo(lmsSetupId))
+                    .and(integrationActive, isEqualTo(BooleanUtils.toInteger(true)))
+                    .build()
+                    .execute() > 0;
+        } catch (final Exception e) {
+            log.warn("Failed to verify if full LMS integration is active: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean isActive(final String modelId) {
         if (StringUtils.isBlank(modelId)) {
             return false;

@@ -38,6 +38,7 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
+
     public interface ExtractUserFromAuthenticationStrategy {
         SEBServerUser extract(Principal principal);
     }
@@ -137,7 +138,13 @@ public class UserServiceImpl implements UserService {
         if ("lmsClient".equals(name)) {
             return new SEBServerUser(
                     -1L,
-                    new UserInfo("LMS_INTEGRATION_CLIENT", -1L, null, "lmsIntegrationClient", "lmsIntegrationClient", "lmsIntegrationClient", null,
+                    new UserInfo(
+                            LMS_INTEGRATION_CLIENT_UUID,
+                            -1L,
+                            null,
+                            LMS_INTEGRATION_CLIENT_NAME,
+                            LMS_INTEGRATION_CLIENT_NAME,
+                            LMS_INTEGRATION_CLIENT_NAME, null,
                             false,
                             false,
                             true,

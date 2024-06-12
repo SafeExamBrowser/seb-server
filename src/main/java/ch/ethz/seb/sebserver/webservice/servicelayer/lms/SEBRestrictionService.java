@@ -73,6 +73,6 @@ public interface SEBRestrictionService {
     @EventListener
     void notifyLmsSetupChange(final LmsSetupChangeEvent event);
 
-    Result<LmsSetup> applyLMSSetupDeactivation(LmsSetup lmsSetup);
+    Result<LmsSetup> releaseAllRestrictionsOf(LmsSetup lmsSetup);
 
 }

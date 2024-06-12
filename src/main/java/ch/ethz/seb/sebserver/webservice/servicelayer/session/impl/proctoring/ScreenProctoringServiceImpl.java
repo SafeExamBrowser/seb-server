@@ -10,14 +10,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
 import static ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_SCREEN_PROCTORING.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -184,7 +183,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     final boolean isEnabling = this.proctoringSettingsDAO.isScreenProctoringEnabled(exam.id);
 
                     if (isEnabling && !isSPSActive) {
-
+                        // if screen proctoring has been enabled
                         this.screenProctoringAPIBinding
                                 .startScreenProctoring(exam)
                                 .onError(error -> log.error(
@@ -197,9 +196,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         this.examDAO.markUpdate(exam.id);
 
                     } else if (!isEnabling && isSPSActive) {
-
+                        // if screen proctoring has been disabled...
                         this.screenProctoringAPIBinding
-                                .disposeScreenProctoring(exam)
+                                .deactivateScreenProctoring(exam)
                                 .onError(error -> log.error("Failed to dispose screen proctoring for exam: {}",
                                         exam,
                                         error))
@@ -301,7 +300,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             return;
         }
 
-        this.screenProctoringAPIBinding.activateSEBAccessOnSPS(exam, true);
+        this.screenProctoringAPIBinding.activateScreenProctoring(exam);
     }
 
     @Override
@@ -311,7 +310,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             return;
         }
 
-        this.screenProctoringAPIBinding.activateSEBAccessOnSPS(exam, false);
+        this.screenProctoringAPIBinding.deactivateScreenProctoring(exam);
     }
 
     @Override
@@ -328,6 +327,37 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         }
                     }
                 });
+    }
+
+    @Override
+    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
+        try {
+
+            if (event.activation == Activatable.ActivationAction.NONE) {
+                return;
+            }
+
+            examDAO.allActiveForLMSSetup(Arrays.asList(event.getLmsSetup().id))
+                    .getOrThrow()
+                    .forEach(exam -> {
+                        if (screenProctoringAPIBinding.isSPSActive(exam)) {
+                            if (event.activation == Activatable.ActivationAction.ACTIVATE) {
+                                this.screenProctoringAPIBinding.activateScreenProctoring(exam)
+                                        .onError(error -> log.warn("Failed to re-activate SPS for exam: {} error: {}",
+                                                exam.name,
+                                                error.getMessage()));
+                            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
+                                this.screenProctoringAPIBinding.deactivateScreenProctoring(exam)
+                                        .onError(error -> log.warn("Failed to deactivate SPS for exam: {} error: {}",
+                                                exam.name,
+                                                error.getMessage()));
+                            }
+                        }
+                    });
+
+        } catch (final Exception e) {
+            log.error("Failed to apply LMSSetup change activation/deactivation to Screen Proctoring: ", e);
+        }
     }
 
     private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
@@ -457,7 +487,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private Result<Exam> deleteForExam(final Long examId) {
         return this.examDAO
                 .byPK(examId)
-                .map(this.screenProctoringAPIBinding::deleteScreenProctoring)
+                .flatMap(this.screenProctoringAPIBinding::deactivateScreenProctoring)
                 .map(this::cleanupAllLocalGroups)
                 .onError(error -> log.error("Failed to delete SPS integration for exam: {}", examId, error));
     }

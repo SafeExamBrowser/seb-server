@@ -14,6 +14,7 @@ import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     private final LmsTestService lmsTestService;
     private final SEBRestrictionService sebRestrictionService;
     private final FullLmsIntegrationService fullLmsIntegrationService;
-    final ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ScreenProctoringService screenProctoringService;
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
@@ -74,7 +76,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final LmsTestService lmsTestService,
             final SEBRestrictionService sebRestrictionService,
             final FullLmsIntegrationService fullLmsIntegrationService,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final ApplicationEventPublisher applicationEventPublisher,
+            final ScreenProctoringService screenProctoringService) {
 
         super(authorization,
                 bulkActionService,
@@ -88,6 +91,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         this.sebRestrictionService = sebRestrictionService;
         this.fullLmsIntegrationService = fullLmsIntegrationService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.screenProctoringService = screenProctoringService;
     }
 
     @Override
@@ -166,20 +170,35 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         return super.notifySaved(entity, activation);
     }
 
-    @Override
-    protected Result<LmsSetup> validForActivation(final LmsSetup entity, final boolean activation) {
-        return super.validForActivation(entity, activation)
-                .map(lmsSetup -> {
-                    if (!activation) {
-                        // on deactivation remove all SEB restrictions and delete full integration if in place
-                        return sebRestrictionService
-                                .applyLMSSetupDeactivation(lmsSetup)
-                                .flatMap(fullLmsIntegrationService::applyLMSSetupDeactivation)
-                                .getOrThrow();
-                    }
-                    return entity;
-                });
-    }
+//    @Override
+//    protected Result<LmsSetup> validForActivation(final LmsSetup entity, final boolean activation) {
+//        return super.validForActivation(entity, activation)
+//                .map(lmsSetup -> {
+//                    if (!activation) {
+//                        // on deactivation remove all SEB restrictions and delete full integration if in place
+//                        return sebRestrictionService
+//                                .applyLMSSetupDeactivation(lmsSetup)
+//                                .onErrorDo(error -> {
+//                                    log.warn("Failed to apply LMSSetup deactivation for SEB Restriction: ", error);
+//                                    return lmsSetup;
+//                                })
+//                                .flatMap(fullLmsIntegrationService::applyLMSSetupDeactivation)
+//                                .onErrorDo(error -> {
+//                                    log.warn("Failed to apply LMSSetup deactivation for LMS full integration: ", error);
+//                                    return lmsSetup;
+//                                })
+//                                .flatMap(screenProctoringService::applyLMSSetupDeactivation)
+//                                .onErrorDo(error -> {
+//                                    log.warn("Failed to apply LMSSetup deactivation for Screen Proctoring: ", error);
+//                                    return lmsSetup;
+//                                })
+//                                .getOrThrow();
+//                    } else {
+//
+//                    }
+//                    return entity;
+//                });
+//    }
 
     @Override
     protected Result<LmsSetup> validForDelete(final LmsSetup entity) {
@@ -187,7 +206,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             // if there is a SEB Restriction involved, release all SEB Restriction for exams
             if (entity.lmsType.features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
                 sebRestrictionService
-                        .applyLMSSetupDeactivation(entity)
+                        .releaseAllRestrictionsOf(entity)
                         .getOrThrow();
             }
             // if there is a full LMS integration involved, delete it first on LMS
