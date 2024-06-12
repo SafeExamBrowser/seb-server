@@ -145,7 +145,15 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     @Override
     public Result<Exam> applyExamDataToLMS(final Exam exam) {
-        return Result.tryCatch(() -> this.applyExamData(exam, false));
+        return Result.tryCatch(() -> {
+            final LmsSetup lmsSetup = lmsSetupDAO.byPK(exam.lmsSetupId).getOrThrow();
+            if (lmsSetup.lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+                return this.applyExamData(exam, false);
+            }
+
+            return exam;
+        });
+
     }
 
     @Override

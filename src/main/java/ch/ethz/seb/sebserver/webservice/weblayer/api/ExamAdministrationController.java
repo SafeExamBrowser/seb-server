@@ -733,15 +733,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
                 return this.checkNoActiveSEBClientConnections(exam)
                         .flatMap(this.sebRestrictionService::applySEBClientRestriction)
-                        // TODO temporary try to fix corrupted data on Moodle site
-                        .onErrorDo(error -> {
-                            if (error.getMessage().contains("no SebServer Info!")) {
-                                log.info("**** try to reset exam_data on Moodle 2.0 with temporary hack... ");
-                                fullLmsIntegrationService.applyExamDataToLMS(exam)
-                                        .onError(e -> log.error("Failed to apply exam data: ", error));
-                            }
-                            return this.sebRestrictionService.applySEBClientRestriction(exam).getOrThrow();
-                        })
                         .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict))
                         .getOrThrow();
             } else {
