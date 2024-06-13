@@ -31,14 +31,10 @@ public interface FullLmsIntegrationService {
 
     @EventListener
     void notifyLmsSetupChange(final LmsSetupChangeEvent event);
-
-    //Result<LmsSetup> applyLMSSetupDeactivation(LmsSetup lmsSetup);
-
     @EventListener
     void notifyExamTemplateChange(final ExamTemplateChangeEvent event);
     @EventListener(ConnectionConfigurationChangeEvent.class)
     void notifyConnectionConfigurationChange(ConnectionConfigurationChangeEvent event);
-
     @EventListener(ExamDeletionEvent.class)
     void notifyExamDeletion(ExamDeletionEvent event);
 

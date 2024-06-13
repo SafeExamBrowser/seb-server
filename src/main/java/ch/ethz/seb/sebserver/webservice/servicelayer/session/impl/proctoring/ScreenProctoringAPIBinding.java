@@ -332,9 +332,9 @@ class ScreenProctoringAPIBinding {
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.GET);
 
-            if (exchange.getStatusCode() != HttpStatus.NOT_FOUND) {
+            if (exchange.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return false;
-            } else if (exchange.getStatusCode() != HttpStatus.OK) {
+            } else if (exchange.getStatusCode() == HttpStatus.OK) {
                 return true;
             } else {
                 log.warn("Failed to verify if Exam on SPS already exists: {}", exchange.getBody());
@@ -467,6 +467,10 @@ class ScreenProctoringAPIBinding {
     Result<Exam> deactivateScreenProctoring(final Exam exam) {
 
         return Result.tryCatch(() -> {
+
+            if (!this.isSPSActive(exam)) {
+                return exam;
+            }
 
             if (log.isDebugEnabled()) {
                 log.debug("Deactivate active screen proctoring exam, groups and access on SPS for exam: {}", exam.name);
@@ -629,56 +633,6 @@ class ScreenProctoringAPIBinding {
 
     }
 
-//    /** This is called on exam delete and deletes the SEB Client Access and the ad-hoc User-Account
-//     * on Screen Proctoring Service side.
-//     * Also sends a exam delete request where Exam on SPS gets deleted if there are no session data for the exam
-//     *
-//     * @param exam The exam
-//     * @return Result refer to the exam or to an error when happened */
-//    Exam deleteScreenProctoring(final Exam exam) {
-//        try {
-//
-//            if (!BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
-//                return exam;
-//            }
-//
-//            if (log.isDebugEnabled()) {
-//                log.debug("Deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
-//            }
-//
-//            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
-//            final SPSData spsData = this.getSPSData(exam.id);
-//            deletion(SPS_API.SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, apiTemplate);
-//            activation(exam, SPS_API.EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
-//
-//            // exam delete request on SPS
-//            final String uri = UriComponentsBuilder
-//                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
-//                    .path(SPS_API.EXAM_ENDPOINT)
-//                    .pathSegment(spsData.spsExamUUID)
-//                    .pathSegment(SPS_API.EXAM_DELETE_REQUEST_ENDPOINT)
-//                    .build()
-//                    .toUriString();
-//
-//            final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.DELETE);
-//            if (exchange.getStatusCode() != HttpStatus.OK) {
-//                log.error("Failed to request delete on SPS for Exam: {} with response: {}", exam, exchange);
-//            }
-//
-//            // mark successfully dispose on SPS side
-//            this.additionalAttributesDAO.saveAdditionalAttribute(
-//                    EntityType.EXAM,
-//                    exam.id,
-//                    SPSData.ATTR_SPS_ACTIVE,
-//                    Constants.FALSE_STRING);
-//
-//
-//        } catch (final Exception e) {
-//            log.warn("Failed to apply SPS deletion of exam: {} error: {}", exam, e.getMessage());
-//        }
-//        return exam;
-//    }
-
     Result<ScreenProctoringGroup> createGroup(
             final String spsExamUUID,
             final int groupNumber,
@@ -741,22 +695,13 @@ class ScreenProctoringAPIBinding {
         return token;
     }
 
-//    void activateExamOnSPS(final Exam exam, final boolean activate) {
-//        try {
-//            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
-//            final SPSData spsData = this.getSPSData(exam.id);
-//
-//            activation(exam, SPS_API.EXAM_ENDPOINT, spsData.spsSEBAccessUUID, activate, apiTemplate);
-//            activation(exam, SPS_API.SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, activate, apiTemplate);
-//
-//        } catch (final Exception e) {
-//            log.error("Failed to de/activate SEB Access on SPS for exam: {}", exam);
-//        }
-//    }
-
     private void synchronizeUserAccount(
             final String userUUID,
             final ScreenProctoringServiceOAuthTemplate apiTemplate) {
+
+        if (UserService.LMS_INTEGRATION_CLIENT_UUID.equals(userUUID)) {
+            return;
+        }
 
         try {
 
@@ -919,7 +864,6 @@ class ScreenProctoringAPIBinding {
                 });
 
         final String spsGroupUUID = groupAttributes.get(SPS_API.GROUP.ATTR_UUID);
-
         return new ScreenProctoringGroup(null, examId, spsGroupUUID, name, size, exchange.getBody());
     }
 
@@ -1007,7 +951,33 @@ class ScreenProctoringAPIBinding {
             final String name = SEB_SERVER_SCREEN_PROCTORING_SEB_ACCESS_PREFIX + exam.externalId;
             final String description = "This SEB access was auto-generated by SEB Server";
 
-            final String uri = UriComponentsBuilder
+            // first try to get existing one by name and link it if available
+            String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .path(SPS_API.SEB_ACCESS_ENDPOINT)
+                    .queryParam(SPS_API.SEB_ACCESS.ATTR_NAME, name)
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> getResponse = apiTemplate.exchange(uri, HttpMethod.GET);
+            if (getResponse.getStatusCode() == HttpStatus.OK) {
+                try {
+                    final JsonNode requestJSON = this.jsonMapper.readTree(getResponse.getBody());
+                    final JsonNode content = requestJSON.get("content");
+                    if (content.isArray()) {
+                        final JsonNode sebConnection = content.get(0);
+                        spsData.spsSEBAccessUUID = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_UUID).textValue();
+                        spsData.spsSEBAccessName = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_CLIENT_NAME).textValue();
+                        spsData.spsSEBAccessPWD = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_CLIENT_SECRET).textValue();
+                        return;
+                    }
+                } catch (final Exception e) {
+                    log.warn("Failed to extract existing SEB Account from JSON: {}", e.getMessage());
+                }
+            }
+
+            // otherwise create new one and link it
+            uri = UriComponentsBuilder
                     .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
                     .path(SPS_API.SEB_ACCESS_ENDPOINT)
                     .build()
@@ -1022,7 +992,6 @@ class ScreenProctoringAPIBinding {
             if (exchange.getStatusCode() != HttpStatus.OK) {
                 throw new RuntimeException("Failed to create SPS SEB access for exam: " + exam.externalId);
             }
-            ;
 
             // store SEB access data for proctoring along with the exam
             final JsonNode requestJSON = this.jsonMapper.readTree(exchange.getBody());

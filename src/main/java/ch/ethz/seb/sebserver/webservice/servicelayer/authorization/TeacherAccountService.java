@@ -18,8 +18,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 public interface TeacherAccountService {
 
     /** Creates an Ad-Hoc Teacher account for a given existing Exam.
-     *  This also checks if such an account already exists and if so,
-     *  it uses that and activates it if not already active
      *
      * @param exam The Exam instance
      * @param adHocAccountData The account data for new Ad-Hoc account
@@ -38,7 +36,11 @@ public interface TeacherAccountService {
     default String getTeacherAccountIdentifier(
             final Exam exam,
             final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
-        return getTeacherAccountIdentifier(exam.getModelId(), adHocAccountData.userId);
+
+        return getTeacherAccountIdentifier(
+                exam.getModelId(),
+                String.valueOf(exam.lmsSetupId),
+                adHocAccountData.userId);
     }
 
     /** Get the identifier for certain Teacher account for specified Exam.
@@ -47,7 +49,7 @@ public interface TeacherAccountService {
      * @param userId the account id
      * @return account identifier
      */
-    String getTeacherAccountIdentifier(String examId, String userId);
+    String getTeacherAccountIdentifier(String examId, String lmsId, String userId);
 
     /** Deactivates a certain ad-hoc Teacher account
      * Usually called when an exam is deleted. Checks if Teacher account for exam

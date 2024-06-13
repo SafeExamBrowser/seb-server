@@ -77,12 +77,16 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     }
 
     @Override
-    public String getTeacherAccountIdentifier(final String examId, final String userId) {
-        if (examId == null || userId == null) {
+    public String getTeacherAccountIdentifier(
+            final String examId,
+            final String lmsId,
+            final String userId) {
+
+        if (examId == null || lmsId == null || userId == null) {
             throw new RuntimeException("examId and/or userId cannot be null");
         }
 
-        return userId;
+        return examId + Constants.UNDERLINE + lmsId + Constants.UNDERLINE + userId;
     }
 
     @Override
@@ -148,7 +152,6 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                 .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))
                 .onErrorDo(error -> handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData))
                 .map(account -> applySupporter(account, exam))
-                .map(account -> synchronizeSPSUserForExam(account, exam.id))
                 .map(account -> this.createOneTimeToken(account, exam.id));
     }
 
@@ -191,7 +194,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     key,
                     "MONITOR_EXAM_FROM_LIST");
 
-            return new TokenLoginInfo(user.username, user.uuid, loginForward, token);
+            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, token);
         });
     }
 
@@ -231,6 +234,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
         final String subjectClaim = UUID.randomUUID().toString();
         userDAO.changePassword(account.uuid, subjectClaim);
+        synchronizeSPSUserForExam(account, examId);
 
         final Map<String, Object> claims = new HashMap<>();
         claims.put(USER_CLAIM, account.uuid);

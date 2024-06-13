@@ -288,6 +288,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 }
 
                 final TokenLoginInfo loginInfo = response.getBody();
+                this.resource.setUsername(loginInfo.username);
+                this.resource.setPassword(loginInfo.userUUID);
                 this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
 
                 loginForward = loginInfo.login_forward;
