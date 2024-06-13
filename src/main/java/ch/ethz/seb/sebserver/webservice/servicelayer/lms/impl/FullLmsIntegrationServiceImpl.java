@@ -433,19 +433,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             return lmsAPITemplate
                     .getQuiz(internalQuizId)
                     .onError(error -> log.error("Failed to find quiz-data for id: {}", quizId))
-                    // this is only for debugging until Moodle Plugin is ready
-                    .getOr(new QuizData(
-                            MoodleUtils.getInternalQuizId(quizId, courseId, "MoodlePluginMockQuiz", null),
-                            lmsAPITemplate.lmsSetup().institutionId,
-                            lmsAPITemplate.lmsSetup().id,
-                            lmsAPITemplate.lmsSetup().lmsType,
-                            "MoodlePluginMockQuiz",
-                            "",
-                            DateTime.now(),
-                            DateTime.now().plusDays(1),
-                            "https://mockmoodle/swvgfrwef.sdvw",
-                            null
-                    ));
+                    .getOrThrow();
         };
     }
 
