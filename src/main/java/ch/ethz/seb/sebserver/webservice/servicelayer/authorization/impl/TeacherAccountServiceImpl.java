@@ -85,7 +85,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             throw new RuntimeException("examId and/or userId cannot be null");
         }
 
-        return "TEACHER_" + Constants.UNDERLINE + lmsId + Constants.UNDERLINE + userId;
+        return AD_HOC_TEACHER_ID_PREFIX + Constants.UNDERLINE + lmsId + Constants.UNDERLINE + userId;
     }
 
     @Override

@@ -11,19 +11,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.*;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
@@ -179,8 +173,9 @@ public class UserDAOImpl implements UserDAO {
     public Result<Collection<UserInfo>> allMatching(final FilterMap filterMap, final Predicate<UserInfo> predicate) {
         return Result.tryCatch(() -> {
             final String userRole = filterMap.getUserRole();
+            final Set<String> userRoles = new HashSet<>(Arrays.asList(StringUtils.split(userRole, Constants.LIST_SEPARATOR)));
             final Predicate<UserInfo> _predicate = (StringUtils.isNotBlank(userRole))
-                    ? predicate.and(ui -> ui.roles.contains(userRole))
+                    ? predicate.and(ui -> userRoles.stream().anyMatch(ui.roles::contains))
                     : predicate;
 
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>>.QueryExpressionWhereBuilder sqlWhereClause =

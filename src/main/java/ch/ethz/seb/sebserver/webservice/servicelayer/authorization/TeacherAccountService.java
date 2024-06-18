@@ -17,6 +17,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 /** Service used to maintain Teacher Ad-Hoc Accounts */
 public interface TeacherAccountService {
 
+    String AD_HOC_TEACHER_ID_PREFIX = "AD_HOC_TEACHER_";
+
     /** Creates an Ad-Hoc Teacher account for a given existing Exam.
      *
      * @param exam The Exam instance

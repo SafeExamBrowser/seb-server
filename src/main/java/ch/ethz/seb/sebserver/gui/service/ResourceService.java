@@ -533,7 +533,7 @@ public class ResourceService {
         final List<EntityName> selection = this.restService.getBuilder(GetUserAccountNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.institutionId))
                 .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
-                .withQueryParam(UserInfo.FILTER_ATTR_ROLE, UserRole.EXAM_SUPPORTER.name())
+                .withQueryParam(UserInfo.FILTER_ATTR_ROLE, UserRole.EXAM_SUPPORTER.name() + "," + UserRole.TEACHER.name())
                 .call()
                 .getOr(Collections.emptyList());
         return selection
