@@ -176,6 +176,7 @@ public final class API {
     public static final String LMS_FULL_INTEGRATION_COURSE_ID = "course_id";
     public static final String LMS_FULL_INTEGRATION_QUIZ_ID = "quiz_id";
     public static final String LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID = "exam_template_id";
+    public static final String LMS_FULL_INTEGRATION_EXAM_DATA = "exam_data";
     public static final String LMS_FULL_INTEGRATION_QUIT_PASSWORD = "quit_password";
     public static final String LMS_FULL_INTEGRATION_QUIT_LINK = "quit_link";
     public static final String LMS_FULL_INTEGRATION_USER_ID = "user_id";

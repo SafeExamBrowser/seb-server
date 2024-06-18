@@ -78,15 +78,14 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     @Override
     public String getTeacherAccountIdentifier(
-            final String examId,
             final String lmsId,
             final String userId) {
 
-        if (examId == null || lmsId == null || userId == null) {
+        if (lmsId == null || userId == null) {
             throw new RuntimeException("examId and/or userId cannot be null");
         }
 
-        return examId + Constants.UNDERLINE + lmsId + Constants.UNDERLINE + userId;
+        return "TEACHER_" + Constants.UNDERLINE + lmsId + Constants.UNDERLINE + userId;
     }
 
     @Override

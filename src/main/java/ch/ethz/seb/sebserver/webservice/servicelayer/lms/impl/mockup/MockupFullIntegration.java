@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -41,5 +42,10 @@ public class MockupFullIntegration implements FullLmsIntegrationAPI {
     @Override
     public Result<String> deleteConnectionDetails() {
         return Result.ofRuntimeError("TODO");
+    }
+
+    @Override
+    public Result<QuizData> getQuizDataForRemoteImport(final String examData) {
+        return Result.ofRuntimeError("Not Supported");
     }
 }

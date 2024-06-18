@@ -485,11 +485,14 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     private Result<Exam> deleteForExam(final Long examId) {
-        return this.examDAO
-                .byPK(examId)
-                .flatMap(this.screenProctoringAPIBinding::deactivateScreenProctoring)
-                .map(this::cleanupAllLocalGroups)
-                .onError(error -> log.error("Failed to delete SPS integration for exam: {}", examId, error));
+        return Result.tryCatch(() -> {
+            final Exam exam = this.examDAO.byPK(examId).getOrThrow();
+
+            this.screenProctoringAPIBinding.deactivateScreenProctoring(exam)
+                    .onError(error -> log.error("Failed to deactivate screen proctoring for exam: {}", exam.name, error));
+
+            return this.cleanupAllLocalGroups(exam);
+        });
     }
 
     private Exam cleanupAllLocalGroups(final Exam exam) {

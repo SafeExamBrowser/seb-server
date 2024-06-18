@@ -8,14 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -30,6 +29,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -49,12 +49,19 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
 
+    private final boolean prependShortCourseName;
+
     public MoodlePluginFullIntegration(
             final JSONMapper jsonMapper,
-            final MoodleRestTemplateFactory restTemplateFactory) {
+            final MoodleRestTemplateFactory restTemplateFactory,
+            final Environment environment) {
 
         this.jsonMapper = jsonMapper;
         this.restTemplateFactory = restTemplateFactory;
+
+        this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
+                "sebserver.webservice.lms.moodle.prependShortCourseName",
+                Constants.TRUE_STRING));
     }
 
     @Override
@@ -286,6 +293,33 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
 
             log.info("Successfully deleted SEB Server connection for Moodle. LMS Setup: {}", lmsSetup);
             return response;
+        });
+    }
+
+    @Override
+    public Result<QuizData> getQuizDataForRemoteImport(final String examData) {
+        return Result.tryCatch(() -> {
+
+             log.info("****** Try to parse import exam data sent by Moodle on Exam import: {}", examData);
+
+             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
+             final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                     ? lmsSetup.lmsApiUrl + MoodlePluginCourseAccess.MOODLE_QUIZ_START_URL_PATH
+                     : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MoodlePluginCourseAccess.MOODLE_QUIZ_START_URL_PATH;
+             MoodleUtils.checkJSONFormat(examData);
+             final MoodleUtils.CoursesPlugin courses = this.jsonMapper.readValue(
+                     examData,
+                     MoodleUtils.CoursesPlugin.class);
+
+             final MoodleUtils.CourseData courseData = courses.results.iterator().next();
+             final List<QuizData> quizData = MoodleUtils.quizDataOf(
+                     lmsSetup,
+                     courseData,
+                     urlPrefix,
+                     prependShortCourseName
+             );
+
+             return quizData.get(0);
         });
     }
 

@@ -577,4 +577,14 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 .getOrThrow());
     }
 
+    @Override
+    public Result<QuizData> getQuizDataForRemoteImport(final String examData) {
+        if (this.lmsIntegrationAPI == null) {
+            return Result.ofError(
+                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
+        }
+
+        return this.lmsIntegrationAPI.getQuizDataForRemoteImport(examData);
+    }
+
 }

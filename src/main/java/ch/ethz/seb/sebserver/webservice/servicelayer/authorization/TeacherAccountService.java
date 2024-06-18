@@ -38,18 +38,17 @@ public interface TeacherAccountService {
             final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
 
         return getTeacherAccountIdentifier(
-                exam.getModelId(),
                 String.valueOf(exam.lmsSetupId),
                 adHocAccountData.userId);
     }
 
     /** Get the identifier for certain Teacher account for specified Exam.
      *
-     * @param examId The Exam identifier
+     * @param lmsId The Lms identifier
      * @param userId the account id
      * @return account identifier
      */
-    String getTeacherAccountIdentifier(String examId, String lmsId, String userId);
+    String getTeacherAccountIdentifier(String lmsId, String userId);
 
     /** Deactivates a certain ad-hoc Teacher account
      * Usually called when an exam is deleted. Checks if Teacher account for exam

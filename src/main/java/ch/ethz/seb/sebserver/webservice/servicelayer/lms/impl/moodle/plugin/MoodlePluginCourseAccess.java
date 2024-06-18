@@ -291,7 +291,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             return this.jsonMapper.readValue(
                     courseJSON,
-                    Courses.class).courses
+                            CoursesPlugin.class).results
                             .stream()
                             .flatMap(c -> MoodleUtils.quizDataOf(
                                     lmsSetup,

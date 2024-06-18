@@ -53,7 +53,8 @@ public interface FullLmsIntegrationService {
             String quizId,
             String examTemplateId,
             String quitPassword,
-            String quitLink);
+            String quitLink,
+            final String examData);
 
     Result<EntityKey> deleteExam(
             String lmsUUID,

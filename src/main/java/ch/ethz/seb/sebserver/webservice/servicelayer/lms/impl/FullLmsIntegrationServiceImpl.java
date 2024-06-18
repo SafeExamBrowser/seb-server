@@ -315,12 +315,14 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quizId,
             final String examTemplateId,
             final String quitPassword,
-            final String quitLink) {
+            final String quitLink,
+            final String examData) {
 
         return lmsSetupDAO
                 .getLmsSetupIdByConnectionId(lmsUUID)
                 .flatMap(lmsAPITemplateCacheService::getLmsAPITemplate)
-                .map(findQuizData(courseId, quizId))
+                .map(template -> getQuizData(template, courseId, quizId, examData))
+                //.map(findQuizData(courseId, quizId))
                 .map(createExam(examTemplateId, quitPassword))
                 .map(exam -> applyExamData(exam, false))
                 .map(this::applyConnectionConfiguration);
@@ -416,6 +418,22 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .flatMap(this::findExam)
                 .flatMap(exam  -> this.teacherAccountServiceImpl
                         .getOneTimeTokenForTeacherAccount(exam, adHocAccountData, true));
+    }
+
+    private QuizData getQuizData(
+            final LmsAPITemplate lmsAPITemplate,
+            final String courseId,
+            final String quizId,
+            final String examData) {
+
+        final String internalQuizId = MoodleUtils.getInternalQuizId(
+                quizId,
+                courseId,
+                null,
+                null);
+
+        return lmsAPITemplate.getQuizDataForRemoteImport(examData)
+                .getOrThrow();
     }
 
 

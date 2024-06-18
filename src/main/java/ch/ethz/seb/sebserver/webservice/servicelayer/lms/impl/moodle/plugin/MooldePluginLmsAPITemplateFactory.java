@@ -103,7 +103,8 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
 
             final MoodlePluginFullIntegration moodlePluginFullIntegration = new MoodlePluginFullIntegration(
                     this.jsonMapper,
-                    moodleRestTemplateFactory
+                    moodleRestTemplateFactory,
+                    environment
             );
 
             return new LmsAPITemplateAdapter(

@@ -434,6 +434,11 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         return Result.ofRuntimeError("Not Supported");
     }
 
+    @Override
+    public Result<QuizData> getQuizDataForRemoteImport(final String examData) {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
     private <T> T apiGet(final RestTemplate restTemplate, final String url, final Class<T> type) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final ResponseEntity<T> res = restTemplate.exchange(

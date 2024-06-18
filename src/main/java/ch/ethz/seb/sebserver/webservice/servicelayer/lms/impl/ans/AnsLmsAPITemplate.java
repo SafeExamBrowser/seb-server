@@ -447,6 +447,11 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         return Result.ofRuntimeError("Not Supported");
     }
 
+    @Override
+    public Result<QuizData> getQuizDataForRemoteImport(final String examData) {
+        return Result.ofRuntimeError("Not Supported");
+    }
+
     private enum LinkRel {
         FIRST, LAST, PREV, NEXT
     }

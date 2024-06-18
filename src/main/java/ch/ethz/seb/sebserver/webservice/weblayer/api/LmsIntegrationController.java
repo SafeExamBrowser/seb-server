@@ -59,6 +59,7 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID) final String templateId,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_DATA, required = false) final String examData,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_PASSWORD, required = false) final String quitPassword,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final String quitLink,
             final HttpServletResponse response) {
@@ -69,10 +70,11 @@ public class LmsIntegrationController {
                         quizId,
                         templateId,
                         quitPassword,
-                        quitLink)
+                        quitLink,
+                        examData)
                 .onError(e -> log.error(
-                        "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {}",
-                        lmsUUId, courseId, quizId, templateId, e))
+                        "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: {}",
+                        lmsUUId, courseId, quizId, templateId, e.getMessage()))
                 .getOrThrow();
 
         log.info("Auto import of exam successful: {}", exam);
