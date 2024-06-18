@@ -965,10 +965,20 @@ class ScreenProctoringAPIBinding {
                     final JsonNode requestJSON = this.jsonMapper.readTree(getResponse.getBody());
                     final JsonNode content = requestJSON.get("content");
                     if (content.isArray()) {
+
                         final JsonNode sebConnection = content.get(0);
-                        spsData.spsSEBAccessUUID = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_UUID).textValue();
-                        spsData.spsSEBAccessName = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_CLIENT_NAME).textValue();
-                        spsData.spsSEBAccessPWD = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_CLIENT_SECRET).textValue();
+
+                        // TODO remove when tested
+                        final JsonNode uuidNode = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_UUID);
+                        final JsonNode sebClientNode = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_CLIENT_NAME);
+                        final JsonNode sebSecretNode = sebConnection.get(SPS_API.SEB_ACCESS.ATTR_CLIENT_SECRET);
+                        log.info(" uuidNode: {}", uuidNode);
+                        log.info(" sebClientNode: {}", sebClientNode);
+                        log.info(" sebSecretNode: {}", sebSecretNode);
+
+                        spsData.spsSEBAccessUUID = uuidNode.textValue();
+                        spsData.spsSEBAccessName = sebClientNode.textValue();
+                        spsData.spsSEBAccessPWD = sebSecretNode.textValue();
                         return;
                     }
                 } catch (final Exception e) {
