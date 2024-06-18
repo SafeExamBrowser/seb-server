@@ -173,10 +173,13 @@ public class UserDAOImpl implements UserDAO {
     public Result<Collection<UserInfo>> allMatching(final FilterMap filterMap, final Predicate<UserInfo> predicate) {
         return Result.tryCatch(() -> {
             final String userRole = filterMap.getUserRole();
-            final Set<String> userRoles = new HashSet<>(Arrays.asList(StringUtils.split(userRole, Constants.LIST_SEPARATOR)));
-            final Predicate<UserInfo> _predicate = (StringUtils.isNotBlank(userRole))
-                    ? predicate.and(ui -> userRoles.stream().anyMatch(ui.roles::contains))
-                    : predicate;
+            final Predicate<UserInfo> _predicate;
+            if (StringUtils.isNotBlank(userRole)) {
+                final Set<String> userRoles = new HashSet<>(Arrays.asList(StringUtils.split(userRole, Constants.LIST_SEPARATOR)));
+                _predicate = predicate.and(ui -> userRoles.stream().anyMatch(ui.roles::contains));
+            } else {
+                _predicate = predicate;
+            }
 
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>>.QueryExpressionWhereBuilder sqlWhereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
