@@ -90,13 +90,12 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
             final HttpServletResponse response) {
 
-        final EntityKey examID = fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
+        fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
                 .onError(e -> log.error(
                         "Failed to delete exam: lmsId:{}, courseId: {}, quizId: {}, error: {}",
                         lmsUUId, courseId, quizId, e.getMessage()))
-                .getOrThrow();
+                .onSuccess(examID -> log.info("Auto delete of exam successful: {}", examID));
 
-        log.info("Auto delete of exam successful: {}", examID);
     }
 
     @RequestMapping(
