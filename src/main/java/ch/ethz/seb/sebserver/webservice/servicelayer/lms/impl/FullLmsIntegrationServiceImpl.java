@@ -315,7 +315,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .getLmsSetupIdByConnectionId(lmsUUID)
                 .flatMap(lmsAPITemplateCacheService::getLmsAPITemplate)
                 .map(template -> getQuizData(template, courseId, quizId, examData))
-                //.map(findQuizData(courseId, quizId))
                 .map(createExam(examTemplateId, quitPassword))
                 .map(exam -> applyExamData(exam, false))
                 .map(this::applyConnectionConfiguration);
