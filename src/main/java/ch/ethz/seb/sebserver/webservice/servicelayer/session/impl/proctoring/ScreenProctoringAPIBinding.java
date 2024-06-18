@@ -680,10 +680,10 @@ class ScreenProctoringAPIBinding {
         params.add(SPS_API.SESSION.ATTR_UUID, token);
         params.add(SPS_API.SESSION.ATTR_GROUP_ID, localGroup.uuid);
         params.add(SPS_API.SESSION.ATTR_CLIENT_IP, clientConnection.getClientAddress());
-        params.add(SPS_API.SESSION.ATTR_CLIENT_NAME, clientConnection.getExamUserSessionId());
-        params.add(SPS_API.SESSION.ATTR_CLIENT_MACHINE_NAME, clientConnection.getClientMachineName());
-        params.add(SPS_API.SESSION.ATTR_CLIENT_OS_NAME, clientConnection.getClientOsName());
-        params.add(SPS_API.SESSION.ATTR_CLIENT_VERSION, clientConnection.getClientVersion());
+        params.add(SPS_API.SESSION.ATTR_CLIENT_NAME, Utils.encodeFormURL_UTF_8(clientConnection.getExamUserSessionId()));
+        params.add(SPS_API.SESSION.ATTR_CLIENT_MACHINE_NAME, Utils.encodeFormURL_UTF_8(clientConnection.getClientMachineName()));
+        params.add(SPS_API.SESSION.ATTR_CLIENT_OS_NAME, Utils.encodeFormURL_UTF_8(clientConnection.getClientOsName()));
+        params.add(SPS_API.SESSION.ATTR_CLIENT_VERSION, Utils.encodeFormURL_UTF_8(clientConnection.getClientVersion()));
         final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
 
         final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
