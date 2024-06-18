@@ -53,7 +53,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -159,7 +158,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     @Override
     public void notifyExamDeletion(final ExamDeletionEvent event) {
         event.ids.forEach( examId -> this.examDAO.byPK(examId)
-                    .flatMap(this.teacherAccountServiceImpl::deactivateTeacherAccountsForExam)
                     .map(exam -> applyExamData(exam, true))
                     .onError(error -> log.warn("Failed delete teacher accounts for exam: {}", examId))
         );
@@ -187,12 +185,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             // remove all active exam data for involved exams before deactivate them
             this.examDAO
                     .allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
-                    .getOrThrow()
-                    .forEach( exam -> {
-                        this.teacherAccountServiceImpl.deactivateTeacherAccountsForExam(exam)
-                                .map(e -> applyExamData(e, true))
-                                .onError(error -> log.warn("Failed delete teacher accounts for exam: {}", exam.name));
-                    });
+                    .getOrThrow();
             // delete full integration on Moodle side due to deactivation
             this.deleteFullLmsIntegration(lmsSetup.id)
                     .getOrThrow();

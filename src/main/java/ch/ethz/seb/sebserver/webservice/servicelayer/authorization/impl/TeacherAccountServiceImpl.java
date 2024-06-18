@@ -128,20 +128,6 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     }
 
     @Override
-    public Result<Exam> deactivateTeacherAccountsForExam(final Exam exam) {
-        return Result.tryCatch(() -> {
-
-            exam.supporter.stream()
-                    .map(userUUID -> userDAO.byModelId(userUUID).getOr(null))
-                    .filter(user -> user != null && user.roles.contains(UserRole.TEACHER.name()))
-                    .filter( user -> user.roles.size() == 1)
-                    .forEach( user -> userDAO.setActive(user, false));
-
-            return exam;
-        });
-    }
-
-    @Override
     public Result<String> getOneTimeTokenForTeacherAccount(
             final Exam exam,
             final FullLmsIntegrationService.AdHocAccountData adHocAccountData,
