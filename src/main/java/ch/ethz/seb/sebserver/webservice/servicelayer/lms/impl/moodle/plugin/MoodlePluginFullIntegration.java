@@ -232,6 +232,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final String fileName = getConnectionConfigFileName(exam);
 
 
+
             final MultiValueMap<String, Object> multiPartAttributes = new LinkedMultiValueMap<>();
             multiPartAttributes.add("quizid", quizId);
             multiPartAttributes.add("name", fileName);
@@ -242,6 +243,8 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                     return fileName; // Filename has to be returned in order to be able to post.
                 }
             };
+
+            log.info("Upload Connection Configuration to Moodle: quizid: {}, fileName: {}, content: {}", quizId, fileName, contentsAsResource );
 
             multiPartAttributes.add("file", contentsAsResource);
 
