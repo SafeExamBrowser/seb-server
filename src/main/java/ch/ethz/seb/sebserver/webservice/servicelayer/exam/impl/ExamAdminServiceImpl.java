@@ -247,7 +247,10 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Exam> applyQuitPassword(final Exam exam) {
-        return this.sebRestrictionService.applyQuitPassword(exam);
+        return this.examConfigurationValueService
+                .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
+                .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t))
+                .map(id -> exam);
     }
 
     @Override
