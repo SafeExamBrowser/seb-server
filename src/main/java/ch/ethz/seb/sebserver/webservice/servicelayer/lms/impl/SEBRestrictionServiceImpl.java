@@ -167,7 +167,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         return this.applySEBClientRestriction(exam)
                 .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
                 .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t))
-                .getOr(exam);
+                .getOrThrow();
     }
 
     @Override

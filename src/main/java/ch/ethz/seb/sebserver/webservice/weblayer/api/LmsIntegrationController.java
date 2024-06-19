@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.Arrays;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -21,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -41,13 +43,16 @@ public class LmsIntegrationController {
 
     private final FullLmsIntegrationService fullLmsIntegrationService;
     private final WebserviceInfo webserviceInfo;
+    private final ExamDAO examDAO;
 
     public LmsIntegrationController(
             final FullLmsIntegrationService fullLmsIntegrationService,
-            final WebserviceInfo webserviceInfo) {
+            final WebserviceInfo webserviceInfo,
+            final ExamDAO examDAO) {
 
         this.fullLmsIntegrationService = fullLmsIntegrationService;
         this.webserviceInfo = webserviceInfo;
+        this.examDAO = examDAO;
     }
 
     @RequestMapping(
@@ -72,9 +77,14 @@ public class LmsIntegrationController {
                         quitPassword,
                         quitLink,
                         examData)
-                .onError(e -> log.error(
-                        "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: {}",
-                        lmsUUId, courseId, quizId, templateId, e.getMessage()))
+                .onError(e -> {
+                    log.error(
+                            "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: {}",
+                            lmsUUId, courseId, quizId, templateId, e.getMessage());
+                    log.info("Rollback Exam creation...");
+                    fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
+                            .onError(error -> log.error("Failed to rollback auto Exam import: ", error));
+                })
                 .getOrThrow();
 
         log.info("Auto import of exam successful: {}", exam);
