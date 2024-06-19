@@ -130,6 +130,12 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                     .getBean(AuthorizationContextHolder.class);
             final SEBServerAuthorizationContext authorizationContext = authorizationContextHolder
                     .getAuthorizationContext(request.getSession());
+
+            // check first if we already have an active session if so, invalidate ir
+            if (authorizationContext.isLoggedIn()) {
+                authorizationContext.logout();
+            }
+
             if (authorizationContext.autoLogin(jwt)) {
                 forwardToEntryPoint(request, response, this.guiEntryPoint, true);
                 return;
