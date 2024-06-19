@@ -648,27 +648,24 @@ public final class Utils {
             return StringUtils.EMPTY;
         }
 
-        return attributes
-                .entrySet()
-                .stream()
-                .reduce(
-                        new StringBuilder(),
-                        (sb, entry) -> {
-                            final String name = entry.getKey();
-                            final List<String> values = entry.getValue();
-                            if (values == null) {
-                                return sb;
-                            }
-                            if (!sb.isEmpty()) {
-                                sb.append(Constants.AMPERSAND);
-                            }
-                            if (values.size() == 1) {
-                                return sb.append(name).append(Constants.EQUALITY_SIGN).append(values.get(0));
-                            }
-                            return sb.append(toAppFormUrlEncodedBody(name, values));
-                        },
-                        StringBuilder::append)
-                .toString();
+        return reduceFormUrlAttributes(attributes);
+    }
+
+    public static String toAppFormUrlEncodedBodyForSPService(final MultiValueMap<String, String> attributes) {
+        if (attributes == null) {
+            return StringUtils.EMPTY;
+        }
+
+        for (String key : attributes.keySet()) {
+            List<String> values = attributes.get(key);
+            if (values != null) {
+                for (int i = 0; i < values.size(); i++) {
+                    values.set(i, encodeFormURL_UTF_8(values.get(i)));
+                }
+            }
+        }
+
+        return reduceFormUrlAttributes(attributes);
     }
 
     public static String toAppFormUrlEncodedBody(@NotNull final String name, final Collection<String> array) {
@@ -924,5 +921,29 @@ public final class Utils {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+    }
+
+    private static String reduceFormUrlAttributes(final MultiValueMap<String, String> attributes){
+        return attributes
+                .entrySet()
+                .stream()
+                .reduce(
+                        new StringBuilder(),
+                        (sb, entry) -> {
+                            final String name = entry.getKey();
+                            final List<String> values = entry.getValue();
+                            if (values == null) {
+                                return sb;
+                            }
+                            if (!sb.isEmpty()) {
+                                sb.append(Constants.AMPERSAND);
+                            }
+                            if (values.size() == 1) {
+                                return sb.append(name).append(Constants.EQUALITY_SIGN).append(values.get(0));
+                            }
+                            return sb.append(toAppFormUrlEncodedBody(name, values));
+                        },
+                        StringBuilder::append)
+                .toString();
     }
 }

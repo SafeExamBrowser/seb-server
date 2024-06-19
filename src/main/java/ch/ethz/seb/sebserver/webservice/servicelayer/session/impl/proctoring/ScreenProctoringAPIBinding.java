@@ -680,11 +680,11 @@ class ScreenProctoringAPIBinding {
         params.add(SPS_API.SESSION.ATTR_UUID, token);
         params.add(SPS_API.SESSION.ATTR_GROUP_ID, localGroup.uuid);
         params.add(SPS_API.SESSION.ATTR_CLIENT_IP, clientConnection.getClientAddress());
-        params.add(SPS_API.SESSION.ATTR_CLIENT_NAME, Utils.encodeFormURL_UTF_8(clientConnection.getExamUserSessionId()));
-        params.add(SPS_API.SESSION.ATTR_CLIENT_MACHINE_NAME, Utils.encodeFormURL_UTF_8(clientConnection.getClientMachineName()));
-        params.add(SPS_API.SESSION.ATTR_CLIENT_OS_NAME, Utils.encodeFormURL_UTF_8(clientConnection.getClientOsName()));
-        params.add(SPS_API.SESSION.ATTR_CLIENT_VERSION, Utils.encodeFormURL_UTF_8(clientConnection.getClientVersion()));
-        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+        params.add(SPS_API.SESSION.ATTR_CLIENT_NAME, clientConnection.getExamUserSessionId());
+        params.add(SPS_API.SESSION.ATTR_CLIENT_MACHINE_NAME, clientConnection.getClientMachineName());
+        params.add(SPS_API.SESSION.ATTR_CLIENT_OS_NAME, clientConnection.getClientOsName());
+        params.add(SPS_API.SESSION.ATTR_CLIENT_VERSION, clientConnection.getClientVersion());
+        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
         final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
         if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -851,7 +851,7 @@ class ScreenProctoringAPIBinding {
         params.add(SPS_API.GROUP.ATTR_NAME, name);
         params.add(SPS_API.GROUP.ATTR_DESCRIPTION, description);
         params.add(SPS_API.GROUP.ATTR_EXAM_ID, spsExamUUID);
-        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
         final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
         if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -886,7 +886,7 @@ class ScreenProctoringAPIBinding {
 
             final String uuid = createExamUUID(exam);
             final MultiValueMap<String, String> params = createExamCreationParams(exam, uuid, userIds);
-            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
             if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -996,7 +996,7 @@ class ScreenProctoringAPIBinding {
             final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add(SPS_API.SEB_ACCESS.ATTR_NAME, name);
             params.add(SPS_API.SEB_ACCESS.ATTR_DESCRIPTION, description);
-            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
             if (exchange.getStatusCode() != HttpStatus.OK) {
