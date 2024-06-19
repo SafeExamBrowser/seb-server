@@ -488,8 +488,19 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return Result.tryCatch(() -> {
             final Exam exam = this.examDAO.byPK(examId).getOrThrow();
 
-            this.screenProctoringAPIBinding.deactivateScreenProctoring(exam)
-                    .onError(error -> log.error("Failed to deactivate screen proctoring for exam: {}", exam.name, error));
+            // Note: We delete the Exam on SPS site if there are no SEB client connection yet.
+            //       Otherwise, the Exam on SPS site gets just closed
+
+            final Collection<Long> sebConnections = clientConnectionDAO
+                    .getAllConnectionIdsForExam(examId)
+                    .getOr(Collections.emptyList());
+
+            if (sebConnections == null || sebConnections.isEmpty()) {
+                this.screenProctoringAPIBinding.deleteExamOnScreenProctoring(exam);
+            } else {
+                this.screenProctoringAPIBinding.deactivateScreenProctoring(exam)
+                        .onError(error -> log.error("Failed to deactivate screen proctoring for exam: {}", exam.name, error));
+            }
 
             return this.cleanupAllLocalGroups(exam);
         });

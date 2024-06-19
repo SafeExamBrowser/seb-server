@@ -270,6 +270,11 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         @Override
         public boolean autoLogin(final String oneTimeToken) {
             try {
+                // check first if we already have an active session if so, invalidate ir
+                if (this.isLoggedIn()) {
+                    this.logout();
+                }
+
                 // Create ad-hoc RestTemplate and call token verification
                 final RestTemplate verifyTemplate = new RestTemplate(this.clientHttpRequestFactory);
                 final HttpHeaders httpHeaders = new HttpHeaders();
