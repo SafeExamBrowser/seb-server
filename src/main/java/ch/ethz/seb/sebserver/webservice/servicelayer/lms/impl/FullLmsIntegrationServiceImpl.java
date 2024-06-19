@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEven
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateCacheService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
@@ -85,6 +86,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private final String lmsAPIEndpoint;
     private final UserService userService;
     private final ClientCredentialsResourceDetails resource;
+    private final SEBRestrictionService sebRestrictionService;
     private final OAuth2RestTemplate restTemplate;
 
     public FullLmsIntegrationServiceImpl(
@@ -105,6 +107,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final UserService userService,
             final TeacherAccountServiceImpl teacherAccountServiceImpl,
             final LmsAPITemplateCacheService lmsAPITemplateCacheService,
+            final SEBRestrictionService sebRestrictionService,
             @Value("${sebserver.webservice.lms.api.endpoint}") final String lmsAPIEndpoint,
             @Value("${sebserver.webservice.lms.api.clientId}") final String clientId,
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret) {
@@ -124,6 +127,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.examConfigurationValueService = examConfigurationValueService;
         this.examImportService = examImportService;
         this.clientConnectionDAO = clientConnectionDAO;
+        this.sebRestrictionService = sebRestrictionService;
 
         resource = new ClientCredentialsResourceDetails();
         resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
@@ -317,6 +321,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .map(template -> getQuizData(template, courseId, quizId, examData))
                 .map(createExam(examTemplateId, quitPassword))
                 .map(exam -> applyExamData(exam, false))
+                .flatMap(sebRestrictionService::applySEBClientRestriction)
                 .map(this::applyConnectionConfiguration);
     }
 

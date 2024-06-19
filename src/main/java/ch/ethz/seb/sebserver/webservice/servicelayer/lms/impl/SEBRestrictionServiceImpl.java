@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport.lmsType;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -103,7 +105,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     public Result<Exam> applyQuitPassword(final Exam exam) {
         return this.examConfigurationValueService
                 .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
-                .map(id -> applySEBRestrictionIfExamRunning(exam))
+                .map(id -> applyQuitPasswordWithRestrictionIfNeeded(exam))
                 .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t));
     }
 
@@ -157,6 +159,19 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
             return lmsSetup;
         });
+    }
+
+    private Exam applyQuitPasswordWithRestrictionIfNeeded(final Exam exam) {
+        if (exam.status != Exam.ExamStatus.RUNNING) {
+            return exam;
+        }
+
+        final LmsSetup lmsSetup = getLmsAPIService().getLmsSetup(exam.lmsSetupId).getOrThrow();
+        if (!lmsSetup.lmsType.features.contains(Features.LMS_FULL_INTEGRATION)) {
+            applySEBRestrictionIfExamRunning(exam);
+        }
+
+        return exam;
     }
 
     private Exam applySEBRestrictionIfExamRunning(final Exam exam) {
