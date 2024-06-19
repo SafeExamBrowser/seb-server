@@ -151,7 +151,8 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         return Result.tryCatch(() -> {
             final LmsSetup lmsSetup = lmsSetupDAO.byPK(exam.lmsSetupId).getOrThrow();
             if (lmsSetup.lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
-                return this.applyExamData(exam, !exam.active);
+                this.applyExamData(exam, !exam.active);
+                this.applyConnectionConfiguration(exam);
             }
 
             return exam;
