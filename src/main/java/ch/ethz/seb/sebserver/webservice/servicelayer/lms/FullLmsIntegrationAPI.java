@@ -18,6 +18,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 
 public interface FullLmsIntegrationAPI {
 
+    boolean fullIntegrationActive();
+
     /** Performs a test for the underling {@link LmsSetup } configuration and checks if the
      * LMS and the full LMS integration API of the LMS can be accessed or if there are some difficulties,
      * missing API functions
@@ -34,4 +36,6 @@ public interface FullLmsIntegrationAPI {
     Result<String> deleteConnectionDetails();
 
     Result<QuizData> getQuizDataForRemoteImport(String examData);
+
+
 }

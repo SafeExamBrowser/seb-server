@@ -14,9 +14,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +52,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     private final ExamUpdateHandler examUpdateHandler;
     private final ExamAdminService examAdminService;
     private final ExamConfigurationValueService examConfigurationValueService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
 
     protected ExamConfigUpdateServiceImpl(
@@ -58,7 +62,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             final ExamSessionService examSessionService,
             final ExamUpdateHandler examUpdateHandler,
             final ExamAdminService examAdminService,
-            final ExamConfigurationValueService examConfigurationValueService) {
+            final ExamConfigurationValueService examConfigurationValueService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         this.examDAO = examDAO;
         this.configurationDAO = configurationDAO;
@@ -67,6 +72,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         this.examUpdateHandler = examUpdateHandler;
         this.examAdminService = examAdminService;
         this.examConfigurationValueService = examConfigurationValueService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     // processing:
@@ -102,7 +108,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             final Collection<Exam> exams = lockForUpdate(examIdsFirstCheck, updateId)
                     .stream()
                     .map(Result::getOrThrow)
-                    .collect(Collectors.toList());
+                    .toList();
 
             final Collection<Long> examsIds = exams
                     .stream()
@@ -242,6 +248,9 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                     this.examDAO
                             .releaseLock(exam.id, updateId)
                             .onError(t -> log.error("Failed to release lock for exam: {}", exam));
+
+                    // notify...
+                    applicationEventPublisher.publishEvent(new ExamConfigUpdateEvent(exam.id));
 
                     return result;
                 })

@@ -193,7 +193,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final PermissionDeniedException ex,
             final WebRequest request) {
 
-        log.info("Permission Denied Exception: ", ex);
+        log.info("Permission Denied Exception: {}", ex.getMessage());
         return APIMessage.ErrorMessage.FORBIDDEN
                 .createErrorResponse(ex.getMessage());
     }

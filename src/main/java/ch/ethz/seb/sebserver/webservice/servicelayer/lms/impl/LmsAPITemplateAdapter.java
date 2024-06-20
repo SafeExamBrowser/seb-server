@@ -500,6 +500,10 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
         return protectedRun;
     }
 
+    @Override
+    public boolean fullIntegrationActive() {
+        return this.lmsIntegrationAPI.fullIntegrationActive();
+    }
 
     @Override
     public LmsSetupTestResult testFullIntegrationAPI() {

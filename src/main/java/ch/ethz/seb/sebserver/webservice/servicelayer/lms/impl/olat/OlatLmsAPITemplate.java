@@ -409,6 +409,13 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 .map(x -> exam);
     }
 
+    /// Full Integration API - Not integrated yet
+
+    @Override
+    public boolean fullIntegrationActive() {
+        return false;
+    }
+
     @Override
     public LmsSetupTestResult testFullIntegrationAPI() {
         return LmsSetupTestResult.ofAPINotSupported(LmsType.OPEN_OLAT);

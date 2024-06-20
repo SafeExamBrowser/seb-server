@@ -20,6 +20,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 public class MockupFullIntegration implements FullLmsIntegrationAPI {
 
     @Override
+    public boolean fullIntegrationActive() {
+        return true;
+    }
+
+    @Override
     public LmsSetupTestResult testFullIntegrationAPI() {
         return LmsSetupTestResult.ofAPINotSupported(LmsSetup.LmsType.MOODLE_PLUGIN);
     }

@@ -65,6 +65,11 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
     }
 
     @Override
+    public boolean fullIntegrationActive() {
+        return false;
+    }
+
+    @Override
     public LmsSetupTestResult testFullIntegrationAPI() {
         final LmsSetupTestResult attributesCheck = this.restTemplateFactory.test();
         if (!attributesCheck.isOk()) {
@@ -80,7 +85,12 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
         }
 
         try {
+
             final MoodleAPIRestTemplate restTemplate = restTemplateRequest.get();
+            if (restTemplate.getMoodlePluginVersion() != MoodleAPIRestTemplate.MoodlePluginVersion.V2_0) {
+                throw new RuntimeException("Old Moodle Plugin Version: " + restTemplate.getMoodlePluginVersion().name());
+            }
+
             restTemplate.testAPIConnection(
                     FUNCTION_NAME_SEBSERVER_CONNECTION,
                     FUNCTION_NAME_SEBSERVER_CONNECTION_DELETE,

@@ -422,6 +422,13 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                 .map(x -> exam);
     }
 
+    /// Full Integration API - Not integrated yet
+
+    @Override
+    public boolean fullIntegrationActive() {
+        return false;
+    }
+
     @Override
     public LmsSetupTestResult testFullIntegrationAPI() {
         return LmsSetupTestResult.ofAPINotSupported(LmsType.ANS_DELFT);

@@ -51,6 +51,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -149,12 +150,10 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     @Override
     public Result<Exam> applyExamDataToLMS(final Exam exam) {
         return Result.tryCatch(() -> {
-            final LmsSetup lmsSetup = lmsSetupDAO.byPK(exam.lmsSetupId).getOrThrow();
-            if (lmsSetup.lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            if (hasFullIntegration(exam.lmsSetupId)) {
                 this.applyExamData(exam, !exam.active);
                 this.applyConnectionConfiguration(exam);
             }
-
             return exam;
         });
 
@@ -169,9 +168,28 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     @Override
+    public void notifyExamConfigChange(final ExamConfigUpdateEvent event) {
+        try {
+
+            final Exam exam = examDAO.byPK(event.examId).getOrThrow();
+            if (!hasFullIntegration(exam.lmsSetupId)) {
+                return;
+            }
+
+            this.applyExamData(exam, !exam.active);
+
+        } catch (final Exception e) {
+            log.error(
+                    "Failed to apply Exam Configuration change to fully integrated LMS for exam: {}",
+                    event.examId,
+                    e);
+        }
+    }
+
+    @Override
     public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
         final LmsSetup lmsSetup = event.getLmsSetup();
-        if (!lmsSetup.getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+        if (!hasFullIntegration(lmsSetup.id)) {
             return;
         }
 
@@ -206,6 +224,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
             lmsSetupDAO.idsOfActiveWithFullIntegration(examTemplate.institutionId)
                     .onSuccess(all -> all.stream()
+                            .filter(this::hasFullIntegration)
                             .map(this::applyFullLmsIntegration)
                             .forEach(res ->
                                 res.onError(error -> log.warn(
@@ -227,15 +246,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .stream()
                 .filter(exam -> this.needsConnectionConfigurationChange(exam, event.configId))
                 .forEach(this::applyConnectionConfiguration);
-    }
-
-    private boolean needsConnectionConfigurationChange(final Exam exam, final Long ccId) {
-        if (exam.status == Exam.ExamStatus.ARCHIVED) {
-            return false;
-        }
-
-        final String configId = getConnectionConfigurationId(exam);
-        return StringUtils.isNotBlank(configId) && configId.equals(String.valueOf(ccId));
     }
 
     @Override
@@ -544,6 +554,9 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     private Exam applyExamData(final Exam exam, final boolean deletion) {
+        if (!hasFullIntegration(exam.lmsSetupId)) {
+            return exam;
+        }
         if (exam.examTemplateId == null) {
             throw new IllegalStateException("Exam has no template id: " + exam.getName());
         }
@@ -609,6 +622,27 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 })
                 .onError(error -> log.error("Failed to apply ConnectionConfiguration for exam: {} error: ", exam, error))
                 .getOr(exam);
+    }
+
+    private boolean hasFullIntegration(final Long lmsSetupId) {
+        final LmsAPITemplate lmsAPITemplate = this.lmsAPITemplateCacheService
+                .getLmsAPITemplate(lmsSetupId)
+                .getOrThrow();
+        final LmsSetup lmsSetup = lmsAPITemplate.lmsSetup();
+        if (!lmsSetup.getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
+            return false;
+        }
+
+        return lmsAPITemplate.fullIntegrationActive();
+    }
+
+    private boolean needsConnectionConfigurationChange(final Exam exam, final Long ccId) {
+        if (exam.status == Exam.ExamStatus.ARCHIVED) {
+            return false;
+        }
+
+        final String configId = getConnectionConfigurationId(exam);
+        return StringUtils.isNotBlank(configId) && configId.equals(String.valueOf(ccId));
     }
 
     private String getAPIRootURL() {
