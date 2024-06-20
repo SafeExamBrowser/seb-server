@@ -155,6 +155,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                             .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
                 }
                 this.examAdminService.updateAdditionalExamConfigAttributes(exam.id);
+                // notify others...
+                applicationEventPublisher.publishEvent(new ExamConfigUpdateEvent(exam.id));
             }
 
             // evict each Exam from cache and release the update-lock on DB
@@ -186,9 +188,13 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
                     // if the exam is not currently running just apply the action
                     if (exam.status != ExamStatus.RUNNING) {
-                        return changeAction
+                        T result = changeAction
                                 .apply(mapping)
                                 .getOrThrow();
+
+                        // notify...
+                        applicationEventPublisher.publishEvent(new ExamConfigUpdateEvent(exam.id));
+                        return result;
                     }
 
                     // if the exam is running...
