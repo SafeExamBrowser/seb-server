@@ -66,7 +66,10 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
 
     @Override
     public boolean fullIntegrationActive() {
-        return false;
+        return  this.restTemplateFactory
+                .getRestTemplate()
+                .map(template -> template.getMoodlePluginVersion() == MoodleAPIRestTemplate.MoodlePluginVersion.V2_0)
+                .getOr(false);
     }
 
     @Override
