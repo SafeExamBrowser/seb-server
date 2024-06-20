@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
@@ -682,7 +683,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 this.authorization.getUserService().getCurrentUser().getUserInfo().institutionId,
                 true)
                 .map(users -> users.stream()
-                        .filter(user -> user.getRoles().contains(UserRole.EXAM_SUPPORTER.name()))
+                        .filter(user -> user.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.TEACHER))
                         .map(user -> user.uuid)
                         .collect(Collectors.toSet()))
                 .getOrThrow();
