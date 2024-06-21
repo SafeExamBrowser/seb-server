@@ -695,7 +695,7 @@ class ScreenProctoringAPIBinding {
         params.add(SPS_API.SESSION.ATTR_CLIENT_MACHINE_NAME, clientConnection.getClientMachineName());
         params.add(SPS_API.SESSION.ATTR_CLIENT_OS_NAME, clientConnection.getClientOsName());
         params.add(SPS_API.SESSION.ATTR_CLIENT_VERSION, clientConnection.getClientVersion());
-        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
         final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
         if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -910,7 +910,7 @@ class ScreenProctoringAPIBinding {
         params.add(SPS_API.GROUP.ATTR_NAME, name);
         params.add(SPS_API.GROUP.ATTR_DESCRIPTION, description);
         params.add(SPS_API.GROUP.ATTR_EXAM_ID, spsExamUUID);
-        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
         final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
         if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -945,7 +945,7 @@ class ScreenProctoringAPIBinding {
 
             final String uuid = createExamUUID(exam);
             final MultiValueMap<String, String> params = createExamCreationParams(exam, uuid, userIds);
-            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
             if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -1060,7 +1060,7 @@ class ScreenProctoringAPIBinding {
             final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add(SPS_API.SEB_ACCESS.ATTR_NAME, name);
             params.add(SPS_API.SEB_ACCESS.ATTR_DESCRIPTION, description);
-            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
+            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
             if (exchange.getStatusCode() != HttpStatus.OK) {
