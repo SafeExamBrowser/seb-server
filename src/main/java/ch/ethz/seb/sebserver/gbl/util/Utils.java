@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl.util;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -404,12 +403,7 @@ public final class Utils {
             return value;
         }
 
-        try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
-        } catch (final UnsupportedEncodingException e) {
-            log.error("Failed to encode FormURL_UTF_8 for: {}", value, e);
-            return value;
-        }
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     public static String decodeFormURL_UTF_8(final String value) {
@@ -417,16 +411,11 @@ public final class Utils {
             return value;
         }
 
-        try {
-            return URLDecoder.decode(
-                    (value.indexOf('+') >= 0)
-                            ? value.replaceAll("\\+", "%2b")
-                            : value,
-                    StandardCharsets.UTF_8.name());
-        } catch (final UnsupportedEncodingException e) {
-            log.error("Failed to decode FormURL_UTF_8 for: {}", value, e);
-            return value;
-        }
+        return URLDecoder.decode(
+                (value.indexOf('+') >= 0)
+                        ? value.replaceAll("\\+", "%2b")
+                        : value,
+                StandardCharsets.UTF_8);
     }
 
     public static void clearCharArray(final char[] array) {
@@ -656,12 +645,10 @@ public final class Utils {
             return StringUtils.EMPTY;
         }
 
-        for (String key : attributes.keySet()) {
-            List<String> values = attributes.get(key);
+        for (final String key : attributes.keySet()) {
+            final List<String> values = attributes.get(key);
             if (values != null) {
-                for (int i = 0; i < values.size(); i++) {
-                    values.set(i, encodeFormURL_UTF_8(values.get(i)));
-                }
+                values.replaceAll(Utils::encodeFormURL_UTF_8);
             }
         }
 
