@@ -321,7 +321,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         this.sortOrder = this.defaultSortOrder;
         updateSortUserAttr();
         setTableSort();
-        applyFilter();
+        this.selectPage(1);
     }
 
     public void updateCurrentPage() {
