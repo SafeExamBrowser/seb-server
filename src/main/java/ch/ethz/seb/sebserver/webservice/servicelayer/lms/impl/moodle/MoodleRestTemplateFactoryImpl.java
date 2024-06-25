@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
-import javax.net.ssl.SSLContext;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,10 +24,6 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginFullIntegration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.TrustStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -436,15 +429,27 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         @Override
         public String uploadMultiPart(
                 final String uploadEndpoint,
-                final MultiValueMap<String, Object> multiPartAttributes) {
+                final MultiValueMap<String, Object> multiPartAttributes,
+                final MultiValueMap<String, String> queryAttributes) {
 
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-            final String uri = lmsSetup.lmsApiUrl + uploadEndpoint;
+            final StringBuilder uri = new StringBuilder(lmsSetup.lmsApiUrl + uploadEndpoint);
             getAccessToken();
-            multiPartAttributes.add("token", this.accessToken);
+            queryAttributes.add("token", this.accessToken.toString());
+
+            queryAttributes.forEach((key, values) -> {
+                if (values.isEmpty()) {
+                    return;
+                }
+                if (uri.toString().contains("?")) {
+                    uri.append("&").append(key).append("=").append(values.get(0));
+                } else {
+                    uri.append("?").append(key).append("=").append(values.get(0));
+                }
+            });
 
             return super.postForObject(
-                    uri,
+                    uri.toString(),
                     multiPartAttributes,
                     String.class);
         }
