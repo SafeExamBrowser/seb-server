@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
@@ -63,6 +64,7 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_DATA, required = false) final String examData,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_PASSWORD, required = false) final String quitPassword,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final Integer quitLink,
+            final HttpServletRequest request,
             final HttpServletResponse response) {
 
         log.info("Importing exam from LMS call. lmsUUId: {} courseId: {} quizId: {} templateId: {} quitPassword: {} quitLink: {}",
@@ -73,13 +75,17 @@ public class LmsIntegrationController {
                 StringUtils.isNotBlank(quitPassword) ? "yes" : "no",
                 quitLink);
 
+        if (log.isDebugEnabled()) {
+            log.debug("Importing exam from LMS call. All param: {}", request.getParameterNames());
+        }
+
         final Exam exam = fullLmsIntegrationService.importExam(
                         lmsUUId,
                         courseId,
                         quizId,
                         templateId,
                         quitPassword,
-                        BooleanUtils.toBooleanObject(quitLink),
+                        quitLink != null && BooleanUtils.toBoolean(quitLink),
                         examData)
                 .onError(e -> {
                     log.error(
