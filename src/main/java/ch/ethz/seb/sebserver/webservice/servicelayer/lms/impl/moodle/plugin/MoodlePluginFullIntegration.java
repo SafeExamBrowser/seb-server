@@ -252,7 +252,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             multiPartAttributes.add("filename", fileName);
 
             final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-            multiPartAttributes.add("quizid", quizId);
+            queryAttributes.add("quizid", quizId);
             final ByteArrayResource contentsAsResource = new ByteArrayResource(configData) {
                 @Override
                 public String getFilename() {
