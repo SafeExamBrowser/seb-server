@@ -671,6 +671,11 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     private boolean hasFullIntegration(final Long lmsSetupId) {
+        // no LMS
+        if (lmsSetupId == null) {
+            return false;
+        }
+
         final LmsAPITemplate lmsAPITemplate = this.lmsAPITemplateCacheService
                 .getLmsAPITemplate(lmsSetupId)
                 .getOrThrow();

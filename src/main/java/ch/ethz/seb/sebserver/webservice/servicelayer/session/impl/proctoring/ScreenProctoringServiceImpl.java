@@ -60,7 +60,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.Scr
 public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringServiceImpl.class);
-
     private final Cryptor cryptor;
     private final ScreenProctoringAPIBinding screenProctoringAPIBinding;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;

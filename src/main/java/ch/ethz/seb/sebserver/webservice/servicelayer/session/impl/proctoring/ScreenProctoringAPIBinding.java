@@ -676,14 +676,12 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringGroup localGroup,
             final ClientConnectionRecord clientConnection) {
 
-        // TODO check if the Session with token UUID already exists and if true, return the token
 
         final String token = clientConnection.getConnectionToken();
         final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(examId);
         final String uri = UriComponentsBuilder
                 .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
                 .path(SPS_API.SESSION_ENDPOINT)
-
                 .build()
                 .toUriString();
 
@@ -983,7 +981,9 @@ class ScreenProctoringAPIBinding {
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(SPS_API.EXAM.ATTR_UUID, uuid);
         params.add(SPS_API.EXAM.ATTR_NAME, exam.name);
-        params.add(SPS_API.EXAM.ATTR_DESCRIPTION, exam.getDescription());
+        if (exam.getDescription() != null) {
+            params.add(SPS_API.EXAM.ATTR_DESCRIPTION, exam.getDescription());
+        }
         params.add(SPS_API.EXAM.ATTR_URL, exam.getStartURL());
         if (!userIds.isEmpty()) {
             params.add(SPS_API.EXAM.ATTR_USER_IDS, StringUtils.join(userIds, Constants.LIST_SEPARATOR));

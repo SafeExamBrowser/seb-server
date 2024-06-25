@@ -246,8 +246,6 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final String quizId = MoodleUtils.getQuizId(exam.externalId);
             final String fileName = getConnectionConfigFileName(exam);
 
-
-
             final MultiValueMap<String, Object> multiPartAttributes = new LinkedMultiValueMap<>();
             multiPartAttributes.add("quizid", quizId);
             multiPartAttributes.add("name", fileName);
@@ -259,19 +257,13 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 }
             };
 
-            log.info("Upload Connection Configuration to Moodle: quizid: {}, fileName: {}, content: {}", quizId, fileName, contentsAsResource );
-
             multiPartAttributes.add("file", contentsAsResource);
 
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
             final String response = rest.uploadMultiPart(UPLOAD_ENDPOINT, multiPartAttributes);
 
-            if (response != null && (response.startsWith("{\"exception\":") || response.startsWith("0"))) {
-                log.warn("Failed to apply Connection Configuration to LMS for Exam: {}", exam.externalId);
-            }
-
-            if (response != null && (response.startsWith("{\"warnings\":"))) {
-                log.info("Moodle warnings in response: {}", response);
+            if (response != null) {
+                log.info("Upload Connection Configuration to Moodle: quizid: {}, fileName: {} response: {}", quizId, fileName, response );
             }
 
             return exam;
