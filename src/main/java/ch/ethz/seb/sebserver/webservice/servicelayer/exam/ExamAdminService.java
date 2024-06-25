@@ -95,25 +95,25 @@ public interface ExamAdminService {
     /** Updates needed additional attributes from assigned exam configuration for the exam
      *
      * @param examId The exam identifier */
-    void updateAdditionalExamConfigAttributes(final Long examId);
+    void updateAdditionalExamConfigAttributes(Long examId);
 
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
      * @param examId the exam identifier
      * @return Result refer to proctoring is enabled flag or to an error when happened. */
-    Result<Boolean> isProctoringEnabled(final Long examId);
+    Result<Boolean> isProctoringEnabled(Long examId);
 
     /** This indicates if screen proctoring is set and enabled for a certain exam.
      *
      * @param examId the exam identifier
      * @return Result refer to screen proctoring is enabled flag or to an error when happened. */
-    Result<Boolean> isScreenProctoringEnabled(final Long examId);
+    Result<Boolean> isScreenProctoringEnabled(Long examId);
 
     /** Get the exam proctoring service implementation for specified exam.
      *
      * @param examId the exam identifier
      * @return ExamProctoringService instance */
-    Result<RemoteProctoringService> getExamProctoringService(final Long examId);
+    Result<RemoteProctoringService> getExamProctoringService(Long examId);
 
     /** This resets the proctoring settings for a given exam and stores the default settings.
      *

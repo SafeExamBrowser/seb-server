@@ -54,6 +54,14 @@ public interface ExamConfigurationValueService {
      */
     Result<Long> applyQuitPasswordToConfigs(Long examId, String quitPassword);
 
+    /** Used to apply the quit pass given from the exam to all exam configuration for the exam.
+     *
+     * @param examId The exam identifier
+     * @param quitLink The quit link to set to all exam configuration of the given exam
+     * @return Result to the given exam id or to an error when happened
+     */
+    Result<Long> applyQuitURLToConfigs(Long examId, String quitLink);
+
     /** Get the quitLink SEB Setting from the Exam Configuration that is applied to the given exam.
      *
      * @param examId Exam identifier

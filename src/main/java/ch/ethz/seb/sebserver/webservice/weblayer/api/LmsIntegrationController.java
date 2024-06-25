@@ -14,17 +14,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.Arrays;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -43,16 +41,13 @@ public class LmsIntegrationController {
 
     private final FullLmsIntegrationService fullLmsIntegrationService;
     private final WebserviceInfo webserviceInfo;
-    private final ExamDAO examDAO;
 
     public LmsIntegrationController(
             final FullLmsIntegrationService fullLmsIntegrationService,
-            final WebserviceInfo webserviceInfo,
-            final ExamDAO examDAO) {
+            final WebserviceInfo webserviceInfo) {
 
         this.fullLmsIntegrationService = fullLmsIntegrationService;
         this.webserviceInfo = webserviceInfo;
-        this.examDAO = examDAO;
     }
 
     @RequestMapping(
@@ -66,7 +61,7 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID) final String templateId,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_DATA, required = false) final String examData,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_PASSWORD, required = false) final String quitPassword,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final String quitLink,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final int quitLink,
             final HttpServletResponse response) {
 
         final Exam exam = fullLmsIntegrationService.importExam(
@@ -75,7 +70,7 @@ public class LmsIntegrationController {
                         quizId,
                         templateId,
                         quitPassword,
-                        quitLink,
+                        BooleanUtils.toBoolean(quitLink),
                         examData)
                 .onError(e -> {
                     log.error(

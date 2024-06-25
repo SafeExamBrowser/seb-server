@@ -323,17 +323,26 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quizId,
             final String examTemplateId,
             final String quitPassword,
-            final String quitLink,
+            final boolean showQuitLink,
             final String examData) {
 
         return lmsSetupDAO
                 .getLmsSetupIdByConnectionId(lmsUUID)
                 .flatMap(lmsAPITemplateCacheService::getLmsAPITemplate)
                 .map(template -> getQuizData(template, courseId, quizId, examData))
-                .map(createExam(examTemplateId, quitPassword))
+                .map(createExam(examTemplateId, showQuitLink, quitPassword))
                 .map(exam -> applyExamData(exam, false))
-                .flatMap(sebRestrictionService::applySEBClientRestriction)
+                .map(this::applySEBClientRestrictionIfRunning)
                 .map(this::applyConnectionConfiguration);
+    }
+
+    private Exam applySEBClientRestrictionIfRunning(final Exam exam) {
+        if (exam.status == Exam.ExamStatus.RUNNING) {
+            return sebRestrictionService
+                    .applySEBClientRestriction(exam)
+                    .getOrThrow();
+        }
+        return exam;
     }
 
     @Override
@@ -368,6 +377,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     .flatMap(this::findExam);
 
             if (examResult.hasError()) {
+                log.error("Failed to find exam for SEB Connection Configuration download: ", examResult.getError());
                 throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
             }
 
@@ -375,10 +385,15 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
             final String connectionConfigId = getConnectionConfigurationId(exam);
             if (StringUtils.isBlank(connectionConfigId)) {
+                log.error("Failed to verify SEB Connection Configuration id for exam: {}", exam.name);
                 throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
             }
 
-            this.connectionConfigurationService.exportSEBClientConfiguration(out, connectionConfigId, exam.id);
+            this.connectionConfigurationService.exportSEBClientConfiguration(
+                    out,
+                    connectionConfigId,
+                    exam.id);
+
             return Result.EMPTY;
 
         } catch (final Exception e) {
@@ -469,6 +484,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     private Function<QuizData, Exam> createExam(
             final String examTemplateId,
+            final boolean showQuitLink,
             final String quitPassword) {
 
         return quizData -> {
@@ -503,6 +519,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             return examDAO
                     .createNew(exam)
                     .flatMap(examImportService::applyExamImportInitialization)
+                    .map( e -> this.applyQuitLinkToSEBConfig(e, showQuitLink))
                     .map(this::logExamCreated)
                     .getOrThrow();
         };
@@ -572,7 +589,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
             final String templateId = deletion ? null : String.valueOf(exam.examTemplateId);
             final String quitPassword = deletion ? null : examConfigurationValueService.getQuitPassword(exam.id);
-            final Boolean quitLink = deletion ? null : StringUtils.isNotBlank(examConfigurationValueService.getQuitLink(exam.id));
+            final String quitLink = deletion ? null : examConfigurationValueService.getQuitLink(exam.id);
 
             final ExamData examData = new ExamData(
                     lmsUUID,
@@ -589,6 +606,35 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             log.warn("Failed to apply exam data to LMS for exam: {} error: {}", exam, e.getMessage());
         }
         return exam;
+    }
+
+    private Exam applyQuitLinkToSEBConfig(final Exam exam, final boolean showQuitLink) {
+        try {
+
+            if (!showQuitLink) {
+                // check set no quit link to SEB config
+                examConfigurationValueService
+                        .applyQuitURLToConfigs(exam.id, "")
+                        .getOrThrow();
+            } else {
+                // check if in config quit link is set, if so nothing to do, if not generate one and apply
+                String quitLink = examConfigurationValueService.getQuitLink(exam.id);
+                if (StringUtils.isNotBlank(quitLink)) {
+                    return exam;
+                }
+
+                quitLink = "http://quit_seb";
+
+                examConfigurationValueService
+                        .applyQuitURLToConfigs(exam.id, quitLink)
+                        .getOrThrow();
+            }
+
+            return exam;
+        } catch (final Exception e) {
+            log.error("Failed to apply quit link to SEB Exam Configuration: ", e);
+            return exam;
+        }
     }
 
     private Exam applyConnectionConfiguration(final Exam exam) {

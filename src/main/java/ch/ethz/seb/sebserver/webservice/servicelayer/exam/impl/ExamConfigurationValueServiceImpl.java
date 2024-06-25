@@ -152,51 +152,23 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                 return examId;
             }
 
-            final Long configNodeId = this.examConfigurationMapDAO
-                    .getDefaultConfigurationNode(examId)
-                    .getOr(null);
-
-            if (configNodeId == null) {
-                log.info("No Exam Configuration found for exam {} to apply quitPassword", examId);
-                return examId;
-            }
-
-            final Long attrId = getAttributeId(CONFIG_ATTR_NAME_QUIT_SECRET);
-            if (attrId == null) {
-                return examId;
-            }
-
-            final Configuration followupConfig = this.configurationDAO.getFollowupConfiguration(configNodeId)
-                    .onError(error -> log.warn("Failed to get followup config for {} cause {}",
-                            configNodeId,
-                            error.getMessage()))
-                    .getOr(null);
-
-            final ConfigurationValue configurationValue = new ConfigurationValue(
-                    null,
-                    followupConfig.institutionId,
-                    followupConfig.id,
-                    attrId,
-                    0,
-                    quitSecret
-            );
-
-            this.configurationValueDAO
-                    .save(configurationValue)
-                    .onError(err -> log.error(
-                            "Failed to save quit password to config value: {}",
-                            configurationValue,
-                            err));
-
-            // TODO possible without save to history?
-            this.configurationDAO
-                    .saveToHistory(configNodeId)
-                    .onError(error -> log.warn("Failed to save to history for exam: {} cause: {}",
-                            examId, error.getMessage()));
-
-            return examId;
+            return saveSEBAttributeValueToConfig(examId, CONFIG_ATTR_NAME_QUIT_SECRET, quitSecret);
         });
     }
+
+    @Override
+    public Result<Long> applyQuitURLToConfigs(final Long examId, final String quitLink) {
+        return Result.tryCatch(() -> {
+
+            final String oldQuitLink = this.getQuitLink(examId);
+            if (Objects.equals(oldQuitLink, quitLink)) {
+                return examId;
+            }
+
+            return saveSEBAttributeValueToConfig(examId, CONFIG_ATTR_NAME_QUIT_LINK, quitLink);
+        });
+    }
+
 
     @Override
     public String getQuitLink(final Long examId) {
@@ -234,6 +206,69 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                 .onError(error -> log.error("Failed to get attribute id with name: {}",
                         configAttributeName, error))
                 .getOr(null);
+    }
+
+    private Long saveSEBAttributeValueToConfig(
+            final Long examId,
+            final String attrName,
+            final String attrValue) {
+
+        final Long configNodeId = this.examConfigurationMapDAO
+                .getDefaultConfigurationNode(examId)
+                .getOr(null);
+
+        if (configNodeId == null) {
+            log.info("No Exam Configuration found for exam {} to apply SEB Setting: {}", examId, attrName);
+            return examId;
+        }
+
+        final Long attrId = getAttributeId(attrName);
+        if (attrId == null) {
+            return examId;
+        }
+
+        final Configuration lastStable = this.configurationDAO
+                .getConfigurationLastStableVersion(configNodeId)
+                .getOrThrow();
+        final Long followupId = configurationDAO
+                .getFollowupConfigurationId(configNodeId)
+                .getOrThrow();
+
+        // save to last sable version
+        this.configurationValueDAO
+                .saveForce(new ConfigurationValue(
+                        null,
+                        lastStable.institutionId,
+                        lastStable.id,
+                        attrId,
+                        0,
+                        attrValue
+                ))
+                .onError(err -> log.error(
+                        "Failed to save SEB Setting: {} to config: {}",
+                        attrName,
+                        lastStable,
+                        err));
+
+        if (!Objects.equals(followupId, lastStable.id)) {
+            // save also to followup version
+            this.configurationValueDAO
+                    .saveForce(new ConfigurationValue(
+                            null,
+                            lastStable.institutionId,
+                            followupId,
+                            attrId,
+                            0,
+                            attrValue
+                    ))
+                    .onError(err -> log.error(
+                            "Failed to save SEB Setting: {} to config: {}",
+                            attrName,
+                            lastStable,
+                            err));
+        }
+
+        return examId;
     }
 
 }

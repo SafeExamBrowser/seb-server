@@ -209,12 +209,14 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             // data[addordelete]= int
             // data[templateid]= int
             // data[showquitlink]= int
+            // data[quitlink]=string
             // data[quitsecret]= string
             data_mapping.put("quizid", examData.quiz_id);
             if (BooleanUtils.isTrue(examData.exam_created)) {
                 data_mapping.put("addordelete", "1");
                 data_mapping.put("templateid", examData.template_id);
-                data_mapping.put("showquitlink", BooleanUtils.isTrue(examData.show_quit_link) ? "1" : "0");
+                data_mapping.put("showquitlink", StringUtils.isNotBlank(examData.quit_link) ? "1" : "0");
+                data_mapping.put("quitlink", examData.quit_link);
                 data_mapping.put("quitsecret", examData.quit_password);
             } else {
                 data_mapping.put("addordelete", "0");

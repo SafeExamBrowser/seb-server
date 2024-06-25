@@ -56,7 +56,7 @@ public interface FullLmsIntegrationService {
             String quizId,
             String examTemplateId,
             String quitPassword,
-            String quitLink,
+            boolean showQuitLink,
             final String examData);
 
     Result<EntityKey> deleteExam(
@@ -117,7 +117,7 @@ public interface FullLmsIntegrationService {
         @JsonProperty("template_id")
         public final String template_id;
         @JsonProperty("show_quit_link")
-        public final Boolean show_quit_link;
+        public final String quit_link;
         @JsonProperty("quit_password")
         public final String quit_password;
 
@@ -127,7 +127,7 @@ public interface FullLmsIntegrationService {
                 final String quiz_id,
                 final Boolean exam_created,
                 final String template_id,
-                final Boolean show_quit_link,
+                final String quit_link,
                 final String quit_password) {
 
             this.id = id;
@@ -135,7 +135,7 @@ public interface FullLmsIntegrationService {
             this.quiz_id = quiz_id;
             this.exam_created = exam_created;
             this.template_id = template_id;
-            this.show_quit_link = show_quit_link;
+            this.quit_link = quit_link;
             this.quit_password = quit_password;
         }
     }

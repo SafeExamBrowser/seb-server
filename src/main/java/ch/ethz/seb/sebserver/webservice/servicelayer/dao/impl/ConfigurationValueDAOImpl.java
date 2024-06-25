@@ -268,41 +268,17 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     public Result<ConfigurationValue> save(final ConfigurationValue data) {
         return checkInstitutionalIntegrity(data)
                 .map(this::checkFollowUpIntegrity)
-                .flatMap(this::attributeRecord)
-                .map(attributeRecord -> {
+                .map(this::saveData)
+                .flatMap(ConfigurationValueDAOImpl::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
 
-                    final Long id;
-                    if (data.id == null) {
 
-                        id = getByProperties(data)
-                                .orElseGet(() -> {
-                                    log.debug("Missing SEB exam configuration attrribute value for: {}", data);
-                                    log.debug("Use self-healing strategy to recover from missing SEB exam "
-                                            + "configuration attrribute value\n**** Create new AttributeValue for: {}",
-                                            data);
 
-                                    createNew(data);
-                                    return getByProperties(data)
-                                            .orElseThrow(() -> new ResourceNotFoundException(
-                                                    EntityType.CONFIGURATION_VALUE,
-                                                    String.valueOf(data.attributeId)));
-
-                                });
-                    } else {
-                        id = data.id;
-                    }
-
-                    final ConfigurationValueRecord newRecord = new ConfigurationValueRecord(
-                            id,
-                            null,
-                            null,
-                            null,
-                            data.listIndex,
-                            data.value);
-
-                    this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    return this.configurationValueRecordMapper.selectByPrimaryKey(id);
-                })
+    @Override
+    public Result<ConfigurationValue> saveForce(final ConfigurationValue data) {
+        return checkInstitutionalIntegrity(data)
+                .map(this::saveData)
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
@@ -706,6 +682,40 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .execute()
                 .stream()
                 .findFirst();
+    }
+
+    private ConfigurationValueRecord saveData(final ConfigurationValue data) {
+        final Long id;
+        if (data.id == null) {
+
+            id = getByProperties(data)
+                    .orElseGet(() -> {
+                        log.debug("Missing SEB exam configuration attrribute value for: {}", data);
+                        log.debug("Use self-healing strategy to recover from missing SEB exam "
+                                        + "configuration attrribute value\n**** Create new AttributeValue for: {}",
+                                data);
+
+                        createNew(data);
+                        return getByProperties(data)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                        EntityType.CONFIGURATION_VALUE,
+                                        String.valueOf(data.attributeId)));
+
+                    });
+        } else {
+            id = data.id;
+        }
+
+        final ConfigurationValueRecord newRecord = new ConfigurationValueRecord(
+                id,
+                null,
+                null,
+                null,
+                data.listIndex,
+                data.value);
+
+        this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
+        return this.configurationValueRecordMapper.selectByPrimaryKey(id);
     }
 
 }

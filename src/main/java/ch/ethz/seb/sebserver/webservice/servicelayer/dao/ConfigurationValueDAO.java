@@ -89,4 +89,6 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
      * @param pwd The hashed quit password
      * @return Result refer to void or to an error when happened*/
     Result<Void> saveQuitPassword(Long configurationId, String pwd);
+
+    Result<ConfigurationValue> saveForce(ConfigurationValue configurationValue);
 }
