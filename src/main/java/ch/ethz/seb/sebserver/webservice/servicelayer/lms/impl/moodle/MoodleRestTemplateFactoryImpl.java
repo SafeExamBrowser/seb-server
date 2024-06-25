@@ -448,6 +448,8 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 }
             });
 
+            log.info("Upload to Moodle url: {}", uri.toString());
+
             return super.postForObject(
                     uri.toString(),
                     multiPartAttributes,
@@ -470,7 +472,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             if (response.getStatusCode() != HttpStatus.OK) {
                 throw new RuntimeException(
                         "Failed to call Moodle webservice API function: " + functionName + " lms setup: " +
-                                lmsSetup + " response: " + response.getBody());
+                                lmsSetup.name + " response: " + response.getBody());
             }
 
             final String body = response.getBody();
@@ -488,7 +490,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 this.accessToken = null;
                 log.warn(
                         "Failed to call Moodle webservice API function: {} lms setup: {} response: {}",
-                        functionName, lmsSetup, body);
+                        functionName, lmsSetup.name, body);
             }
 
             return body;

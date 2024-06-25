@@ -295,7 +295,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     @Override
     public void notifyExamStarted(final ExamStartedEvent event) {
         final Exam exam = event.exam;
-        if (!BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+        if (BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
             return;
         }
 
