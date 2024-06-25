@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -61,8 +62,16 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID) final String templateId,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_DATA, required = false) final String examData,
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_PASSWORD, required = false) final String quitPassword,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final int quitLink,
+            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final Integer quitLink,
             final HttpServletResponse response) {
+
+        log.info("Importing exam from LMS call. lmsUUId: {} courseId: {} quizId: {} templateId: {} quitPassword: {} quitLink: {}",
+                lmsUUId,
+                courseId,
+                quizId,
+                templateId,
+                StringUtils.isNotBlank(quitPassword) ? "yes" : "no",
+                quitLink);
 
         final Exam exam = fullLmsIntegrationService.importExam(
                         lmsUUId,
@@ -70,7 +79,7 @@ public class LmsIntegrationController {
                         quizId,
                         templateId,
                         quitPassword,
-                        BooleanUtils.toBoolean(quitLink),
+                        BooleanUtils.toBooleanObject(quitLink),
                         examData)
                 .onError(e -> {
                     log.error(
