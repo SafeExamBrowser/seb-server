@@ -129,6 +129,12 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
             final HttpServletResponse response) throws IOException {
 
+        log.info(
+                "LMS called get SEB Connection Configuration for: lmsUUId: {} courseId: {} quizId: {}",
+                lmsUUId,
+                courseId,
+                quizId);
+
         final ServletOutputStream outputStream = response.getOutputStream();
         final PipedOutputStream pout;
         final PipedInputStream pin;
