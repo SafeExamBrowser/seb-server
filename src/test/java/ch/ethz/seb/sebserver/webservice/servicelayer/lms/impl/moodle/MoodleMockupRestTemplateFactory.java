@@ -207,7 +207,8 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
         @Override
         public String uploadMultiPart(
                 final String uploadEndpoint,
-                final MultiValueMap<String, Object> multiPartAttributes) {
+                final MultiValueMap<String, Object> multiPartAttributes,
+                final MultiValueMap<String, String> queryAttributes) {
             throw new UnsupportedOperationException("Not supported yet");
         }
 
