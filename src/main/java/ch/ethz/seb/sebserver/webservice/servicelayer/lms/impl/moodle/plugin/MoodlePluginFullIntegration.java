@@ -246,27 +246,28 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             final String quizId = MoodleUtils.getQuizId(exam.externalId);
             final String fileName = getConnectionConfigFileName(exam);
 
-            final MultiValueMap<String, Object> multiPartAttributes = new LinkedMultiValueMap<>();
-            multiPartAttributes.add("quizid", quizId);
-            multiPartAttributes.add("name", fileName);
-            multiPartAttributes.add("filename", fileName);
+//            final MultiValueMap<String, Object> multiPartAttributes = new LinkedMultiValueMap<>();
+//            multiPartAttributes.add("quizid", quizId);
+//            multiPartAttributes.add("name", fileName);
+//            multiPartAttributes.add("filename", fileName);
 
-            final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-            queryAttributes.add("quizid", quizId);
-            final ByteArrayResource contentsAsResource = new ByteArrayResource(configData) {
-                @Override
-                public String getFilename() {
-                    return fileName; // Filename has to be returned in order to be able to post.
-                }
-            };
-
-            multiPartAttributes.add("file", contentsAsResource);
+//            final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
+//            //queryAttributes.add("quizid", quizId);
+//            final ByteArrayResource contentsAsResource = new ByteArrayResource(configData) {
+//                @Override
+//                public String getFilename() {
+//                    return fileName; // Filename has to be returned in order to be able to post.
+//                }
+//            };
+//
+//            multiPartAttributes.add("file", contentsAsResource);
 
             final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
             final String response = rest.uploadMultiPart(
                     UPLOAD_ENDPOINT,
-                    multiPartAttributes,
-                    queryAttributes);
+                    quizId,
+                    fileName,
+                    configData);
 
             if (response != null) {
                 log.info("Upload Connection Configuration to Moodle: quizid: {}, fileName: {} response: {}", quizId, fileName, response );

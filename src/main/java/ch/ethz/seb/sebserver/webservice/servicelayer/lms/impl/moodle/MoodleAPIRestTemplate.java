@@ -63,8 +63,9 @@ public interface MoodleAPIRestTemplate {
 
     String uploadMultiPart(
             String uploadEndpoint,
-            MultiValueMap<String, Object> multiPartAttributes,
-            MultiValueMap<String, String> queryAttributes);
+            String quizId,
+            String fileName,
+            byte[] configData);
 
 
     /** This maps a Moodle warning JSON object */

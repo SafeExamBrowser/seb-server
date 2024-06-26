@@ -26,12 +26,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.Mood
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -429,31 +424,60 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         @Override
         public String uploadMultiPart(
                 final String uploadEndpoint,
-                final MultiValueMap<String, Object> multiPartAttributes,
-                final MultiValueMap<String, String> queryAttributes) {
+                final String quizId,
+                final String fileName,
+                final byte[] configData) {
 
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             final StringBuilder uri = new StringBuilder(lmsSetup.lmsApiUrl + uploadEndpoint);
             getAccessToken();
-            queryAttributes.add("token", this.accessToken.toString());
 
-            queryAttributes.forEach((key, values) -> {
-                if (values.isEmpty()) {
-                    return;
-                }
-                if (uri.toString().contains("?")) {
-                    uri.append("&").append(key).append("=").append(values.get(0));
-                } else {
-                    uri.append("?").append(key).append("=").append(values.get(0));
-                }
-            });
+            final HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            final MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
+            final ContentDisposition contentDisposition = ContentDisposition
+                    .builder("form-data")
+                    .name("file")
+                    .filename(fileName)
+                    .build();
+            fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
+            final HttpEntity<byte[]> fileEntity = new HttpEntity<>(configData, fileMap);
 
-            log.info("Upload to Moodle url: {}", uri.toString());
+            final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("token", this.accessToken.toString());
+            body.add("quizid", quizId);
+            body.add("file", fileEntity);
 
-            return super.postForObject(
+            final HttpEntity<MultiValueMap<String, Object>> requestEntity =
+                    new HttpEntity<>(body, headers);
+
+            final ResponseEntity<String> exchange = super.exchange(
                     uri.toString(),
-                    multiPartAttributes,
+                    HttpMethod.POST,
+                    requestEntity,
                     String.class);
+
+            return exchange.getBody();
+
+//            multiPartAttributes.add("token", this.accessToken.toString());
+//
+//            queryAttributes.forEach((key, values) -> {
+//                if (values.isEmpty()) {
+//                    return;
+//                }
+//                if (uri.toString().contains("?")) {
+//                    uri.append("&").append(key).append("=").append(values.get(0));
+//                } else {
+//                    uri.append("?").append(key).append("=").append(values.get(0));
+//                }
+//            });
+//
+//            log.info("Upload to Moodle url: {}", uri.toString());
+//
+//            return super.postForObject(
+//                    uri.toString(),
+//                    multiPartAttributes,
+//                    String.class);
         }
 
         private String doRequest(
