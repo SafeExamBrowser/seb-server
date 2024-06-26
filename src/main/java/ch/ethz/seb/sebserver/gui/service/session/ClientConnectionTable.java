@@ -201,7 +201,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         for (final Indicator indDef : indicators) {
             final TableColumn tableColumn = widgetFactory.tableColumnLocalized(
                     this.table,
-                    new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.name),
+                    new LocTextKey(indDef.name),
                     new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.type.name));
             tableColumn.setText(indDef.name);
         }
