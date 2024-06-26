@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -86,7 +87,7 @@ public class DeleteExamAction implements BatchActionExec {
     @Transactional
     public Result<EntityKey> doSingleAction(final String modelId, final BatchAction batchAction) {
         return this.examDAO.byModelId(modelId)
-                .flatMap(this::checkWriteAccess)
+                .flatMap( exam -> this.checkWriteAccess(exam, batchAction.ownerId))
                 .flatMap(this::checkNoActiveSEBClientConnections)
                 .flatMap(this::deleteExamDependencies)
                 .flatMap(this::deleteExamWithRefs)
@@ -137,7 +138,7 @@ public class DeleteExamAction implements BatchActionExec {
         }
     }
 
-    private Result<Exam> checkWriteAccess(final Exam entity) {
+    private Result<Exam> checkWriteAccess(final Exam entity, final String ownerId) {
         if (entity != null) {
             this.authorization.checkWrite(entity);
         }

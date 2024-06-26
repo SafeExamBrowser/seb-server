@@ -18,11 +18,11 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
-import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 
 /** A service to check authorization grants for a given user for entity-types and -instances
  * <p>
@@ -249,6 +249,34 @@ public interface AuthorizationService {
         return check(PrivilegeType.WRITE, entity);
     }
 
+    default <E extends GrantEntity> Result<E> checkForUser(
+            final PrivilegeType privilegeType,
+            final E entity,
+            final String ownerId) {
+
+        final UserInfo userInfo = getUserService().getUser(ownerId);
+        if (userInfo == null) {
+            return Result.ofError(new ResourceNotFoundException(EntityType.USER, ownerId));
+        }
+
+        if (!hasGrant(
+                privilegeType,
+                entity.entityType(),
+                entity.getInstitutionId(),
+                entity.getOwnerId(),
+                userInfo.uuid,
+                userInfo.institutionId,
+                userInfo.getUserRoles())) {
+
+            throw new PermissionDeniedException(
+                    entity,
+                    privilegeType,
+                    getUserService().getCurrentUser().getUserInfo().uuid);
+        }
+
+        return Result.of(entity);
+    }
+
     /** Checks if the current user has a specified role.
      * If not a PermissionDeniedException is thrown for the given EntityType
      *
@@ -274,5 +302,4 @@ public interface AuthorizationService {
                     currentUser.getUserInfo());
         }
     }
-
 }

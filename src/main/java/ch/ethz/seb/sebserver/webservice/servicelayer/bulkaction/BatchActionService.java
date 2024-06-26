@@ -21,7 +21,7 @@ public interface BatchActionService {
 
     /** Validates a given batch action.
      *
-     * @param batchAction
+     * @param batchAction the batch action data
      * @return Result refer to the BatchAction or to an error when happened */
     Result<BatchAction> validate(BatchAction batchAction);
 

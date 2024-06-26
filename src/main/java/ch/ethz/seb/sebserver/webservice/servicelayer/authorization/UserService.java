@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.security.Principal;
 
-import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.WebDataBinder;
 
@@ -60,4 +60,10 @@ public interface UserService {
      * @param authentication the Authentication context*/
     void setAuthenticationIfAbsent(Authentication authentication);
 
+    /** Gets the user for model id / uuid or null if not exists or not active
+     *
+     * @param userId The user uuid
+     * @return UserInfo for the user
+     */
+    UserInfo getUser(String userId);
 }

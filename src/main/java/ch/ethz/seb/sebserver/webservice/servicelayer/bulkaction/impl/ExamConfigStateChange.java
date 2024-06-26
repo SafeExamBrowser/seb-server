@@ -83,7 +83,7 @@ public class ExamConfigStateChange implements BatchActionExec {
 
     private ConfigurationStatus getTargetState(final Map<String, String> actionAttributes) {
         try {
-            final String targetStateString = actionAttributes.get(BatchAction.ACTION_ATTRIBUT_TARGET_STATE);
+            final String targetStateString = actionAttributes.get(BatchAction.ACTION_ATTRIBUTE_TARGET_STATE);
             if (StringUtils.isBlank(targetStateString)) {
                 return null;
             }

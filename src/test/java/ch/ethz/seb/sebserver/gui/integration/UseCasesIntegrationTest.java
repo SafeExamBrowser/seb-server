@@ -4032,7 +4032,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(DoBatchAction.class)
                 .withFormParam(Domain.BATCH_ACTION.ATTR_ACTION_TYPE, BatchActionType.EXAM_CONFIG_STATE_CHANGE.name())
                 .withFormParam(BATCH_ACTION.ATTR_SOURCE_IDS, config.getModelId())
-                .withFormParam(BatchAction.ACTION_ATTRIBUT_TARGET_STATE, ConfigurationStatus.CONSTRUCTION.name())
+                .withFormParam(BatchAction.ACTION_ATTRIBUTE_TARGET_STATE, ConfigurationStatus.CONSTRUCTION.name())
                 .call();
 
         assertNotNull(doBatchAction);

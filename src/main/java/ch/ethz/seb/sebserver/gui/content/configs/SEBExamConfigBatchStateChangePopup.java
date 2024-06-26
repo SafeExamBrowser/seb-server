@@ -112,7 +112,7 @@ public class SEBExamConfigBatchStateChangePopup extends AbstractBatchActionWizar
             throw new IllegalArgumentException("missing " + ATTR_SELECTED_TARGET_STATE + " from pageContext");
         }
 
-        batchActionRequestBuilder.withFormParam(BatchAction.ACTION_ATTRIBUT_TARGET_STATE, targetStateName);
+        batchActionRequestBuilder.withFormParam(BatchAction.ACTION_ATTRIBUTE_TARGET_STATE, targetStateName);
     }
 
     @Override

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -37,6 +38,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 public class UserServiceImpl implements UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    private final UserDAO userDAO;
 
 
     public interface ExtractUserFromAuthenticationStrategy {
@@ -45,8 +47,11 @@ public class UserServiceImpl implements UserService {
 
     private final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies;
 
-    public UserServiceImpl(final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies) {
+    public UserServiceImpl(
+            final UserDAO userDAO,
+            final Collection<ExtractUserFromAuthenticationStrategy> extractStrategies) {
 
+        this.userDAO = userDAO;
         this.extractStrategies = extractStrategies;
     }
 
@@ -106,6 +111,21 @@ public class UserServiceImpl implements UserService {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+    }
+
+    @Override
+    public UserInfo getUser(final String userId) {
+        final UserInfo user = this.userDAO
+                .byModelId(userId)
+                .onError(error -> log.error("Failed to find user for id: {} error: {}", userId, error.getMessage()))
+                .getOr(null);
+
+        if (user != null && !user.isActive()) {
+            log.warn("Try to get inactive user for processing: {}", userId);
+            return null;
+        }
+
+        return user;
     }
 
     // 1. OAuth2Authentication strategy

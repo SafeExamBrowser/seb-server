@@ -3,7 +3,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl;
 import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Lazy
 @Component
@@ -58,17 +56,24 @@ public class ExamConfigDelete implements BatchActionExec {
     public Result<EntityKey> doSingleAction(final String modelId, final BatchAction batchAction) {
         return this.configurationNodeDAO
                 .byModelId(modelId)
-                .flatMap(examConfig -> this.authorizationService.check(PrivilegeType.MODIFY, examConfig))
-                .flatMap(examConfig -> checkDeletionRequirements(examConfig))
+                .flatMap(examConfig -> this.checkWriteAccess(examConfig, batchAction.ownerId))
+                .flatMap(this::checkDeletionRequirements)
                 .flatMap(examConfig -> this.configurationNodeDAO.delete(new HashSet<>(Arrays.asList(new EntityKey(
                         modelId,
                         EntityType.CONFIGURATION_NODE))))
                 )
-                .map(res -> res.stream().collect(Collectors.toList()).get(0));
+                .map(res -> res.stream().toList().get(0));
     }
 
-    private Result<ConfigurationNode> checkDeletionRequirements(ConfigurationNode examConfig){
-        Result<Boolean> isNotActive = this.examConfigurationMapDAO.checkNoActiveExamReferences(examConfig.id);
+    private Result<ConfigurationNode> checkWriteAccess(final ConfigurationNode examConfig, final String ownerId) {
+        if (examConfig != null) {
+            this.authorizationService.checkWrite(examConfig);
+        }
+        return Result.of(examConfig);
+    }
+
+    private Result<ConfigurationNode> checkDeletionRequirements(final ConfigurationNode examConfig){
+        final Result<Boolean> isNotActive = this.examConfigurationMapDAO.checkNoActiveExamReferences(examConfig.id);
         if(!isNotActive.getOrThrow()){
             return Result.ofError(new APIMessageException(
                     APIMessage.ErrorMessage.INTEGRITY_VALIDATION

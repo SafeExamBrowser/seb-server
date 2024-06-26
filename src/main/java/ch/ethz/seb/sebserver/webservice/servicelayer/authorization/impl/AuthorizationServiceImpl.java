@@ -16,6 +16,10 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -278,6 +282,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .anyMatch(privilege -> (privilege != null) && privilege.hasOwnershipPrivilege(privilegeType));
 
     }
+
+
 
     private PrivilegeBuilder addPrivilege(final EntityType entityType) {
         return new PrivilegeBuilder(entityType);

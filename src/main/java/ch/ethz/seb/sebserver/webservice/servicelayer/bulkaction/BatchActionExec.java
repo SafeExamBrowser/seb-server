@@ -29,7 +29,7 @@ public interface BatchActionExec {
      * This shall check whether the needed attributes are available for a proper processing of the actions.
      * This is called just before a new batch action is created and processing is started.
      *
-     * @param batchAction
+     * @param actionAttributes all attributes for batch action
      * @return APIMessage if there is an consistency failure */
     APIMessage checkConsistency(Map<String, String> actionAttributes);
 

@@ -34,10 +34,10 @@ public class BatchAction implements GrantEntity {
 
     public static final String ATTR_FAILURES = "failures";
     public static final String FINISHED_FLAG = "_FINISHED";
-    public static final String ACTION_ATTRIBUT_TARGET_STATE = "batchActionTargetState";
+    public static final String ACTION_ATTRIBUTE_TARGET_STATE = "batchActionTargetState";
 
     private static final Set<String> ACTION_ATTRIBUTES = new HashSet<>(Arrays.asList(
-            ACTION_ATTRIBUT_TARGET_STATE));
+            ACTION_ATTRIBUTE_TARGET_STATE));
 
     @JsonProperty(BATCH_ACTION.ATTR_ID)
     public final Long id;
