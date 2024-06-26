@@ -539,7 +539,7 @@ public class ExamMonitoringController {
         final UserInfo userInfo = this.authorization.getUserService().getCurrentUser().getUserInfo();
         final String userId = userInfo.uuid;
         return exam.institutionId.equals(institution)
-                && (exam.isOwner(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN));
+                && (exam.isOwnerOrSupporter(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN));
     }
 
     private Predicate<ClientConnectionData> noneActiveFilter(final EnumSet<ConnectionStatus> filterStates) {

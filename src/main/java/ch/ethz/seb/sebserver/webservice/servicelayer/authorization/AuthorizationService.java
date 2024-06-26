@@ -8,11 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
@@ -301,5 +297,27 @@ public interface AuthorizationService {
                     PrivilegeType.READ,
                     currentUser.getUserInfo());
         }
+    }
+
+    /** This will throw access exception when current user has only teacher role */
+    default void checkNotOnlyTeacher(final EntityType type) {
+        final UserInfo userInfo = this.getUserService().getCurrentUser().getUserInfo();
+        final EnumSet<UserRole> userRoles = userInfo.getUserRoles();
+        if (userRoles.contains(UserRole.TEACHER) && userRoles.size() == 1) {
+            throw new PermissionDeniedException(type, PrivilegeType.READ, userInfo);
+        }
+    }
+
+    /** If current user has only Supporter or Teacher role, this will get the UUID of the user back
+     *  or null otherwise (of user has other privileges too.
+     * @return current user UUID if it is Supporter or Teacher only */
+    default String getSupporterOnlyUUID() {
+        final UserInfo userInfo = this.getUserService().getCurrentUser().getUserInfo();
+        final EnumSet<UserRole> userRoles = userInfo.getUserRoles();
+        userRoles.removeAll(Arrays.asList(UserRole.TEACHER, UserRole.EXAM_SUPPORTER));
+        if (userRoles.isEmpty()) {
+            return userInfo.uuid;
+        }
+        return null;
     }
 }

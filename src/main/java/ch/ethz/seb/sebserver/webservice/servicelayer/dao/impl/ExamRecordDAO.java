@@ -189,6 +189,13 @@ public class ExamRecordDAO {
                             ExamRecordDynamicSqlSupport.type,
                             isEqualToWhenPresent(filterMap.getExamType()));
 
+            final String supporterUUID = filterMap.getSQLWildcard(FilterMap.ATTR_SUPPORTER_USER_ID);
+            if (StringUtils.isNotBlank(supporterUUID)) {
+                whereClause = whereClause.and(
+                        supporter,
+                        SqlBuilder.isLike(supporterUUID));
+            }
+
             // SEBSERV-298
             if (filterMap.getBoolean(Exam.FILTER_ATTR_HIDE_MISSING)) {
                 whereClause = whereClause.and(

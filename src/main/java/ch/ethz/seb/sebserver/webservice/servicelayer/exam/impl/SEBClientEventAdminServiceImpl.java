@@ -182,7 +182,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
 
                     final Exam exam = getExam(rec.getClientConnectionId());
 
-                    if (!isSupporterOnly || exam.isOwner(currentUser.uuid())) {
+                    if (!isSupporterOnly || exam.isOwnerOrSupporter(currentUser.uuid())) {
                         this.exporter.streamData(
                                 this.output,
                                 rec,

@@ -53,6 +53,8 @@ public class FilterMap extends POSTMapper {
     public static final String ATTR_ADD_INSITUTION_JOIN = "ADD_INSITUTION_JOIN";
     public static final String ATTR_ADD_LMS_SETUP_JOIN = "ADD_LMS_SETUP_JOIN";
 
+    public static final String ATTR_SUPPORTER_USER_ID = "SUPPORTER_USER_UUID";
+
     public FilterMap() {
         super(new LinkedMultiValueMap<>(), null);
     }
@@ -123,7 +125,6 @@ public class FilterMap extends POSTMapper {
     public DateTime getSEBClientConfigFromTime() {
         return Utils.toDateTime(getString(SEBClientConfig.FILTER_ATTR_CREATION_DATE));
     }
-
     public Long getLmsSetupId() {
         return getLong(LmsSetup.FILTER_ATTR_LMS_SETUP);
     }
@@ -333,6 +334,7 @@ public class FilterMap extends POSTMapper {
 
         return null;
     }
+
 
     public static final class Builder {
 

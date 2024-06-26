@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import ch.ethz.seb.sebserver.gbl.model.Activatable;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
@@ -133,6 +131,17 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.securityKeyService = securityKeyService;
         this.cryptor = cryptor;
         this.fullLmsIntegrationService = fullLmsIntegrationService;
+    }
+    @Override
+    protected Result<Collection<Exam>> getAll(final FilterMap filterMap) {
+        // If current user has only supporter role, put user UUID to filter to get correct page result from DB
+        final String supporterId = authorization.getSupporterOnlyUUID();
+        if (StringUtils.isNotBlank(supporterId)) {
+            filterMap.putIfAbsent(FilterMap.ATTR_SUPPORTER_USER_ID, supporterId);
+        }
+        return this.entityDAO.allMatching(
+                filterMap,
+                this::hasReadAccess);
     }
 
     @Override

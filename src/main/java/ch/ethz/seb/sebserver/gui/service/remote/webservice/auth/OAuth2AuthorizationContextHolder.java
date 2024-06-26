@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpSession;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.LoginForward;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import org.apache.commons.lang3.BooleanUtils;

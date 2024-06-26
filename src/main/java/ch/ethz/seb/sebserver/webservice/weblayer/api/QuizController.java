@@ -85,6 +85,7 @@ public class QuizController {
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
+        this.authorization.checkNotOnlyTeacher(EntityType.EXAM);
         this.authorization.check(
                 PrivilegeType.READ,
                 EntityType.EXAM,

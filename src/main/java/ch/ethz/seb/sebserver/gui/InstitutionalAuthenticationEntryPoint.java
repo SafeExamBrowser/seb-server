@@ -131,7 +131,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             SEBServerAuthorizationContext authorizationContext = authorizationContextHolder
                     .getAuthorizationContext(request.getSession());
 
-            // check first if we already have an active session if so, invalidate ir
+            // check first if we already have an active session if so, invalidate it first
             if (authorizationContext.isLoggedIn()) {
                 authorizationContext.logout();
                 authorizationContext = authorizationContextHolder.getAuthorizationContext(request.getSession());

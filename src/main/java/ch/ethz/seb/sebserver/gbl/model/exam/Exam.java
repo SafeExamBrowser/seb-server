@@ -322,7 +322,7 @@ public final class Exam implements GrantEntity {
         return this.institutionId;
     }
 
-    public boolean isOwner(final String userId) {
+    public boolean isOwnerOrSupporter(final String userId) {
         if (StringUtils.isBlank(userId)) {
             return false;
         }

@@ -135,7 +135,6 @@ public class PaginationServiceImpl implements PaginationService {
             final Supplier<Result<Collection<T>>> delegate) {
 
         return Result.tryCatch(() -> {
-            //final SqlTable table = SqlTable.of(tableName);
             final com.github.pagehelper.Page<Object> page =
                     setPagination(pageNumber, pageSize, sort, tableName);
 
