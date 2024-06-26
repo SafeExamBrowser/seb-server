@@ -547,23 +547,6 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
-    public Result<Exam> applyConnectionConfiguration(final Exam exam, final byte[] configData) {
-        if (this.lmsIntegrationAPI == null) {
-            return Result.ofError(
-                    new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Apply Connection Configuration for exam: {} for LMSSetup: {}", exam, lmsSetup());
-        }
-
-        return this.examRequest.protectedRun(() -> this.lmsIntegrationAPI
-                .applyConnectionConfiguration(exam, configData)
-                .getOrThrow());
-    }
-
-
-    @Override
     public Result<String> deleteConnectionDetails() {
         if (this.lmsIntegrationAPI == null) {
             return Result.ofError(

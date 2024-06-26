@@ -445,11 +445,6 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     }
 
     @Override
-    public Result<Exam> applyConnectionConfiguration(final Exam exam, final byte[] configData) {
-        return Result.ofRuntimeError("Not Supported");
-    }
-
-    @Override
     public Result<String> deleteConnectionDetails() {
         return Result.ofRuntimeError("Not Supported");
     }

@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,7 +50,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,11 +148,9 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         return Result.tryCatch(() -> {
             if (hasFullIntegration(exam.lmsSetupId)) {
                 this.applyExamData(exam, !exam.active);
-                this.applyConnectionConfiguration(exam);
             }
             return exam;
         });
-
     }
 
     @Override
@@ -245,7 +239,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .getOr(Collections.emptyList())
                 .stream()
                 .filter(exam -> this.needsConnectionConfigurationChange(exam, event.configId))
-                .forEach(this::applyConnectionConfiguration);
+                .forEach(exam -> applyExamData(exam, false));
     }
 
     @Override
@@ -332,8 +326,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .map(template -> getQuizData(template, courseId, quizId, examData))
                 .map(createExam(examTemplateId, showQuitLink, quitPassword))
                 .map(exam -> applyExamData(exam, false))
-                .map(this::applySEBClientRestrictionIfRunning)
-                .map(this::applyConnectionConfiguration);
+                .map(this::applySEBClientRestrictionIfRunning);
     }
 
     private Exam applySEBClientRestrictionIfRunning(final Exam exam) {
@@ -502,7 +495,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     .byModelId(examTemplateId)
                     .getOrThrow();
 
-
             // import exam
             final POSTMapper post = new POSTMapper(null, null);
             post.putIfAbsent(Domain.EXAM.ATTR_EXAM_TEMPLATE_ID, examTemplateId);
@@ -526,12 +518,11 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     private Exam checkDeletion(final Exam exam) {
-        // TODO check if Exam can be deleted according to the Spec
-
         if (exam.status != Exam.ExamStatus.RUNNING) {
             return exam;
         }
 
+        // if exam is running and has active SEB client connections, it cannot be deleted
         final Integer active = this.clientConnectionDAO
                 .getAllActiveConnectionTokens(exam.id)
                 .map(Collection::size)
@@ -545,15 +536,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         throw new APIMessage.APIMessageException(
                 APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                         .of("Exam currently has active SEB Client connections."));
-
-        // check if there are no active SEB client connections
-//        if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
-//            throw new APIMessage.APIMessageException(
-//                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION
-//                            .of("Exam currently has active SEB Client connections."));
-//        }
-//
-//        return exam;
     }
 
 
@@ -637,38 +619,37 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         }
     }
 
-    private Exam applyConnectionConfiguration(final Exam exam) {
-        return lmsAPITemplateCacheService
-                .getLmsAPITemplate(exam.lmsSetupId)
-                .flatMap(template -> {
-                    final String connectionConfigId = getConnectionConfigurationId(exam);
-
-                    final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    final PipedOutputStream pout;
-                    final PipedInputStream pin;
-                    try {
-                        pout = new PipedOutputStream();
-                        pin = new PipedInputStream(pout);
-
-                        this.connectionConfigurationService
-                                .exportSEBClientConfiguration(pout, connectionConfigId, exam.id);
-
-                        out.flush();
-
-                        IOUtils.copyLarge(pin, out);
-
-                        // TODO check if this works as expected
-                        return template.applyConnectionConfiguration(exam, out.toByteArray());
-
-                    } catch (final Exception e) {
-                        throw new RuntimeException("Failed to stream output", e);
-                    } finally {
-                        IOUtils.closeQuietly(out);
-                    }
-                })
-                .onError(error -> log.error("Failed to apply ConnectionConfiguration for exam: {} error: ", exam, error))
-                .getOr(exam);
-    }
+//    private Exam applyConnectionConfiguration(final Exam exam) {
+//        return lmsAPITemplateCacheService
+//                .getLmsAPITemplate(exam.lmsSetupId)
+//                .flatMap(template -> {
+//                    final String connectionConfigId = getConnectionConfigurationId(exam);
+//
+//                    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+//                    final PipedOutputStream pout;
+//                    final PipedInputStream pin;
+//                    try {
+//                        pout = new PipedOutputStream();
+//                        pin = new PipedInputStream(pout);
+//
+//                        this.connectionConfigurationService
+//                                .exportSEBClientConfiguration(pout, connectionConfigId, exam.id);
+//
+//                        out.flush();
+//
+//                        IOUtils.copyLarge(pin, out);
+//
+//                        return template.applyConnectionConfiguration(exam, out.toByteArray());
+//
+//                    } catch (final Exception e) {
+//                        throw new RuntimeException("Failed to stream output", e);
+//                    } finally {
+//                        IOUtils.closeQuietly(out);
+//                    }
+//                })
+//                .onError(error -> log.error("Failed to apply ConnectionConfiguration for exam: {} error: ", exam, error))
+//                .getOr(exam);
+//    }
 
     private boolean hasFullIntegration(final Long lmsSetupId) {
         // no LMS

@@ -40,11 +40,6 @@ public class MockupFullIntegration implements FullLmsIntegrationAPI {
     }
 
     @Override
-    public Result<Exam> applyConnectionConfiguration(final Exam exam, final byte[] configData) {
-        return Result.ofRuntimeError("Not Supported");
-    }
-
-    @Override
     public Result<String> deleteConnectionDetails() {
         return Result.ofRuntimeError("TODO");
     }

@@ -31,7 +31,7 @@ public interface FullLmsIntegrationAPI {
 
     Result<ExamData> applyExamData(ExamData examData);
 
-    Result<Exam> applyConnectionConfiguration(Exam exam, byte[] configData);
+    //Result<Exam> applyConnectionConfiguration(Exam exam, byte[] configData);
 
     Result<String> deleteConnectionDetails();
 

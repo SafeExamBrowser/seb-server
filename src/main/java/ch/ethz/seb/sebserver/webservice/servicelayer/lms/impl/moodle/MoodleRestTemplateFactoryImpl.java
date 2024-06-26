@@ -452,32 +452,12 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                     new HttpEntity<>(body, headers);
 
             final ResponseEntity<String> exchange = super.exchange(
-                    uri.toString(),
+                    uri.append("?token=").append(this.accessToken).toString(),
                     HttpMethod.POST,
                     requestEntity,
                     String.class);
 
             return exchange.getBody();
-
-//            multiPartAttributes.add("token", this.accessToken.toString());
-//
-//            queryAttributes.forEach((key, values) -> {
-//                if (values.isEmpty()) {
-//                    return;
-//                }
-//                if (uri.toString().contains("?")) {
-//                    uri.append("&").append(key).append("=").append(values.get(0));
-//                } else {
-//                    uri.append("?").append(key).append("=").append(values.get(0));
-//                }
-//            });
-//
-//            log.info("Upload to Moodle url: {}", uri.toString());
-//
-//            return super.postForObject(
-//                    uri.toString(),
-//                    multiPartAttributes,
-//                    String.class);
         }
 
         private String doRequest(
