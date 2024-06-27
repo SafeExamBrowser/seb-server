@@ -100,7 +100,7 @@ public class MoodleCourseAccessTest {
         final ExamineeAccountDetails userDetails = examineeAccountDetails.getOrThrow();
         assertEquals("15", userDetails.id);
         assertEquals("seb1", userDetails.username);
-        assertEquals("seb user1", userDetails.name);
+        assertEquals("user1 seb", userDetails.name);
         assertEquals("demo1@safeexambrowser.org", userDetails.email);
         assertEquals(
                 "{auth=manual, "
