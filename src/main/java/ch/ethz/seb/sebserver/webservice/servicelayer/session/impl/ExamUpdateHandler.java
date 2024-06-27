@@ -229,17 +229,6 @@ class ExamUpdateHandler implements ExamUpdateTask {
         });
     }
 
-    @EventListener(ExamUpdateEvent.class)
-    void updateRunning(final ExamUpdateEvent event) {
-        this.examDAO
-                .byPK(event.examId)
-                .onSuccess(exam -> updateState(
-                        exam,
-                        DateTime.now(DateTimeZone.UTC),
-                        this.examTimePrefix,
-                        this.examTimeSuffix,
-                        this.createUpdateId()));
-    }
 
     void updateState(
             final Exam exam,

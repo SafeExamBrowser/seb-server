@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ToggleTestRun;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.layout.GridData;
@@ -44,8 +45,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -68,7 +67,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetDefaultExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -195,6 +193,8 @@ public class ExamForm implements TemplateComposer {
                             .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
                             .getOrThrow();
 
+
+
         // new PageContext with actual EntityKey
         final EntityKey entityKey = (readonly || !newExamNoLMS) ? pageContext.getEntityKey() : null;
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
@@ -202,7 +202,7 @@ public class ExamForm implements TemplateComposer {
         final boolean isLight = pageService.isLightSetup();
         final boolean modifyGrant = entityGrantCheck.m();
         final boolean writeGrant = entityGrantCheck.w();
-        final boolean editable = modifyGrant && (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.RUNNING);
+        final boolean editable = modifyGrant && Exam.ACTIVE_STATES.contains(exam.getStatus());
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         final boolean sebRestrictionAvailable = readonly && hasSEBRestrictionAPI(exam);
@@ -287,6 +287,16 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
                 .publishIf(() -> writeGrant && readonly)
+
+                .newAction(ActionDefinition.EXAM_TOGGLE_TEST_RUN_ON)
+                .withEntityKey(entityKey)
+                .withExec(this::toggleTestRun)
+                .publishIf(() -> modifyGrant && readonly && exam.status == ExamStatus.UP_COMING)
+
+                .newAction(ActionDefinition.EXAM_TOGGLE_TEST_RUN_OFF)
+                .withEntityKey(entityKey)
+                .withExec(this::toggleTestRun)
+                .publishIf(() -> modifyGrant && readonly && exam.status == ExamStatus.TEST_RUN)
 
                 .newAction(ActionDefinition.EXAM_ARCHIVE)
                 .withEntityKey(entityKey)
@@ -398,6 +408,8 @@ public class ExamForm implements TemplateComposer {
                             .withAttribute(ATTR_EXAM_STATUS, exam.status.name()));
         }
     }
+
+
 
     private FormHandle<Exam> createReadOnlyForm(
             final PageContext formContext,
@@ -806,7 +818,8 @@ public class ExamForm implements TemplateComposer {
         if (pageService.isLightSetup()) {
             mapper.putIfAbsent(Domain.EXAM.ATTR_SUPPORTER, this.pageService.getCurrentUser().get().uuid);
         }
-        return this.restService.getBuilder(GetQuizData.class)
+        return this.restService
+                .getBuilder(GetQuizData.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withQueryParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, parentEntityKey.modelId)
                 .call()
@@ -831,6 +844,20 @@ public class ExamForm implements TemplateComposer {
 
             return backToCurrentFunction.apply(action);
         };
+    }
+
+    private PageAction toggleTestRun(final PageAction pageAction) {
+
+        this.restService
+                .getBuilder(ToggleTestRun.class)
+                .withURIVariable(API.PARAM_MODEL_ID, pageAction.getEntityKey().modelId)
+                .call()
+                .onError(error -> log.error(
+                        "Failed to toggle Test Run for exam: {}, error: {}",
+                        pageAction.getEntityKey(),
+                        error.getMessage()));
+
+        return pageAction;
     }
 
 }

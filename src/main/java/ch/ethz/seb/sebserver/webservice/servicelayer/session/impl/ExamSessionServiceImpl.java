@@ -265,9 +265,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final FilterMap filterMap,
             final Predicate<Exam> predicate) {
 
+        final String runningStateNames =  ExamStatus.RUNNING.name() + Constants.LIST_SEPARATOR + ExamStatus.TEST_RUN.name();
         filterMap
                 .putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
-                .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name());
+                .putIfAbsent(Exam.FILTER_ATTR_STATUS, runningStateNames);
 
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()
@@ -384,6 +385,25 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public Result<Exam> toggleTestRun(final Exam exam) {
+
+        return Result.tryCatch(() -> {
+
+            if (exam.status == ExamStatus.UP_COMING) {
+                return examDAO
+                        .updateState(exam.id, ExamStatus.TEST_RUN, null)
+                        .getOrThrow();
+            } else if (exam.status == ExamStatus.TEST_RUN) {
+                return examDAO
+                        .updateState(exam.id, ExamStatus.UP_COMING, null)
+                        .getOrThrow();
+            }
+
+            return exam;
+        });
+    }
+
+    @Override
     public Result<ClientConnectionData> getConnectionData(final String connectionToken) {
 
         return Result.tryCatch(() -> {
@@ -430,9 +450,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             // needed to store connection numbers per status
             final int[] statusMapping = new int[ConnectionStatus.values().length];
-            for (int i = 0; i < statusMapping.length; i++) {
-                statusMapping[i] = 0;
-            }
             // needed to store connection numbers per client group too
             final Collection<ClientGroup> groups = this.clientGroupDAO.allForExam(examId).getOr(null);
             final Map<Long, Integer> clientGroupMapping = (groups != null && !groups.isEmpty())
@@ -440,10 +457,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     : null;
 
             final int[] issueMapping = new int[ConnectionIssueStatus.values().length];
-            for (int i = 0; i < issueMapping.length; i++) {
-                issueMapping[i] = 0;
-            }
-
             updateClientConnections(examId);
 
             final List<? extends ClientMonitoringDataView> filteredConnections = this.clientConnectionDAO
@@ -597,7 +610,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             if (this.distributedSetup &&
                     currentTimeMillis - this.lastConnectionTokenCacheUpdate > this.distributedConnectionUpdate) {
 
-                // go trough all client connection and update the ones that not up to date
+                // go through all client connection and update the ones that not up to date
                 this.clientConnectionDAO.evictConnectionTokenCache(examId);
 
                 final Set<Long> timestamps = this.clientConnectionDAO
@@ -611,7 +624,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
                 this.clientConnectionDAO.getClientConnectionsOutOfSyc(examId, timestamps)
                         .getOrElse(Collections::emptySet)
-                        .stream()
                         .forEach(this.examSessionCacheService::evictClientConnection);
 
                 this.lastConnectionTokenCacheUpdate = currentTimeMillis;

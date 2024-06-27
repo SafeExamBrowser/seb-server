@@ -8,12 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.validation.constraints.NotNull;
 
@@ -68,6 +63,7 @@ public final class Exam implements GrantEntity {
 
     public enum ExamStatus {
         UP_COMING,
+        TEST_RUN,
         RUNNING,
         FINISHED,
         ARCHIVED
@@ -79,6 +75,16 @@ public final class Exam implements GrantEntity {
         BYOD,
         VDI
     }
+
+    public static final EnumSet<ExamStatus> ACTIVE_STATES =  EnumSet.of(
+            ExamStatus.UP_COMING,
+            ExamStatus.TEST_RUN,
+            ExamStatus.RUNNING);
+
+    public static final List<String> ACTIVE_STATE_NAMES = Arrays.asList(
+            ExamStatus.UP_COMING.name(),
+            ExamStatus.TEST_RUN.name(),
+            ExamStatus.RUNNING.name());
 
     @JsonProperty(EXAM.ATTR_ID)
     public final Long id;

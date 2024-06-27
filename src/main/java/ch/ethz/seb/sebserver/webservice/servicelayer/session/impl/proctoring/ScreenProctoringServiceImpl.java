@@ -179,7 +179,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 .map(exam -> {
 
                     final boolean isSPSActive = this.screenProctoringAPIBinding.isSPSActive(exam);
-                    final boolean isEnabling = this.proctoringSettingsDAO.isScreenProctoringEnabled(exam.id);
+                    final boolean isEnabling = this.isScreenProctoringEnabled(exam.id);
 
                     if (isEnabling && !isSPSActive) {
                         // if screen proctoring has been enabled
@@ -219,10 +219,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return this.examDAO.byPK(examId)
                 .map(exam -> {
 
-                    final String enabled = exam.additionalAttributes
-                            .get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING);
-
-                    if (!BooleanUtils.toBoolean(enabled)) {
+                    if (!this.isScreenProctoringEnabled(exam.id)) {
                         return exam;
                     }
 
@@ -252,10 +249,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamSaved(final Exam exam) {
-        final String enabled = exam.additionalAttributes
-                .get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING);
-
-        if (!BooleanUtils.toBoolean(enabled)) {
+        if (!this.isScreenProctoringEnabled(exam.id)) {
             return;
         }
 
@@ -295,7 +289,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     @Override
     public void notifyExamStarted(final ExamStartedEvent event) {
         final Exam exam = event.exam;
-        if (BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+        if (!this.isScreenProctoringEnabled(exam.id) ||
+                BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
             return;
         }
 
@@ -305,11 +300,14 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     @Override
     public void notifyExamFinished(final ExamFinishedEvent event) {
         final Exam exam = event.exam;
-        if (!BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+        if (!this.isScreenProctoringEnabled(exam.id) ||
+                !BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
             return;
         }
 
-        this.screenProctoringAPIBinding.deactivateScreenProctoring(exam);
+        if (exam.status == Exam.ExamStatus.FINISHED) {
+            this.screenProctoringAPIBinding.deactivateScreenProctoring(exam);
+        }
     }
 
     @Override
@@ -565,4 +563,5 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         ccRecord,
                         error));
     }
+
 }

@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.io.OutputStream;
-import java.security.Principal;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -258,4 +257,11 @@ public interface ExamSessionService {
         return connection.clientConnection.status.clientActiveStatus;
     }
 
+    /** Toggles the exams test run state.
+     *  If the Exam is in state Up-Coming it puts it to Test-Run state
+     *  If the Exam is in state Test-Run it puts it back to Up-Coming
+     *  Every other state is ignored.
+     * @param exam the Exam data
+     * @return Result refer to Exam with new state or to an exception if there was one */
+    Result<Exam> toggleTestRun(Exam exam);
 }

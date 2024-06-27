@@ -205,10 +205,18 @@ public class ExamRecordDAO {
 
             final String examStatus = filterMap.getExamStatus();
             if (StringUtils.isNotBlank(examStatus)) {
-                whereClause = whereClause
-                        .and(
-                                ExamRecordDynamicSqlSupport.status,
-                                isEqualToWhenPresent(examStatus));
+                if (examStatus.contains(Constants.LIST_SEPARATOR)) {
+                    final List<String> state_names = Arrays.asList(StringUtils.split(examStatus, Constants.LIST_SEPARATOR));
+                    whereClause = whereClause
+                            .and(
+                                    ExamRecordDynamicSqlSupport.status,
+                                    isIn(state_names));
+                } else {
+                    whereClause = whereClause
+                            .and(
+                                    ExamRecordDynamicSqlSupport.status,
+                                    isEqualToWhenPresent(examStatus));
+                }
             } else if (stateNames != null && !stateNames.isEmpty()) {
                 whereClause = whereClause
                         .and(
@@ -234,14 +242,12 @@ public class ExamRecordDAO {
                     ? filterMap.getSQLWildcard(QuizData.FILTER_ATTR_NAME)
                     : filterMap.getSQLWildcard(Domain.EXAM.ATTR_QUIZ_NAME);
 
-            final List<ExamRecord> records = whereClause
+            return whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.quizName,
                             isLikeWhenPresent(nameCriteria))
                     .build()
                     .execute();
-
-            return records;
         });
     }
 
@@ -532,7 +538,7 @@ public class ExamRecordDAO {
             // if up-coming but running or finished
             final SqlCriterion<String> upcoming = or(
                     ExamRecordDynamicSqlSupport.status,
-                    isEqualTo(ExamStatus.UP_COMING.name()),
+                    isIn(ExamStatus.UP_COMING.name(), ExamStatus.TEST_RUN.name()),
                     and(
                             ExamRecordDynamicSqlSupport.quizStartTime,
                             SqlBuilder.isLessThanWhenPresent(now.minus(followupTime))),

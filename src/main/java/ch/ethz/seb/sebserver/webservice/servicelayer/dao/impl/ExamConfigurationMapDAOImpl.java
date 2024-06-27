@@ -12,7 +12,6 @@ import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfig
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +36,6 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
@@ -66,10 +64,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @Component
 @WebServiceProfile
 public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
-
-    private static final List<String> ACTIVE_EXAM_STATE_NAMES = Arrays.asList(
-            ExamStatus.UP_COMING.name(),
-            ExamStatus.RUNNING.name());
 
     private final ExamRecordMapper examRecordMapper;
     private final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper;
@@ -440,7 +434,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         try {
             final boolean active = this.examRecordMapper.countByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isEqualTo(examId))
-                    .and(ExamRecordDynamicSqlSupport.status, isIn(ACTIVE_EXAM_STATE_NAMES))
+                    .and(ExamRecordDynamicSqlSupport.status, isIn(Exam.ACTIVE_STATE_NAMES))
                     .build()
                     .execute() >= 1;
             return active;

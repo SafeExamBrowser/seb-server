@@ -298,6 +298,16 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+    EXAM_TOGGLE_TEST_RUN_ON(
+            new LocTextKey("sebserver.exam.action.test.run.on"),
+            ImageIcon.ARCHIVE,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
+    EXAM_TOGGLE_TEST_RUN_OFF(
+            new LocTextKey("sebserver.exam.action.test.run.off"),
+            ImageIcon.ARCHIVE,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
     EXAM_ARCHIVE(
             new LocTextKey("sebserver.exam.action.archive"),
             ImageIcon.ARCHIVE,

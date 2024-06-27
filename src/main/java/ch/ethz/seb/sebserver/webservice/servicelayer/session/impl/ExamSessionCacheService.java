@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 
 /** Handles caching for exam session and defines caching for following object:
- *
+ * <p>
  * - Running exams (examId -> Exam)
  * - in-memory exam configuration (examId -> InMemorySEBConfig)
  * - active client connections (connectionToken -> ClientConnectionDataInternal)
@@ -122,14 +122,7 @@ public class ExamSessionCacheService {
             return false;
         }
 
-        switch (exam.status) {
-            case RUNNING: {
-                return true;
-            }
-            default: {
-                return false;
-            }
-        }
+        return exam.status == Exam.ExamStatus.RUNNING || exam.status == Exam.ExamStatus.TEST_RUN;
     }
 
     @Cacheable(

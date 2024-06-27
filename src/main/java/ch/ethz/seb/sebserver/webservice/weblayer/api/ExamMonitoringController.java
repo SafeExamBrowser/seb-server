@@ -22,11 +22,14 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
@@ -69,12 +72,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
@@ -91,10 +88,12 @@ public class ExamMonitoringController {
     private final AuthorizationService authorization;
     private final PaginationService paginationService;
     private final SEBClientNotificationService sebClientNotificationService;
-    private final RemoteProctoringRoomService examProcotringRoomService;
+    private final RemoteProctoringRoomService examProctoringRoomService;
     private final ExamAdminService examAdminService;
     private final SecurityKeyService securityKeyService;
     private final ScreenProctoringService screenProctoringService;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ExamDAO examDAO;
     private final Executor executor;
 
     public ExamMonitoringController(
@@ -103,10 +102,12 @@ public class ExamMonitoringController {
             final AuthorizationService authorization,
             final PaginationService paginationService,
             final SEBClientNotificationService sebClientNotificationService,
-            final RemoteProctoringRoomService examProcotringRoomService,
+            final RemoteProctoringRoomService examProctoringRoomService,
             final SecurityKeyService securityKeyService,
             final ExamAdminService examAdminService,
             final ScreenProctoringService screenProctoringService,
+            final ApplicationEventPublisher applicationEventPublisher,
+            final ExamDAO examDAO,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.sebClientConnectionService = sebClientConnectionService;
@@ -115,10 +116,12 @@ public class ExamMonitoringController {
         this.authorization = authorization;
         this.paginationService = paginationService;
         this.sebClientNotificationService = sebClientNotificationService;
-        this.examProcotringRoomService = examProcotringRoomService;
+        this.examProctoringRoomService = examProctoringRoomService;
         this.examAdminService = examAdminService;
         this.securityKeyService = securityKeyService;
         this.screenProctoringService = screenProctoringService;
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.examDAO = examDAO;
         this.executor = executor;
     }
 
@@ -230,7 +233,8 @@ public class ExamMonitoringController {
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER, UserRole.TEACHER,
+                UserRole.EXAM_SUPPORTER,
+                UserRole.TEACHER,
                 UserRole.EXAM_ADMIN);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
@@ -253,6 +257,41 @@ public class ExamMonitoringController {
                 sort,
                 exams,
                 ExamAdministrationController.pageSort(sort));
+    }
+
+    @RequestMapping(
+            path = API.EXAM_MONITORING_TEST_RUN_ENDPOINT +
+                    API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Exam toggleTestRunForExam(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
+
+        // check overall privileges
+        this.authorization.checkRole(
+                institutionId,
+                EntityType.EXAM,
+                UserRole.EXAM_SUPPORTER,
+                UserRole.TEACHER,
+                UserRole.EXAM_ADMIN);
+
+        return this.examDAO.byPK(examId)
+                .flatMap(authorization::checkModify)
+                .flatMap(examSessionService::toggleTestRun)
+                .map(exam -> {
+                    if (exam.status == Exam.ExamStatus.TEST_RUN) {
+                        applicationEventPublisher.publishEvent(new ExamStartedEvent(exam));
+                    } else if (exam.status == Exam.ExamStatus.UP_COMING) {
+                        applicationEventPublisher.publishEvent(new ExamFinishedEvent(exam));
+                    }
+                    return exam;
+                })
+                .getOrThrow();
     }
 
     @RequestMapping(
@@ -337,7 +376,7 @@ public class ExamMonitoringController {
         final boolean screenProctoringEnabled = this.examAdminService.isScreenProctoringEnabled(runningExam);
 
         final Collection<RemoteProctoringRoom> proctoringData = (proctoringEnabled)
-                ? this.examProcotringRoomService
+                ? this.examProctoringRoomService
                         .getProctoringCollectingRooms(examId)
                         .onError(error -> log.error("Failed to get RemoteProctoringRoom for exam: {}", examId, error))
                         .getOr(Collections.emptyList())

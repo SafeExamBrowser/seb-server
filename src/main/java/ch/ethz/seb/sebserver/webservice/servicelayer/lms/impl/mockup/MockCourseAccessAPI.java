@@ -98,7 +98,8 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 "Starts in five minutes and ends never",
                 DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS * 5)
                         .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
-                null,
+                DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS * 15)
+                        .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
                 "http://lms.mockup.com/api/"));
 
 //        if (webserviceInfo.hasProfile("dev")) {
