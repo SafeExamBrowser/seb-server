@@ -252,7 +252,7 @@ public class MoodlePluginCourseAccessTest {
         assertFalse(userDetailsResult.hasError());
         final ExamineeAccountDetails examineeAccountDetails = userDetailsResult.get();
         assertEquals(
-                "ExamineeAccountDetails [id=2, name=test user, username=testuser, email=text@user.mail, "
+                "ExamineeAccountDetails [id=2, name=user test, username=testuser, email=text@user.mail, "
                         + "additionalAttributes={mailformat=null, firstname=test, auth=null, timezone=null, description=null, firstaccess=null, confirmed=null, suspended=null, lastname=user, lastaccess=null, theme=null, descriptionformat=null, department=null, lang=null}]",
                 examineeAccountDetails.toString());
 
