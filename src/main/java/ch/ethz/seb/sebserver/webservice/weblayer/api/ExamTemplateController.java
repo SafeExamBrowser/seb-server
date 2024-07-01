@@ -119,34 +119,18 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
     @Override
     protected Result<ExamTemplate> notifyCreated(final ExamTemplate entity) {
-        return notifyExamTemplateChange(entity);
+        return notifyExamTemplateChange(entity, ExamTemplateChangeEvent.ChangeState.CREATED);
     }
 
     @Override
     protected Result<ExamTemplate> notifySaved(final ExamTemplate entity) {
-        return notifyExamTemplateChange(entity);
-    }
-
-    private Result<ExamTemplate> notifyExamTemplateChange(final ExamTemplate entity) {
-        try {
-            applicationEventPublisher.publishEvent(new ExamTemplateChangeEvent(entity));
-        } catch (final Exception e) {
-            log.error("Failed to notify ExamTemplate change: ", e);
-        }
-        return Result.of(entity);
+        return notifyExamTemplateChange(entity, ExamTemplateChangeEvent.ChangeState.MODIFIED);
     }
 
     @Override
     protected Result<Pair<ExamTemplate, EntityProcessingReport>> notifyDeleted(final Pair<ExamTemplate, EntityProcessingReport> pair) {
+        notifyExamTemplateChange(pair.a, ExamTemplateChangeEvent.ChangeState.DELETED);
         return super.notifyDeleted(pair);
-    }
-
-    private void notifyChanged(final ExamTemplate examTemplate) {
-        try {
-            applicationEventPublisher.publishEvent(new ExamTemplateChangeEvent(examTemplate));
-        } catch (final Exception e) {
-            log.error("Failed to notify Exam Template change: ", e);
-        }
     }
 
     private ExamTemplate applyQuitPasswordIfNeeded(final ExamTemplate entity) {
@@ -635,6 +619,17 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     private IndicatorTemplate checkIndicatorConsistency(final IndicatorTemplate indicatorTemplate) {
         ExamUtils.checkThresholdConsistency(indicatorTemplate.thresholds);
         return indicatorTemplate;
+    }
+
+    private Result<ExamTemplate> notifyExamTemplateChange(
+            final ExamTemplate entity,
+            final ExamTemplateChangeEvent.ChangeState changeState) {
+        try {
+            applicationEventPublisher.publishEvent(new ExamTemplateChangeEvent(entity, changeState));
+        } catch (final Exception e) {
+            log.error("Failed to notify ExamTemplate change: ", e);
+        }
+        return Result.of(entity);
     }
 
 }

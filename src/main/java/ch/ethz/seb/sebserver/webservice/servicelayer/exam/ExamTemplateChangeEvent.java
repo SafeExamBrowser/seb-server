@@ -14,10 +14,19 @@ import org.springframework.context.ApplicationEvent;
 
 public class ExamTemplateChangeEvent extends ApplicationEvent {
 
+    public static enum ChangeState {
+        CREATED,
+        MODIFIED,
+        DELETED,
+    }
+
     private static final long serialVersionUID = -7239994198026689531L;
 
-    public ExamTemplateChangeEvent(final ExamTemplate source) {
+    public final ChangeState changeState;
+
+    public ExamTemplateChangeEvent(final ExamTemplate source, final ChangeState changeState) {
         super(source);
+        this.changeState = changeState;
     }
 
     public ExamTemplate getExamTemplate() {
