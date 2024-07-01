@@ -420,7 +420,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
             return new ExamineeAccountDetails(
                     userDetails[0].id,
-                    userDetails[0].fullname,
+                    userDetails[0].lastname +  " " + userDetails[0].firstname,
                     userDetails[0].username,
                     userDetails[0].email,
                     additionalAttributes);
