@@ -570,7 +570,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     ? null
                     : exam.examTemplateId != null
                         ? String.valueOf(exam.examTemplateId)
-                        : null;
+                        : "0";
             final String quitPassword = deletion ? null : examConfigurationValueService.getQuitPassword(exam.id);
             final String quitLink = deletion ? null : examConfigurationValueService.getQuitLink(exam.id);
 
