@@ -556,9 +556,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         if (!hasFullIntegration(exam.lmsSetupId)) {
             return exam;
         }
-        if (exam.examTemplateId == null) {
-            throw new IllegalStateException("Exam has no template id: " + exam.getName());
-        }
 
         try {
 
@@ -569,7 +566,11 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String courseId = lmsAPITemplate.getCourseIdFromExam(exam);
             final String quizId = lmsAPITemplate.getQuizIdFromExam(exam);
 
-            final String templateId = deletion ? null : String.valueOf(exam.examTemplateId);
+            final String templateId = deletion
+                    ? null
+                    : exam.examTemplateId != null
+                        ? String.valueOf(exam.examTemplateId)
+                        : null;
             final String quitPassword = deletion ? null : examConfigurationValueService.getQuitPassword(exam.id);
             final String quitLink = deletion ? null : examConfigurationValueService.getQuitLink(exam.id);
 
