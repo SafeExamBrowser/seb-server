@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content.action;
 
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gui.content.activity.PageStateDefinitionImpl;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageStateDefinition;
@@ -300,12 +299,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     EXAM_TOGGLE_TEST_RUN_ON(
             new LocTextKey("sebserver.exam.action.test.run.on"),
-            ImageIcon.ARCHIVE,
+            ImageIcon.TEST_RUN_OFF,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
     EXAM_TOGGLE_TEST_RUN_OFF(
             new LocTextKey("sebserver.exam.action.test.run.off"),
-            ImageIcon.ARCHIVE,
+            ImageIcon.TEST_RUN_ON,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
     EXAM_ARCHIVE(

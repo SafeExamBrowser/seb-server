@@ -190,14 +190,18 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         if (event.activation == Activatable.ActivationAction.NONE) {
             if (!lmsSetup.integrationActive) {
                 applyFullLmsIntegration(lmsSetup.id)
-                        .onError(error -> log.warn("Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
-                        .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+                        .onError(error -> log.warn(
+                                "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                        .onSuccess(data -> log.debug(
+                                "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
             }
         } else if (event.activation == Activatable.ActivationAction.ACTIVATE) {
             applyFullLmsIntegration(lmsSetup.id)
                     .map(data -> reapplyExistingExams(data,lmsSetup))
-                    .onError(error -> log.warn("Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
-                    .onSuccess(data -> log.debug("Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+                    .onError(error -> log.warn(
+                            "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                    .onSuccess(data -> log.debug(
+                            "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
         } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
             // remove all active exam data for involved exams before deactivate them
             this.examDAO
@@ -235,7 +239,9 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     public void notifyConnectionConfigurationChange(final ConnectionConfigurationChangeEvent event) {
         lmsSetupDAO.idsOfActiveWithFullIntegration(event.institutionId)
                 .flatMap(examDAO::allActiveForLMSSetup)
-                .onError(error -> log.error("Failed to notifyConnectionConfigurationChange: {}", error.getMessage()))
+                .onError(error -> log.error(
+                        "Failed to notifyConnectionConfigurationChange: {}",
+                        error.getMessage()))
                 .getOr(Collections.emptyList())
                 .stream()
                 .filter(exam -> this.needsConnectionConfigurationChange(exam, event.configId))
@@ -370,16 +376,22 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     .flatMap(this::findExam);
 
             if (examResult.hasError()) {
-                log.error("Failed to find exam for SEB Connection Configuration download: ", examResult.getError());
-                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
+                log.error(
+                        "Failed to find exam for SEB Connection Configuration download: ",
+                        examResult.getError());
+                throw new APIMessage.APIMessageException(
+                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
             }
 
             final Exam exam = examResult.get();
 
             final String connectionConfigId = getConnectionConfigurationId(exam);
             if (StringUtils.isBlank(connectionConfigId)) {
-                log.error("Failed to verify SEB Connection Configuration id for exam: {}", exam.name);
-                throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
+                log.error(
+                        "Failed to verify SEB Connection Configuration id for exam: {}",
+                        exam.name);
+                throw new APIMessage.APIMessageException(
+                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
             }
 
             this.connectionConfigurationService.exportSEBClientConfiguration(
@@ -413,7 +425,8 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     .map(all -> all.stream().filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
                             .findFirst()
                             .orElseThrow(() -> new APIMessage.APIMessageException(
-                                    APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"))))
+                                    APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of(
+                                            "No active Connection Configuration found"))))
                     .map(SEBClientConfig::getModelId)
                     .getOr(null);
         }
@@ -487,7 +500,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             // check if the exam has already been imported, If so return the existing exam
             final Result<Exam> existingExam = findExam(quizData);
             if (!existingExam.hasError()) {
-                // TODO do we need to check if ad-hoc account exists and if not, create one?
                 return existingExam.get();
             }
 
@@ -526,7 +538,9 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         final Integer active = this.clientConnectionDAO
                 .getAllActiveConnectionTokens(exam.id)
                 .map(Collection::size)
-                .onError(error -> log.warn("Failed to get active access tokens for exam: {}", error.getMessage()))
+                .onError(error -> log.warn(
+                        "Failed to get active access tokens for exam: {}",
+                        error.getMessage()))
                 .getOr(1);
 
         if (active == null || active == 0) {
@@ -570,9 +584,13 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     ? null
                     : exam.examTemplateId != null
                         ? String.valueOf(exam.examTemplateId)
-                        : "0";
-            final String quitPassword = deletion ? null : examConfigurationValueService.getQuitPassword(exam.id);
-            final String quitLink = deletion ? null : examConfigurationValueService.getQuitLink(exam.id);
+                        : "0"; // no selection on Moodle site
+            final String quitPassword = deletion
+                    ? null
+                    : examConfigurationValueService.getQuitPassword(exam.id);
+            final String quitLink = deletion
+                    ? null
+                    : examConfigurationValueService.getQuitLink(exam.id);
 
             final ExamData examData = new ExamData(
                     lmsUUID,
@@ -620,6 +638,10 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         }
     }
 
+// Note: We decided that Moodle gets the Connection Configuration from SEB Server instead of SEB Server
+//       sending the Connection Configuration to Moodle. Code on SEB Server site and Moodle function still
+//       remains here for the case its need in the future.
+//
 //    private Exam applyConnectionConfiguration(final Exam exam) {
 //        return lmsAPITemplateCacheService
 //                .getLmsAPITemplate(exam.lmsSetupId)
@@ -689,14 +711,18 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private Exam logExamCreated(final Exam exam) {
         this.userActivityLogDAO
                 .logCreate(exam)
-                .onError(error -> log.warn("Failed to log exam creation from LMS: {}", error.getMessage()));
+                .onError(error -> log.warn(
+                        "Failed to log exam creation from LMS: {}",
+                        error.getMessage()));
         return exam;
     }
 
     private Exam logExamDeleted(final Exam exam) {
         this.userActivityLogDAO
                 .logDelete(exam)
-                .onError(error -> log.warn("Failed to log exam deletion from LMS: {}", error.getMessage()));
+                .onError(error -> log.warn(
+                        "Failed to log exam deletion from LMS: {}",
+                        error.getMessage()));
         return exam;
     }
 

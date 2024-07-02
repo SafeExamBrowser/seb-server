@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ToggleTestRun;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.joda.time.DateTime;
@@ -112,6 +113,7 @@ public class ExamForm implements TemplateComposer {
     private final static LocTextKey CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH = new LocTextKey("sebserver.exam.consistencyseb-restriction-mismatch");
     private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TITLE = new LocTextKey("sebserver.exam.autogen.error.config.title");
     private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TEXT = new LocTextKey("sebserver.exam.autogen.error.config.text");
+    private final static LocTextKey TEST_RUN_ENABLED_NOTE = new LocTextKey("sebserver.exam.test.run.enabled.note");
 
     private final Map<String, LocTextKey> consistencyMessageMapping;
     private final PageService pageService;
@@ -232,6 +234,9 @@ public class ExamForm implements TemplateComposer {
             if (sebRestrictionMismatch || (warnings != null && !warnings.isEmpty())) {
                 showConsistencyChecks(warnings, sebRestrictionMismatch, formContext.getParent());
             }
+            if (exam.status == ExamStatus.TEST_RUN) {
+                showTestRunMessage(formContext.getParent());
+            }
         }
 
         // the default page layout with title
@@ -338,26 +343,24 @@ public class ExamForm implements TemplateComposer {
                 .withAttribute(ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_ID, String.valueOf(exam.lmsSetupId))
                 .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant || !editable))
                 .noEventPropagation()
-                .publishIf(() -> restrictionEnabled && sebRestrictionAvailable && readonly)
+                .publishIf(() -> restrictionEnabled && sebRestrictionAvailable)
 
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, true, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
-                        && BooleanUtils.isFalse(isRestricted))
+                .publishIf(() -> sebRestrictionAvailable && modifyGrant && !importFromQuizData && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
                 .withConfirm(() -> ACTION_MESSAGE_SEB_RESTRICTION_RELEASE)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
-                        && BooleanUtils.isTrue(isRestricted))
+                .publishIf(() -> sebRestrictionAvailable && modifyGrant && !importFromQuizData && BooleanUtils.isTrue(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> lpEnabled && !isLight && proctoringEnabled && readonly)
+                .publishIf(() -> lpEnabled && !isLight && proctoringEnabled)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
@@ -370,7 +373,7 @@ public class ExamForm implements TemplateComposer {
                 .withExec(
                         this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() ->  spsFeatureEnabled && screenProctoringEnabled && readonly)
+                .publishIf(() -> spsFeatureEnabled && screenProctoringEnabled)
 
                 .newAction(ActionDefinition.SCREEN_PROCTORING_OFF)
                 .withEntityKey(entityKey)
@@ -771,6 +774,15 @@ public class ExamForm implements TemplateComposer {
 
         final LmsSetup lmsSetup = call.get();
         return (lmsSetup.getLmsType().features.contains(LmsSetup.Features.SEB_RESTRICTION));
+    }
+
+    private void showTestRunMessage(final Composite parent) {
+        final Composite notePanel = this.widgetFactory.createWarningPanel(parent);
+        notePanel.setData(RWT.CUSTOM_VARIANT, CustomVariant.NOTE.key);
+        this.widgetFactory.labelLocalized(
+                notePanel,
+                CustomVariant.TITLE_LABEL,
+                TEST_RUN_ENABLED_NOTE);
     }
 
     private void showConsistencyChecks(

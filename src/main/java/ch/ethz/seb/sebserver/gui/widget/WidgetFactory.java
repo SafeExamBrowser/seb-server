@@ -152,7 +152,9 @@ public class WidgetFactory {
         BACK("back.png"),
         SCREEN_PROC_ON("screen_proc_on.png"),
         SCREEN_PROC_OFF("screen_proc_off.png"),
-        ADD_EXAM("add_exam.png");
+        ADD_EXAM("add_exam.png"),
+        TEST_RUN_ON("testRunOn.png"),
+        TEST_RUN_OFF("testRunOff.png");
 
         public String fileName;
         private ImageData image = null;
