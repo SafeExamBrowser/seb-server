@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -47,10 +48,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ScreenProctoringGroupDA
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ScreenProctoringGroupDAOImpl.AllGroupsFullException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ScreenProctoringAPIBinding.SPSData;
 
@@ -270,7 +267,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void synchronizeSPSUserForExam(final Long examId) {
-        this.examDAO.byPK(examId)
+        this.examDAO
+                .byPK(examId)
                 .onSuccess(this.screenProctoringAPIBinding::synchronizeUserAccounts)
                 .onError(error -> log.error("Failed to synchronize SPS user accounts for exam: {}", examId, error));
     }
@@ -299,14 +297,26 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamFinished(final ExamFinishedEvent event) {
-        final Exam exam = event.exam;
-        if (!this.isScreenProctoringEnabled(exam.id) ||
-                !BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+
+        if (!this.isScreenProctoringEnabled(event.exam.id) ||
+                !BooleanUtils.toBoolean(event.exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
             return;
         }
 
-        if (exam.status == Exam.ExamStatus.FINISHED) {
-            this.screenProctoringAPIBinding.deactivateScreenProctoring(exam);
+        if (event.exam.status != Exam.ExamStatus.UP_COMING) {
+            this.screenProctoringAPIBinding.deactivateScreenProctoring(event.exam);
+        }
+    }
+
+    @Override
+    public void notifyExamReset(final ExamResetEvent event) {
+        if (!this.isScreenProctoringEnabled(event.exam.id) ||
+                BooleanUtils.toBoolean(event.exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+            return;
+        }
+
+        if (event.exam.status != Exam.ExamStatus.UP_COMING) {
+            this.screenProctoringAPIBinding.activateScreenProctoring(event.exam);
         }
     }
 

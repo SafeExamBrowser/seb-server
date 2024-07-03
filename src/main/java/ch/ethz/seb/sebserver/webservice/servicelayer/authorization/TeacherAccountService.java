@@ -27,7 +27,7 @@ public interface TeacherAccountService {
      */
     Result<UserInfo> createNewTeacherAccountForExam(
             Exam exam,
-            final FullLmsIntegrationService.AdHocAccountData adHocAccountData);
+            final AdHocAccountData adHocAccountData);
 
     /** Get the identifier for certain Teacher account for specified Exam.
      *
@@ -37,7 +37,7 @@ public interface TeacherAccountService {
      */
     default String getTeacherAccountIdentifier(
             final Exam exam,
-            final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
+            final AdHocAccountData adHocAccountData) {
 
         return getTeacherAccountIdentifier(
                 String.valueOf(exam.lmsSetupId),
@@ -62,7 +62,7 @@ public interface TeacherAccountService {
      */
     Result<String> getOneTimeTokenForTeacherAccount(
             Exam exam,
-            FullLmsIntegrationService.AdHocAccountData adHocAccountData,
+            AdHocAccountData adHocAccountData,
             boolean createIfNotExists);
 
     /** Used to verify a given One Time Access JWT Token. This must have the expected claims and must not be expired

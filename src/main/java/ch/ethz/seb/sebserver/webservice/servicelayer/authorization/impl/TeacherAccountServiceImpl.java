@@ -20,10 +20,10 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
 import io.jsonwebtoken.Claims;
@@ -91,7 +91,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     @Override
     public Result<UserInfo> createNewTeacherAccountForExam(
             final Exam exam,
-            final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
+            final AdHocAccountData adHocAccountData) {
 
         return Result.tryCatch(() -> {
 
@@ -130,7 +130,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     @Override
     public Result<String> getOneTimeTokenForTeacherAccount(
             final Exam exam,
-            final FullLmsIntegrationService.AdHocAccountData adHocAccountData,
+            final AdHocAccountData adHocAccountData,
             final boolean createIfNotExists) {
 
         return this.userDAO
@@ -186,7 +186,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     private UserInfo handleAccountDoesNotExistYet(
             final boolean createIfNotExists,
             final Exam exam,
-            final FullLmsIntegrationService.AdHocAccountData adHocAccountData) {
+            final AdHocAccountData adHocAccountData) {
 
         if (createIfNotExists) {
             return this
@@ -212,6 +212,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                             "Failed to apply ad-hoc-teacher account to supporter list of exam: {} user: {}",
                             exam, account, error));
         }
+
         return account;
     }
 
@@ -219,7 +220,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
         final String subjectClaim = UUID.randomUUID().toString();
         userDAO.changePassword(account.uuid, subjectClaim);
-        synchronizeSPSUserForExam(account, examId);
+        this.screenProctoringService.updateExamOnScreenProctoringService(examId);
 
         final Map<String, Object> claims = new HashMap<>();
         claims.put(USER_CLAIM, account.uuid);
@@ -275,10 +276,4 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         return claims;
     }
 
-    private UserInfo synchronizeSPSUserForExam(final UserInfo account, final Long examId) {
-        if (this.screenProctoringService.isScreenProctoringEnabled(examId)) {
-            this.screenProctoringService.synchronizeSPSUserForExam(examId);
-        }
-        return account;
-    }
 }

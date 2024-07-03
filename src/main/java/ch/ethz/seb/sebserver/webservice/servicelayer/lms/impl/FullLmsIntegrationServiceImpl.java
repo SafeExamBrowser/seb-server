@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.TeacherAccountServiceImpl;
@@ -455,14 +456,22 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quizId,
             final String examData) {
 
-        final String internalQuizId = MoodleUtils.getInternalQuizId(
-                quizId,
-                courseId,
-                null,
-                null);
+        if (StringUtils.isNotBlank(examData)) {
+            return lmsAPITemplate
+                    .getQuizDataForRemoteImport(examData)
+                    .getOrThrow();
+        } else {
 
-        return lmsAPITemplate.getQuizDataForRemoteImport(examData)
-                .getOrThrow();
+            final String internalQuizId = MoodleUtils.getInternalQuizId(
+                    quizId,
+                    courseId,
+                    null,
+                    null);
+
+            return lmsAPITemplate.getQuiz(internalQuizId)
+                    .getOrThrow();
+
+        }
     }
 
 

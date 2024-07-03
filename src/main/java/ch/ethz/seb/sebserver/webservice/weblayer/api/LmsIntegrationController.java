@@ -21,6 +21,8 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -89,15 +91,23 @@ public class LmsIntegrationController {
                         examData)
                 .onError(e -> {
                     log.error(
-                            "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: {}",
-                            lmsUUId, courseId, quizId, templateId, e.getMessage());
+                            "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: ",
+                            lmsUUId, courseId, quizId, templateId, e);
                     log.info("Rollback Exam creation...");
                     fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
-                            .onError(error -> log.error("Failed to rollback auto Exam import: ", error));
+                            .onError(error -> {
+                                if (error instanceof NoResourceFoundException) {
+                                    log.info("No Exam found for rollback.");
+                                } else {
+                                    log.error("Failed to rollback auto Exam import: ", error);
+                                }
+                            });
                 })
-                .getOrThrow();
+                .getOr(null);
 
-        log.info("Auto import of exam successful: {}", exam);
+        if (exam != null) {
+            log.info("Auto import of exam successful: {}", exam);
+        }
     }
 
     @RequestMapping(
@@ -181,7 +191,7 @@ public class LmsIntegrationController {
             @RequestParam(name = API.LMS_FULL_INTEGRATION_TIME_ZONE, required = false) final String timezone,
             final HttpServletResponse response) {
 
-        final FullLmsIntegrationService.AdHocAccountData adHocAccountData = new FullLmsIntegrationService.AdHocAccountData(
+        final AdHocAccountData adHocAccountData = new AdHocAccountData(
                 userId,
                 username,
                 userMail,

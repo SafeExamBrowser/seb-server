@@ -11,12 +11,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 import java.io.OutputStream;
 import java.util.Collection;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
@@ -26,7 +25,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.context.event.EventListener;
-import org.springframework.web.bind.annotation.RequestParam;
 
 public interface FullLmsIntegrationService {
 
@@ -79,30 +77,7 @@ public interface FullLmsIntegrationService {
             AdHocAccountData adHocAccountData);
 
 
-    final class AdHocAccountData {
-        public final String userId;
-        public final String username;
-        public final String userMail;
-        public final String firstName;
-        public final String lastName;
-        public final String timezone;
 
-        public AdHocAccountData(
-                final String userId,
-                final String username,
-                final String userMail,
-                final String firstName,
-                final String lastName,
-                final String timezone) {
-
-            this.userId = userId;
-            this.username = username;
-            this.userMail = userMail;
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.timezone = timezone;
-        }
-    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     final class ExamData {

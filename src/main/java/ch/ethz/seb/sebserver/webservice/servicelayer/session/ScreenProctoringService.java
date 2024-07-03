@@ -71,6 +71,9 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     @EventListener(ExamFinishedEvent.class)
     void notifyExamFinished(ExamFinishedEvent event);
 
+    @EventListener(ExamResetEvent.class)
+    void notifyExamReset(ExamResetEvent event);
+
     /** This is being called just before an Exam gets deleted on the permanent storage.
      * This deactivates and dispose or deletes all exam relevant domain entities on the SPS service side.
      *

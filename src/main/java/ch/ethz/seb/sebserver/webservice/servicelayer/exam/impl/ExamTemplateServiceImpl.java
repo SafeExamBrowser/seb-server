@@ -16,7 +16,6 @@ import java.util.Objects;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -299,7 +298,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 !Objects.equals(examConfig.templateId, examTemplate.configTemplateId)) {
 
             final String newName = (examConfig != null && examConfig.name.equals(configName))
-                    ? examConfig.name + "_"
+                    ? examConfig.name + "_" + DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER)
                     : configName;
 
             final ConfigurationNode config = new ConfigurationNode(

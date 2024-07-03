@@ -169,7 +169,6 @@ public class MonitoringProctoringService {
             final ScreenProctoringSettings screenProctoringSettings) {
 
         collectingRooms
-                .stream()
                 .forEach(room -> updateProctoringAction(
                         pageContext,
                         proctoringSettings,
@@ -184,7 +183,6 @@ public class MonitoringProctoringService {
 
         if (screenProctoringGroups != null) {
             screenProctoringGroups
-                    .stream()
                     .forEach(group -> updateScreenProctoringAction(
                             pageContext,
                             screenProctoringSettings,
@@ -357,8 +355,12 @@ public class MonitoringProctoringService {
 
             // Open SPS Gui redirect URL with login token (jwt token) in new browser tab
             final String redirectLocation = redirect.getBody() + "/jwt?token=" + tokenRequest.getBody();
+            final String script = "window.open("+ redirectLocation + ", 'seb_screen_proctoring')";
             final UrlLauncher launcher = RWT.getClient().getService(UrlLauncher.class);
             launcher.openURL(redirectLocation);
+//            RWT.getClient()
+//                    .getService(JavaScriptExecutor.class)
+//                    .execute(script);
         } catch (final Exception e) {
             log.error("Failed to open screen proctoring service group gallery view: ", e);
             _action.pageContext()

@@ -102,6 +102,12 @@ class ScreenProctoringAPIBinding {
             String ATTR_PRIVILEGES = "privileges";
         }
 
+        interface PRIVILEGE_FLAGS {
+            String READ = "r";
+            String MODIFY = "m";
+            String WRITE = "w";
+        }
+
         /** The screen proctoring service client-access API attribute names */
         interface SEB_ACCESS {
             String ATTR_UUID = "uuid";
@@ -380,8 +386,6 @@ class ScreenProctoringAPIBinding {
 
     void synchronizeUserAccounts(final Exam exam) {
         try {
-            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
-            final SPSData spsData = this.getSPSData(exam.id);
 
             exam.supporter.forEach(userUUID -> synchronizeUserAccount(userUUID, apiTemplate));
             if (exam.owner != null) {
@@ -389,7 +393,7 @@ class ScreenProctoringAPIBinding {
             }
 
         } catch (final Exception e) {
-            log.error("Failed to synchronize user accounts with SPS for exam: {}", exam);
+            log.error("Failed to synchronize user accounts with SPS for exam: {}", exam, e);
         }
     }
     void deleteSPSUser(final String userUUID) {
@@ -433,11 +437,7 @@ class ScreenProctoringAPIBinding {
                     .build()
                     .toUriString();
 
-            final List<String> userIds = new ArrayList<>(exam.supporter);
-            if (exam.owner != null) {
-                userIds.add(exam.owner);
-            }
-
+            final List<String> supporterIds = getSupporterIds(exam);
             final ExamUpdate examUpdate = new ExamUpdate(
                     exam.name,
                     exam.getDescription(),
@@ -445,7 +445,7 @@ class ScreenProctoringAPIBinding {
                     exam.getType().name(),
                     exam.startTime != null ? exam.startTime.getMillis() : null,
                     exam.endTime != null ? exam.endTime.getMillis() : null,
-                    userIds);
+                    supporterIds);
 
             final String jsonExamUpdate = this.jsonMapper.writeValueAsString(examUpdate);
 
@@ -796,17 +796,15 @@ class ScreenProctoringAPIBinding {
 
             if (activityRequest.getStatusCode() != HttpStatus.OK) {
                 final String body = activityRequest.getBody();
-                if (body != null && body.contains("Activation argument mismatch")) {
-                    return;
+                if (body != null && !body.contains("Activation argument mismatch")) {
+                    log.warn("Failed to synchronize activity for user account on SPS: {}", activityRequest);
                 }
-
-                log.warn("Failed to synchronize activity for user account on SPS: {}", activityRequest);
             } else {
                 log.info("Successfully synchronize activity for user account on SPS for user: {}", userUUID);
             }
 
         } catch (final Exception e) {
-            log.error("Failed to synchronize user account with SPS for user: {}", userUUID);
+            log.error("Failed to synchronize user account with SPS for user: {}", userUUID, e);
         }
     }
 
@@ -931,18 +929,14 @@ class ScreenProctoringAPIBinding {
 
         try {
 
-            final List<String> userIds = new ArrayList<>(exam.supporter);
-            if (exam.owner != null) {
-                userIds.add(exam.owner);
-            }
-
+            final List<String> supporterIds = getSupporterIds(exam);
             final String uri = UriComponentsBuilder
                     .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
                     .path(SPS_API.EXAM_ENDPOINT)
                     .build().toUriString();
 
             final String uuid = createExamUUID(exam);
-            final MultiValueMap<String, String> params = createExamCreationParams(exam, uuid, userIds);
+            final MultiValueMap<String, String> params = createExamCreationParams(exam, uuid, supporterIds);
             final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
@@ -976,7 +970,7 @@ class ScreenProctoringAPIBinding {
     private static MultiValueMap<String, String> createExamCreationParams(
             final Exam exam,
             final String uuid,
-            final List<String> userIds) {
+            final List<String> supporterIds) {
 
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(SPS_API.EXAM.ATTR_UUID, uuid);
@@ -985,8 +979,8 @@ class ScreenProctoringAPIBinding {
             params.add(SPS_API.EXAM.ATTR_DESCRIPTION, exam.getDescription());
         }
         params.add(SPS_API.EXAM.ATTR_URL, exam.getStartURL());
-        if (!userIds.isEmpty()) {
-            params.add(SPS_API.EXAM.ATTR_USER_IDS, StringUtils.join(userIds, Constants.LIST_SEPARATOR));
+        if (!supporterIds.isEmpty()) {
+            params.add(SPS_API.EXAM.ATTR_USER_IDS, StringUtils.join(supporterIds, Constants.LIST_SEPARATOR));
         }
         params.add(SPS_API.EXAM.ATTR_TYPE, exam.getType().name());
         params.add(SPS_API.EXAM.ATTR_START_TIME, String.valueOf(exam.startTime.getMillis()));
@@ -1197,6 +1191,14 @@ class ScreenProctoringAPIBinding {
         }
 
         return this.apiTemplate;
+    }
+
+    private static List<String> getSupporterIds(final Exam exam) {
+        final List<String> supporterIds = new ArrayList<>(exam.supporter);
+        if (exam.owner != null && !UserService.LMS_INTEGRATION_CLIENT_UUID.equals(exam.owner)) {
+            supporterIds.add(exam.owner);
+        }
+        return supporterIds;
     }
 
     final static class ScreenProctoringServiceOAuthTemplate {
