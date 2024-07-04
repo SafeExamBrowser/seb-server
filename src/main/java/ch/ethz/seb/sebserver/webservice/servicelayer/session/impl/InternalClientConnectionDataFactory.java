@@ -52,7 +52,7 @@ public class InternalClientConnectionDataFactory {
 
     public ClientConnectionDataInternal createClientConnectionData(final ClientConnection clientConnection) {
 
-        ClientConnectionDataInternal result;
+        final ClientConnectionDataInternal result;
         if (clientConnection.status == ConnectionStatus.CLOSED
                 || clientConnection.status == ConnectionStatus.DISABLED) {
 

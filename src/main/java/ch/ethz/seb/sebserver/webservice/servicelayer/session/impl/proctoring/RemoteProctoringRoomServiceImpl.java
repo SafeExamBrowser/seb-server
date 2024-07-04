@@ -115,7 +115,7 @@ public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomServ
 
         final Collection<String> currentlyInBreakoutRooms = this.remoteProctoringRoomDAO
                 .getConnectionsInBreakoutRooms(examId)
-                .getOrElse(() -> Collections.emptyList());
+                .getOrElse(Collections::emptyList);
 
         if (currentlyInBreakoutRooms.isEmpty()) {
             return this.clientConnectionDAO
@@ -132,52 +132,58 @@ public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomServ
 
     @Override
     public void updateProctoringCollectingRooms() {
-        try {
 
-            // Applying to collecting room
-            this.clientConnectionDAO
-                    .getAllForProctoringUpdateActive()
-                    .getOrThrow()
-                    .stream()
-                    .forEach(this::assignToCollectingRoom);
+        // NOTE: Since life proctoring is not supported anymore, we disable automated updates here
 
-            // Dispose from collecting room
-            this.clientConnectionDAO
-                    .getAllForProctoringUpdateInactive()
-                    .getOrThrow()
-                    .stream()
-                    .forEach(this::removeFromRoom);
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to update proctoring collecting rooms: ", e);
-        }
+//        try {
+//
+//            // Applying to collecting room
+//            this.clientConnectionDAO
+//                    .getAllForProctoringUpdateActive()
+//                    .getOrThrow()
+//                    .forEach(this::assignToCollectingRoom);
+//
+//            // Dispose from collecting room
+//            this.clientConnectionDAO
+//                    .getAllForProctoringUpdateInactive()
+//                    .getOrThrow()
+//                    .forEach(this::removeFromRoom);
+//
+//        } catch (final Exception e) {
+//            log.error("Unexpected error while trying to update proctoring collecting rooms: ", e);
+//        }
     }
 
     @EventListener(ExamDeletionEvent.class)
     public void notifyExamDeletionEvent(final ExamDeletionEvent event) {
-        event.ids.forEach(examId -> {
-            try {
 
-                this.examAdminService
-                        .examForPK(examId)
-                        .flatMap(this::disposeRoomsForExam)
-                        .getOrThrow();
+        // NOTE: Since life proctoring is not supported anymore, we disable automated updates here
 
-            } catch (final Exception e) {
-                log.error("Failed to delete depending proctoring data for exam: {}", examId, e);
-            }
-        });
+//        event.ids.forEach(examId -> {
+//            try {
+//
+//                this.examAdminService
+//                        .examForPK(examId)
+//                        .flatMap(this::disposeRoomsForExam)
+//                        .getOrThrow();
+//
+//            } catch (final Exception e) {
+//                log.error("Failed to delete depending proctoring data for exam: {}", examId, e);
+//            }
+//        });
     }
 
     @EventListener
     public void notifyExamFinished(final ExamFinishedEvent event) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("ExamFinishedEvent received, process disposeRoomsForExam...");
-        }
+        // NOTE: Since life proctoring is not supported anymore, we disable automated updates here
 
-        disposeRoomsForExam(event.exam)
-                .onError(error -> log.error("Failed to dispose rooms for finished exam: {}", event.exam, error));
+//        if (log.isDebugEnabled()) {
+//            log.debug("ExamFinishedEvent received, process disposeRoomsForExam...");
+//        }
+//
+//        disposeRoomsForExam(event.exam)
+//                .onError(error -> log.error("Failed to dispose rooms for finished exam: {}", event.exam, error));
     }
 
     @Override

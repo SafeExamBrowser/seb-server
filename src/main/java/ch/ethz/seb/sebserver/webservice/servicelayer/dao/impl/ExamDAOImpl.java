@@ -335,7 +335,7 @@ public class ExamDAOImpl implements ExamDAO {
                         isEqualTo(BooleanUtils.toInteger(true)))
                 .and(
                         ExamRecordDynamicSqlSupport.status,
-                        isEqualTo(ExamStatus.RUNNING.name()))
+                        isIn(Exam.RUNNING_STATE_NAMES))
                 .and(
                         ExamRecordDynamicSqlSupport.updating,
                         isEqualTo(BooleanUtils.toInteger(false)))
@@ -390,6 +390,27 @@ public class ExamDAOImpl implements ExamDAO {
         return this.examRecordDAO
                 .allThatNeedsStatusUpdate(leadTime, followupTime)
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isRunning(final Long examId) {
+        try {
+            final Long exists = this.examRecordMapper.countByExample()
+                    .where(
+                            id,
+                            isEqualTo(examId))
+                    .and(
+                            status,
+                            isIn(Exam.RUNNING_STATE_NAMES))
+                    .build()
+                    .execute();
+
+            return exists >= 1;
+        } catch (final Exception e) {
+            log.error("Failed to check if exam is running: {} error: {}", examId, e.getMessage());
+            return false;
+        }
     }
 
     @Override
@@ -736,7 +757,7 @@ public class ExamDAOImpl implements ExamDAO {
                                     isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
                             .and(
                                     ExamRecordDynamicSqlSupport.status,
-                                    isEqualTo(ExamStatus.RUNNING.name()))
+                                    isIn(Exam.RUNNING_STATE_NAMES))
                             .build()
                             .execute();
                 });
@@ -754,7 +775,7 @@ public class ExamDAOImpl implements ExamDAO {
                         isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
                 .and(
                         ExamRecordDynamicSqlSupport.status,
-                        isEqualTo(ExamStatus.RUNNING.name()))
+                        isIn(Exam.RUNNING_STATE_NAMES))
                 .and(
                         ExamRecordDynamicSqlSupport.lmsAvailable,
                         isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))

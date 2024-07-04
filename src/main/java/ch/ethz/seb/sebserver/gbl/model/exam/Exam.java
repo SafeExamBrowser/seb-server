@@ -86,6 +86,10 @@ public final class Exam implements GrantEntity {
             ExamStatus.TEST_RUN.name(),
             ExamStatus.RUNNING.name());
 
+    public static final List<String> RUNNING_STATE_NAMES = Arrays.asList(
+            ExamStatus.TEST_RUN.name(),
+            ExamStatus.RUNNING.name());
+
     @JsonProperty(EXAM.ATTR_ID)
     public final Long id;
 

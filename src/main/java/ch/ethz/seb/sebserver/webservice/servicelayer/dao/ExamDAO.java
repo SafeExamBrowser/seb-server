@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -123,6 +122,12 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *            exam
      * @return Result refer to a collection of exams or to an error if happened */
     Result<Collection<Exam>> allThatNeedsStatusUpdate(long leadTime, long followupTime);
+
+    /** Quickly checks if an Exam is running or not (Sate RUNNING or TEST_RUN)
+     *
+     * @param examId The identifier of the exam to check
+     * @return true if the exam is in a running state */
+    boolean isRunning(Long examId);
 
     /** Get a collection of all currently running exam identifiers
      *

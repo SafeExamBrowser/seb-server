@@ -284,6 +284,7 @@ public class ExamMonitoringController {
                 .flatMap(authorization::checkModify)
                 .flatMap(examSessionService::toggleTestRun)
                 .map(exam -> {
+                    examSessionService.flushCache(exam);
                     if (exam.status == Exam.ExamStatus.TEST_RUN) {
                         applicationEventPublisher.publishEvent(new ExamStartedEvent(exam));
                     } else if (exam.status == Exam.ExamStatus.UP_COMING) {

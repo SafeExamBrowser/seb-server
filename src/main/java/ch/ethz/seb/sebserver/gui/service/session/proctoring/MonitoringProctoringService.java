@@ -202,10 +202,10 @@ public class MonitoringProctoringService {
         final EntityKey entityKey = pageContext.getEntityKey();
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
 
-        final TreeItem screeProcotringGroupAction = proctoringGUIService.getScreeProcotringGroupAction(group);
-        if (screeProcotringGroupAction != null) {
+        final TreeItem screeProctoringGroupAction = proctoringGUIService.getScreeProcotringGroupAction(group);
+        if (screeProctoringGroupAction != null) {
             // update action
-            screeProcotringGroupAction.setText(i18nSupport.getText(new LocTextKey(
+            screeProctoringGroupAction.setText(i18nSupport.getText(new LocTextKey(
                     ActionDefinition.MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP.title.name,
                     group.name,
                     group.size)));

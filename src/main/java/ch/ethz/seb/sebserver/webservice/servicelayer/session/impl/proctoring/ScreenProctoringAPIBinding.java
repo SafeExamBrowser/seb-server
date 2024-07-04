@@ -386,7 +386,7 @@ class ScreenProctoringAPIBinding {
 
     void synchronizeUserAccounts(final Exam exam) {
         try {
-
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = getAPITemplate(null);
             exam.supporter.forEach(userUUID -> synchronizeUserAccount(userUUID, apiTemplate));
             if (exam.owner != null) {
                 synchronizeUserAccount(exam.owner, apiTemplate);
@@ -1156,12 +1156,24 @@ class ScreenProctoringAPIBinding {
         }
     }
 
-    private ScreenProctoringServiceOAuthTemplate apiTemplate = null;
-
+    private ScreenProctoringServiceOAuthTemplate apiTemplateExam = null;
+    private ScreenProctoringServiceOAuthTemplate apiTemplateBundle = null;
     private ScreenProctoringServiceOAuthTemplate getAPITemplate(final Long examId) {
-        if (this.apiTemplate == null || !this.apiTemplate.isValid(examId)) {
-            if (examId != null) {
+        if (examId == null) {
+            if (apiTemplateBundle == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for bundle");
+                }
 
+                final WebserviceInfo.ScreenProctoringServiceBundle bundle = this.webserviceInfo
+                        .getScreenProctoringServiceBundle();
+
+                this.testConnection(bundle).getOrThrow();
+                this.apiTemplateBundle = new ScreenProctoringServiceOAuthTemplate(this, bundle);
+            }
+            return apiTemplateBundle;
+        } else {
+            if (this.apiTemplateExam == null || !this.apiTemplateExam.isValid(examId)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Create new ScreenProctoringServiceOAuthTemplate for exam: {}", examId);
                 }
@@ -1170,27 +1182,44 @@ class ScreenProctoringAPIBinding {
                         .getScreenProctoringSettings(new EntityKey(examId, EntityType.EXAM))
                         .getOrThrow();
                 this.testConnection(settings).getOrThrow();
-                this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, settings);
-
-            } else if (this.webserviceInfo.getScreenProctoringServiceBundle().bundled) {
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for exam: {}", examId);
-                }
-
-                final WebserviceInfo.ScreenProctoringServiceBundle bundle = this.webserviceInfo
-                        .getScreenProctoringServiceBundle();
-
-                this.testConnection(bundle).getOrThrow();
-                this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, bundle);
-
-
-            } else {
-                throw new IllegalStateException("No SPS API access information found!");
+                this.apiTemplateExam = new ScreenProctoringServiceOAuthTemplate(this, settings);
             }
+
+            return apiTemplateExam;
         }
 
-        return this.apiTemplate;
+//        if (this.apiTemplate == null || !this.apiTemplate.isValid(examId)) {
+//            if (examId != null) {
+//
+//                if (log.isDebugEnabled()) {
+//                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for exam: {}", examId);
+//                }
+//
+//                final ScreenProctoringSettings settings = this.proctoringSettingsDAO
+//                        .getScreenProctoringSettings(new EntityKey(examId, EntityType.EXAM))
+//                        .getOrThrow();
+//                this.testConnection(settings).getOrThrow();
+//                this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, settings);
+//
+//            } else if (this.webserviceInfo.getScreenProctoringServiceBundle().bundled) {
+//
+//                if (log.isDebugEnabled()) {
+//                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for exam: {}", examId);
+//                }
+//
+//                final WebserviceInfo.ScreenProctoringServiceBundle bundle = this.webserviceInfo
+//                        .getScreenProctoringServiceBundle();
+//
+//                this.testConnection(bundle).getOrThrow();
+//                this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, bundle);
+//
+//
+//            } else {
+//                throw new IllegalStateException("No SPS API access information found!");
+//            }
+//        }
+//
+//        return this.apiTemplate;
     }
 
     private static List<String> getSupporterIds(final Exam exam) {

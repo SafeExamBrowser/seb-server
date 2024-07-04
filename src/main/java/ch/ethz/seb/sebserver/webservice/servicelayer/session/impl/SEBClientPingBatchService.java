@@ -12,21 +12,18 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
-
-import javax.annotation.PreDestroy;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -44,6 +41,7 @@ public class SEBClientPingBatchService implements SEBClientPingService {
 
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientInstructionService sebClientInstructionService;
+    private final ClientConnectionDAO clientConnectionDAO;
 
     private final Set<String> pingKeys = new HashSet<>();
     private final Map<String, String> pings = new ConcurrentHashMap<>();
@@ -51,10 +49,12 @@ public class SEBClientPingBatchService implements SEBClientPingService {
 
     public SEBClientPingBatchService(
             final ExamSessionCacheService examSessionCacheService,
-            final SEBClientInstructionService sebClientInstructionService) {
+            final SEBClientInstructionService sebClientInstructionService,
+            final ClientConnectionDAO clientConnectionDAO) {
 
         this.examSessionCacheService = examSessionCacheService;
         this.sebClientInstructionService = sebClientInstructionService;
+        this.clientConnectionDAO = clientConnectionDAO;
     }
 
     @Scheduled(fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}")
@@ -71,7 +71,7 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         try {
             this.pingKeys.clear();
             this.pingKeys.addAll(this.pings.keySet());
-            this.pingKeys.stream().forEach(cid -> processPing(
+            this.pingKeys.forEach(cid -> processPing(
                     cid,
                     this.pings.remove(cid),
                     Utils.getMillisecondsNow()));
@@ -94,19 +94,14 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         final String instruction = this.instructions.remove(connectionToken);
 
         if (instructionConfirm != null) {
-            System.out.println("************ put instructionConfirm: " + instructionConfirm + " instructions: "
-                    + this.instructions);
+
             this.pings.put(connectionToken, instructionConfirm);
-//            // TODO is this a good idea or is there another better way to deal with instruction confirm synchronization?
             if (instruction != null && instruction.contains("\"instruction-confirm\":\"" + instructionConfirm + "\"")) {
                 return null;
             }
         } else if (!this.pings.containsKey(connectionToken)) {
             this.pings.put(connectionToken, StringUtils.EMPTY);
         }
-
-//        System.out.println(
-//                "**************** notifyPing instructionConfirm: " + instructionConfirm + " pings: " + this.pings);
 
         return instruction;
     }
@@ -126,19 +121,13 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         if (connectionData != null) {
             if (connectionData.clientConnection.status == ClientConnection.ConnectionStatus.DISABLED) {
                 // SEBSERV-440 send quit instruction to SEB
-                sebClientInstructionService.registerInstruction(
-                        connectionData.clientConnection.examId,
-                        ClientInstruction.InstructionType.SEB_QUIT,
-                        Collections.emptyMap(),
-                        connectionData.clientConnection.connectionToken,
-                        false,
-                        false
-                );
+                sendQuitInstruction(connectionToken, connectionData.clientConnection.examId);
             }
 
             connectionData.notifyPing(timestamp);
         } else {
-            log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
+            log.warn("Failed to get ClientConnectionDataInternal probably due to finished Exam for: {}.", connectionToken);
+            sendQuitInstruction(connectionToken,null);
         }
 
         if (StringUtils.isNotBlank(instructionConfirm)) {
@@ -152,6 +141,40 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         final String instructionJSON = this.sebClientInstructionService.getInstructionJSON(connectionToken);
         if (instructionJSON != null) {
             this.instructions.put(connectionToken, instructionJSON);
+        }
+    }
+
+    private void sendQuitInstruction(final String connectionToken, final Long examId) {
+
+        Long _examId = examId;
+        if (examId == null) {
+            final Result<ClientConnection> clientConnectionResult = clientConnectionDAO
+                    .byConnectionToken(connectionToken);
+
+            if (clientConnectionResult.hasError()) {
+                log.error(
+                        "Failed to get examId for client connection token: {} error: {}",
+                        connectionToken,
+                        clientConnectionResult.getError().getMessage());
+            }
+
+            _examId = clientConnectionResult.get().examId;
+        }
+
+        if (_examId != null) {
+
+            log.info("Send automated quit instruction to SEB for connection token: {}", connectionToken);
+
+            // TODO add SEB event log that SEB Server has automatically send quit instruction to SEB
+
+            sebClientInstructionService.registerInstruction(
+                    _examId,
+                    ClientInstruction.InstructionType.SEB_QUIT,
+                    Collections.emptyMap(),
+                    connectionToken,
+                    false,
+                    false
+            );
         }
     }
 }
