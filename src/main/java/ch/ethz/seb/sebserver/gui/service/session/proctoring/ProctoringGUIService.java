@@ -57,14 +57,14 @@ public class ProctoringGUIService {
         this.screenProctoringGroupState = new HashMap<>();
     }
 
-    public void registerScreeProcotringGroupAction(
+    public void registerScreeProctoringGroupAction(
             final ScreenProctoringGroup screenProctoringGroup,
             final TreeItem actionItem) {
 
         this.screenProctoringGroupState.put(screenProctoringGroup.uuid, actionItem);
     }
 
-    public TreeItem getScreeProcotringGroupAction(final ScreenProctoringGroup screenProctoringGroup) {
+    public TreeItem getScreeProctoringGroupAction(final ScreenProctoringGroup screenProctoringGroup) {
         return this.screenProctoringGroupState.get(screenProctoringGroup.uuid);
     }
 
@@ -119,7 +119,7 @@ public class ProctoringGUIService {
             final Pair<RemoteProctoringRoom, TreeItem> pair = this.collectingRoomsActionState.get(roomName);
             return pair.a.roomSize > 0 /* && !pair.a.isOpen SEBSERV-236 */;
         } catch (final Exception e) {
-            log.error("Failed to get actual collecting room size for room: {} cause: ", roomName, e.getMessage());
+            log.error("Failed to get actual collecting room size for room: {} cause: {}", roomName, e.getMessage());
             return false;
         }
     }

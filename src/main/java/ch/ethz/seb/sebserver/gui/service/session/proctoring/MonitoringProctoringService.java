@@ -202,7 +202,7 @@ public class MonitoringProctoringService {
         final EntityKey entityKey = pageContext.getEntityKey();
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
 
-        final TreeItem screeProctoringGroupAction = proctoringGUIService.getScreeProcotringGroupAction(group);
+        final TreeItem screeProctoringGroupAction = proctoringGUIService.getScreeProctoringGroupAction(group);
         if (screeProctoringGroupAction != null) {
             // update action
             screeProctoringGroupAction.setText(i18nSupport.getText(new LocTextKey(
@@ -224,7 +224,7 @@ public class MonitoringProctoringService {
                                     group.size)
                             .noEventPropagation()
                             .create(),
-                    _treeItem -> proctoringGUIService.registerScreeProcotringGroupAction(group, _treeItem));
+                    _treeItem -> proctoringGUIService.registerScreeProctoringGroupAction(group, _treeItem));
         }
     }
 
@@ -355,7 +355,7 @@ public class MonitoringProctoringService {
 
             // Open SPS Gui redirect URL with login token (jwt token) in new browser tab
             final String redirectLocation = redirect.getBody() + "/jwt?token=" + tokenRequest.getBody();
-            final String script = "window.open("+ redirectLocation + ", 'seb_screen_proctoring')";
+       //     final String script = "var win = window.open('', 'seb_screen_proctoring'); win.location.href = '"+ redirectLocation + "';";
             final UrlLauncher launcher = RWT.getClient().getService(UrlLauncher.class);
             launcher.openURL(redirectLocation);
 //            RWT.getClient()
