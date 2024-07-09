@@ -276,7 +276,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     @Override
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void deleteSPSUser(final String userUUID) {
-
         if (!webserviceInfo.getScreenProctoringServiceBundle().bundled) {
             return;
         }
@@ -287,8 +286,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     @Override
     public void notifyExamStarted(final ExamStartedEvent event) {
         final Exam exam = event.exam;
-        if (!this.isScreenProctoringEnabled(exam.id) ||
-                BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+        if (!this.isScreenProctoringEnabled(event.exam.id)) {
             return;
         }
 
@@ -297,9 +295,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamFinished(final ExamFinishedEvent event) {
-
-        if (!this.isScreenProctoringEnabled(event.exam.id) ||
-                !BooleanUtils.toBoolean(event.exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+        if (!this.isScreenProctoringEnabled(event.exam.id)) {
             return;
         }
 
@@ -310,8 +306,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamReset(final ExamResetEvent event) {
-        if (!this.isScreenProctoringEnabled(event.exam.id) ||
-                BooleanUtils.toBoolean(event.exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
+        if (!this.isScreenProctoringEnabled(event.exam.id)) {
             return;
         }
 
