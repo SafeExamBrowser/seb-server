@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.webservice.DBIntegrityCheck;
 @Lazy
 @Component
 @WebServiceProfile
+@Deprecated // This should not be needed anymore since we have a migration task now that alters the table and set charset
 public class TableCharsetCheck implements DBIntegrityCheck {
 
     private static final String SCHEMA_NAME_PROPERTY = "sebserver.init.database.integrity.check.schema";
@@ -63,50 +64,51 @@ public class TableCharsetCheck implements DBIntegrityCheck {
 
     @Override
     public Result<String> applyCheck(final boolean tryFix) {
+        return Result.of("Skip check since this is done by a migration task");
 
-        if (StringUtils.isEmpty(this.schemaName)) {
-            return Result.of("Skip check since sebserver.init.database.integrity.check.schema is not defined");
-        }
-
-        Connection connection = null;
-        try {
-            connection = this.dataSource.getConnection();
-
-            final PreparedStatement prepareStatement =
-                    connection.prepareStatement(
-                            "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"" + this.schemaName + "\"");
-            prepareStatement.execute();
-            final ResultSet resultSet = prepareStatement.getResultSet();
-            final Map<String, String> tablesWithWrongCollation = new HashMap<>();
-            while (resultSet.next()) {
-                final String collation = resultSet.getString(TABLE_COLLATION);
-                if (!UTF8MB4_GENERAL_CI.equals(collation)) {
-                    tablesWithWrongCollation.put(resultSet.getString(TABLE_NAME), collation);
-                }
-            }
-
-            final Connection con = connection;
-            if (!tablesWithWrongCollation.isEmpty()) {
-                if (tryFix) {
-                    tablesWithWrongCollation.entrySet().forEach(entry -> tryFix(con, entry));
-                } else {
-                    return Result.of("Found tables with wrong collation: " + tablesWithWrongCollation);
-                }
-            }
-
-        } catch (final Exception e) {
-            log.error("Failed to apply database table check: ", e);
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (final SQLException e) {
-                    log.error("Failed to close connection: ", e);
-                }
-            }
-        }
-
-        return Result.of("OK");
+//        if (StringUtils.isEmpty(this.schemaName)) {
+//            return Result.of("Skip check since sebserver.init.database.integrity.check.schema is not defined");
+//        }
+//
+//        Connection connection = null;
+//        try {
+//            connection = this.dataSource.getConnection();
+//
+//            final PreparedStatement prepareStatement =
+//                    connection.prepareStatement(
+//                            "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"" + this.schemaName + "\"");
+//            prepareStatement.execute();
+//            final ResultSet resultSet = prepareStatement.getResultSet();
+//            final Map<String, String> tablesWithWrongCollation = new HashMap<>();
+//            while (resultSet.next()) {
+//                final String collation = resultSet.getString(TABLE_COLLATION);
+//                if (!UTF8MB4_GENERAL_CI.equals(collation)) {
+//                    tablesWithWrongCollation.put(resultSet.getString(TABLE_NAME), collation);
+//                }
+//            }
+//
+//            final Connection con = connection;
+//            if (!tablesWithWrongCollation.isEmpty()) {
+//                if (tryFix) {
+//                    tablesWithWrongCollation.entrySet().forEach(entry -> tryFix(con, entry));
+//                } else {
+//                    return Result.of("Found tables with wrong collation: " + tablesWithWrongCollation);
+//                }
+//            }
+//
+//        } catch (final Exception e) {
+//            log.error("Failed to apply database table check: ", e);
+//        } finally {
+//            if (connection != null) {
+//                try {
+//                    connection.close();
+//                } catch (final SQLException e) {
+//                    log.error("Failed to close connection: ", e);
+//                }
+//            }
+//        }
+//
+//        return Result.of("OK");
     }
 
     private void tryFix(final Connection connection, final Map.Entry<String, String> entry) {
