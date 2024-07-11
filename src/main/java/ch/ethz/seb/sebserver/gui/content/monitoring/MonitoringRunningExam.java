@@ -444,6 +444,14 @@ public class MonitoringRunningExam implements TemplateComposer {
                     statusFilterGUIUpdate,
                     actionBuilder,
                     clientTable,
+                    ConnectionStatus.READY,
+                    ActionDefinition.MONITOR_EXAM_SHOW_READY_CONNECTION,
+                    ActionDefinition.MONITOR_EXAM_HIDE_READY_CONNECTION);
+            addFilterAction(
+                    monitoringStatus,
+                    statusFilterGUIUpdate,
+                    actionBuilder,
+                    clientTable,
                     ConnectionStatus.ACTIVE,
                     ActionDefinition.MONITOR_EXAM_SHOW_ACTIVE_CONNECTION,
                     ActionDefinition.MONITOR_EXAM_HIDE_ACTIVE_CONNECTION);

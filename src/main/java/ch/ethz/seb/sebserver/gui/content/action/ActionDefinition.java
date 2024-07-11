@@ -1013,6 +1013,17 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.STATE_FILTER),
 
+    MONITOR_EXAM_HIDE_READY_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.hide.ready"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.STATE_FILTER),
+    MONITOR_EXAM_SHOW_READY_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.show.ready"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.STATE_FILTER),
+
     MONITOR_EXAM_HIDE_ACTIVE_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.active"),
             ImageIcon.TOGGLE_OFF,
