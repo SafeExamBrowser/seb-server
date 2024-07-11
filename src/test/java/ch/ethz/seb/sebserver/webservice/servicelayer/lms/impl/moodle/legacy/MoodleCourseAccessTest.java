@@ -103,19 +103,18 @@ public class MoodleCourseAccessTest {
         assertEquals("user1 seb", userDetails.name);
         assertEquals("demo1@safeexambrowser.org", userDetails.email);
         assertEquals(
-                "{auth=manual, "
-                        + "confirmed=true, "
-                        + "department=, "
-                        + "description=, "
-                        + "descriptionformat=1, "
-                        + "firstaccess=1523400731, "
-                        + "firstname=seb, "
-                        + "lang=en, "
-                        + "lastaccess=1596457337, "
-                        + "lastname=user1, "
-                        + "mailformat=1, "
-                        + "suspended=false, "
-                        + "theme=, timezone=99}",
+                "{auth=manual, " +
+                        "confirmed=true, " +
+                        "description=, " +
+                        "descriptionformat=1, " +
+                        "firstaccess=1523400731, " +
+                        "firstname=seb, " +
+                        "lang=en, " +
+                        "lastaccess=1596457337, " +
+                        "lastname=user1, " +
+                        "mailformat=1, " +
+                        "suspended=false, " +
+                        "theme=, timezone=99}",
                 new TreeMap<>(userDetails.additionalAttributes).toString());
     }
 

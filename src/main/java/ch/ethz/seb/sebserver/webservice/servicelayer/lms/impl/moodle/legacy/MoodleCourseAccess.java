@@ -403,24 +403,14 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                 throw new RuntimeException("No user details on Moodle API request");
             }
 
-            final Map<String, String> additionalAttributes = new HashMap<>();
-            additionalAttributes.put("firstname", userDetails[0].firstname);
-            additionalAttributes.put("lastname", userDetails[0].lastname);
-            additionalAttributes.put("department", userDetails[0].department);
-            additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
-            additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
-            additionalAttributes.put("auth", userDetails[0].auth);
-            additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
-            additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
-            additionalAttributes.put("lang", userDetails[0].lang);
-            additionalAttributes.put("theme", userDetails[0].theme);
-            additionalAttributes.put("timezone", userDetails[0].timezone);
-            additionalAttributes.put("description", userDetails[0].description);
-            additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
-            additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
+            final Map<String, String> additionalAttributes = MoodleUtils.getMoodleAccountDetails(userDetails);
             return new ExamineeAccountDetails(
                     userDetails[0].id,
-                    userDetails[0].lastname +  " " + userDetails[0].firstname,
+                    MoodleUtils.getDisplayName(
+                            userDetails[0].firstname,
+                            userDetails[0].lastname,
+                            userDetails[0].fullname,
+                            examineeSessionId),
                     userDetails[0].username,
                     userDetails[0].email,
                     additionalAttributes);

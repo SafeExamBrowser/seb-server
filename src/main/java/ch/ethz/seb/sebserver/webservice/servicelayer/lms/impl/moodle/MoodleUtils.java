@@ -105,7 +105,7 @@ public abstract class MoodleUtils {
         return shortName.equals(Constants.EMPTY_NOTE) ? null : unmaskShortName(shortName);
     }
 
-    public static final String getIdnumber(final String internalQuizId) {
+    public static String getIdnumber(final String internalQuizId) {
         if (StringUtils.isBlank(internalQuizId)) {
             return null;
         }
@@ -116,6 +116,67 @@ public abstract class MoodleUtils {
 
         final String idNumber = split[3];
         return idNumber.equals(Constants.EMPTY_NOTE) ? null : idNumber;
+    }
+
+    public static String getDisplayName(
+            final String firstname,
+            final String lastname,
+            final String fullname,
+            final String sessionId) {
+
+        if (StringUtils.isNotBlank(firstname) && StringUtils.isNotBlank(lastname)) {
+            return lastname + Constants.SPACE + firstname;
+        } else if (StringUtils.isNotBlank(lastname) && StringUtils.isNotBlank(fullname)) {
+            return lastname + Constants.SPACE + fullname;
+        } else if (StringUtils.isNotBlank(fullname)) {
+            return fullname;
+        } else {
+            return sessionId;
+        }
+    }
+
+    public static Map<String, String> getMoodleAccountDetails(final MoodleUserDetails[] userDetails) {
+        final Map<String, String> additionalAttributes = new HashMap<>();
+        if (userDetails[0].firstname != null) {
+            additionalAttributes.put("firstname", userDetails[0].firstname);
+        }
+        if (userDetails[0].lastname != null) {
+            additionalAttributes.put("lastname", userDetails[0].lastname);
+        }
+        if (userDetails[0].firstaccess != null) {
+            additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
+        }
+        if (userDetails[0].lastaccess != null) {
+            additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
+        }
+        if (userDetails[0].auth != null) {
+            additionalAttributes.put("auth", userDetails[0].auth);
+        }
+        if (userDetails[0].suspended != null) {
+            additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
+        }
+        if (userDetails[0].confirmed != null) {
+            additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
+        }
+        if (userDetails[0].lang != null) {
+            additionalAttributes.put("lang", userDetails[0].lang);
+        }
+        if (userDetails[0].theme != null) {
+            additionalAttributes.put("theme", userDetails[0].theme);
+        }
+        if (userDetails[0].timezone != null) {
+            additionalAttributes.put("timezone", userDetails[0].timezone);
+        }
+        if (userDetails[0].description != null) {
+            additionalAttributes.put("description", userDetails[0].description);
+        }
+        if (userDetails[0].mailformat != null) {
+            additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
+        }
+        if (userDetails[0].descriptionformat != null) {
+            additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
+        }
+        return additionalAttributes;
     }
 
     public static void logMoodleWarning(
