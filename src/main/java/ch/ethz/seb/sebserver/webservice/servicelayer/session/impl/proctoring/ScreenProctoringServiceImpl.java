@@ -387,19 +387,32 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         try {
             final Long examId = ccRecord.getExamId();
             final Exam runningExam = this.examSessionCacheService.getRunningExam(examId);
+            final Long existingGroupId = ccRecord.getScreenProctoringGroupId();
 
-            // apply SEB connection to screen proctoring group
-            final ScreenProctoringGroup group = applySEBConnectionToGroup(
-                    ccRecord,
-                    runningExam);
-            placeReservedInGroup = group.id;
+            if (existingGroupId == null) {
 
-            // create screen proctoring session for SEB connection on SPS service
-            final String spsSessionToken = this.screenProctoringAPIBinding
-                    .createSEBSession(examId, group, ccRecord);
+                // apply SEB connection to screen proctoring group
+                final ScreenProctoringGroup group = applySEBConnectionToGroup(
+                        ccRecord,
+                        runningExam);
+                placeReservedInGroup = group.id;
 
-            // create instruction for SEB and add it to instruction queue for SEB connection
-            registerJoinInstruction(ccRecord, spsSessionToken, group, runningExam);
+                // create screen proctoring session for SEB connection on SPS service
+                final String spsSessionToken = this.screenProctoringAPIBinding
+                        .createSEBSession(examId, group, ccRecord);
+
+                // create instruction for SEB and add it to instruction queue for SEB connection
+                registerJoinInstruction(ccRecord, spsSessionToken, group, runningExam);
+            } else {
+                // just update session on SPS site
+                this.screenProctoringGroupDAO
+                        .getScreenProctoringGroup(existingGroupId)
+                        .map(group -> this.screenProctoringAPIBinding.updateSEBSession(
+                                group.id,
+                                ccRecord))
+                        .onError(error -> log.error("Failed to update SEB Session on SPS: {}", ccRecord, error));
+
+            }
 
             this.clientConnectionDAO
                     .markScreenProctoringApplied(ccRecord.getId(), ccRecord.getConnectionToken())

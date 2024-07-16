@@ -727,6 +727,45 @@ class ScreenProctoringAPIBinding {
         return token;
     }
 
+    String updateSEBSession(
+            final Long groupId,
+            final ClientConnectionRecord clientConnection) {
+
+        final String token = clientConnection.getConnectionToken();
+        final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(clientConnection.getExamId());
+
+        final String uri = UriComponentsBuilder
+                .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                .path(SPS_API.SESSION_ENDPOINT)
+                .pathSegment(token)
+                .build()
+                .toUriString();
+
+        final Map<String, String> params = new HashMap<>();
+        params.put(SPS_API.SESSION.ATTR_UUID, token);
+        params.put(SPS_API.SESSION.ATTR_GROUP_ID, String.valueOf(groupId));
+        params.put(SPS_API.SESSION.ATTR_CLIENT_IP, clientConnection.getClientAddress());
+        params.put(SPS_API.SESSION.ATTR_CLIENT_NAME, clientConnection.getExamUserSessionId());
+        params.put(SPS_API.SESSION.ATTR_CLIENT_MACHINE_NAME, clientConnection.getClientMachineName());
+        params.put(SPS_API.SESSION.ATTR_CLIENT_OS_NAME, clientConnection.getClientOsName());
+        params.put(SPS_API.SESSION.ATTR_CLIENT_VERSION, clientConnection.getClientVersion());
+
+        ResponseEntity<String> exchange = null;
+        try {
+            final String jsonSession = jsonMapper.writeValueAsString(params);
+            exchange = apiTemplate.exchangePUT(uri, jsonSession);
+        } catch (final JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (exchange.getStatusCode() != HttpStatus.OK) {
+            throw new RuntimeException(
+                    "Failed to update SPS SEB session for SEB connection: " + token);
+        }
+
+        return token;
+    }
+
 
     void deleteExamOnScreenProctoring(final Exam exam) {
         try {
@@ -1367,6 +1406,15 @@ class ScreenProctoringAPIBinding {
                 final String body) {
 
             return exchange(url, HttpMethod.POST, body, getHeaders());
+        }
+
+        ResponseEntity<String> exchangePUT(
+                final String url,
+                final String body) {
+
+            final HttpHeaders httpHeaders = getHeaders();
+            httpHeaders.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            return exchange(url, HttpMethod.PUT, body, httpHeaders);
         }
 
         HttpHeaders getHeadersJSONRequest() {
