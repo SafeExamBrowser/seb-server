@@ -243,7 +243,8 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
         try {
 
-            UpdateDSL.updateWithMapper(
+            UpdateDSL
+                    .updateWithMapper(
                             this.screenProctoringGroopRecordMapper::update,
                             ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
                     .set(ScreenProctoringGroopRecordDynamicSqlSupport.size)
@@ -257,6 +258,26 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
             log.warn("Failed to update SPS group size: {}", e.getMessage());
         }
 
+    }
+
+    @Override
+    @Transactional
+    public void resetAllForExam(final Long examId) {
+        try {
+
+            UpdateDSL
+                    .updateWithMapper(
+                            this.screenProctoringGroopRecordMapper::update,
+                            ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.size)
+                    .equalTo(0)
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .build()
+                    .execute();
+
+        } catch (final Exception e) {
+            log.warn("Failed to reset SPS groups size: {}", e.getMessage());
+        }
     }
 
     private ScreenProctoringGroup toDomainModel(final ScreenProctoringGroopRecord record) {

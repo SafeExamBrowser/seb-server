@@ -79,4 +79,6 @@ public interface ScreenProctoringGroupDAO {
     Result<Collection<EntityKey>> deleteGroups(Long examId);
 
     void updateGroupSize(String groupUUID, Integer activeCount, Integer totalCount);
+
+    void resetAllForExam(Long examId);
 }
