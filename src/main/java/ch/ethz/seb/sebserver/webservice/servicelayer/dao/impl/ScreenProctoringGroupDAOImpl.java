@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -142,7 +141,8 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
                             .findFirst();
 
             if (room.isPresent()) {
-                return updateCollectingGroup(room.get());
+                return room.get();
+                //return updateCollectingGroup(room.get());
             } else {
                 throw new AllGroupsFullException();
             }
@@ -234,6 +234,31 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         return tryCatch.onError(TransactionHandler::rollback);
     }
 
+    @Override
+    @Transactional
+    public void updateGroupSize(
+            final String groupUUID,
+            final Integer activeCount,
+            final Integer totalCount) {
+
+        try {
+
+            UpdateDSL.updateWithMapper(
+                            this.screenProctoringGroopRecordMapper::update,
+                            ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.size)
+                    .equalTo(activeCount)
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.uuid, isEqualTo(groupUUID))
+                    .and(ScreenProctoringGroopRecordDynamicSqlSupport.size, isNotEqualTo(activeCount))
+                    .build()
+                    .execute();
+
+        } catch (final Exception e) {
+            log.warn("Failed to update SPS group size: {}", e.getMessage());
+        }
+
+    }
+
     private ScreenProctoringGroup toDomainModel(final ScreenProctoringGroopRecord record) {
         return new ScreenProctoringGroup(
                 record.getId(),
@@ -244,22 +269,22 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
                 record.getData());
     }
 
-    private ScreenProctoringGroopRecord updateCollectingGroup(
-            final ScreenProctoringGroopRecord screenProctoringGroopRecord) {
-
-        final Long id = screenProctoringGroopRecord.getId();
-
-        UpdateDSL.updateWithMapper(
-                this.screenProctoringGroopRecordMapper::update,
-                ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
-                .set(ScreenProctoringGroopRecordDynamicSqlSupport.size)
-                .equalTo(screenProctoringGroopRecord.getSize() + 1)
-                .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(id))
-                .build()
-                .execute();
-
-        return this.screenProctoringGroopRecordMapper.selectByPrimaryKey(id);
-    }
+//    private ScreenProctoringGroopRecord updateCollectingGroup(
+//            final ScreenProctoringGroopRecord screenProctoringGroupRecord) {
+//
+//        final Long id = screenProctoringGroupRecord.getId();
+//
+//        UpdateDSL.updateWithMapper(
+//                this.screenProctoringGroopRecordMapper::update,
+//                ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+//                .set(ScreenProctoringGroopRecordDynamicSqlSupport.size)
+//                .equalTo(screenProctoringGroupRecord.getSize() + 1)
+//                .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(id))
+//                .build()
+//                .execute();
+//
+//        return this.screenProctoringGroopRecordMapper.selectByPrimaryKey(id);
+//    }
 
     public static final class AllGroupsFullException extends RuntimeException {
         private static final long serialVersionUID = 3283129187819160485L;

@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
-import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
@@ -391,7 +390,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         .getBuilder(GetScreenProctoringGroups.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                         .call()
-                        .onError(error -> log.error("Failed to get collecting room data:", error))
+                        .onError(error -> log.error("\"Failed to get screen proctoring group data:", error))
                         .getOr(Collections.emptyList())
                 : Collections.emptyList();
 
@@ -684,7 +683,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
 
             if (!this.actionItemPerClientGroup.isEmpty()) {
-                this.actionItemPerClientGroup.entrySet().stream().forEach(entry -> {
+                this.actionItemPerClientGroup.entrySet().forEach(entry -> {
                     final int numOfConnections = monitoringStatus.getNumOfConnections(entry.getKey());
                     if (numOfConnections >= 0) {
                         final TreeItem treeItem = entry.getValue();

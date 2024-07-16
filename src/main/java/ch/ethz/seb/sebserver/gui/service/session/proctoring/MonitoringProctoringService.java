@@ -215,13 +215,8 @@ public class MonitoringProctoringService {
             this.pageService.publishAction(
                     actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP)
                             .withEntityKey(entityKey)
-                            .withExec(_action -> openScreenProctoringTab(
-                                    settings,
-                                    group,
-                                    _action))
-                            .withNameAttributes(
-                                    group.name,
-                                    group.size)
+                            .withExec(_action -> openScreenProctoringTab(settings, group, _action))
+                            .withNameAttributes(group.name, group.size)
                             .noEventPropagation()
                             .create(),
                     _treeItem -> proctoringGUIService.registerScreeProctoringGroupAction(group, _treeItem));
@@ -308,7 +303,7 @@ public class MonitoringProctoringService {
         this.proctorRoomConnectionsPopup.show(pc, collectingRoom.subject);
     }
 
-    private PageAction openScreenProctoringTab(
+    public PageAction openScreenProctoringTab(
             final ScreenProctoringSettings settings,
             final ScreenProctoringGroup group,
             final PageAction _action) {

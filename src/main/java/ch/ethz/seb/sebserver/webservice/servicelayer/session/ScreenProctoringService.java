@@ -33,6 +33,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     @Override
     default void processSessionUpdateTask() {
         updateClientConnections();
+        updateActiveGroups();
     }
 
     boolean isScreenProctoringEnabled(Long examId);
@@ -97,6 +98,10 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * and if yes, attaching the respective SEB client connection, updating the group and sending
      * SPS connection instruction to SEB client to connect and start sending screenshots. */
     void updateClientConnections();
+
+    /** This goes through all running exams with screen proctoring enabled and updates the group attributes
+     *  (mainly the number of active clients in the group) by call ing SPS API and store newest data. */
+    void updateActiveGroups();
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUser(final String userUUID);

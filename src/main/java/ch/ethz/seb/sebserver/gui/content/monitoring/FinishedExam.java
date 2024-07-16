@@ -8,11 +8,21 @@
 
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_SCREEN_PROCTORING;
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.MONITORING_RUNNING_EXAM_SCREEN_PROCTORING;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetScreenProctoringGroups;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.MonitoringProctoringService;
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
@@ -93,6 +103,7 @@ public class FinishedExam implements TemplateComposer {
     private final RestService restService;
     private final I18nSupport i18nSupport;
     private final DownloadService downloadService;
+    private final MonitoringProctoringService monitoringProctoringService;
     private final String exportFileName;
     private final int pageSize;
 
@@ -100,12 +111,14 @@ public class FinishedExam implements TemplateComposer {
             final ServerPushService serverPushService,
             final PageService pageService,
             final DownloadService downloadService,
+            final MonitoringProctoringService monitoringProctoringService,
             @Value("${sebserver.gui.seb.client.logs.export.filename:SEBClientLogs}") final String exportFileName,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
         this.downloadService = downloadService;
+        this.monitoringProctoringService = monitoringProctoringService;
         this.exportFileName = exportFileName;
         this.pageSize = pageSize;
 
@@ -209,6 +222,33 @@ public class FinishedExam implements TemplateComposer {
                 .withExec(this::exportCSV)
                 .noEventPropagation()
                 .publish();
+
+        // screen proctoring link
+        final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(exam);
+        final boolean screenProctoringEnabled =
+                currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_SCREEN_PROCTORING)
+                && BooleanUtils.toBoolean(screenProctoringSettings.enableScreenProctoring);
+        if (screenProctoringEnabled) {
+            this.pageService
+                    .getRestService()
+                    .getBuilder(GetScreenProctoringGroups.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                    .call()
+                    .onError(error -> log.error("Failed to get screen proctoring group data:", error))
+                    .getOr(Collections.emptyList())
+                    .forEach(group -> {
+                        actionBuilder
+                                .newAction(ActionDefinition.MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP)
+                                .withEntityKey(exam.getEntityKey())
+                                .withExec(_action -> monitoringProctoringService.openScreenProctoringTab(
+                                        screenProctoringSettings,
+                                        group,
+                                        _action))
+                                .withNameAttributes(group.name, group.size)
+                                .noEventPropagation()
+                                .publish();
+                    });
+        }
     }
 
     private PageAction exportCSV(final PageAction action) {

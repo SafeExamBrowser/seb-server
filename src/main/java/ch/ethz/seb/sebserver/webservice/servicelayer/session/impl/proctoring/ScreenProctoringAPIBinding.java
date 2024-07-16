@@ -82,6 +82,8 @@ class ScreenProctoringAPIBinding {
         String TOKEN_ENDPOINT = "/oauth/token";
         String TEST_ENDPOINT = "/admin-api/v1/proctoring/group";
 
+        String GROUP_COUNT_ENDPOINT = "/admin-api/v1/proctoring/active_counts";
+
         String USER_ACCOUNT_ENDPOINT = "/admin-api/v1/useraccount/";
         String USERSYNC_SEBSERVER_ENDPOINT = USER_ACCOUNT_ENDPOINT + "usersync/sebserver";
         String ENTITY_PRIVILEGES_ENDPOINT =  USER_ACCOUNT_ENDPOINT + "entityprivilege";
@@ -151,7 +153,7 @@ class ScreenProctoringAPIBinding {
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-        static final class ExamUpdate {
+        final class ExamUpdate {
             @JsonProperty(EXAM.ATTR_NAME)
             final String name;
             @JsonProperty(EXAM.ATTR_DESCRIPTION)
@@ -184,6 +186,27 @@ class ScreenProctoringAPIBinding {
                 this.endTime = endTime;
                 this.userIds = userIds;
             }
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class GroupSessionCount {
+        @JsonProperty("uuid")
+        public final String groupUUID;
+        @JsonProperty("activeCount")
+        public final Integer activeCount;
+        @JsonProperty("totalCount")
+        public final Integer totalCount;
+
+        @JsonCreator
+        public GroupSessionCount(
+                @JsonProperty("uuid") final String groupUUID,
+                @JsonProperty("activeCount") final Integer activeCount,
+                @JsonProperty("totalCount") final Integer totalCount) {
+
+            this.groupUUID = groupUUID;
+            this.activeCount = activeCount;
+            this.totalCount = totalCount;
         }
     }
 
@@ -749,6 +772,35 @@ class ScreenProctoringAPIBinding {
         return;
     }
 
+    public Collection<GroupSessionCount> getActiveGroupSessionCounts() {
+        try {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .path(SPS_API.GROUP_COUNT_ENDPOINT)
+                    .build()
+                    .toUriString();
+
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.POST);
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                log.error("Failed to request active group session counts: {}", exchange);
+                return Collections.emptyList();
+            }
+
+            return this.jsonMapper.readValue(
+                    exchange.getBody(),
+                    new TypeReference<Collection<GroupSessionCount>>() {
+                    });
+
+        } catch (final Exception e) {
+            log.error("Failed to get active group session counts: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
     private void synchronizeUserAccount(
             final String userUUID,
             final ScreenProctoringServiceOAuthTemplate apiTemplate) {
@@ -1187,39 +1239,6 @@ class ScreenProctoringAPIBinding {
 
             return apiTemplateExam;
         }
-
-//        if (this.apiTemplate == null || !this.apiTemplate.isValid(examId)) {
-//            if (examId != null) {
-//
-//                if (log.isDebugEnabled()) {
-//                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for exam: {}", examId);
-//                }
-//
-//                final ScreenProctoringSettings settings = this.proctoringSettingsDAO
-//                        .getScreenProctoringSettings(new EntityKey(examId, EntityType.EXAM))
-//                        .getOrThrow();
-//                this.testConnection(settings).getOrThrow();
-//                this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, settings);
-//
-//            } else if (this.webserviceInfo.getScreenProctoringServiceBundle().bundled) {
-//
-//                if (log.isDebugEnabled()) {
-//                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for exam: {}", examId);
-//                }
-//
-//                final WebserviceInfo.ScreenProctoringServiceBundle bundle = this.webserviceInfo
-//                        .getScreenProctoringServiceBundle();
-//
-//                this.testConnection(bundle).getOrThrow();
-//                this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, bundle);
-//
-//
-//            } else {
-//                throw new IllegalStateException("No SPS API access information found!");
-//            }
-//        }
-//
-//        return this.apiTemplate;
     }
 
     private static List<String> getSupporterIds(final Exam exam) {

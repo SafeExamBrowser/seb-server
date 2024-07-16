@@ -54,9 +54,7 @@ public interface ScreenProctoringGroupDAO {
      *
      * @param examId the exam identifier
      * @param maxSize the maximum size of connection collected in one collecting group. Size of 0 means no limit.
-     * @param newGroupFunction Function to create data for a new collecting group if needed.
-     * @return Result refer to the collecting group record of place or to an error when happened
-     * @throws If the Result contains a AllGroupsFullException, there must be created a new Group first */
+     * @return Result refer to the collecting group record of place or to an error when happened*/
     Result<ScreenProctoringGroup> reservePlaceInCollectingGroup(Long examId, int maxSize);
 
     Result<ScreenProctoringGroup> releasePlaceInCollectingGroup(Long examId, Long groupId);
@@ -80,4 +78,5 @@ public interface ScreenProctoringGroupDAO {
      * @return Result refer to a collection of entity keys for all delete group records or to an error when happened */
     Result<Collection<EntityKey>> deleteGroups(Long examId);
 
+    void updateGroupSize(String groupUUID, Integer activeCount, Integer totalCount);
 }

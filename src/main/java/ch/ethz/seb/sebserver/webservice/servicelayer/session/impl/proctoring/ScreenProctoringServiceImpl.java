@@ -18,7 +18,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -241,6 +240,24 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         } catch (final Exception e) {
             log.error("Failed to update active SEB connections for screen proctoring");
+        }
+    }
+
+    @Override
+    public void updateActiveGroups() {
+        try {
+
+            screenProctoringAPIBinding
+                    .getActiveGroupSessionCounts()
+                    .forEach(groupCount -> {
+                        screenProctoringGroupDAO.updateGroupSize(
+                                groupCount.groupUUID,
+                                groupCount.activeCount,
+                                groupCount.totalCount);
+                    });
+
+        } catch (final Exception e) {
+            log.warn("Failed to update actual group session counts.");
         }
     }
 
