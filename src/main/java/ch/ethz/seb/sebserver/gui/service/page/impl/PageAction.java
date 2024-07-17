@@ -86,6 +86,10 @@ public final class PageAction {
         }
     }
 
+    public void setReadonly() {
+        this.pageContext = this.pageContext.withAttribute(AttributeKeys.READ_ONLY,  Constants.TRUE_STRING);
+    }
+
     public String getName() {
         if (this.definition != null) {
             return this.definition.name();

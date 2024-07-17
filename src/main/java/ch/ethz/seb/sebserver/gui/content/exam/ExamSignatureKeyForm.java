@@ -186,18 +186,31 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         table -> actionBuilder
                                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP)
                                 .withParentEntityKey(entityKey)
-                                .withExec(action -> this.addSecurityKeyGrantPopup.showGrantPopup(
-                                        action,
-                                        table.getSingleSelectedROWData()))
+                                .withSelect(
+                                        table::getMultiSelection,
+                                        this.addGrant(table),
+                                        APP_SIG_KEY_LIST_EMPTY_SELECTION_TEXT_KEY)
+                                .noEventPropagation()
+                                .ignoreMoveAwayFromEdit()
+                                .create())
+                .withDefaultActionIf(
+                        () -> readonly,
+                        table -> actionBuilder
+                                .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ASK_POPUP)
+                                .withParentEntityKey(entityKey)
+                                .withSelect(
+                                        table::getMultiSelection,
+                                        this.showASK(table),
+                                        APP_SIG_KEY_LIST_EMPTY_SELECTION_TEXT_KEY)
                                 .noEventPropagation()
                                 .ignoreMoveAwayFromEdit()
                                 .create())
 
-                .withSelectionListenerIf(
-                        () -> !readonly,
+                .withSelectionListener(
                         this.pageService.getSelectionPublisher(
                                 pageContext,
-                                ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP))
+                                ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP,
+                                ActionDefinition.EXAM_SECURITY_KEY_SHOW_ASK_POPUP))
 
                 .compose(pageContext.copyOf(content));
 
@@ -225,14 +238,14 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         GRANT_LIST_TAG,
                         SecurityKey::getTag).widthProportion(1))
 
-                .withDefaultActionIf(
-                        () -> !readonly,
+                .withDefaultAction(
                         table -> actionBuilder
                                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_GRANT_POPUP)
                                 .withParentEntityKey(entityKey)
-                                .withExec(action -> this.securityKeyGrantPopup.showGrantPopup(
-                                        action,
-                                        table.getSingleSelectedROWData()))
+                                .withSelect(
+                                        table::getMultiSelection,
+                                        this.showGrant(table),
+                                        GRANT_LIST_EMPTY_SELECTION_TEXT_KEY)
                                 .noEventPropagation()
                                 .ignoreMoveAwayFromEdit()
                                 .create())
@@ -330,6 +343,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
         return action -> {
             final EntityKey singleSelection = action.getSingleSelection();
             if (singleSelection != null) {
+                action.setReadonly();
                 this.addSecurityKeyGrantPopup.showGrantPopup(action, connectionInfoTable.getSingleSelectedROWData());
             }
             return action;
