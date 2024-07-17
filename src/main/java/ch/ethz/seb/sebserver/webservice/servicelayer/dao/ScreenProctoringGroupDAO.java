@@ -81,4 +81,6 @@ public interface ScreenProctoringGroupDAO {
     void updateGroupSize(String groupUUID, Integer activeCount, Integer totalCount);
 
     void resetAllForExam(Long examId);
+
+    boolean hasActiveGroups();
 }

@@ -247,15 +247,16 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     public void updateActiveGroups() {
         try {
 
-            screenProctoringAPIBinding
-                    .getActiveGroupSessionCounts()
-                    .forEach(groupCount -> {
-                        screenProctoringGroupDAO.updateGroupSize(
-                                groupCount.groupUUID,
-                                groupCount.activeCount,
-                                groupCount.totalCount);
-                    });
-
+            if (screenProctoringGroupDAO.hasActiveGroups()) {
+                screenProctoringAPIBinding
+                        .getActiveGroupSessionCounts()
+                        .forEach(groupCount -> {
+                            screenProctoringGroupDAO.updateGroupSize(
+                                    groupCount.groupUUID,
+                                    groupCount.activeCount,
+                                    groupCount.totalCount);
+                        });
+            }
         } catch (final Exception e) {
             log.warn("Failed to update actual group session counts.");
         }

@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
@@ -30,10 +32,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ScreenProctoringGroopRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ScreenProctoringGroopRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ScreenProctoringGroopRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ScreenProctoringGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -280,6 +278,25 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasActiveGroups() {
+        try {
+            return this.screenProctoringGroopRecordMapper
+                    .countByExample()
+                    .leftJoin(ExamRecordDynamicSqlSupport.examRecord)
+                    .on(
+                            ScreenProctoringGroopRecordDynamicSqlSupport.examId,
+                            equalTo(ExamRecordDynamicSqlSupport.id))
+                    .where(ExamRecordDynamicSqlSupport.status, isEqualTo(Exam.ExamStatus.RUNNING.name()))
+                    .build()
+                    .execute() > 0;
+        } catch (final Exception e) {
+            log.error("Failed to check active screen proctoring groups: ", e);
+            return false;
+        }
+    }
+
     private ScreenProctoringGroup toDomainModel(final ScreenProctoringGroopRecord record) {
         return new ScreenProctoringGroup(
                 record.getId(),
@@ -289,24 +306,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
                 record.getSize(),
                 record.getData());
     }
-
-//    private ScreenProctoringGroopRecord updateCollectingGroup(
-//            final ScreenProctoringGroopRecord screenProctoringGroupRecord) {
-//
-//        final Long id = screenProctoringGroupRecord.getId();
-//
-//        UpdateDSL.updateWithMapper(
-//                this.screenProctoringGroopRecordMapper::update,
-//                ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
-//                .set(ScreenProctoringGroopRecordDynamicSqlSupport.size)
-//                .equalTo(screenProctoringGroupRecord.getSize() + 1)
-//                .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(id))
-//                .build()
-//                .execute();
-//
-//        return this.screenProctoringGroopRecordMapper.selectByPrimaryKey(id);
-//    }
-
     public static final class AllGroupsFullException extends RuntimeException {
         private static final long serialVersionUID = 3283129187819160485L;
     }
