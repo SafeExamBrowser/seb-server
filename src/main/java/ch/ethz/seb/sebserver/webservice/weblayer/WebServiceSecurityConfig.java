@@ -13,6 +13,11 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.OAuthFlow;
+import io.swagger.v3.oas.models.security.OAuthFlows;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.apache.catalina.filters.RemoteIpFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +120,21 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public RemoteIpFilter remoteIpFilter() {
         return new RemoteIpFilter();
+    }
+
+    @Bean
+    public OpenAPI cutomOpenApi(){
+
+        return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes("oauth2", new SecurityScheme()
+                                .type(SecurityScheme.Type.OAUTH2)
+                                .scheme("bearer")
+                                .in(SecurityScheme.In.HEADER)
+                                .bearerFormat("jwt")
+                                .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl("/oauth/token")))
+                        )
+                );
     }
 
     @Bean
