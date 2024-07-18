@@ -253,7 +253,9 @@ public final class QuizData implements GrantEntity {
     }
 
     public static Comparator<QuizData> getComparator(final String sort) {
+
         final boolean descending = PageSortOrder.getSortOrder(sort) == PageSortOrder.DESCENDING;
+        System.out.println("**************** sort: " + sort + " descending " + descending);
         final String sortParam = PageSortOrder.decode(sort);
         if (QUIZ_ATTR_NAME.equals(sortParam)) {
             return (qd1, qd2) -> StringUtils.compare(qd1.name, qd2.name) * ((descending) ? -1 : 1);
