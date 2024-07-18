@@ -247,6 +247,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     public void updateActiveGroups() {
         try {
 
+            if (!webserviceInfo.isMaster()) {
+                return;
+            }
+
             if (screenProctoringGroupDAO.hasActiveGroups()) {
                 screenProctoringAPIBinding
                         .getActiveGroupSessionCounts()
