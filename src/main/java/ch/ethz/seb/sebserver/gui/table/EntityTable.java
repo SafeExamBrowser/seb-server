@@ -76,6 +76,7 @@ public class EntityTable<ROW extends ModelIdAware> {
     private final String sortAttrName;
     private final String sortOrderAttrName;
     private final String currentPageAttrName;
+    private final String columnWidthAttrName;
     private final boolean markupEnabled;
     private final Consumer<EntityTable<ROW>> pageReloadListener;
 
@@ -138,6 +139,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         this.sortAttrName = name + "_sort";
         this.sortOrderAttrName = name + "_sortOrder";
         this.currentPageAttrName = name + "_currentPage";
+        this.columnWidthAttrName = name + "_columnWidth";
         this.markupEnabled = markupEnabled;
 
         this.defaultSortColumn = defaultSortColumn;
@@ -236,6 +238,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         this.navigator = new TableNavigator(this);
 
         createTableColumns();
+
         this.pageNumber = initCurrentPageFromUserAttr();
         initFilterFromUserAttrs();
         initSortFromUserAttr();
@@ -317,6 +320,8 @@ public class EntityTable<ROW extends ModelIdAware> {
     }
 
     public void reset() {
+        deleteColumnWidths();
+        adaptColumnWidth(null);
         this.sortColumn = this.defaultSortColumn;
         this.sortOrder = this.defaultSortOrder;
         updateSortUserAttr();
@@ -595,7 +600,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         try {
             int currentTableWidth = this.table.getParent().getClientArea().width;
             // If we have all columns with filter we need some more space for the
-            // filter actions in the right hand side. This tweak gives enough space for that
+            // filter actions on the right hand side. This tweak gives enough space for that
             if (this.filter != null && this.columns.size() == this.filter.size()) {
                 currentTableWidth -= 60;
             }
@@ -620,7 +625,7 @@ public class EntityTable<ROW extends ModelIdAware> {
                 final int newWidth = (pSize > 0)
                         ? columnUnitSize * column.getWidthProportion()
                         : columnUnitSize;
-                tableColumn.setWidth(newWidth);
+                loadOrSetColumnWidth(index, newWidth);
                 if (this.filter != null) {
                     this.filter.adaptColumnWidth(this.table.indexOf(tableColumn), newWidth);
                 }
@@ -639,11 +644,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         final Widget widget = event.widget;
         if (widget instanceof TableColumn) {
             final TableColumn tableColumn = ((TableColumn) widget);
-            if (this.filter != null) {
-                this.filter.adaptColumnWidth(
-                        this.table.indexOf(tableColumn),
-                        tableColumn.getWidth());
-            }
+            this.saveColumnSize(table.indexOf(tableColumn));
         }
     }
 
@@ -903,6 +904,39 @@ public class EntityTable<ROW extends ModelIdAware> {
                 .map(size -> size != this.table.getItems().length)
                 .getOr(false)) {
             reset();
+        }
+    }
+
+    private void saveColumnSize(final int columnIndex) {
+        final TableColumn column = table.getColumn(columnIndex);
+        if (column.getWidth() > 0) {
+            this.pageService
+                    .getCurrentUser()
+                    .putAttribute(
+                            columnWidthAttrName + columnIndex,
+                            String.valueOf(table.getColumn(columnIndex).getWidth()));
+        }
+    }
+
+    private void loadOrSetColumnWidth(final int columnIndex, final int defaultWidth) {
+        int width = defaultWidth;
+        try {
+            width = Integer.parseInt(this.pageService
+                    .getCurrentUser()
+                    .getAttribute(columnWidthAttrName + columnIndex));
+        } catch (final Exception e) {
+            // ignore
+        }
+
+        table.getColumn(columnIndex).setWidth(width);
+        saveColumnSize(columnIndex);
+    }
+
+    private void deleteColumnWidths() {
+        for (int i = 0; i < this.columns.size(); i++) {
+            this.pageService
+                    .getCurrentUser()
+                    .deleteAttribute(columnWidthAttrName + i);
         }
     }
 
