@@ -339,9 +339,17 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 throw new RuntimeException("No user details on Moodle API request");
             }
 
+            System.out.println("---------------------");
+            System.out.println("*************it got here moodle plugin debugging");
             if (log.isDebugEnabled()) {
+                System.out.println("*************inside if");
                 log.debug("User details received from Moodle: {}", userDetails[0]);
             }
+            System.out.println("firstname: " + userDetails[0].firstname);
+            System.out.println("firstname: " + userDetails[0].lastname);
+            System.out.println("firstname: " + userDetails[0].fullname);
+            System.out.println(userDetails[0]);
+            System.out.println("---------------------");
 
             final Map<String, String> additionalAttributes = MoodleUtils.getMoodleAccountDetails(userDetails);
             return new ExamineeAccountDetails(
