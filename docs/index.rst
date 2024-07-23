@@ -21,5 +21,6 @@ Table of Content
    configurations
    exams
    monitoring
+   screen_proctoring
    troubleshooting
 
