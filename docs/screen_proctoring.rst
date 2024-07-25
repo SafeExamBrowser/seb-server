@@ -4,52 +4,56 @@ Screen Proctoring
 Overview
 ---------
 
-The institution section within SEB Server is used to support built-in multi-tenancy functionality to allow using SEB Server as a 
-light-weight stand-alone server but with the possibility to separate operation completely within different institutions.
+SEB Screen Proctoring is an integral component of the SEB Ecosystem, designed to monitor student screens during digital examinations.
+This tool captures and displays screenshots taken by SEB, ensuring a secure and controlled testing environment.
 
-.. note:: 
-      If a quick use-case based reference suites you better, just forward to the "Use Cases" section of this chapter below
+Enable Screen Proctoring after an exam is created in the exam view.
 
-Only the role of SEB Server administrator and institutional administrator are able to see and use this section.
-A SEB Server administrator is able to see the whole list of all existing institutions and to create new and maintain every 
-institution within a SEB Server, while an institutional administrator is only able to see the belonging institution and
-is able to modify this institution but not to change activity or create new institutions.
-
-If a SEB Server administrator clicks on the "Institution" section on the left hand menu, the application will show the a list
-of all available institutions. The list can be filtered with the filter above and can be sorted by clicking on the column one 
-would like to sort the list in. 
-
-.. note:: 
-      The possible actions are in the action pane on the right hand side and the actions
-      that belongs to a list entry are only active if a list entry is selected.
-
-Currently an institution has a name, an optional url-suffix and an optional logo upload attribute. 
-
-- The **Name** is mandatory and must be unique within the SEB Server application.
-- The **URL-Suffix** is optional and defines a suffix that can be used within the browser URL to access the SEB Server within this institution. The institution logo and theme will then be shown.
-- The **Logo** upload where an image can be uploaded to be used as logo for the institution. 
-  
-.. note:: The logo ideally should have a dimension around 300 pixel width and 80 pixel height 
-          to fit well into the logo section of the page. Currently only .png, .jpg and .jpeg image-files are supported.
-
-.. image:: images/institution/list.png
+.. image:: images/screen_proctoring/enable_screen_proctoring.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/institution/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/screen_proctoring/enable_screen_proctoring.png
 
-As an institutional administrator only the institution one belongs to can be seen and be modified by the user.
-The user will see the institution form in view mode by clicking on the "Institution" section on the left hand menu
-and is able to edit the attributes of the institution like changing the name of the institution or upload a
-new institutional logo. An institutional administrator is not able to activate or deactivate its own institution, 
-therefore a SEB Server administrator role is needed.
+**Enable Screen Proctoring**
 
-.. image:: images/institution/view_institutional.png
+
+SEB Server needs to send an instructions to SEB to capture the screen and send the screenshot back to the server.
+To do this enable screen proctoring in the SEB Settings.
+
+.. image:: images/screen_proctoring/enable_screen_proctoring_seb_settings.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/institution/view_institutional.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/screen_proctoring/enable_screen_proctoring_seb_settings.png
+
+**Enable Screen Proctoring in SEB Settings**
 
 
+SEB-Server and SEB are now ready to capture and to display screenshots.
+Navigate to exam monitoring and click the button in the Screen Proctoring section. A new tab will be opened.
 
-Use Cases
+.. image:: images/screen_proctoring/open_screen_proctoring.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/screen_proctoring/open_screen_proctoring.png
+
+
+Gallery View
 ---------
+
+
+
+
+Running Exams
+---------
+
+
+
+
+Proctoring View
+---------
+
+
+Search
+---------
+
+
 
 **Create a new Institution**
 
