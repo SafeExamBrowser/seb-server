@@ -338,7 +338,7 @@ public class MonitoringProctoringService {
                     .getUserPassword();
             final String body = "username=" + currentUser.get().username
                     + "&password=" + userPassword.toString()
-                    + "&redirect=/galleryView/" + group.uuid;
+                    + "&redirect=/gallery-view/" + group.uuid;
 
             // apply jwt token request
             final HttpEntity<String> httpEntity = new HttpEntity<>(body, httpHeaders);

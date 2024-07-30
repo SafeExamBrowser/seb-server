@@ -530,6 +530,29 @@ public abstract class MoodleUtils {
             this.mailformat = mailformat;
             this.descriptionformat = descriptionformat;
         }
+        @Override
+        public String toString() {
+            return "MoodleUserDetails{" +
+                    "id='" + id + '\'' +
+                    ", username='" + username + '\'' +
+                    ", firstname='" + firstname + '\'' +
+                    ", lastname='" + lastname + '\'' +
+                    ", fullname='" + fullname + '\'' +
+                    ", email='" + email + '\'' +
+                    ", department='" + department + '\'' +
+                    ", firstaccess=" + firstaccess +
+                    ", lastaccess=" + lastaccess +
+                    ", auth='" + auth + '\'' +
+                    ", suspended=" + suspended +
+                    ", confirmed=" + confirmed +
+                    ", lang='" + lang + '\'' +
+                    ", theme='" + theme + '\'' +
+                    ", timezone='" + timezone + '\'' +
+                    ", description='" + description + '\'' +
+                    ", mailformat=" + mailformat +
+                    ", descriptionformat=" + descriptionformat +
+                    '}';
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

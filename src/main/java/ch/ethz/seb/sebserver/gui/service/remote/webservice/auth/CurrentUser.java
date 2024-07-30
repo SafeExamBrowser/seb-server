@@ -70,6 +70,10 @@ public class CurrentUser {
         this.attributes.put(name, value);
     }
 
+    public void deleteAttribute(final String name) {
+        this.attributes.remove(name);
+    }
+
     public String getAttribute(final String name) {
         return this.attributes.get(name);
     }
