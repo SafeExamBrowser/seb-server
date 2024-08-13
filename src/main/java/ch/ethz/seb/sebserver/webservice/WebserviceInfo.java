@@ -51,6 +51,7 @@ public class WebserviceInfo {
     private static final String WEB_SERVICE_EXTERNAL_ADDRESS_ALIAS = "sebserver.webservice.lms.address.alias";
     private static final String WEB_SERVICE_CONTEXT_PATH = "server.servlet.context-path";
     public static final String SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT = "sebserver.webservice.autologin.endpoint";
+    public static final String WEB_SERVICE_GUI_AUTOLOGIN_URL_KEY = "sebserver.webservice.autologin.url";
 
     private final String sebServerVersion;
     private final String testProperty;
@@ -68,6 +69,8 @@ public class WebserviceInfo {
     private final String serverURLPrefix;
     private final boolean isDistributed;
     private final String webserviceUUID;
+
+    private final String guiAutologinURL;
 
     private final long distributedUpdateInterval;
 
@@ -135,6 +138,11 @@ public class WebserviceInfo {
             builder.path(this.contextPath);
         }
         this.serverURLPrefix = builder.toUriString();
+        String guiAutologinURL = environment.getProperty(WEB_SERVICE_GUI_AUTOLOGIN_URL_KEY, builder.toUriString());
+        if (StringUtils.isBlank(guiAutologinURL)) {
+            guiAutologinURL = builder.toUriString();
+        }
+        this.guiAutologinURL = guiAutologinURL;
 
         this.isLightSetup = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.light.setup",
@@ -295,6 +303,10 @@ public class WebserviceInfo {
         return this.serverURLPrefix;
     }
 
+    public String getGUIAutologinURL() {
+        return this.guiAutologinURL;
+    }
+
     public String getOAuthTokenURI() {
         return getExternalServerURL() + API.OAUTH_TOKEN_ENDPOINT;
     }
@@ -358,8 +370,6 @@ public class WebserviceInfo {
         builder.append("]");
         return builder.toString();
     }
-
-
 
     public static final class ScreenProctoringServiceBundle implements SPSAPIAccessData {
 
