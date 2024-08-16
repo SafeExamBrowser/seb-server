@@ -93,12 +93,17 @@ public class LmsTestServiceImpl implements LmsTestService {
         }
 
         final LmsSetupTestResult lmsSetupTestResult = fullIntegrationTest(lmsSetupTemplate);
-        if (lmsSetupTestResult != null) return lmsSetupTestResult;
+        if (lmsSetupTestResult != null) {
+            return lmsSetupTestResult;
+        }
 
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
     }
 
     private LmsSetupTestResult fullIntegrationTest(final LmsAPITemplate template) {
+        if (!template.fullIntegrationActive()) {
+            return null;
+        }
         if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
             final Long lmsSetupId = template.lmsSetup().id;
             final LmsSetupTestResult lmsSetupTestResult = template.testFullIntegrationAPI();

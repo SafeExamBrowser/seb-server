@@ -207,6 +207,6 @@ public class LmsIntegrationController {
 
         return new FullLmsIntegrationService.TokenLoginResponse(
                 lmsUUId,
-                webserviceInfo.getExternalServerURL() + API.LMS_FULL_INTEGRATION_LOGIN_TOKEN_ENDPOINT + "?jwt=" + token);
+                webserviceInfo.getGUIAutologinURL() + API.LMS_FULL_INTEGRATION_LOGIN_TOKEN_ENDPOINT + "?jwt=" + token);
     }
 }
