@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -348,6 +349,17 @@ public class MonitoringProctoringService {
                     httpEntity,
                     String.class);
 
+            if (tokenRequest.getStatusCode() == HttpStatus.UNAUTHORIZED &&
+                    currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.INSTITUTIONAL_ADMIN)) {
+                log.warn("No Access to Screen Proctoring for user: {}", currentUser.get().username);
+                _action
+                        .pageContext()
+                        .notifyError(
+                                new LocTextKey("sebserver.monitoring.sps.noaccess"),
+                                new RuntimeException("Please make sure you are assigned as supporter for this Exam"));
+                return _action;
+            }
+
             // Open SPS Gui redirect URL with login token (jwt token) in new browser tab
             final String redirectLocation = redirect.getBody() + "/jwt?token=" + tokenRequest.getBody();
        //     final String script = "var win = window.open('', 'seb_screen_proctoring'); win.location.href = '"+ redirectLocation + "';";
@@ -359,7 +371,7 @@ public class MonitoringProctoringService {
         } catch (final Exception e) {
             log.error("Failed to open screen proctoring service group gallery view: ", e);
             _action.pageContext()
-                    .notifyError(new LocTextKey("Failed to open screen proctoring service group gallery view"), e);
+                    .notifyError(new LocTextKey("sebserver.monitoring.sps.opengallery.fail"), e);
         }
         return _action;
     }
