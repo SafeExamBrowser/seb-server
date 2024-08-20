@@ -101,6 +101,9 @@ public class LmsTestServiceImpl implements LmsTestService {
     }
 
     private LmsSetupTestResult fullIntegrationTest(final LmsAPITemplate template) {
+        if (template.lmsSetup().lmsType != LmsSetup.LmsType.MOODLE_PLUGIN) {
+            return null;
+        }
         if (!template.fullIntegrationActive()) {
             return null;
         }
