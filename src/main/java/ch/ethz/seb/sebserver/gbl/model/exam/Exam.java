@@ -363,7 +363,7 @@ public final class Exam implements GrantEntity {
 
     @JsonIgnore
     public boolean isLmsAvailable() {
-        return BooleanUtils.isTrue(this.lmsAvailable);
+        return BooleanUtils.isNotFalse(this.lmsAvailable);
     }
 
     public String getExternalId() {
