@@ -577,6 +577,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             log.debug("Register JOIN instruction for client ");
         }
 
+        final boolean checkActive = exam.lmsSetupId != null;
         final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id);
         final String url = screenProctoringServiceBundle.bundled
                 ? screenProctoringServiceBundle.serviceURL
@@ -597,7 +598,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         InstructionType.SEB_PROCTORING,
                         attributes,
                         ccRecord.getConnectionToken(),
-                        true,
+                        checkActive,
                         true)
                 .onError(error -> log.error(
                         "Failed to register screen proctoring join instruction for SEB connection: {}",
