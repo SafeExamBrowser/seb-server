@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -351,12 +352,7 @@ public class MonitoringProctoringService {
 
             if (tokenRequest.getStatusCode() == HttpStatus.UNAUTHORIZED &&
                     currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.INSTITUTIONAL_ADMIN)) {
-                log.warn("No Access to Screen Proctoring for user: {}", currentUser.get().username);
-                _action
-                        .pageContext()
-                        .notifyError(
-                                new LocTextKey("sebserver.monitoring.sps.noaccess"),
-                                new RuntimeException("Please make sure you are assigned as supporter for this Exam"));
+                notifyUnauthorized(_action, currentUser);
                 return _action;
             }
 
@@ -369,11 +365,26 @@ public class MonitoringProctoringService {
 //                    .getService(JavaScriptExecutor.class)
 //                    .execute(script);
         } catch (final Exception e) {
+            if (e instanceof HttpClientErrorException) {
+                if (((HttpClientErrorException) e).getRawStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
+                    notifyUnauthorized(_action,  this.pageService.getCurrentUser());
+                    return _action;
+                }
+            }
             log.error("Failed to open screen proctoring service group gallery view: ", e);
             _action.pageContext()
                     .notifyError(new LocTextKey("sebserver.monitoring.sps.opengallery.fail"), e);
         }
         return _action;
+    }
+
+    private static void notifyUnauthorized(final PageAction _action, final CurrentUser currentUser) {
+        log.warn("No Access to Screen Proctoring for user: {}", currentUser.get().username);
+        _action
+                .pageContext()
+                .notifyError(
+                        new LocTextKey("sebserver.monitoring.sps.noaccess"),
+                        new RuntimeException("Please make sure you are assigned as supporter for this Exam"));
     }
 
     private PageAction openExamProctoringRoom(
