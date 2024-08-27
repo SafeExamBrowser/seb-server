@@ -384,7 +384,7 @@ public class MonitoringProctoringService {
                 .pageContext()
                 .notifyError(
                         new LocTextKey("sebserver.monitoring.sps.noaccess"),
-                        new RuntimeException("Please make sure you are assigned as supporter for this Exam"));
+                        new RuntimeException("No access to Screen Proctoring. Please make sure you are assigned as Exam Supporter for this exam."));
     }
 
     private PageAction openExamProctoringRoom(
