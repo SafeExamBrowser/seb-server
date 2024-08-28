@@ -29,6 +29,8 @@ Navigate to exam monitoring and click the button in the Screen Proctoring sectio
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/docu/docs/images/screen_proctoring/open_screen_proctoring.png
 
+|
+|
 
 Gallery View
 ---------
@@ -70,6 +72,8 @@ Gallery View
 - A message box indicates that there are no live sessions available
 - As soon as a sessions are connected the message box will disappear
 
+|
+|
 
 Running Exams
 ---------
@@ -95,6 +99,8 @@ By clicking on the settings icon in the menu bar two options are displayed.
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/docu/docs/images/screen_proctoring/running_exam_selection.png
 
 
+|
+|
 
 Proctoring View
 ---------
@@ -134,7 +140,8 @@ A session can either be live or recorded.
 - Set the playback speed with the "settings"-icon according to you preferences
 - The current screenshot and the total amount of screenshot is display in the "Total"-Row
 
-
+|
+|
 
 Search
 ---------
@@ -183,6 +190,8 @@ Use the "date" button on the right side to change the sort oder.
       If the session is still live the proctoring view won't open at the given time but instead jumps to the latest image.
 
 
+|
+|
 
 Metadata
 ---------
