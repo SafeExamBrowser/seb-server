@@ -100,7 +100,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     void updateClientConnections();
 
     /** This goes through all running exams with screen proctoring enabled and updates the group attributes
-     *  (mainly the number of active clients in the group) by call ing SPS API and store newest data. */
+     *  (mainly the number of active clients in the group) by calling SPS API and store newest data. */
     void updateActiveGroups();
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)

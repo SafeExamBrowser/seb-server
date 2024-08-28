@@ -146,7 +146,7 @@ class ExamUpdateHandler implements ExamUpdateTask {
                             .forEach(quizId -> {
                                 try {
                                     final Exam exam = exams.get(quizId);
-                                    if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
+                                    if (exam.lmsSetupId != null && (exam.lmsAvailable == null || exam.isLmsAvailable())) {
                                         this.examDAO.markLMSAvailability(quizId, false, updateId);
                                     }
                                 } catch (final Exception ee) {

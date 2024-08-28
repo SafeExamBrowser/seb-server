@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -348,6 +350,12 @@ public class MonitoringProctoringService {
                     httpEntity,
                     String.class);
 
+            if (tokenRequest.getStatusCode() == HttpStatus.UNAUTHORIZED &&
+                    currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.INSTITUTIONAL_ADMIN)) {
+                notifyUnauthorized(_action, currentUser);
+                return _action;
+            }
+
             // Open SPS Gui redirect URL with login token (jwt token) in new browser tab
             final String redirectLocation = redirect.getBody() + "/jwt?token=" + tokenRequest.getBody();
        //     final String script = "var win = window.open('', 'seb_screen_proctoring'); win.location.href = '"+ redirectLocation + "';";
@@ -357,11 +365,26 @@ public class MonitoringProctoringService {
 //                    .getService(JavaScriptExecutor.class)
 //                    .execute(script);
         } catch (final Exception e) {
+            if (e instanceof HttpClientErrorException) {
+                if (((HttpClientErrorException) e).getRawStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
+                    notifyUnauthorized(_action,  this.pageService.getCurrentUser());
+                    return _action;
+                }
+            }
             log.error("Failed to open screen proctoring service group gallery view: ", e);
             _action.pageContext()
-                    .notifyError(new LocTextKey("Failed to open screen proctoring service group gallery view"), e);
+                    .notifyError(new LocTextKey("sebserver.monitoring.sps.opengallery.fail"), e);
         }
         return _action;
+    }
+
+    private static void notifyUnauthorized(final PageAction _action, final CurrentUser currentUser) {
+        log.warn("No Access to Screen Proctoring for user: {}", currentUser.get().username);
+        _action
+                .pageContext()
+                .notifyError(
+                        new LocTextKey("sebserver.monitoring.sps.noaccess"),
+                        new RuntimeException("No access to Screen Proctoring. Please make sure you are assigned as Exam Supporter for this exam."));
     }
 
     private PageAction openExamProctoringRoom(
