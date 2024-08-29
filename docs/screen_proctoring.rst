@@ -11,7 +11,7 @@ Enable Screen Proctoring after an exam is created in the exam view.
 
 .. image:: images/screen_proctoring/enable_screen_proctoring.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/docu/docs/images/screen_proctoring/enable_screen_proctoring.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/enable_screen_proctoring.png
 
 
 SEB Server needs to send an instruction to SEB to capture the screen and send the screenshot back to the server.
@@ -19,7 +19,7 @@ SEB Server needs to send an instruction to SEB to capture the screen and send th
 
 .. image:: images/screen_proctoring/enable_screen_proctoring_seb_settings.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/enable_screen_proctoring_seb_settings.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/enable_screen_proctoring_seb_settings.png
 
 
 SEB-Server and SEB are now ready to capture and to display screenshots.
@@ -27,7 +27,7 @@ Navigate to exam monitoring and click the button in the Screen Proctoring sectio
 
 .. image:: images/screen_proctoring/open_screen_proctoring.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/open_screen_proctoring.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/open_screen_proctoring.png
 
 |
 |
@@ -43,7 +43,7 @@ Gallery View
 
 .. image:: images/screen_proctoring/gallery_view_live_grid_selection.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/gallery_view_live_grid_selection.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/gallery_view_live_grid_selection.png
 
 
 - Use your mouse to hover over a tile or press the tab key. A "selected" tile reveals information and actions for the session.
@@ -55,7 +55,7 @@ Gallery View
 
 .. image:: images/screen_proctoring/gallery_view_settings.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/gallery_view_settings.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/gallery_view_settings.png
 
 - The SEB-Client additionally sends metadata about the screenshot
 - Metadata changes according to the content displayed on the screenshot
@@ -66,7 +66,7 @@ Gallery View
 
 .. image:: images/screen_proctoring/gallery_view_expanded.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/gallery_view_expanded.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/gallery_view_expanded.png
 
 
 - A message box indicates that there are no live sessions available
@@ -86,7 +86,7 @@ To get an overview of all running exams which your user has access to click on t
 
 .. image:: images/screen_proctoring/running_exam_no_selection.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/running_exam_no_selection.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/running_exam_no_selection.png
 
 By clicking on the settings icon in the menu bar two options are displayed.
 
@@ -96,7 +96,7 @@ By clicking on the settings icon in the menu bar two options are displayed.
 
 .. image:: images/screen_proctoring/running_exam_selection.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/running_exam_selection.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/running_exam_selection.png
 
 
 |
@@ -122,7 +122,7 @@ A session can either be live or recorded.
 
 .. image:: images/screen_proctoring/proctoring_overview_live.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/proctoring_overview_live.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/proctoring_overview_live.png
 
 
 - The "Details"-Box on the right side displays information about the session and the current screenshot
@@ -133,7 +133,7 @@ A session can either be live or recorded.
 
 .. image:: images/screen_proctoring/proctoring_overview.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/proctoring_overview.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/proctoring_overview.png
 
 
 - The "Live" button disappears when the sessions disconnects from the server
@@ -179,8 +179,7 @@ Use the "date" button on the right side to change the sort oder.
 
 .. image:: images/screen_proctoring/search_results_sessions.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/search_results_sessions.png
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/search_results_sessions.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/search_results_sessions.png
 
 - By default, the screenshot are sorted by "Capture-Time" in ascending order
 - The screenshots are grouped into the metadata "Application / Website"
