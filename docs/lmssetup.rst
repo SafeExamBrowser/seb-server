@@ -40,7 +40,7 @@ Therefore we need to create a Assessment Tool Setup on the SEB Server.
 
 .. image:: images/lmssetup/new.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/lmssetup/new.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/lmssetup/new.png
     
 A SEB Server administrator role will be able to see the institution to which the Assessment Tool Setup belongs to while an institutional administrator
 is only able to see and create Assessment Tool Setup for its own institution. The name of the Assessment Tool Setup should be unique and is to identify a Assessment Tool

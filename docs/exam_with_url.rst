@@ -15,13 +15,13 @@ put with some fields you have to provide instead of they coming from LMS/Assessm
 
 .. image:: images/exam/examWithURL.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithURL.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examWithURL.png
 
 
 
 .. image:: images/exam/examWithURLNew.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithURLNew.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examWithURLNew.png
 
 
 
@@ -48,7 +48,7 @@ go one with setting up your Exam.
 
 .. image:: images/exam/examWithURLView.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithURLView.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examWithURLView.png
 
 If you want to edit the Exam settings please use the edit action on the right action pane. Here you can also modify
 the data that usually comes from LMS/Assessment Tool. You can change name, start- and end-date directly here within

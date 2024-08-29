@@ -24,7 +24,7 @@ for this feature.
 
 .. image:: images/exam/examASK.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examASK.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examASK.png
     
 Within this settings page you can enable or disable the feature any time also during a running exam. On the exam page you can see if the feature is enabled 
 when the shield-icon is not strike-through.
@@ -36,7 +36,7 @@ ASK for the same build.
 
 .. image:: images/exam/examASKedit.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examASKedit.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examASKedit.png
     
 In the following list you can see all APK that has been sent to the SEB Server by connected SEB clients. For a particular ASK you can also see
 how many SEB Clients has been sent this ASK and has the same signature. 
@@ -47,7 +47,7 @@ below. You can give a name for the grant and save the grant by using "OK" action
 
 .. image:: images/exam/examASKgrant.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examASKgrant.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examASKgrant.png
     
 You see all granted ASKs within the second list with the ASK hash and the name that was given on grant. All explicitly granted ASKs from that list are
 considered trusted for the exam. And future SEB client connection that connects with one of the ASKs from this list are granted. All SEB clients that
@@ -65,7 +65,7 @@ SEB connections are marked red and with the tag "- ASK Grant Denied" after the s
 
 .. image:: images/exam/examASKMonitoring1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examASKMonitoring1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examASKMonitoring1.png
     
 In the detail view of a SEB client connection you can see this too and you are able to apply a grant for a denied APK afterwards by using the 
 "Grant App Signature Key" action from the right action pane. This will open a pop-up with the ASK hash and an input field for the name of the 
@@ -73,11 +73,11 @@ grant.
 
 .. image:: images/exam/examASKMonitoring2.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examASKMonitoring2.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examASKMonitoring2.png
     
 .. image:: images/exam/examASKMonitoring3.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examASKMonitoring3.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examASKMonitoring3.png
 
 
 After you have granted a unknown ASK, the grant is also applied to the respective SEB connection and to all following SEB connections that

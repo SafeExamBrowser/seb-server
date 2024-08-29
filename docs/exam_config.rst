@@ -26,7 +26,7 @@ filter use the clear symbol right to the lens symbol. See :ref:`gui-label` for m
 
 .. image:: images/exam_config/list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_config/list.png
     
 To view details of a specific exam configuration either double-click on a list entry or select a list entry and use the "View Exam Configuration"
 action from the right action pane. In the detail view all general settings are shown and also a list of exams that uses this exam configuration.
@@ -46,7 +46,7 @@ is assigned to an exam, the status changes automatically to "In Use" and the SEB
 
 .. image:: images/exam_config/view.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/view.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_config/view.png
 
 An exam configuration has a general settings part (like other domain objects has within SEB Server) that defines the name, description and status
 of the exam configuration that are used to maintain the exam configurations SEB Server internally. And an exam configuration has, separated from 
@@ -64,7 +64,7 @@ while also publish them to exams that uses this exam configuration.
 
 .. image:: images/exam_config/settings.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/settings.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_config/settings.png
 
 .. note:: 
     Changes in SEB settings must be published to be available on exports, exams, or other uses. Before publishing they are not
@@ -93,7 +93,7 @@ of the exam configuration. The key will be presented by a pop-up dialog where it
 
 .. image:: images/exam_config/config_key.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/config_key.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_config/config_key.png
 
 
 Batch Actions
@@ -110,7 +110,7 @@ For list multi-selection documentation see :ref:`List Multi-Selection <listmulti
 
 .. image:: images/exam_config/batch-actions.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/batch-actions.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_config/batch-actions.png
 
 
 
@@ -121,7 +121,7 @@ With this batch action you are able to change the state of all selected exam con
 
 .. image:: images/exam_config/batch-actions_statechange.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/batch-actions_statechange.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_config/batch-actions_statechange.png
     
 Within the batch-action pop-up you can see how many exam configurations you have selected for the action. Now you are able to select the target state
 to where you would like to change all selected exam configurations state to. Then you can apply the batch action with "Change State" or cancel the batch-action.
@@ -131,7 +131,7 @@ has been applied and how many has failed.
 
 .. image:: images/exam_config/batch-actions_statechange_finished.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/batch-actions_statechange_finished.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_config/batch-actions_statechange_finished.png
     
     
 **Reset To Template Settings**

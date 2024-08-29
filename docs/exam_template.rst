@@ -17,7 +17,7 @@ and also shows which one is the default for the institution.
 
 .. image:: images/exam_template/list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_template/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/list.png
     
 .. note:: 
     The "Default Template" flag indicates the one exam template that is the default template for an institution. This just means that this template
@@ -32,7 +32,7 @@ SEB Server will then present you the exam template creation view on that some in
 
 .. image:: images/exam_template/new.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_template/new.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/new.png
 
 - **Name** The name of the exam template to identify it in the list/library
 - **Description** A short description ideally describing the purpose of the exam template
@@ -46,7 +46,7 @@ view that looks similar to the exam administration view.
 
 .. image:: images/exam_template/view.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_template/view.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/view.png
 
 Here you can edit the settings done before by using the "Edit Exam Template" action form the right action pane.
 You can also delete an exam template entirely by using the "Delete Exam Template" action from the right action pane.
@@ -54,7 +54,7 @@ And you are able to add/edit/remove monitoring indicators for the exam template 
 
 .. image:: images/exam_template/indicator.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_template/indicator.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/indicator.png
     
 TODO Screen Proctoring Settings
 
@@ -67,7 +67,7 @@ use the "Import as Exam" action for a LMS/Assessment Tool exam that you want to 
 
 .. image:: images/exam_template/select1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_template/select1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/select1.png
     
 Now there is a new selector field named "Exam Template" where you can choose the exam template to use on import. When you select one the template attributes
 like "Exam Type" or "Exam Supporter" are automatically applied from the template settings. You are still able to edit the settings e.g. add more or remove supporter.

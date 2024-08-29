@@ -10,7 +10,7 @@ As an exam supporter you see all running exams where you have been assigned to b
 
 .. image:: images/monitoring/runningExams.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/runningExams.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/runningExams.png
     
 To navigate to this list, click on the "Running Exams" menu within the "Monitoring" category. And you will see the list with the name of the
 exam, the type and start- and end-time of the exam. If the exam you are looking for is not on the list, please check the start-time filter 
@@ -27,7 +27,7 @@ As default you should see at least all active connections instantly.
 
 .. image:: images/monitoring/examMonitoring.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/examMonitoring.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/examMonitoring.png
     
 The list is automatically sorted in the way that SEB connections with incidents came to the top of the list and are then sorted by the 
 "User Name or Session" identifier criteria. The general SEB client connection attributes are:
@@ -61,7 +61,7 @@ Double-click on an entry to go to the detail view of the specified SEB client co
 
 .. image:: images/monitoring/search.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/search.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/search.png
     
 
 **Instructions**
@@ -109,17 +109,17 @@ The image below shows active and inactive filter for active SEB connection as we
 
 .. image:: images/monitoring/issueFilter2.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/issueFilter2.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/issueFilter2.png
 
 .. image:: images/monitoring/issueFilter3.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/issueFilter3.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/issueFilter3.png
 
 - **SEB Client Group Filter** This issue filter filter all SEB client connection that are attached to a certain SEB client group.
 
 .. image:: images/monitoring/issueFilter1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/issueFilter1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/issueFilter1.png
 
 
 Detailed View
@@ -131,7 +131,7 @@ in a form and additional a list of all events and logs the SEB client has sent t
 
 .. image:: images/monitoring/clientMonitoring.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/clientMonitoring.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/clientMonitoring.png
 
 The table shows the event type that for all log-events is the log-level, The text and a value that has been sent with the event. The Value may be empty
 and marked as "Not a Number" (NaN). In this table we also have the client- and the server-time of the event. The client-time is the time the SEB client
@@ -157,7 +157,7 @@ In the "Finished Exams" list you can see all finished or archived exams and filt
 
 .. image:: images/monitoring/finishedExams.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/finishedExams.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/finishedExams.png
     
 To see a particular finished or archived exam you can just double-click in the list entry or use the View action on the right action pane.
 In the exam view you see all SEB connections that has been connected to the exam during the exam run just like in the usual monitoring view
@@ -166,7 +166,7 @@ User or Session Info, Connection Info or Status and are also able to sort the li
 
 .. image:: images/monitoring/finishedExam.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/finishedExam.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/finishedExam.png
     
 As in the usual monitoring view, you can show SEB client connection details by double-clicking on a list entry or by selecting a list entry
 and use the View action on the right action pane.
@@ -189,14 +189,14 @@ of an exam for example.
 
 .. image:: images/monitoring/sebClientLogs.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/sebClientLogs.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/sebClientLogs.png
 
 To show a detailed view of a specific SEB client log, just double click on the list entry or select the specific list entry and use the "Show Details"
 action form the right action pane to open up a pop-up containing all related information about the SEB client log event.
 
 .. image:: images/monitoring/sebClientLogDetail.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/sebClientLogDetail.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/monitoring/sebClientLogDetail.png
 
 Currently there is no export functionality to export all interesting SEB client logs to a CSV table for example. But such a feature will probably come
 with a next version of SEB Server.

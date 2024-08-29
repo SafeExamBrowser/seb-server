@@ -27,14 +27,14 @@ The quit password can be set on Exam creation or import:
 
 .. image:: images/exam/quitPasswordImport.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/quitPasswordImport.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/quitPasswordImport.png
 
 
 As well as in the Exam edit view:
 
 .. image:: images/exam/quitPasswordEdit.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/quitPasswordEdit.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/quitPasswordEdit.png
 
 
 If the Exam was created from an LMS/Assessment Tool with SEB Server integration that allows to send the quit-password

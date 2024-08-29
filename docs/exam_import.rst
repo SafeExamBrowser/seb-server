@@ -20,7 +20,7 @@ are able to filter and sort the list as usual to find to right course for import
 
 .. image:: images/exam/lmsExamLookup.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/lmsExamLookup.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/lmsExamLookup.png
     
 You can view more details of a course by double-click on the specific list entry or by selecting the list entry and click the "Show LMS/Assessment Tool Exam Details"
 action form the action pane on the right hand side. The application will open a pop-up with available detail information of the course.
@@ -33,7 +33,7 @@ are available and fetched or not.
 
 .. image:: images/exam/lmsExamLookupLate.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/lmsExamLookupLate.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/lmsExamLookupLate.png
 
 To import a course as an exam find the specific course on the list by using the filter and select the list entry. Use the "Import As Exam" action 
 from the action pane on the right hand side. 
@@ -63,7 +63,7 @@ Initially choose a type for the exam - "Exam Type" - that is currently only used
 
 .. image:: images/exam/importExam.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/importExam.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/importExam.png
     
 Furthermore you can select and apply all exam supporter that shall be able to see and support this exam while running. To do so, click in the
 input field of the attribute "Exam Supporter" to see a drop down list of all available users for selection. To filter the drop down list, start
@@ -78,7 +78,7 @@ for monitoring the exam later on.
 
 .. image:: images/exam/examReady.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examReady.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examReady.png
 
 How all this different aspects of the exam are defined and prepared is part of the next chapters.
     
