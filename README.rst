@@ -46,53 +46,10 @@ a more automated and secure setup for high-stake exams.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-1.5/docs/images/setup_1.png
     
-SEB Server Version 1.6 is out
+SEB Server Version 2.0 is out
 -------------------------------
 
-New Features:
-
-- Connection Configuration: New possibility to select existing Exams for a Connection Configuration.
-- Exam: New Possibility to create an exam without LMS/Assessment Tool integration but with direct SEB link.
-- Exam Configuration: Batch Delete Action.
-- Exam Configuration: Added new SEB Settings from actual SEB Versions.
-- Exam: Possibility to apply SEB Settings quit-passwords within the Exam Import or creation of an Exam.
-- Monitoring: Two new Filter for ASK and SEB Client Version check.
-- Monitoring: IP Changes of SEB clients during active session are not prevented but logged now with SEB logs.
-
-
-Improvements:
-
-- SEB Server Setup: Default Time-Zone also globally configurable besides per user.
-- Exam Configuration Import: No import of hashed password any more. Preset hashed password form imported files gets deleted or reset.
-- Configuration Template: Lists contains more entries, better usability.
-- Exam: New force delete functionality if an Exam cannot be deleted regularly (mostly caused by LMS Setup disconnection).
-- Exam: Added confirmation dialogue on Indicator deletion attempt.
-- SEB Server: Log improvements.
-- User Account: Possibility to setup SEB Server to set newly registered Users inactive for better control of user registration.
-- User Access: Define and Implement new SEB Server feature concept that will provide dedicated user role privileges in the future.
-
-
-Bugfixes:
-
-- Exam: fixed, LMS/Assessment Tool data update end-time cannot be reset to null.
-- SEB Client Connection: Fixed handshake finishing for SEBs that got missing during handshake. SEB Server invalidates unfinished handshakes now.
-- Exam - SEB Restriction Details: Additional BEK is not sent to Moodle immediately.
-- LMS Integration: OLAT Integration seems to not work correctly with new OLAT version any-more.
-- LMS Integration: SEB Lock is not applied, when importing exam using a template.
-- LMS Integration:	Semicolon in short name of a course in Moodle leads to error message when importing an exam.
-- LMS Lookup: Illegal Thread Access Error on LMS Lookup Page.
-- Monitoring: ASK: List of sent ASK per SEB Client sometimes shows empty rows.
-- Monitoring: SEB Version check caching issue .
-- Monitoring: Low page load on sorted SEB connection table for finished or archived exams.
-- Monitoring: Monitoring table selection stick to actual selection when updating.
-- Forms: Password plaintext view: special chars are masked incorrectly.
-- Configuration Template: Wrong deletions on SEB Server update with migration.
-
-Docker-Image:
-
-Exact release version: docker pull anhefti/seb-server:v1.6.0 (sha256:878f411ee3df84019f2b167ad4fd29ecad77c90063b2ced4e16e69edab74805e)
-
-Stable minor version: docker pull anhefti/seb-server:v1.6-stable
+TODO
 
 
 SEB - SEB Server Compatibility
@@ -101,24 +58,14 @@ SEB - SEB Server Compatibility
 The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
 SEB Server versions. There is an entry for each platform with a beta or testing release date and an official release date.
 
-**SEB Server Version 1.6.X**
+**SEB Server Version 2.0.x
 
 .. csv-table::
    :header: "Platform / OS", "Release Version"
 
-   "SEB Client for iOS", "3.3.2"
-   "SEB Client for Mac", "3.3.2"
-   "SEB Client for Windows", "3.7.0"
-
-**SEB Server Version 1.5.X**
-
-.. csv-table::
-   :header: "Platform / OS", "Beta/RC Version", "Release Version"
-
-   "SEB Client for iOS", "ASK: 3.3", "3.1 (ASK: 3.3)"
-   "SEB Client for Mac", "ASK: 3.3pre", "3.1 (Zoom: 3.2/ASK: 3.3)"
-   "SEB Client for Windows", "--", "3.5.0 "
-   
+   "SEB Client for iOS", "3.4 (3.3.3 without screen proctoring)"
+   "SEB Client for Mac", "3.4"
+   "SEB Client for Windows", "3.8"
 
 Install SEB Server
 ------------------
