@@ -23,5 +23,6 @@ We will go through all the steps to setting up an exam for Safe Exam Browser wit
    exam_screen_proctoring
    exam_list
    exam_template
+   exam_testrun
    screen_proctoring
 
