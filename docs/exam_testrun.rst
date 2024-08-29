@@ -11,7 +11,7 @@ the Exam stays within this Test-Run status.
 
 You can set an Exam into Test-Run status by using the respective action on the Exam view:
 
-.. image:: images/exam/examWithURLView.png
+.. image:: images/exam/examEnableTestrun.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examEnableTestrun.png
 
@@ -21,7 +21,7 @@ Test Run status of the Exam.
 After testing is done you can disable the Test-Run status just by using the respective action on the right and the Exam
 goes back to up-coming status and is not available anymore for SEB connections and Monitoring.
 
-.. image:: images/exam/examWithURLView.png
+.. image:: images/exam/examEnableTestrun.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examEnableTestrun.png
 
