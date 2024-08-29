@@ -143,7 +143,10 @@ In the detail view you are also able to use the instructions "Quit SEB Client" a
 Screen Proctoring
 -----------------
 
-TODO
+With SEB Server version 2.0 there is not Live Proctoring support for Zoom and Jitsi Meet anymore but a while new and
+fully integrated Screen Proctoring feature where SEB Clients take screen shots and send it to SEB Server for proctoring
+
+Please visit the :ref:`screenprocotring-label`  section for more information about Screen Proctoring with SEB Server.
 
 Finished Exams
 --------------

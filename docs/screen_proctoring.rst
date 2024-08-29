@@ -1,6 +1,9 @@
 Screen Proctoring
 ===========
 
+.. _screenprocotring-label:
+
+
 Overview
 ---------
 
