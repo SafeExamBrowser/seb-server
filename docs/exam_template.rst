@@ -56,12 +56,7 @@ And you are able to add/edit/remove monitoring indicators for the exam template 
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_template/indicator.png
     
-There are also proctoring settings available since SEB Server version 1.4 for the exam template. They just have the same settings and
-look like the ones on the Exam and will get copied for an exam imported with the respective template that defines the proctoring settings.
-
-.. image:: images/exam_template/proctoringSettings.png
-    :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_template/proctoringSettings.png
+TODO Screen Proctoring Settings
 
 
 Import Exam with Template
