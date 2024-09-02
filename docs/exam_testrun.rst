@@ -1,4 +1,4 @@
-Exam Test-Run (since version 2.0)
+Exam Test-Run (New)
 --------------------------------
 
 With the new SEB Server version 2.0 there is a new feature Test-Run for none running / upcoming exams. Since upcoming

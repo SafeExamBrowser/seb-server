@@ -77,8 +77,8 @@ at the above chapter ** Moodle Client API Account**
     
 For more information about the SEB Server Moodle Plugin and installation, please visit the following sites:
 
-   - `Documentation <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
-   - `Repository <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
+   - `Documentation <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
+   - `Repository <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
 
 
 **Usage of new SEB Server Moodle integration features**
@@ -162,7 +162,7 @@ in Moodle for the respective quiz.
 While on the Moodle side, a Moodle Teacher can disable SEB Server for a particular quiz and Moodle will trigger a deletion
 of the Exam on SEB Server and also reset all SEB Server settings on Moodle side.
 
-.. image:: images/moodle_full/delete_exam_moodle.png
+.. image:: images/moodle_full/deleted_exam_moodle.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/delete_exam_moodle.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/deleted_exam_moodle.png
 

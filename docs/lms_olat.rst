@@ -12,3 +12,5 @@ existing OLAT API to apply the integration. As usual you need a valid client API
 to be able to connect SEB Server. Please create or request such an account from the OLAT team, and use either the 
 given credentials or a given access-token to connect SEB Server to the Ans API.
 
+For more information please contact the OLAT Development-Team at `OLAT UZH <https://www.zi.uzh.ch/en/support/e-learning-and-examination/staff/olat.html>`_
+

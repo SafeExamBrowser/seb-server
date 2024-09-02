@@ -1,5 +1,5 @@
-Screen Proctoring
-===========
+Screen Proctoring (New)
+=======================
 
 .. _screenprocotring-label:
 
