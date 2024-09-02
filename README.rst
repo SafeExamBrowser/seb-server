@@ -49,8 +49,6 @@ a more automated and secure setup for high-stake exams.
 SEB Server Version 2.0 is out
 -------------------------------
 
-SEB Server Version 2.0
-
 With the new SEB Server release, SEB Server makes a major version change from 1.x to 2.x. This is mainly because of the new
 Screen Proctoring feature for SEB integrated into SEB Server and the removal of live proctoring with Zoom and Jitsi Meet
 that is no longer available for SEB Server version 2.x.
