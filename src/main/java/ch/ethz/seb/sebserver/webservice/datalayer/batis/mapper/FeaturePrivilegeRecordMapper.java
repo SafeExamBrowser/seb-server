@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface FeaturePrivilegeRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.992+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.044+02:00", comments="Source Table: feature_privilege")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.992+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.044+02:00", comments="Source Table: feature_privilege")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.992+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.044+02:00", comments="Source Table: feature_privilege")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<FeaturePrivilegeRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.992+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.044+02:00", comments="Source Table: feature_privilege")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -54,7 +54,7 @@ public interface FeaturePrivilegeRecordMapper {
     })
     FeaturePrivilegeRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.992+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -63,22 +63,22 @@ public interface FeaturePrivilegeRecordMapper {
     })
     List<FeaturePrivilegeRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.992+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.992+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(featurePrivilegeRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, featurePrivilegeRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, featurePrivilegeRecord)
                 .where(id, isEqualTo(id_))
@@ -86,7 +86,7 @@ public interface FeaturePrivilegeRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default int insert(FeaturePrivilegeRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(featurePrivilegeRecord)
@@ -96,7 +96,7 @@ public interface FeaturePrivilegeRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default int insertSelective(FeaturePrivilegeRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(featurePrivilegeRecord)
@@ -106,19 +106,19 @@ public interface FeaturePrivilegeRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<FeaturePrivilegeRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, featureId, userUuid)
                 .from(featurePrivilegeRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<FeaturePrivilegeRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, featureId, userUuid)
                 .from(featurePrivilegeRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default FeaturePrivilegeRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, featureId, userUuid)
                 .from(featurePrivilegeRecord)
@@ -127,21 +127,21 @@ public interface FeaturePrivilegeRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(FeaturePrivilegeRecord record) {
         return UpdateDSL.updateWithMapper(this::update, featurePrivilegeRecord)
                 .set(featureId).equalTo(record::getFeatureId)
                 .set(userUuid).equalTo(record::getUserUuid);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(FeaturePrivilegeRecord record) {
         return UpdateDSL.updateWithMapper(this::update, featurePrivilegeRecord)
                 .set(featureId).equalToWhenPresent(record::getFeatureId)
                 .set(userUuid).equalToWhenPresent(record::getUserUuid);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default int updateByPrimaryKey(FeaturePrivilegeRecord record) {
         return UpdateDSL.updateWithMapper(this::update, featurePrivilegeRecord)
                 .set(featureId).equalTo(record::getFeatureId)
@@ -151,7 +151,7 @@ public interface FeaturePrivilegeRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.993+02:00", comments="Source Table: feature_privilege")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.045+02:00", comments="Source Table: feature_privilege")
     default int updateByPrimaryKeySelective(FeaturePrivilegeRecord record) {
         return UpdateDSL.updateWithMapper(this::update, featurePrivilegeRecord)
                 .set(featureId).equalToWhenPresent(record::getFeatureId)
