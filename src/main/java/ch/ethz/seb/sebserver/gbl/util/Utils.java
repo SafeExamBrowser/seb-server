@@ -411,11 +411,7 @@ public final class Utils {
             return value;
         }
 
-        return URLDecoder.decode(
-                (value.indexOf('+') >= 0)
-                        ? value.replaceAll("\\+", "%2b")
-                        : value,
-                StandardCharsets.UTF_8);
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
     public static void clearCharArray(final char[] array) {
