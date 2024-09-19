@@ -9,21 +9,13 @@
 package ch.ethz.seb.sebserver;
 
 import org.apache.catalina.connector.Connector;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
-
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.ProdGuiProfile;
-import ch.ethz.seb.sebserver.gbl.profile.ProdWebServiceProfile;
 
 /** SEB-Server (Safe Exam Browser Server) is a server component to maintain and support
  * Exams running with SEB (Safe Exam Browser). TODO add link(s)
@@ -46,35 +38,6 @@ public class SEBServer {
     public static void main(final String[] args) {
         org.apache.ibatis.logging.LogFactory.useSlf4jLogging();
         SpringApplication.run(SEBServer.class, args);
-    }
-
-    /*
-     * Add a redirect Connector on http port to redirect all http calls
-     * to https.
-     *
-     * NOTE: This works with TomcatServletWebServerFactory and embedded tomcat.
-     * If the webservice and/or gui is going to running on another server or
-     * redirect is handled by a proxy, this redirect can be deactivated within
-     * the "sebserver.ssl.redirect.enabled" property set to false
-     */
-    @Bean
-    @ProdWebServiceProfile
-    @ProdGuiProfile
-    public ServletWebServerFactory servletContainer(
-            final Environment env,
-            final ApplicationContext applicationContext) {
-
-        final String enabled = env.getProperty(
-                "sebserver.ssl.redirect.enabled",
-                Constants.FALSE_STRING);
-
-        if (!BooleanUtils.toBoolean(enabled)) {
-            return new TomcatServletWebServerFactory();
-        }
-
-        final TomcatServletWebServerFactory tomcat = new HTTPSRedirectServerFactory();
-        tomcat.addAdditionalTomcatConnectors(redirectConnector(env));
-        return tomcat;
     }
 
     @Bean

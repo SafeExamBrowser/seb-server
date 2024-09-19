@@ -61,8 +61,8 @@ public class ClientHttpRequestFactoryService {
 
     private static final Logger log = LoggerFactory.getLogger(ClientHttpRequestFactoryService.class);
 
-    private static final Collection<String> DEV_PROFILES = Arrays.asList("dev-gui", "test", "demo", "dev-ws");
-    private static final Collection<String> PROD_PROFILES = Arrays.asList("prod-gui", "prod-ws");
+    private static final Collection<String> DEV_PROFILES = Arrays.asList("dev", "test", "demo");
+    private static final Collection<String> PROD_PROFILES = Arrays.asList("prod", "prod-gui", "prod-ws");
 
     private final int connectTimeout;
     private final int connectionRequestTimeout;
