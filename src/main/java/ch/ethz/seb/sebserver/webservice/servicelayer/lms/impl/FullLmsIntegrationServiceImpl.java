@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateCacheService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleResponseException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
@@ -183,34 +184,44 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     @Override
     public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
+        
         final LmsSetup lmsSetup = event.getLmsSetup();
         if (!hasFullIntegration(lmsSetup.id)) {
             return;
         }
-
-        if (event.activation == Activatable.ActivationAction.NONE) {
-            if (!lmsSetup.integrationActive) {
+        
+        try {
+            if (event.activation == Activatable.ActivationAction.NONE) {
+                if (!lmsSetup.integrationActive) {
+                    applyFullLmsIntegration(lmsSetup.id)
+                            .onError(error -> log.warn(
+                                    "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                            .onSuccess(data -> log.debug(
+                                    "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+                }
+            } else if (event.activation == Activatable.ActivationAction.ACTIVATE) {
                 applyFullLmsIntegration(lmsSetup.id)
+                        .map(data -> reapplyExistingExams(data, lmsSetup))
                         .onError(error -> log.warn(
                                 "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
                         .onSuccess(data -> log.debug(
                                 "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
+
+                log.info("Deactivate full integration for LMS: {}", lmsSetup);
+
+                // remove all active exam data for involved exams before deactivate them
+                this.examDAO
+                        .allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+                        .getOrThrow()
+                        .forEach(exam -> applyExamData(exam, true))
+                ;
+                // delete full integration on Moodle side due to deactivation
+                this.deleteFullLmsIntegration(lmsSetup.id)
+                        .getOrThrow();
             }
-        } else if (event.activation == Activatable.ActivationAction.ACTIVATE) {
-            applyFullLmsIntegration(lmsSetup.id)
-                    .map(data -> reapplyExistingExams(data,lmsSetup))
-                    .onError(error -> log.warn(
-                            "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
-                    .onSuccess(data -> log.debug(
-                            "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
-        } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
-            // remove all active exam data for involved exams before deactivate them
-            this.examDAO
-                    .allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
-                    .getOrThrow();
-            // delete full integration on Moodle side due to deactivation
-            this.deleteFullLmsIntegration(lmsSetup.id)
-                    .getOrThrow();
+        } catch (final Exception e) {
+            log.error("Failed to apply LMS Setup change for full LMS integration for: {}", lmsSetup, e);
         }
     }
 
@@ -253,39 +264,46 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     public Result<IntegrationData> applyFullLmsIntegration(final Long lmsSetupId) {
         return lmsSetupDAO
                 .byPK(lmsSetupId)
-                .map(lmsSetup -> {
-                    String connectionId = lmsSetup.getConnectionId();
-                    if (connectionId == null) {
-                        connectionId = lmsSetupDAO.save(lmsSetup).getOrThrow().connectionId;
-                    }
-                    if (connectionId == null) {
-                        throw new IllegalStateException("No LMS Setup connectionId available for: " + lmsSetup);
-                    }
+                .flatMap(this::applyFullLmsIntegration);
+    }
 
-                    // reset old token to get actual one
-                    resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
-                    restTemplate.getOAuth2ClientContext().setAccessToken(null);
-                    final String accessToken = restTemplate.getAccessToken().getValue();
+    @Override
+    public Result<IntegrationData> applyFullLmsIntegration(final LmsSetup lmsSetup) {
+        return Result.tryCatch(() -> {
+            final Long lmsSetupId = lmsSetup.id;
+            final String connectionId = lmsSetup.getConnectionId();
+//            if (connectionId == null) {
+//                connectionId = lmsSetupDAO.save(lmsSetup).getOrThrow().connectionId;
+//            }
+            if (connectionId == null) {
+                throw new RuntimeException("Illegal state", new MoodleResponseException(
+                        "The Assessment Tool Setup must be saved first before full integration can be tested and applied.","none"));
+            }
 
-                    final IntegrationData data = new IntegrationData(
-                            connectionId,
-                            lmsSetup.name,
-                            getAPIRootURL(),
-                            accessToken,
-                            this.getIntegrationTemplates(lmsSetup.institutionId)
-                    );
+            // reset old token to get actual one
+            resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
+            restTemplate.getOAuth2ClientContext().setAccessToken(null);
+            final String accessToken = restTemplate.getAccessToken().getValue();
 
-                    return lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId)
-                            .getOrThrow()
-                            .applyConnectionDetails(data)
-                            .onError(error -> lmsSetupDAO
-                                    .setIntegrationActive(lmsSetupId, false)
-                                    .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
-                            .onSuccess( d -> lmsSetupDAO
-                                    .setIntegrationActive(lmsSetupId, true)
-                                    .onError(er -> log.error("Failed to mark LMS integration active", er)))
-                            .getOrThrow();
-                });
+            final IntegrationData data = new IntegrationData(
+                    connectionId,
+                    lmsSetup.name,
+                    getAPIRootURL(),
+                    accessToken,
+                    this.getIntegrationTemplates(lmsSetup.institutionId)
+            );
+
+            return lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId)
+                    .getOrThrow()
+                    .applyConnectionDetails(data)
+                    .onError(error -> lmsSetupDAO
+                            .setIntegrationActive(lmsSetupId, false)
+                            .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
+                    .onSuccess(d -> lmsSetupDAO
+                            .setIntegrationActive(lmsSetupId, true)
+                            .onError(er -> log.error("Failed to mark LMS integration active", er)))
+                    .getOrThrow();
+        });
     }
 
     @Override

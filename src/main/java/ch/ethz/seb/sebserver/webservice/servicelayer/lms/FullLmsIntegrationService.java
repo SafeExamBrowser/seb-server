@@ -13,6 +13,7 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
@@ -28,9 +29,9 @@ import org.springframework.context.event.EventListener;
 
 public interface FullLmsIntegrationService {
 
-    @EventListener
+    @EventListener(LmsSetupChangeEvent.class)
     void notifyLmsSetupChange(final LmsSetupChangeEvent event);
-    @EventListener
+    @EventListener(ExamTemplateChangeEvent.class)
     void notifyExamTemplateChange(final ExamTemplateChangeEvent event);
     @EventListener(ConnectionConfigurationChangeEvent.class)
     void notifyConnectionConfigurationChange(ConnectionConfigurationChangeEvent event);
@@ -45,6 +46,8 @@ public interface FullLmsIntegrationService {
     Result<Exam> applyExamDataToLMS(Exam exam);
 
     Result<IntegrationData> applyFullLmsIntegration(Long lmsSetupId);
+
+    Result<IntegrationData> applyFullLmsIntegration(LmsSetup lmsSetup);
 
     Result<Boolean> deleteFullLmsIntegration(Long lmsSetupId);
 
