@@ -386,6 +386,21 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Exam>> allForLMSSetup(final Long lmsSetupId) {
+        return Result.tryCatch(() -> this.examRecordMapper.selectByExample()
+                        .where(
+                                ExamRecordDynamicSqlSupport.lmsSetupId,
+                                isNotNull())
+                        .and(
+                                ExamRecordDynamicSqlSupport.status,
+                                isNotEqualTo(ExamStatus.ARCHIVED.name()))
+                        .build()
+                        .execute())
+                .flatMap(this::toDomainModel);
+    }
+
+    @Override
     public Result<Collection<Exam>> allThatNeedsStatusUpdate(final long leadTime, final long followupTime) {
         return this.examRecordDAO
                 .allThatNeedsStatusUpdate(leadTime, followupTime)

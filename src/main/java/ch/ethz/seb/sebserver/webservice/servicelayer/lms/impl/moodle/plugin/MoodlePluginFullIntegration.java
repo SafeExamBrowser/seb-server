@@ -69,6 +69,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
         return  this.restTemplateFactory
                 .getRestTemplate()
                 .map(template -> template.getMoodlePluginVersion() == MoodleAPIRestTemplate.MoodlePluginVersion.V2_0)
+                .onError(error -> log.error("Failed to check full integration active: ", error))
                 .getOr(false);
     }
 
@@ -158,6 +159,9 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                         MoodleUtils.FullConnectionApplyResponse.class);
 
                 if (!fullConnectionApplyResponse.success && !fullConnectionApplyResponse.warnings.isEmpty()) {
+                    
+                    log.info("Got warnings from Moodle: {}", response);
+                    
                     fullConnectionApplyResponse.warnings.stream()
                             .filter(w -> Objects.equals(w.warningcode, "connectiondoesntmatch"))
                             .findFirst()
@@ -165,10 +169,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                                 throw new MoodleResponseException("Failed to apply SEB Server connection due to connection mismatch\n There seems to be another SEB Server already connected to this LMS instance", response);
                             });
                 }
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Got warnings from Moodle: {}", response);
-                }
+                
             } catch (final MoodleResponseException mre) {
                 throw mre;
             } catch (final Exception e) {

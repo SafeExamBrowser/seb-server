@@ -8,12 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
-import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.lmsSetupId;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -257,22 +252,13 @@ public class LmsAPITemplateCacheServiceImpl implements LmsAPITemplateCacheServic
         public int hashCode() {
             return this.hash;
         }
-
+        
         @Override
-        public boolean equals(final Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            final CacheKey other = (CacheKey) obj;
-            if (this.lmsSetupId == null) {
-                if (other.lmsSetupId != null)
-                    return false;
-            } else if (!this.lmsSetupId.equals(other.lmsSetupId))
-                return false;
-            return true;
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final CacheKey cacheKey = (CacheKey) o;
+            return Objects.equals(lmsSetupId, cacheKey.lmsSetupId);
         }
     }
 }

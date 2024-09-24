@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginFullIntegration;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MooldePluginLmsAPITemplateFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +91,9 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
     @Override
     public Result<MoodleAPIRestTemplate> getRestTemplate() {
+        if (activeRestTemplate.hasError()) {
+            createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
+        }
         return activeRestTemplate;
     }
 

@@ -18,7 +18,6 @@ import java.io.PipedOutputStream;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
@@ -81,7 +80,7 @@ public class LmsIntegrationController {
             log.debug("Importing exam from LMS call. All param: {}", request.getParameterNames());
         }
 
-        final Exam exam = fullLmsIntegrationService.importExam(
+        fullLmsIntegrationService.importExam(
                         lmsUUId,
                         courseId,
                         quizId,
@@ -91,8 +90,8 @@ public class LmsIntegrationController {
                         examData)
                 .onError(e -> {
                     log.error(
-                            "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: ",
-                            lmsUUId, courseId, quizId, templateId, e);
+                            "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: {}",
+                            lmsUUId, courseId, quizId, templateId, e.getMessage());
                     log.info("Rollback Exam creation...");
                     fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
                             .onError(error -> {
@@ -103,11 +102,8 @@ public class LmsIntegrationController {
                                 }
                             });
                 })
-                .getOr(null);
-
-        if (exam != null) {
-            log.info("Auto import of exam successful: {}", exam);
-        }
+                .onSuccess(exam -> log.info("Auto import of exam successful: {}", exam))
+                .getOrThrow();
     }
 
     @RequestMapping(

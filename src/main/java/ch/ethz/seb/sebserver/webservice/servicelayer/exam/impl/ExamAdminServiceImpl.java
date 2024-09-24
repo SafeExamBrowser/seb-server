@@ -12,10 +12,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +52,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final LmsAPIService lmsAPIService;
     private final ExamConfigurationValueService examConfigurationValueService;
     private final SEBRestrictionService sebRestrictionService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
@@ -59,7 +62,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final LmsAPIService lmsAPIService,
             final ExamConfigurationValueService examConfigurationValueService,
-            final SEBRestrictionService sebRestrictionService) {
+            final SEBRestrictionService sebRestrictionService,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         this.examDAO = examDAO;
         this.proctoringAdminService = proctoringAdminService;
@@ -69,6 +73,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.lmsAPIService = lmsAPIService;
         this.examConfigurationValueService = examConfigurationValueService;
         this.sebRestrictionService = sebRestrictionService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -287,7 +292,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             this.examConfigurationMapDAO
                     .getConfigurationNodeIds(result.id)
                     .getOrThrow()
-                    .stream()
                     .forEach(configNodeId -> {
                         if (this.examConfigurationMapDAO.checkNoActiveExamReferences(configNodeId).getOr(false)) {
                             log.debug("Also set exam configuration to archived: {}", configNodeId);
@@ -300,6 +304,12 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                         }
                     });
 
+            try {
+                applicationEventPublisher.publishEvent(new ExamArchivedEvent(result));
+            } catch (final Exception e) {
+                log.error("Unexpected error while ExamArchivedEvent processing: ", e);
+            }
+            
             return result;
         });
     }

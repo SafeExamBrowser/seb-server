@@ -109,7 +109,19 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return Result refer to all exams for LMS update or to an error when happened */
     Result<Collection<Exam>> allForLMSUpdate();
 
+    /** Gets all Exams of all active LMS Setups form a given LMS Setup Id list.
+     * 
+     * @param lmsId List of LMS Setup ids
+     * @return Result refer to all Exams of all active LMS Setups form a given LMS Setup Id list or to an error when happened
+     */
     Result<Collection<Exam>> allActiveForLMSSetup(Collection<Long> lmsId);
+
+    /** Get all Exams form LMS Setup with a given id.
+     * 
+     * @param lmsSetupId The LMS Setup id
+     * @return Result refer to all Exam if the LMS Setup or to an error when happened
+     */
+    Result<Collection<Exam>> allForLMSSetup(Long lmsSetupId);
 
     /** This is used to get all Exams that potentially needs a state change.
      * Checks if the stored running time frame of the exam is not in sync with the current state and return
@@ -249,6 +261,5 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
 
     void updateQuitPassword(Exam exam, String quitPassword);
-
 
 }

@@ -61,4 +61,5 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      * @return a Collection containing EntityKey's of all entities that belongs to a given User */
     Collection<EntityKey> getAllUserRelatedData(String uuid);
 
+    Result<Collection<EntityKey>> deleteAdHocAccountsForLMS(String adHocTeacherIdPrefix, Long lmsSetupId);
 }

@@ -78,7 +78,7 @@ public interface SEBRestrictionService {
      *         to the LMS */
     boolean checkSebRestrictionSet(Exam exam);
 
-    @EventListener
+    @EventListener(LmsSetupChangeEvent.class)
     void notifyLmsSetupChange(final LmsSetupChangeEvent event);
 
     Result<LmsSetup> releaseAllRestrictionsOf(LmsSetup lmsSetup);

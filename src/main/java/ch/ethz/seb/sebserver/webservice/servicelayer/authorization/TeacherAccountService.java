@@ -12,7 +12,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 
 /** Service used to maintain Teacher Ad-Hoc Accounts */
 public interface TeacherAccountService {
@@ -67,9 +66,14 @@ public interface TeacherAccountService {
 
     /** Used to verify a given One Time Access JWT Token. This must have the expected claims and must not be expired
      *
+     * 
      * @param token The One Time Access JWT Token to verify access for
      * @return Result refer to the login information for auto-login or to an error when happened or access is denied
      */
     Result<TokenLoginInfo> verifyOneTimeTokenForTeacherAccount(String token);
 
+    /** Deletes all ad hoc teacher user from a particular LMS.
+     * @param lmsId The LMS identifier
+     */
+    void deleteAllFromLMS(Long lmsId);
 }

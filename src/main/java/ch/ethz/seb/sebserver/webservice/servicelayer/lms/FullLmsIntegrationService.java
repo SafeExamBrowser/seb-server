@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -39,6 +40,8 @@ public interface FullLmsIntegrationService {
     void notifyExamDeletion(ExamDeletionEvent event);
     @EventListener(ExamConfigUpdateEvent.class)
     void notifyExamConfigChange(ExamConfigUpdateEvent event);
+    @EventListener(ExamArchivedEvent.class)
+    void notifyExamArchived(ExamArchivedEvent event);
 
     /** Applies the exam data to LMS to inform the LMS that the exam exists on SEB Server site.
      * @param exam The Exam
@@ -64,9 +67,7 @@ public interface FullLmsIntegrationService {
             String lmsUUID,
             String courseId,
             String quizId);
-
-
-
+    
     Result<Void> streamConnectionConfiguration(
             String lmsUUID,
             String courseId,
@@ -78,9 +79,6 @@ public interface FullLmsIntegrationService {
             String courseId,
             String quizId,
             AdHocAccountData adHocAccountData);
-
-
-
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     final class ExamData {

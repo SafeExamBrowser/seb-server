@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
@@ -181,6 +182,13 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
             return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, token);
         });
+    }
+
+    @Override
+    public void deleteAllFromLMS(final Long lmsId) {
+            userDAO
+                    .deleteAdHocAccountsForLMS(AD_HOC_TEACHER_ID_PREFIX, lmsId)
+                    .onError(error -> log.error("Failed to delete all teacher accounts for LMS with id: {}", lmsId, error));
     }
 
     private UserInfo handleAccountDoesNotExistYet(
