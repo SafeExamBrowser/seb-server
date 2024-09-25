@@ -249,6 +249,13 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public void saveBrowserExamKeys(final Long examId, final String bek) {
+        this.examRecordDAO
+                .saveBrowserExamKeys(examId, bek)
+                .onError(err -> log.error("Failed to update Browser Exam Keys on exam: {}", examId, err));
+    }
+
+    @Override
     public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return this.examRecordDAO
                 .setSEBRestriction(examId, sebRestriction)
