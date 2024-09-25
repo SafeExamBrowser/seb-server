@@ -218,3 +218,14 @@ Currently the SEB-Client captures the following 5 metadata (additional values mi
 
     - Focused Window Title: The title of the focused window
         - e.g. "Google Homepage", "Moodle Exam 123", "Calculator"
+
+|
+|
+
+Accessibility
+---------
+
+SEB Screen Proctoring is accessible for people with disabilities in accordance with the international accessibility standards WCAG.
+Further information on the individual success criteria and conformance levels as well as information on limitations are outlined in the Voluntary Product Accessibility Template document (VPAT WCAG edition):
+
+:download:`VPAT SEB Screen Proctoring <files/VPAT2.5WCAG_SEB-ScreenProctoring.pdf>`
