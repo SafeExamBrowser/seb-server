@@ -195,8 +195,6 @@ public class ExamForm implements TemplateComposer {
                             .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
                             .getOrThrow();
 
-
-
         // new PageContext with actual EntityKey
         final EntityKey entityKey = (readonly || !newExamNoLMS) ? pageContext.getEntityKey() : null;
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());

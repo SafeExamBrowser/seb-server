@@ -598,6 +598,22 @@ public class ExamRecordDAO {
         });
     }
 
+    @Transactional
+    public Result<ExamRecord> saveBrowserExamKeys(final Long examId, final String bek) {
+        return Result.tryCatch(() -> {
+
+            UpdateDSL.updateWithMapper(examRecordMapper::update, ExamRecordDynamicSqlSupport.examRecord)
+                    .set(browserKeys).equalTo(bek)
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .where(id,  isEqualTo(examId))
+                    .build()
+                    .execute();
+
+            return this.examRecordMapper.selectByPrimaryKey(examId);
+        })
+        .onError(TransactionHandler::rollback);
+    }
+
     private String getEncryptedQuitPassword(final String pwd) {
         return (StringUtils.isNotBlank(pwd))
                 ?  this.cryptor
@@ -609,3 +625,4 @@ public class ExamRecordDAO {
     }
 
 }
+
