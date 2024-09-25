@@ -141,18 +141,21 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
         return Result.tryCatch(() -> {
 
             final String oldQuitPassword = this.getQuitPassword(examId);
-            final String newQuitPassword = quitSecret != null
+            final String newQuitPassword = StringUtils.isNotBlank(quitSecret)
                     ? this.cryptor
                         .decrypt(quitSecret)
                         .getOr(quitSecret)
                         .toString()
-                    : null;
+                    : StringUtils.EMPTY;
 
             if (Objects.equals(oldQuitPassword, newQuitPassword)) {
                 return examId;
             }
 
-            return saveSEBAttributeValueToConfig(examId, CONFIG_ATTR_NAME_QUIT_SECRET, quitSecret);
+            return saveSEBAttributeValueToConfig(
+                    examId, 
+                    CONFIG_ATTR_NAME_QUIT_SECRET, 
+                    StringUtils.isBlank(quitSecret) ? StringUtils.EMPTY : quitSecret);
         });
     }
 
