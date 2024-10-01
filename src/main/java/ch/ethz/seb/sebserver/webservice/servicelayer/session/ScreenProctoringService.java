@@ -34,9 +34,9 @@ public interface ScreenProctoringService extends SessionUpdateTask {
         updateClientConnections();
         updateActiveGroups();
     }
-
+    
     boolean isScreenProctoringEnabled(Long examId);
-
+    
     /** This is testing the given ScreenProctoringSettings on integrity and if we can
      * connect to the given SEB screen proctoring service.
      *

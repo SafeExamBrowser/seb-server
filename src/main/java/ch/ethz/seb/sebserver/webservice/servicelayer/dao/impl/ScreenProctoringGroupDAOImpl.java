@@ -190,7 +190,7 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
     @Override
     @Transactional
-    public Result<EntityKey> deleteRoom(final Long pk) {
+    public Result<EntityKey> deleteGroup(final Long pk) {
         return Result.tryCatch(() -> {
 
             this.screenProctoringGroopRecordMapper

@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 import static ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_SCREEN_PROCTORING.*;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
@@ -56,6 +58,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.Scr
 public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringServiceImpl.class);
+    public static final Logger INIT_LOGGER = LoggerFactory.getLogger("ch.ethz.seb.SEB_SERVER_INIT");
+    
     private final Cryptor cryptor;
     private final ScreenProctoringAPIBinding screenProctoringAPIBinding;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
@@ -185,8 +189,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                                         "Failed to apply screen proctoring for exam: {}",
                                         exam,
                                         error))
-                                .getOrThrow()
-                                .forEach(newGroup -> createNewLocalGroup(exam, newGroup));
+                                .map(groups -> createExamGroups(exam, groups))
+                                .getOrThrow();
 
                         this.examDAO.markUpdate(exam.id);
 
@@ -203,6 +207,34 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     }
                     return exam;
                 });
+    }
+    
+    private Exam createExamGroups(final Exam exam, final Collection<ScreenProctoringGroup> groups) {
+        
+        final Map<String, ScreenProctoringGroup> existingGroups = this.screenProctoringGroupDAO
+                .getCollectingGroups(exam.id)
+                .onError(error -> log.error("Failed to get existing groups to check integrity: ", error))
+                .getOr(Collections.emptyList())
+                .stream().collect(Collectors.toMap( g -> g.name, Function.identity()));
+        
+        groups.forEach(newGroup ->
+                {
+                    if (existingGroups.containsKey(newGroup.name)) {
+                        final ScreenProctoringGroup screenProctoringGroup = existingGroups.get(newGroup.name);
+                        
+                        log.warn(
+                                "There exists already a local screen proctoring group with the name: {}. This is deleted due to the fact that a new one is going to be created with the same name. Groups {}",
+                                screenProctoringGroup.name,
+                                screenProctoringGroup);
+                        
+                        this.screenProctoringGroupDAO.deleteGroup(screenProctoringGroup.id)
+                                .onError(error -> log.error("Failed to delete screen proctoring group due to group mismatch", error));
+                    }
+                    
+                    createNewLocalGroup(exam, newGroup);
+                });
+                
+        return exam;
     }
 
     @Override
@@ -460,7 +492,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 return applyToDefaultGroup(ccRecord.getId(), ccRecord.getConnectionToken(), exam);
             }
         }
-
     }
 
     private ScreenProctoringGroup applyToDefaultGroup(

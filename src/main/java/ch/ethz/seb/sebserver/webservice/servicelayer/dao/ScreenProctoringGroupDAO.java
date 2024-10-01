@@ -70,7 +70,7 @@ public interface ScreenProctoringGroupDAO {
      *
      * @param pk the group identifier (PK)
      * @return Result refer to the entity key of the former group record or to an error when happened */
-    Result<EntityKey> deleteRoom(Long pk);
+    Result<EntityKey> deleteGroup(Long pk);
 
     /** Delete all groups records for a given exam.
      *

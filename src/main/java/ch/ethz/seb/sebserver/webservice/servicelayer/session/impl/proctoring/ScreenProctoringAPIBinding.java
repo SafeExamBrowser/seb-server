@@ -72,7 +72,7 @@ class ScreenProctoringAPIBinding {
 
     private static final String SEB_SERVER_SCREEN_PROCTORING_SEB_ACCESS_PREFIX = "SEBServer_SEB_Access_";
 
-    static interface SPS_API {
+    interface SPS_API {
 
         enum SPSUserRole {
             ADMIN,
@@ -86,7 +86,7 @@ class ScreenProctoringAPIBinding {
 
         String USER_ACCOUNT_ENDPOINT = "/admin-api/v1/useraccount/";
         String USERSYNC_SEBSERVER_ENDPOINT = USER_ACCOUNT_ENDPOINT + "usersync/sebserver";
-        String ENTITY_PRIVILEGES_ENDPOINT =  USER_ACCOUNT_ENDPOINT + "entityprivilege";
+//        String ENTITY_PRIVILEGES_ENDPOINT =  USER_ACCOUNT_ENDPOINT + "entityprivilege";
         String EXAM_ENDPOINT = "/admin-api/v1/exam";
         String EXAM_DELETE_REQUEST_ENDPOINT = "/request";
         String SEB_ACCESS_ENDPOINT = "/admin-api/v1/clientaccess";
@@ -96,19 +96,19 @@ class ScreenProctoringAPIBinding {
         String INACTIVE_PATH_SEGMENT = "/inactive";
 
 
-        interface ENTITY_PRIVILEGE {
-            String ATTR_ENTITY_TYPE = "entityType";
-            String ATTR_ENTITY_ID = "entityId";
-            String ATTR_USER_UUID = "userUuid";
-            String ATTR_USERNAME = "username";
-            String ATTR_PRIVILEGES = "privileges";
-        }
-
-        interface PRIVILEGE_FLAGS {
-            String READ = "r";
-            String MODIFY = "m";
-            String WRITE = "w";
-        }
+//        interface ENTITY_PRIVILEGE {
+//            String ATTR_ENTITY_TYPE = "entityType";
+//            String ATTR_ENTITY_ID = "entityId";
+//            String ATTR_USER_UUID = "userUuid";
+//            String ATTR_USERNAME = "username";
+//            String ATTR_PRIVILEGES = "privileges";
+//        }
+//
+//        interface PRIVILEGE_FLAGS {
+//            String READ = "r";
+//            String MODIFY = "m";
+//            String WRITE = "w";
+//        }
 
         /** The screen proctoring service client-access API attribute names */
         interface SEB_ACCESS {
@@ -435,6 +435,8 @@ class ScreenProctoringAPIBinding {
 
             if (exchange.getStatusCode() == HttpStatus.OK) {
                 log.info("Successfully deleted User Account on SPS for user: {}", userUUID);
+            } else if (exchange.getStatusCode() == HttpStatus.NOT_FOUND) {
+                log.info("SPS User with uuid {} not found on SPS site.", userUUID);
             } else {
                 log.error("Failed to delete user account on SPS for user: {} response: {}", userUUID, exchange);
             }
@@ -664,7 +666,6 @@ class ScreenProctoringAPIBinding {
             log.error("Failed to re-initialize Screen Proctoring: ", e);
             return Collections.emptyList();
         }
-
     }
 
     Result<ScreenProctoringGroup> createGroup(
@@ -930,7 +931,7 @@ class ScreenProctoringAPIBinding {
             boolean applyRollback) {
 
         try {
-
+            
             final ScreenProctoringSettings settings = this.proctoringSettingsDAO
                     .getScreenProctoringSettings(new EntityKey(exam.id, EntityType.EXAM))
                     .getOrThrow();
