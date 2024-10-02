@@ -23,6 +23,7 @@ import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.SqlCriterion;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.MyBatis3UpdateModelAdapter;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -320,24 +321,33 @@ public class ExamRecordDAO {
                     exam.status);
             }
 
-            UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
-                .set(supporter).equalTo((exam.supporter != null)
-                        ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
-                        : null)
-                .set(type).equalTo((exam.type != null)
-                        ? exam.type.name()
-                        : ExamType.UNDEFINED.name())
-                .set(quitPassword).equalTo(getEncryptedQuitPassword(exam.quitPassword))
-                .set(browserKeys).equalToWhenPresent(exam.browserExamKeys)
-                .set(lmsSebRestriction).equalTo(1) // seb restriction (deprecated)
-                .set(examTemplateId).equalTo(oldRecord.getExamTemplateId())
-                .set(lastModified).equalTo(Utils.getMillisecondsNow())
-                .set(quizName).equalToWhenPresent(exam.lmsSetupId == null ? exam.name : null)
-                .set(quizStartTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.startTime : null)
-                .set(quizEndTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.endTime : null)
-                .where(id, isEqualTo(exam.id))
-                .build()
-                .execute();
+            final UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> clause = UpdateDSL.updateWithMapper(
+                            examRecordMapper::update,
+                            examRecord)
+                    .set(supporter).equalTo((exam.supporter != null)
+                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
+                            : null)
+                    .set(type).equalTo((exam.type != null)
+                            ? exam.type.name()
+                            : ExamType.UNDEFINED.name())
+                    .set(browserKeys).equalToWhenPresent(exam.browserExamKeys)
+                    .set(lmsSebRestriction).equalTo(1) // seb restriction (deprecated)
+                    .set(examTemplateId).equalTo(oldRecord.getExamTemplateId())
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .set(quizName).equalToWhenPresent(exam.lmsSetupId == null ? exam.name : null)
+                    .set(quizStartTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.startTime : null)
+                    .set(quizEndTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.endTime : null);
+
+            if (StringUtils.isBlank(exam.quitPassword)) {
+                clause.set(quitPassword).equalToNull();
+            } else {
+                clause.set(quitPassword).equalTo(getEncryptedQuitPassword(exam.quitPassword));
+            }
+            
+            clause
+                    .where(id, isEqualTo(exam.id))
+                    .build()
+                    .execute();
 
             return this.examRecordMapper.selectByPrimaryKey(exam.id);
         })
@@ -588,6 +598,22 @@ public class ExamRecordDAO {
         });
     }
 
+    @Transactional
+    public Result<ExamRecord> saveBrowserExamKeys(final Long examId, final String bek) {
+        return Result.tryCatch(() -> {
+
+            UpdateDSL.updateWithMapper(examRecordMapper::update, ExamRecordDynamicSqlSupport.examRecord)
+                    .set(browserKeys).equalTo(bek)
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .where(id,  isEqualTo(examId))
+                    .build()
+                    .execute();
+
+            return this.examRecordMapper.selectByPrimaryKey(examId);
+        })
+        .onError(TransactionHandler::rollback);
+    }
+
     private String getEncryptedQuitPassword(final String pwd) {
         return (StringUtils.isNotBlank(pwd))
                 ?  this.cryptor
@@ -599,3 +625,4 @@ public class ExamRecordDAO {
     }
 
 }
+

@@ -259,20 +259,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         return Result.tryCatch(() -> {
             // save Browser Exam Keys
             final Collection<String> browserExamKeys = sebRestriction.getBrowserExamKeys();
-            final Exam newExam = new Exam(
-                    exam.id,
-                    null, null, null, null, null, null, null, null, null,
-                    exam.supporter,
-                    exam.status,
-                    null,
-                    null,
+            this.examDAO.saveBrowserExamKeys(
+                            exam.id,
                     (browserExamKeys != null && !browserExamKeys.isEmpty())
                             ? StringUtils.join(browserExamKeys, Constants.LIST_SEPARATOR_CHAR)
-                            : StringUtils.EMPTY,
-                    null, null, null, null, null);
-
-            this.examDAO.save(newExam)
-                    .getOrThrow();
+                            : StringUtils.EMPTY);
 
             // save additional restriction properties
             // remove old ones first by collecting its id's and then delete by id's
