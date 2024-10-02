@@ -8,13 +8,16 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
+import javax.validation.constraints.Size;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ScreenProctoringGroupDAO;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -71,7 +74,7 @@ class ScreenProctoringAPIBinding {
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringAPIBinding.class);
 
     private static final String SEB_SERVER_SCREEN_PROCTORING_SEB_ACCESS_PREFIX = "SEBServer_SEB_Access_";
-
+    
     interface SPS_API {
 
         enum SPSUserRole {
@@ -86,7 +89,6 @@ class ScreenProctoringAPIBinding {
 
         String USER_ACCOUNT_ENDPOINT = "/admin-api/v1/useraccount/";
         String USERSYNC_SEBSERVER_ENDPOINT = USER_ACCOUNT_ENDPOINT + "usersync/sebserver";
-//        String ENTITY_PRIVILEGES_ENDPOINT =  USER_ACCOUNT_ENDPOINT + "entityprivilege";
         String EXAM_ENDPOINT = "/admin-api/v1/exam";
         String EXAM_DELETE_REQUEST_ENDPOINT = "/request";
         String SEB_ACCESS_ENDPOINT = "/admin-api/v1/clientaccess";
@@ -94,21 +96,6 @@ class ScreenProctoringAPIBinding {
         String SESSION_ENDPOINT = "/admin-api/v1/session";
         String ACTIVE_PATH_SEGMENT = "/active";
         String INACTIVE_PATH_SEGMENT = "/inactive";
-
-
-//        interface ENTITY_PRIVILEGE {
-//            String ATTR_ENTITY_TYPE = "entityType";
-//            String ATTR_ENTITY_ID = "entityId";
-//            String ATTR_USER_UUID = "userUuid";
-//            String ATTR_USERNAME = "username";
-//            String ATTR_PRIVILEGES = "privileges";
-//        }
-//
-//        interface PRIVILEGE_FLAGS {
-//            String READ = "r";
-//            String MODIFY = "m";
-//            String WRITE = "w";
-//        }
 
         /** The screen proctoring service client-access API attribute names */
         interface SEB_ACCESS {
@@ -210,12 +197,30 @@ class ScreenProctoringAPIBinding {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class GroupName {
+        @JsonProperty("uuid")
+        public final String modelId;
+        @JsonProperty("name")
+        public final String name;
+
+        @JsonCreator
+        public GroupName(
+                @JsonProperty("modelId") final String modelId,
+                @JsonProperty("name") final String name) {
+
+            this.modelId = modelId;
+            this.name = name;
+        }
+    }
+
     private final UserDAO userDAO;
     private final Cryptor cryptor;
     private final AsyncService asyncService;
     private final JSONMapper jsonMapper;
     private final ProctoringSettingsDAO proctoringSettingsDAO;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
     private final WebserviceInfo webserviceInfo;
 
     ScreenProctoringAPIBinding(
@@ -225,6 +230,7 @@ class ScreenProctoringAPIBinding {
             final JSONMapper jsonMapper,
             final ProctoringSettingsDAO proctoringSettingsDAO,
             final AdditionalAttributesDAO additionalAttributesDAO,
+            final ScreenProctoringGroupDAO screenProctoringGroupDAO,
             final WebserviceInfo webserviceInfo) {
 
         this.userDAO = userDAO;
@@ -233,6 +239,7 @@ class ScreenProctoringAPIBinding {
         this.jsonMapper = jsonMapper;
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.screenProctoringGroupDAO = screenProctoringGroupDAO;
         this.webserviceInfo = webserviceInfo;
     }
 
@@ -443,6 +450,46 @@ class ScreenProctoringAPIBinding {
 
         } catch (final Exception e) {
             log.error("Failed to delete user account on SPS for user: {}", userUUID);
+        }
+    }
+
+    public void synchronizeGroups(final Exam exam) {
+        try {
+            
+            // TODO try to sync groups for exam with SPS Service. 
+            //      If some group on SPS service has been delete,
+            //      delete (or mark) it also locally 
+
+//            Set<String> localGroupIds = this.screenProctoringGroupDAO
+//                    .getCollectingGroups(exam.id)
+//                    .getOrThrow()
+//                    .stream()
+//                    .map(g -> g.uuid)
+//                    .collect(Collectors.toSet());
+//            
+//            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
+//            final SPSData spsData = this.getSPSData(exam.id);
+//            final String groupRequestURI = UriComponentsBuilder
+//                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+//                    .path(SPS_API.GROUP_ENDPOINT + "/names")
+//                    .queryParam(SPS_API.GROUP.ATTR_UUID, exam.externalId)
+//                    .build()
+//                    .toUriString();
+//            final ResponseEntity<String> exchangeGroups = apiTemplate.exchange(groupRequestURI, HttpMethod.GET);
+//
+//            final Collection<GroupName> groups = this.jsonMapper.readValue(
+//                    exchangeGroups.getBody(),
+//                    new TypeReference<Collection<GroupName>>() {
+//                    });
+//            
+//                for (final GroupName group : groups) {
+//                    if (!localGroupIds.contains(group.modelId)) {
+//                        System.out.println("************* TODO delete local group");
+//                    }
+//                }
+            
+        } catch (final Exception e) {
+            log.error("Failed to synchronize groups for exam: {} error: {}", exam.name, e.getMessage());
         }
     }
 
@@ -830,10 +877,12 @@ class ScreenProctoringAPIBinding {
                 return Collections.emptyList();
             }
 
-            return this.jsonMapper.readValue(
+            Collection<GroupSessionCount> groupSessionCounts = this.jsonMapper.readValue(
                     exchange.getBody(),
                     new TypeReference<Collection<GroupSessionCount>>() {
                     });
+            
+            return groupSessionCounts;
 
         } catch (final Exception e) {
             log.error("Failed to get active group session counts: {}", e.getMessage());
@@ -904,7 +953,8 @@ class ScreenProctoringAPIBinding {
         final Set<String> spsUserRoles = new HashSet<>();
         spsUserRoles.add(SPS_API.SPSUserRole.PROCTOR.name());
         if (userInfo.roles.contains(UserRole.SEB_SERVER_ADMIN.name()) ||
-                userInfo.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name())) {
+                userInfo.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name()) ||
+                userInfo.roles.contains(UserRole.EXAM_ADMIN.name())) {
             spsUserRoles.add(SPS_API.SPSUserRole.ADMIN.name());
         }
 

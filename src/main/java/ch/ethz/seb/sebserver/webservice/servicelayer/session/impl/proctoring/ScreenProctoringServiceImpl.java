@@ -102,6 +102,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 jsonMapper,
                 proctoringSettingsDAO,
                 additionalAttributesDAO,
+                screenProctoringGroupDAO,
                 webserviceInfo);
     }
 
@@ -237,6 +238,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return exam;
     }
 
+    // TODO make sense to cache here?
     @Override
     public Result<Collection<ScreenProctoringGroup>> getCollectingGroups(final Long examId) {
         return this.screenProctoringGroupDAO.getCollectingGroups(examId);
@@ -306,6 +308,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         this.screenProctoringAPIBinding.synchronizeUserAccounts(exam);
         this.screenProctoringAPIBinding.updateExam(exam);
+        this.screenProctoringAPIBinding.synchronizeGroups(exam);
     }
 
     @Override

@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -179,8 +180,11 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @Override
-    protected Result<UserInfo> notifySaved(final UserInfo entity) {
-        final Result<UserInfo> userInfoResult = super.notifySaved(entity);
+    protected Result<UserInfo> notifySaved(
+            final UserInfo entity, 
+            final Activatable.ActivationAction activationAction) {
+
+        final Result<UserInfo> userInfoResult = super.notifySaved(entity, activationAction);
         this.synchronizeUserWithSPS(entity);
         return userInfoResult;
     }
