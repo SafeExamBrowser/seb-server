@@ -50,7 +50,7 @@ public class GuiServiceInfo {
             @Value("${sebserver.gui.multilingual:false}") final boolean multilingualGUI) {
 
         if (StringUtils.isBlank(externalScheme)) {
-            throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
+            throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.scheme");
         }
 
         if (StringUtils.isBlank(externalServer)) {
