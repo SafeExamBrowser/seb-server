@@ -65,6 +65,10 @@ public class ClientGroupTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.clientgroup.form.ipend");
     private static final LocTextKey FORM_OS_TYPE_KEY =
             new LocTextKey("sebserver.exam.clientgroup.form.ostype");
+    private static final LocTextKey FORM_UNAME_START_KEY =
+            new LocTextKey("sebserver.exam.clientgroup.form.usernamestart");
+    private static final LocTextKey FORM_UNAME_END_KEY =
+            new LocTextKey("sebserver.exam.clientgroup.form.usernameend");
 
     private static final String CLIENT_GROUP_TYPE_DESC_PREFIX =
             "sebserver.exam.clientgroup.type.description.";
@@ -105,7 +109,7 @@ public class ClientGroupTemplateForm implements TemplateComposer {
         // get data or create new. Handle error if happen
         final ClientGroupTemplate clientGroupTemplate = (isNew)
                 ? new ClientGroupTemplate(null, Long.parseLong(parentEntityKey.modelId),
-                        null, null, null, null, null, null, null)
+                        null, null, null, null, null, null, null, null, null)
                 : restService
                         .getBuilder(GetClientGroupTemplate.class)
                         .withURIVariable(API.PARAM_PARENT_MODEL_ID, parentEntityKey.modelId)
@@ -181,25 +185,36 @@ public class ClientGroupTemplateForm implements TemplateComposer {
                         FORM_IP_START_KEY,
                         clientGroupTemplate::getIpRangeStart)
                         .mandatory(!isReadonly)
-                        .visibleIf(clientGroupTemplate.type != null
-                                && clientGroupTemplate.type == ClientGroupType.IP_V4_RANGE))
+                        .visibleIf(clientGroupTemplate.type == ClientGroupType.IP_V4_RANGE))
 
                 .addField(FormBuilder.text(
                         ClientGroup.ATTR_IP_RANGE_END,
                         FORM_IP_END_KEY,
                         clientGroupTemplate::getIpRangeEnd)
                         .mandatory(!isReadonly)
-                        .visibleIf(clientGroupTemplate.type != null
-                                && clientGroupTemplate.type == ClientGroupType.IP_V4_RANGE))
+                        .visibleIf(clientGroupTemplate.type == ClientGroupType.IP_V4_RANGE))
 
                 .addField(FormBuilder.singleSelection(
                         ClientGroupTemplate.ATTR_CLIENT_OS,
                         FORM_OS_TYPE_KEY,
                         (clientGroupTemplate.clientOS != null) ? clientGroupTemplate.clientOS.name() : null,
                         this.resourceService::clientClientOSResources)
-                        .visibleIf(clientGroupTemplate.type != null
-                                && clientGroupTemplate.type == ClientGroupType.CLIENT_OS)
+                        .visibleIf(clientGroupTemplate.type == ClientGroupType.CLIENT_OS)
                         .mandatory(!isReadonly))
+
+                .addField(FormBuilder.text(
+                                ClientGroup.ATTR_NAME_RANGE_START_LETTER,
+                                FORM_UNAME_START_KEY,
+                                clientGroupTemplate::getNameRangeStartLetter)
+                        .mandatory(!isReadonly)
+                        .visibleIf(clientGroupTemplate.type == ClientGroupType.NAME_ALPHABETICAL_RANGE))
+
+                .addField(FormBuilder.text(
+                                ClientGroup.ATTR_NAME_RANGE_END_LETTER,
+                                FORM_UNAME_END_KEY,
+                                clientGroupTemplate::getNameRangeEndLetter)
+                        .mandatory(!isReadonly)
+                        .visibleIf(clientGroupTemplate.type == ClientGroupType.NAME_ALPHABETICAL_RANGE))
 
                 .buildFor((isNew)
                         ? restService.getRestCall(NewClientGroupTemplate.class)

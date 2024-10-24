@@ -407,7 +407,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         template.icon,
                         template.ipRangeStart,
                         template.ipRangeEnd,
-                        template.clientOS))
+                        template.clientOS,
+                        template.nameRangeStartLetter,
+                        template.nameRangeEndLetter))
                 .onError(
                         error -> log.error("Failed to automatically create client group from template: {} for exam: {}",
                                 template,

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -61,6 +62,12 @@ public class ClientGroupTemplate implements ClientGroupData {
     @JsonProperty(ClientGroup.ATTR_CLIENT_OS)
     public final ClientOS clientOS;
 
+    @JsonProperty(ATTR_NAME_RANGE_START_LETTER)
+    public final String nameRangeStartLetter;
+
+    @JsonProperty(ATTR_NAME_RANGE_END_LETTER)
+    public final String nameRangeEndLetter;
+
     @JsonCreator
     public ClientGroupTemplate(
             @JsonProperty(CLIENT_GROUP.ATTR_ID) final Long id,
@@ -71,7 +78,9 @@ public class ClientGroupTemplate implements ClientGroupData {
             @JsonProperty(CLIENT_GROUP.ATTR_ICON) final String icon,
             @JsonProperty(ClientGroup.ATTR_IP_RANGE_START) final String ipRangeStart,
             @JsonProperty(ClientGroup.ATTR_IP_RANGE_END) final String ipRangeEnd,
-            @JsonProperty(ClientGroup.ATTR_CLIENT_OS) final ClientOS clientOS) {
+            @JsonProperty(ClientGroup.ATTR_CLIENT_OS) final ClientOS clientOS,
+            @JsonProperty(ATTR_NAME_RANGE_START_LETTER) final String nameRangeStartLetter,
+            @JsonProperty(ATTR_NAME_RANGE_END_LETTER) final String nameRangeEndLetter) {
 
         super();
         this.id = id;
@@ -83,6 +92,8 @@ public class ClientGroupTemplate implements ClientGroupData {
         this.ipRangeStart = ipRangeStart;
         this.ipRangeEnd = ipRangeEnd;
         this.clientOS = clientOS;
+        this.nameRangeStartLetter = nameRangeStartLetter;
+        this.nameRangeEndLetter = nameRangeEndLetter;
     }
 
     public ClientGroupTemplate(final Long id, final Long examTemplateId, final POSTMapper postParams) {
@@ -96,6 +107,8 @@ public class ClientGroupTemplate implements ClientGroupData {
         this.ipRangeStart = postParams.getString(ClientGroup.ATTR_IP_RANGE_START);
         this.ipRangeEnd = postParams.getString(ClientGroup.ATTR_IP_RANGE_END);
         this.clientOS = postParams.getEnum(ClientGroup.ATTR_CLIENT_OS, ClientOS.class);
+        this.nameRangeStartLetter = postParams.getString(ATTR_NAME_RANGE_START_LETTER);
+        this.nameRangeEndLetter = postParams.getString(ATTR_NAME_RANGE_END_LETTER);
     }
 
     public ClientGroupTemplate(final Long id, final ClientGroupTemplate other) {
@@ -109,6 +122,8 @@ public class ClientGroupTemplate implements ClientGroupData {
         this.ipRangeStart = other.ipRangeStart;
         this.ipRangeEnd = other.ipRangeEnd;
         this.clientOS = other.clientOS;
+        this.nameRangeStartLetter = other.nameRangeStartLetter;
+        this.nameRangeEndLetter = other.nameRangeEndLetter;
     }
 
     @Override
@@ -181,6 +196,16 @@ public class ClientGroupTemplate implements ClientGroupData {
         return this.clientOS;
     }
 
+    @Override
+    public String getNameRangeStartLetter() {
+        return this.nameRangeStartLetter;
+    }
+
+    @Override
+    public String getNameRangeEndLetter() {
+        return this.nameRangeEndLetter;
+    }
+
     @JsonIgnore
     public String getData() {
         switch (this.type) {
@@ -198,55 +223,31 @@ public class ClientGroupTemplate implements ClientGroupData {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ClientGroupTemplate [id=");
-        builder.append(this.id);
-        builder.append(", examTemplateId=");
-        builder.append(this.examTemplateId);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", type=");
-        builder.append(this.type);
-        builder.append(", color=");
-        builder.append(this.color);
-        builder.append(", icon=");
-        builder.append(this.icon);
-        builder.append(", ipRangeStart=");
-        builder.append(this.ipRangeStart);
-        builder.append(", ipRangeEnd=");
-        builder.append(this.ipRangeEnd);
-        builder.append(", clientOS=");
-        builder.append(this.clientOS);
-        builder.append("]");
-        return builder.toString();
+        return "ClientGroupTemplate{" +
+                "id=" + id +
+                ", examTemplateId=" + examTemplateId +
+                ", name='" + name + '\'' +
+                ", type=" + type +
+                ", color='" + color + '\'' +
+                ", icon='" + icon + '\'' +
+                ", ipRangeStart='" + ipRangeStart + '\'' +
+                ", ipRangeEnd='" + ipRangeEnd + '\'' +
+                ", clientOS=" + clientOS +
+                ", nameRangeStartLetter=" + nameRangeStartLetter +
+                ", nameRangeEndLetter=" + nameRangeEndLetter +
+                '}';
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final ClientGroupTemplate that = (ClientGroupTemplate) o;
+        return Objects.equals(id, that.id) && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
-        return result;
+        return Objects.hash(id, type);
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final ClientGroupTemplate other = (ClientGroupTemplate) obj;
-        if (this.id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!this.id.equals(other.id))
-            return false;
-        if (this.type != other.type)
-            return false;
-        return true;
-    }
-
 }

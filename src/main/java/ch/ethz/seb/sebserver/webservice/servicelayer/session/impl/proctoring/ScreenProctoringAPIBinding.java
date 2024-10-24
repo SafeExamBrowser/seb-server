@@ -8,9 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
-import javax.validation.constraints.Size;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
@@ -343,6 +341,11 @@ class ScreenProctoringAPIBinding {
                 }
 
                 synchronizeUserAccounts(exam);
+                
+                // TODO synchronize groups and check if it still match (what if groups has changed meanwhile)
+                // If new groups settings do not match old groups
+                // --> if there are already sessions for any group on SPS, deny change
+                // --> if there are no session on SPS yet, delete old groups on SPS and create new one and also locally
                 return Collections.emptyList();
             }
 
@@ -456,9 +459,8 @@ class ScreenProctoringAPIBinding {
     public void synchronizeGroups(final Exam exam) {
         try {
             
-            // TODO try to sync groups for exam with SPS Service. 
-            //      If some group on SPS service has been delete,
-            //      delete (or mark) it also locally 
+            // TODO try to sync groups for exam with SPS Service. If some group on SPS service has been deleted.
+            //      We need a proper strategy to do that and think also about intentional deletion of groups on SPS Service
 
 //            Set<String> localGroupIds = this.screenProctoringGroupDAO
 //                    .getCollectingGroups(exam.id)
@@ -670,6 +672,10 @@ class ScreenProctoringAPIBinding {
             this.activateScreenProctoring(exam);
 
             // recreate groups on SEB Server if needed
+            // TODO synchronize groups and check if it still match (what if groups has changed meanwhile)
+            // If new groups settings do not match old groups
+            // --> if there are already sessions for any group on SPS, deny change
+            // --> if there are no session on SPS yet, delete old groups on SPS and create new one and also locally
             try {
                 final Collection<ScreenProctoringGroup> groups = new ArrayList<>();
                 final String groupRequestURI = UriComponentsBuilder

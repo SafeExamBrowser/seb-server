@@ -67,6 +67,10 @@ public class ClientGroupForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.clientgroup.form.ipend");
     private static final LocTextKey FORM_OS_TYPE_KEY =
             new LocTextKey("sebserver.exam.clientgroup.form.ostype");
+    private static final LocTextKey FORM_UNAME_START_KEY =
+            new LocTextKey("sebserver.exam.clientgroup.form.usernamestart");
+    private static final LocTextKey FORM_UNAME_END_KEY =
+            new LocTextKey("sebserver.exam.clientgroup.form.usernameend");
 
     private static final String CLIENT_GROUP_TYPE_DESC_PREFIX =
             "sebserver.exam.clientgroup.type.description.";
@@ -207,6 +211,20 @@ public class ClientGroupForm implements TemplateComposer {
                         .visibleIf(clientGroup.type == ClientGroupType.CLIENT_OS)
                         .mandatory(!isReadonly))
 
+                .addField(FormBuilder.text(
+                                ClientGroup.ATTR_NAME_RANGE_START_LETTER,
+                                FORM_UNAME_START_KEY,
+                                clientGroup::getNameRangeStartLetter)
+                        .mandatory(!isReadonly)
+                        .visibleIf(clientGroup.type == ClientGroupType.NAME_ALPHABETICAL_RANGE))
+
+                .addField(FormBuilder.text(
+                                ClientGroup.ATTR_NAME_RANGE_END_LETTER,
+                                FORM_UNAME_END_KEY,
+                                clientGroup::getNameRangeEndLetter)
+                        .mandatory(!isReadonly)
+                        .visibleIf(clientGroup.type == ClientGroupType.NAME_ALPHABETICAL_RANGE))
+
                 .buildFor((isNew)
                         ? restService.getRestCall(NewClientGroup.class)
                         : restService.getRestCall(SaveClientGroup.class));
@@ -228,15 +246,20 @@ public class ClientGroupForm implements TemplateComposer {
 
     public static void updateForm(final Form form, final I18nSupport i18nSupport) {
         final String typeValue = form.getFieldValue(Domain.CLIENT_GROUP.ATTR_TYPE);
+        form.setFieldVisible(false, ClientGroup.ATTR_IP_RANGE_START);
+        form.setFieldVisible(false, ClientGroup.ATTR_IP_RANGE_END);
+        form.setFieldVisible(false, ClientGroupTemplate.ATTR_CLIENT_OS);
+        form.setFieldVisible(false, ClientGroup.ATTR_NAME_RANGE_START_LETTER);
+        form.setFieldVisible(false, ClientGroup.ATTR_NAME_RANGE_END_LETTER);
+        
         if (StringUtils.isNotBlank(typeValue)) {
+            
             final String text = i18nSupport.getText(CLIENT_GROUP_TYPE_DESC_PREFIX + typeValue);
             form.setFieldValue(
                     TYPE_DESCRIPTION_FIELD_NAME,
                     Utils.formatLineBreaks(text));
+            
             final ClientGroupType type = ClientGroupType.valueOf(typeValue);
-            form.setFieldVisible(false, ClientGroup.ATTR_IP_RANGE_START);
-            form.setFieldVisible(false, ClientGroup.ATTR_IP_RANGE_END);
-            form.setFieldVisible(false, ClientGroupTemplate.ATTR_CLIENT_OS);
             if (type == ClientGroupType.IP_V4_RANGE) {
                 form.setFieldVisible(true, ClientGroup.ATTR_IP_RANGE_START);
                 form.setFieldVisible(true, ClientGroup.ATTR_IP_RANGE_END);
@@ -244,10 +267,15 @@ public class ClientGroupForm implements TemplateComposer {
             if (type == ClientGroupType.CLIENT_OS) {
                 form.setFieldVisible(true, ClientGroupTemplate.ATTR_CLIENT_OS);
             }
+            if (type == ClientGroupType.NAME_ALPHABETICAL_RANGE) {
+                form.setFieldVisible(true, ClientGroup.ATTR_NAME_RANGE_START_LETTER);
+                form.setFieldVisible(true, ClientGroup.ATTR_NAME_RANGE_END_LETTER);
+            }
 
         } else {
             form.setFieldValue(TYPE_DESCRIPTION_FIELD_NAME, Constants.EMPTY_NOTE);
         }
+        
     }
 
 }

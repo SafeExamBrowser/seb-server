@@ -94,6 +94,15 @@ public class POSTMapper {
         return this.params.getFirst(name);
     }
 
+    public Character getCharacter(final String name) {
+        final String result = getString(name);
+        if (result == null) {
+            return null;
+        }
+        
+        return name.charAt(0);
+    }
+
     public char[] getCharArray(final String name) {
         final String value = getString(name);
         if (value == null || value.length() <= 0) {
@@ -283,5 +292,5 @@ public class POSTMapper {
         builder.append("]");
         return builder.toString();
     }
-
+    
 }
