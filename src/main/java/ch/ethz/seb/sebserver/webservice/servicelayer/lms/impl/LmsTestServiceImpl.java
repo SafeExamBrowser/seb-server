@@ -123,6 +123,9 @@ public class LmsTestServiceImpl implements LmsTestService {
 
                 if (integrationDataResult.hasError()) {
                     Throwable error = integrationDataResult.getError();
+
+                    log.warn("Failed to apply full LMS integration: {}", error.getMessage());
+                    
                     if (error instanceof RuntimeException) {
                         error = error.getCause();
                     }
