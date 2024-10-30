@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
 import java.util.*;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -311,7 +312,7 @@ class ScreenProctoringAPIBinding {
         }
     }
 
-    /** This is called when an exam goes in running state
+    /** This is called when the Screen Proctoring is been enabled for an Exam
      * If the needed resources on SPS side has been already created before, this just reactivates
      * all resources on SPS side.
      * If this is the fist initial run of the given exam and there are no resources on SPS side,
@@ -673,47 +674,50 @@ class ScreenProctoringAPIBinding {
 
             // recreate groups on SEB Server if needed
             // TODO synchronize groups and check if it still match (what if groups has changed meanwhile)
-            // If new groups settings do not match old groups
-            // --> if there are already sessions for any group on SPS, deny change
-            // --> if there are no session on SPS yet, delete old groups on SPS and create new one and also locally
-            try {
-                final Collection<ScreenProctoringGroup> groups = new ArrayList<>();
-                final String groupRequestURI = UriComponentsBuilder
-                        .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
-                        .path(SPS_API.GROUP_ENDPOINT)
-                        .queryParam(Page.ATTR_PAGE_SIZE, 100)
-                        .queryParam(SPS_API.GROUP.ATTR_EXAM_ID, spsExamId)
-                        .build()
-                        .toUriString();
-                final ResponseEntity<String> exchangeGroups = apiTemplate.exchange(groupRequestURI, HttpMethod.GET);
+            // Get groups from SPS and from SEB Server. 
+            // If SEB Server already has groups, check if they match that from SPS for none matching, create new SPS Group.
+            // IF SEB Server needs new groups (according to config) create new groups on SPS and SEBServer
+            // Do all this not here but in a single Group sync point that is also called when group binding has changed for an exam
 
-                final JsonNode groupsJSON = this.jsonMapper.readTree(exchangeGroups.getBody());
-                final JsonNode pageContent = groupsJSON.get("content");
-                if (pageContent.isArray()) {
-                   for (final JsonNode group : pageContent) {
-                       groups.add(new ScreenProctoringGroup(
-                               null,
-                               exam.id,
-                               group.get(SPS_API.GROUP.ATTR_UUID).textValue(),
-                               group.get(SPS_API.GROUP.ATTR_NAME).textValue(),
-                               0,
-                               group.toString()
-                       ));
-                   }
-                }
-
-                if (groups.isEmpty()) {
-                    log.info("No groups for exam {} and spsExam {} found on SPS, try to initialize default groups...",
-                            exam.name,
-                            spsExamId);
-                    return initializeGroups(exam, apiTemplate, spsData, false);
-                }
-
-                return groups;
-            } catch (final Exception e) {
-                log.error("Failed to get exam groups from SPS due to reinitialization: ", e);
-                return initializeGroups(exam, apiTemplate, spsData, false);
-            }
+            return initializeGroups(exam, apiTemplate, spsData, false);
+//            try {
+//                final Collection<ScreenProctoringGroup> groups = new ArrayList<>();
+//                final String groupRequestURI = UriComponentsBuilder
+//                        .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+//                        .path(SPS_API.GROUP_ENDPOINT)
+//                        .queryParam(Page.ATTR_PAGE_SIZE, 100)
+//                        .queryParam(SPS_API.GROUP.ATTR_EXAM_ID, spsExamId)
+//                        .build()
+//                        .toUriString();
+//                final ResponseEntity<String> exchangeGroups = apiTemplate.exchange(groupRequestURI, HttpMethod.GET);
+//
+//                final JsonNode groupsJSON = this.jsonMapper.readTree(exchangeGroups.getBody());
+//                final JsonNode pageContent = groupsJSON.get("content");
+//                if (pageContent.isArray()) {
+//                   for (final JsonNode group : pageContent) {
+//                       groups.add(new ScreenProctoringGroup(
+//                               null,
+//                               exam.id,
+//                               group.get(SPS_API.GROUP.ATTR_UUID).textValue(),
+//                               group.get(SPS_API.GROUP.ATTR_NAME).textValue(),
+//                               0,
+//                               group.toString()
+//                       ));
+//                   }
+//                }
+//
+//                if (groups.isEmpty()) {
+//                    log.info("No groups for exam {} and spsExam {} found on SPS, try to initialize default groups...",
+//                            exam.name,
+//                            spsExamId);
+//                    return initializeGroups(exam, apiTemplate, spsData, false);
+//                }
+//
+//                return groups;
+//            } catch (final Exception e) {
+//                log.error("Failed to get exam groups from SPS due to reinitialization: ", e);
+//                return initializeGroups(exam, apiTemplate, spsData, false);
+//            }
 
         } catch (final Exception e) {
             log.error("Failed to re-initialize Screen Proctoring: ", e);
@@ -744,6 +748,8 @@ class ScreenProctoringAPIBinding {
                     "Proctoring Group " + groupNumber + " : " + exam.getName(),
                     description,
                     spsExamUUID,
+                    CollectingStrategy.FIX_SIZE,
+                    null,
                     apiTemplate);
         });
     }
@@ -984,7 +990,7 @@ class ScreenProctoringAPIBinding {
             final Exam exam,
             final ScreenProctoringServiceOAuthTemplate apiTemplate,
             final SPSData spsData,
-            boolean applyRollback) {
+            final boolean applyRollback) {
 
         try {
             
@@ -1002,6 +1008,8 @@ class ScreenProctoringAPIBinding {
                             "Group 1 : " + exam.getName(),
                             "Created by SEB Server",
                             spsData.spsExamUUID,
+                            CollectingStrategy.FIX_SIZE, 
+                            null,
                             apiTemplate));
                     break;
                 }
@@ -1009,14 +1017,15 @@ class ScreenProctoringAPIBinding {
                     // TODO
                     throw new UnsupportedOperationException("SEB_GROUP based group collection is not supported yet");
                 }
-                case EXAM:
-                default: {
+                case EXAM: {
                     result.add(createGroupOnSPS(
                             0,
                             exam.id,
                             exam.getName(),
                             "Created by SEB Server",
                             spsData.spsExamUUID,
+                            CollectingStrategy.EXAM,
+                            null,
                             apiTemplate));
                     break;
                 }
@@ -1042,8 +1051,9 @@ class ScreenProctoringAPIBinding {
             final String name,
             final String description,
             final String spsExamUUID,
-            final ScreenProctoringServiceOAuthTemplate apiTemplate)
-            throws JsonMappingException, JsonProcessingException {
+            final CollectingStrategy collectingStrategy,
+            final Long sebGroupId,
+            final ScreenProctoringServiceOAuthTemplate apiTemplate) throws JsonProcessingException {
 
         final String uri = UriComponentsBuilder
                 .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
@@ -1067,7 +1077,7 @@ class ScreenProctoringAPIBinding {
                 });
 
         final String spsGroupUUID = groupAttributes.get(SPS_API.GROUP.ATTR_UUID);
-        return new ScreenProctoringGroup(null, examId, spsGroupUUID, name, size, exchange.getBody());
+        return new ScreenProctoringGroup(null, examId, spsGroupUUID, name, size, exchange.getBody(), collectingStrategy, sebGroupId);
     }
 
     private void createExam(

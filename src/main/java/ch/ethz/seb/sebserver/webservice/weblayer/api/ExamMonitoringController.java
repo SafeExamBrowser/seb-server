@@ -376,12 +376,12 @@ public class ExamMonitoringController {
         final boolean proctoringEnabled = this.examAdminService.isProctoringEnabled(runningExam);
         final boolean screenProctoringEnabled = this.examAdminService.isScreenProctoringEnabled(runningExam);
 
-        final Collection<RemoteProctoringRoom> proctoringData = (proctoringEnabled)
-                ? this.examProctoringRoomService
-                        .getProctoringCollectingRooms(examId)
-                        .onError(error -> log.error("Failed to get RemoteProctoringRoom for exam: {}", examId, error))
-                        .getOr(Collections.emptyList())
-                : Collections.emptyList();
+//        final Collection<RemoteProctoringRoom> proctoringData = (proctoringEnabled)
+//                ? this.examProctoringRoomService
+//                        .getProctoringCollectingRooms(examId)
+//                        .onError(error -> log.error("Failed to get RemoteProctoringRoom for exam: {}", examId, error))
+//                        .getOr(Collections.emptyList())
+//                : Collections.emptyList();
 
         final Collection<ScreenProctoringGroup> screenProctoringData = (screenProctoringEnabled)
                 ? this.screenProctoringService
@@ -393,7 +393,7 @@ public class ExamMonitoringController {
         return new MonitoringFullPageData(
                 examId,
                 monitoringSEBConnectionData,
-                proctoringData,
+                Collections.emptyList(),
                 screenProctoringData);
     }
 

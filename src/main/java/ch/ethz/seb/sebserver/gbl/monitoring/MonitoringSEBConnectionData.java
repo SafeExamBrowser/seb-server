@@ -87,7 +87,7 @@ public class MonitoringSEBConnectionData {
     @JsonIgnore
     public int getNumberOfConnection(final Long clientGroupId) {
         if (this.connectionsPerClientGroup == null || !this.connectionsPerClientGroup.containsKey(clientGroupId)) {
-            return -1;
+            return 0;
         }
         return this.connectionsPerClientGroup.get(clientGroupId);
     }
@@ -95,7 +95,7 @@ public class MonitoringSEBConnectionData {
     @JsonIgnore
     public int getNumberOfConnection(final ConnectionIssueStatus connectionIssueStatus) {
         if (this.connectionPerIssue == null || this.connectionPerIssue.length <= connectionIssueStatus.code) {
-            return -1;
+            return 0;
         }
         return this.connectionPerIssue[connectionIssueStatus.code];
     }

@@ -127,6 +127,8 @@ CREATE TABLE IF NOT EXISTS `screen_proctoring_group` (
   `name` VARCHAR(255) NOT NULL,
   `size` INT NULL,
   `data` VARCHAR(4000) NULL,
+  `collecting_strategy` VARCHAR(45) NULL,
+  `seb_group_id` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC),
   INDEX `screenProctoringGroupExamRef_idx` (`exam_id` ASC),

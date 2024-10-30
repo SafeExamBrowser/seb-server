@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 
 import java.util.Objects;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.CollectingStrategy;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,6 +38,12 @@ public class ScreenProctoringGroup {
     @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_DATA)
     public final String additionalData;
 
+    @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_COLLECTING_STRATEGY)
+    public final CollectingStrategy collectingStrategy;
+
+    @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_SEB_GROUP_ID)
+    public final Long sebGroupId;
+
     @JsonCreator
     public ScreenProctoringGroup(
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_ID) final Long id,
@@ -44,7 +51,9 @@ public class ScreenProctoringGroup {
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_UUID) final String uuid,
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_NAME) final String name,
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_SIZE) final Integer size,
-            @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_DATA) final String additionalData) {
+            @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_DATA) final String additionalData,
+            @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_COLLECTING_STRATEGY) final CollectingStrategy collectingStrategy,
+            @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_SEB_GROUP_ID) final Long sebGroupId) {
 
         this.id = id;
         this.examId = examId;
@@ -52,6 +61,8 @@ public class ScreenProctoringGroup {
         this.name = name;
         this.size = size;
         this.additionalData = additionalData;
+        this.collectingStrategy = collectingStrategy;
+        this.sebGroupId = sebGroupId;
     }
 
     public Long getId() {
@@ -78,6 +89,14 @@ public class ScreenProctoringGroup {
         return this.additionalData;
     }
 
+    public CollectingStrategy getCollectingStrategy() {
+        return collectingStrategy;
+    }
+
+    public Long getSebGroupId() {
+        return sebGroupId;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(this.id);
@@ -97,21 +116,15 @@ public class ScreenProctoringGroup {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ScreenProctoringGroup [id=");
-        builder.append(this.id);
-        builder.append(", examId=");
-        builder.append(this.examId);
-        builder.append(", uuid=");
-        builder.append(this.uuid);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", size=");
-        builder.append(this.size);
-        builder.append(", additionalData=");
-        builder.append(this.additionalData);
-        builder.append("]");
-        return builder.toString();
+        return "ScreenProctoringGroup{" +
+                "id=" + id +
+                ", examId=" + examId +
+                ", uuid='" + uuid + '\'' +
+                ", name='" + name + '\'' +
+                ", size=" + size +
+                ", additionalData='" + additionalData + '\'' +
+                ", collectingStrategy=" + collectingStrategy +
+                ", sebGroupId=" + sebGroupId +
+                '}';
     }
-
 }

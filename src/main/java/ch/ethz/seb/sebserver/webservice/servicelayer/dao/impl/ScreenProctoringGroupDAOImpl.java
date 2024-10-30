@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.CollectingStrategy;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -177,7 +178,9 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         return Result.tryCatch(() -> {
 
             final ScreenProctoringGroopRecord screenProctoringGroopRecord = new ScreenProctoringGroopRecord(
-                    null, group.examId, group.uuid, group.name, 0, group.additionalData);
+                    null, group.examId, group.uuid, group.name, 0, group.additionalData,
+                    (group.collectingStrategy != null) ? group.collectingStrategy.name() : CollectingStrategy.EXAM.name()
+                    , group.sebGroupId);
 
             this.screenProctoringGroopRecordMapper.insert(screenProctoringGroopRecord);
 
@@ -304,7 +307,11 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
                 record.getUuid(),
                 record.getName(),
                 record.getSize(),
-                record.getData());
+                record.getData(),
+                record.getCollectingStrategy() != null 
+                        ? CollectingStrategy.valueOf(record.getCollectingStrategy()) 
+                        : CollectingStrategy.EXAM,
+                record.getSebGroupId());
     }
     public static final class AllGroupsFullException extends RuntimeException {
         private static final long serialVersionUID = 3283129187819160485L;

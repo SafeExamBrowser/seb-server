@@ -238,7 +238,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return exam;
     }
 
-    // TODO make sense to cache here?
+    // TODO Put this within CacheService and update in sync with Running Exam update.
+    //      Also check that when ScreenProctoringGroup gets saves or deleted for an exam, the exam update time changes
     @Override
     public Result<Collection<ScreenProctoringGroup>> getCollectingGroups(final Long examId) {
         return this.screenProctoringGroupDAO.getCollectingGroups(examId);

@@ -3,69 +3,87 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ScreenProctoringGroopRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.014+02:00", comments="Source field: screen_proctoring_group.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.014+02:00", comments="Source field: screen_proctoring_group.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.uuid")
     private String uuid;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.size")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.size")
     private Integer size;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.data")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.data")
     private String data;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.014+02:00", comments="Source Table: screen_proctoring_group")
-    public ScreenProctoringGroopRecord(Long id, Long examId, String uuid, String name, Integer size, String data) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.collecting_strategy")
+    private String collectingStrategy;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.seb_group_id")
+    private Long sebGroupId;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source Table: screen_proctoring_group")
+    public ScreenProctoringGroopRecord(Long id, Long examId, String uuid, String name, Integer size, String data, String collectingStrategy, Long sebGroupId) {
         this.id = id;
         this.examId = examId;
         this.uuid = uuid;
         this.name = name;
         this.size = size;
         this.data = data;
+        this.collectingStrategy = collectingStrategy;
+        this.sebGroupId = sebGroupId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.014+02:00", comments="Source field: screen_proctoring_group.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.uuid")
     public String getUuid() {
         return uuid;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.size")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.size")
     public Integer getSize() {
         return size;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-09-03T11:17:27.015+02:00", comments="Source field: screen_proctoring_group.data")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.data")
     public String getData() {
         return data;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.collecting_strategy")
+    public String getCollectingStrategy() {
+        return collectingStrategy;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.625+01:00", comments="Source field: screen_proctoring_group.seb_group_id")
+    public Long getSebGroupId() {
+        return sebGroupId;
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table screen_proctoring_group
      *
-     * @mbg.generated Tue Sep 03 11:17:27 CEST 2024
+     * @mbg.generated Wed Oct 30 11:40:34 CET 2024
      */
     @Override
     public String toString() {
@@ -79,6 +97,8 @@ public class ScreenProctoringGroopRecord {
         sb.append(", name=").append(name);
         sb.append(", size=").append(size);
         sb.append(", data=").append(data);
+        sb.append(", collectingStrategy=").append(collectingStrategy);
+        sb.append(", sebGroupId=").append(sebGroupId);
         sb.append("]");
         return sb.toString();
     }
@@ -87,7 +107,7 @@ public class ScreenProctoringGroopRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table screen_proctoring_group
      *
-     * @mbg.generated Tue Sep 03 11:17:27 CEST 2024
+     * @mbg.generated Wed Oct 30 11:40:34 CET 2024
      */
     @Override
     public boolean equals(Object that) {
@@ -106,14 +126,16 @@ public class ScreenProctoringGroopRecord {
             && (this.getUuid() == null ? other.getUuid() == null : this.getUuid().equals(other.getUuid()))
             && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
             && (this.getSize() == null ? other.getSize() == null : this.getSize().equals(other.getSize()))
-            && (this.getData() == null ? other.getData() == null : this.getData().equals(other.getData()));
+            && (this.getData() == null ? other.getData() == null : this.getData().equals(other.getData()))
+            && (this.getCollectingStrategy() == null ? other.getCollectingStrategy() == null : this.getCollectingStrategy().equals(other.getCollectingStrategy()))
+            && (this.getSebGroupId() == null ? other.getSebGroupId() == null : this.getSebGroupId().equals(other.getSebGroupId()));
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table screen_proctoring_group
      *
-     * @mbg.generated Tue Sep 03 11:17:27 CEST 2024
+     * @mbg.generated Wed Oct 30 11:40:34 CET 2024
      */
     @Override
     public int hashCode() {
@@ -125,6 +147,8 @@ public class ScreenProctoringGroopRecord {
         result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
         result = prime * result + ((getSize() == null) ? 0 : getSize().hashCode());
         result = prime * result + ((getData() == null) ? 0 : getData().hashCode());
+        result = prime * result + ((getCollectingStrategy() == null) ? 0 : getCollectingStrategy().hashCode());
+        result = prime * result + ((getSebGroupId() == null) ? 0 : getSebGroupId().hashCode());
         return result;
     }
 }
