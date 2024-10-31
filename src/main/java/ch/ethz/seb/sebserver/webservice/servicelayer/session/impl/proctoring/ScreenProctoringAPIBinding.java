@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 import java.util.*;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
-import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -27,6 +26,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
@@ -41,7 +41,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -220,6 +219,7 @@ class ScreenProctoringAPIBinding {
     private final ProctoringSettingsDAO proctoringSettingsDAO;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final WebserviceInfo webserviceInfo;
 
     ScreenProctoringAPIBinding(
@@ -229,7 +229,8 @@ class ScreenProctoringAPIBinding {
             final JSONMapper jsonMapper,
             final ProctoringSettingsDAO proctoringSettingsDAO,
             final AdditionalAttributesDAO additionalAttributesDAO,
-            final ScreenProctoringGroupDAO screenProctoringGroupDAO,
+            final ScreenProctoringGroupDAO screenProctoringGroupDAO, 
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final WebserviceInfo webserviceInfo) {
 
         this.userDAO = userDAO;
@@ -239,6 +240,7 @@ class ScreenProctoringAPIBinding {
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.webserviceInfo = webserviceInfo;
     }
 
@@ -1400,12 +1402,7 @@ class ScreenProctoringAPIBinding {
             resource.setUsername(userCredentials.clientIdAsString());
             resource.setPassword(decryptedSecret.toString());
 
-            // TODO use overall HttpRequestFactory to avoid SSL issues
-            final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-            requestFactory.setOutputStreaming(false);
-            final OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(resource);
-            oAuth2RestTemplate.setRequestFactory(requestFactory);
-            this.restTemplate = oAuth2RestTemplate;
+            this.restTemplate = sebScreenProctoringService.getOAuth2RestTemplate(resource);
         }
 
         ResponseEntity<String> testServiceConnection() {
@@ -1532,6 +1529,20 @@ class ScreenProctoringAPIBinding {
             });
             return protectedRunResult.getOrThrow();
         }
+    }
+
+    private OAuth2RestTemplate getOAuth2RestTemplate(final ResourceOwnerPasswordResourceDetails resource) {
+        
+        final Result<ClientHttpRequestFactory> clientHttpRequestFactoryRequest = this.clientHttpRequestFactoryService
+                .getClientHttpRequestFactory();
+        ClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        if (!clientHttpRequestFactoryRequest.hasError()) {
+            requestFactory = clientHttpRequestFactoryRequest.get();
+        }
+
+        final OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(resource);
+        oAuth2RestTemplate.setRequestFactory(requestFactory);
+        return oAuth2RestTemplate;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

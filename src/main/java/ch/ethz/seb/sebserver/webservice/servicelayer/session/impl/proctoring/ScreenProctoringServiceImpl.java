@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -83,7 +84,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final ScreenProctoringGroupDAO screenProctoringGroupDAO,
             final SEBClientInstructionService sebInstructionService,
             final ExamSessionCacheService examSessionCacheService,
-            final WebserviceInfo webserviceInfo) {
+            final WebserviceInfo webserviceInfo,
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
 
         this.cryptor = cryptor;
         this.examDAO = examDAO;
@@ -103,6 +105,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 proctoringSettingsDAO,
                 additionalAttributesDAO,
                 screenProctoringGroupDAO,
+                clientHttpRequestFactoryService,
                 webserviceInfo);
     }
 

@@ -147,7 +147,7 @@ public class ClientHttpRequestFactoryService {
                     .build();
             final HttpComponentsClientHttpRequestFactory devClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(client);
 
-            devClientHttpRequestFactory.setBufferRequestBody(false);
+            //devClientHttpRequestFactory.setBufferRequestBody(false);
             devClientHttpRequestFactory.setConnectionRequestTimeout(this.connectionRequestTimeout);
             devClientHttpRequestFactory.setConnectTimeout(this.connectTimeout);
             devClientHttpRequestFactory.setReadTimeout(this.readTimeout);
