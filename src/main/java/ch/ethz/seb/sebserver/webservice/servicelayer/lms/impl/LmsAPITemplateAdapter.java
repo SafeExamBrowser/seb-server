@@ -527,6 +527,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
         return this.lmsAccessRequest.protectedRun(() -> this.lmsIntegrationAPI
                 .applyConnectionDetails(data)
+                .onError(error -> log.error("Failed to apply LMS full integration: ", error))
                 .getOrThrow());
     }
 
