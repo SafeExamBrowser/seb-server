@@ -199,7 +199,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *
      * @param exam the exam to check if it is in sync with the persistent or if there is a newer version
      * @return Result refer to the up-to-date result or to an error if happened */
-    Result<Boolean> upToDate(Exam exam);
+    boolean upToDate(Exam exam);
 
     /** Marks the specified exam as updated (sets the last modified date to now)
      * to notify exam content has changed.

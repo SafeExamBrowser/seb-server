@@ -595,7 +595,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
-
+    
     // **** Screen Proctoring
     // ****************************************************************************
 

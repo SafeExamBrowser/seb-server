@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 
 import java.util.Objects;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.CollectingStrategy;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,8 +37,8 @@ public class ScreenProctoringGroup {
     @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_DATA)
     public final String additionalData;
 
-    @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_COLLECTING_STRATEGY)
-    public final CollectingStrategy collectingStrategy;
+    @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_IS_FALLBACK)
+    public final Boolean isFallback;
 
     @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_SEB_GROUP_ID)
     public final Long sebGroupId;
@@ -52,7 +51,7 @@ public class ScreenProctoringGroup {
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_NAME) final String name,
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_SIZE) final Integer size,
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_DATA) final String additionalData,
-            @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_COLLECTING_STRATEGY) final CollectingStrategy collectingStrategy,
+            @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_IS_FALLBACK) final Boolean isFallback,
             @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_SEB_GROUP_ID) final Long sebGroupId) {
 
         this.id = id;
@@ -61,7 +60,7 @@ public class ScreenProctoringGroup {
         this.name = name;
         this.size = size;
         this.additionalData = additionalData;
-        this.collectingStrategy = collectingStrategy;
+        this.isFallback = isFallback;
         this.sebGroupId = sebGroupId;
     }
 
@@ -89,10 +88,10 @@ public class ScreenProctoringGroup {
         return this.additionalData;
     }
 
-    public CollectingStrategy getCollectingStrategy() {
-        return collectingStrategy;
+    public Boolean getFallback() {
+        return isFallback;
     }
-
+    
     public Long getSebGroupId() {
         return sebGroupId;
     }
@@ -123,7 +122,7 @@ public class ScreenProctoringGroup {
                 ", name='" + name + '\'' +
                 ", size=" + size +
                 ", additionalData='" + additionalData + '\'' +
-                ", collectingStrategy=" + collectingStrategy +
+                ", isFallback=" + isFallback +
                 ", sebGroupId=" + sebGroupId +
                 '}';
     }

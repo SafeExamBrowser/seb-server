@@ -64,6 +64,8 @@ public class ProctoringServiceSettings implements Entity {
     public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
     public static final String ATTR_SERVICE_IN_USE = "serviceInUse";
     public static final String ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM = "useZoomAppClientForCollectingRoom";
+    
+    public static final String ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME = "LIVE_PROCTORING_SETTINGS";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;

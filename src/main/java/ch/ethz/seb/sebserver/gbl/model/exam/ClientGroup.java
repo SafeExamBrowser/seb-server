@@ -116,9 +116,14 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
 
         switch (this.type) {
             case IP_V4_RANGE: {
-                final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
-                this.ipRangeStart = split[0];
-                this.ipRangeEnd = split[1];
+                if (StringUtils.isNotBlank(data)) {
+                    final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
+                    this.ipRangeStart = (split.length > 0 && StringUtils.isNotBlank(split[0])) ? split[0] : null;
+                    this.ipRangeEnd = (split.length > 1 && StringUtils.isNotBlank(split[1])) ? split[1] : null;
+                } else {
+                    this.ipRangeStart = null;
+                    this.ipRangeEnd = null;
+                }
                 this.clientOS = ClientOS.NONE;
                 this.nameRangeStartLetter = null;
                 this.nameRangeEndLetter = null;
@@ -136,9 +141,14 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
                 this.ipRangeStart = null;
                 this.ipRangeEnd = null;
                 this.clientOS = ClientOS.NONE;
-                final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
-                this.nameRangeStartLetter = split[0];
-                this.nameRangeEndLetter = split[1];
+                if (StringUtils.isNotBlank(data)) {
+                    final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
+                    this.nameRangeStartLetter = (split.length > 0 && StringUtils.isNotBlank(split[0])) ? split[0] : null;
+                    this.nameRangeEndLetter = (split.length > 1 && StringUtils.isNotBlank(split[1])) ? split[1] : null;
+                } else {
+                    this.nameRangeStartLetter = null;
+                    this.nameRangeEndLetter = null;
+                }
                 break;
             }
             default: {

@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ScreenProctoringGroopRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ScreenProctoringGroopRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -54,12 +54,12 @@ public interface ScreenProctoringGroopRecordMapper {
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="size", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="data", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="collecting_strategy", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="is_fallback", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="seb_group_id", javaType=Long.class, jdbcType=JdbcType.BIGINT)
     })
     ScreenProctoringGroopRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -68,27 +68,27 @@ public interface ScreenProctoringGroopRecordMapper {
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="size", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="data", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="collecting_strategy", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="is_fallback", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="seb_group_id", javaType=Long.class, jdbcType=JdbcType.BIGINT)
     })
     List<ScreenProctoringGroopRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(screenProctoringGroopRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, screenProctoringGroopRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, screenProctoringGroopRecord)
                 .where(id, isEqualTo(id_))
@@ -96,7 +96,7 @@ public interface ScreenProctoringGroopRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default int insert(ScreenProctoringGroopRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(screenProctoringGroopRecord)
@@ -105,13 +105,13 @@ public interface ScreenProctoringGroopRecordMapper {
                 .map(name).toProperty("name")
                 .map(size).toProperty("size")
                 .map(data).toProperty("data")
-                .map(collectingStrategy).toProperty("collectingStrategy")
+                .map(isFallback).toProperty("isFallback")
                 .map(sebGroupId).toProperty("sebGroupId")
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default int insertSelective(ScreenProctoringGroopRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(screenProctoringGroopRecord)
@@ -120,34 +120,34 @@ public interface ScreenProctoringGroopRecordMapper {
                 .map(name).toPropertyWhenPresent("name", record::getName)
                 .map(size).toPropertyWhenPresent("size", record::getSize)
                 .map(data).toPropertyWhenPresent("data", record::getData)
-                .map(collectingStrategy).toPropertyWhenPresent("collectingStrategy", record::getCollectingStrategy)
+                .map(isFallback).toPropertyWhenPresent("isFallback", record::getIsFallback)
                 .map(sebGroupId).toPropertyWhenPresent("sebGroupId", record::getSebGroupId)
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ScreenProctoringGroopRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, examId, uuid, name, size, data, collectingStrategy, sebGroupId)
+        return SelectDSL.selectWithMapper(this::selectMany, id, examId, uuid, name, size, data, isFallback, sebGroupId)
                 .from(screenProctoringGroopRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ScreenProctoringGroopRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, uuid, name, size, data, collectingStrategy, sebGroupId)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, uuid, name, size, data, isFallback, sebGroupId)
                 .from(screenProctoringGroopRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default ScreenProctoringGroopRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, examId, uuid, name, size, data, collectingStrategy, sebGroupId)
+        return SelectDSL.selectWithMapper(this::selectOne, id, examId, uuid, name, size, data, isFallback, sebGroupId)
                 .from(screenProctoringGroopRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ScreenProctoringGroopRecord record) {
         return UpdateDSL.updateWithMapper(this::update, screenProctoringGroopRecord)
                 .set(examId).equalTo(record::getExamId)
@@ -155,11 +155,11 @@ public interface ScreenProctoringGroopRecordMapper {
                 .set(name).equalTo(record::getName)
                 .set(size).equalTo(record::getSize)
                 .set(data).equalTo(record::getData)
-                .set(collectingStrategy).equalTo(record::getCollectingStrategy)
+                .set(isFallback).equalTo(record::getIsFallback)
                 .set(sebGroupId).equalTo(record::getSebGroupId);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ScreenProctoringGroopRecord record) {
         return UpdateDSL.updateWithMapper(this::update, screenProctoringGroopRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
@@ -167,11 +167,11 @@ public interface ScreenProctoringGroopRecordMapper {
                 .set(name).equalToWhenPresent(record::getName)
                 .set(size).equalToWhenPresent(record::getSize)
                 .set(data).equalToWhenPresent(record::getData)
-                .set(collectingStrategy).equalToWhenPresent(record::getCollectingStrategy)
+                .set(isFallback).equalToWhenPresent(record::getIsFallback)
                 .set(sebGroupId).equalToWhenPresent(record::getSebGroupId);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default int updateByPrimaryKey(ScreenProctoringGroopRecord record) {
         return UpdateDSL.updateWithMapper(this::update, screenProctoringGroopRecord)
                 .set(examId).equalTo(record::getExamId)
@@ -179,14 +179,14 @@ public interface ScreenProctoringGroopRecordMapper {
                 .set(name).equalTo(record::getName)
                 .set(size).equalTo(record::getSize)
                 .set(data).equalTo(record::getData)
-                .set(collectingStrategy).equalTo(record::getCollectingStrategy)
+                .set(isFallback).equalTo(record::getIsFallback)
                 .set(sebGroupId).equalTo(record::getSebGroupId)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-10-30T11:40:34.627+01:00", comments="Source Table: screen_proctoring_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.841+01:00", comments="Source Table: screen_proctoring_group")
     default int updateByPrimaryKeySelective(ScreenProctoringGroopRecord record) {
         return UpdateDSL.updateWithMapper(this::update, screenProctoringGroopRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
@@ -194,7 +194,7 @@ public interface ScreenProctoringGroopRecordMapper {
                 .set(name).equalToWhenPresent(record::getName)
                 .set(size).equalToWhenPresent(record::getSize)
                 .set(data).equalToWhenPresent(record::getData)
-                .set(collectingStrategy).equalToWhenPresent(record::getCollectingStrategy)
+                .set(isFallback).equalToWhenPresent(record::getIsFallback)
                 .set(sebGroupId).equalToWhenPresent(record::getSebGroupId)
                 .where(id, isEqualTo(record::getId))
                 .build()

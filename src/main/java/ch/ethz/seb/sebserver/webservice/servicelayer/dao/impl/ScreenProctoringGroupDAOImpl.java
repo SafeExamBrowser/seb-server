@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.CollectingStrategy;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
@@ -179,8 +179,8 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
             final ScreenProctoringGroopRecord screenProctoringGroopRecord = new ScreenProctoringGroopRecord(
                     null, group.examId, group.uuid, group.name, 0, group.additionalData,
-                    (group.collectingStrategy != null) ? group.collectingStrategy.name() : CollectingStrategy.EXAM.name()
-                    , group.sebGroupId);
+                    BooleanUtils.toIntegerObject(group.isFallback), 
+                    group.sebGroupId);
 
             this.screenProctoringGroopRecordMapper.insert(screenProctoringGroopRecord);
 
@@ -300,6 +300,26 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         }
     }
 
+    @Override
+    @Transactional
+    public void updateName(final Long groupId, final String name) {
+        try  {
+
+            UpdateDSL
+                    .updateWithMapper(
+                            this.screenProctoringGroopRecordMapper::update,
+                            ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.name)
+                    .equalTo(name)
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(groupId))
+                    .build()
+                    .execute();
+            
+        } catch (final Exception e) {
+            log.error("Failed to update name of group: {} new name {}", groupId, name);
+        }
+    }
+
     private ScreenProctoringGroup toDomainModel(final ScreenProctoringGroopRecord record) {
         return new ScreenProctoringGroup(
                 record.getId(),
@@ -308,11 +328,10 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
                 record.getName(),
                 record.getSize(),
                 record.getData(),
-                record.getCollectingStrategy() != null 
-                        ? CollectingStrategy.valueOf(record.getCollectingStrategy()) 
-                        : CollectingStrategy.EXAM,
+                BooleanUtils.toBooleanObject(record.getIsFallback()),
                 record.getSebGroupId());
     }
+    
     public static final class AllGroupsFullException extends RuntimeException {
         private static final long serialVersionUID = 3283129187819160485L;
     }

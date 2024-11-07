@@ -163,14 +163,14 @@ public final class ExamUtils {
     private static void checkAlphabetConsistency(final ClientGroupData group) {
         final String nameRangeStartLetter = group.getNameRangeStartLetter();
         final String nameRangeEndLetter = group.getNameRangeEndLetter();
-        if (nameRangeStartLetter == null) {
+        if (StringUtils.isBlank(nameRangeStartLetter )) {
             throw new APIMessage.APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.CLIENT_GROUP.TYPE_NAME,
                             ClientGroup.ATTR_NAME_RANGE_START_LETTER,
                             "clientGroup:nameRangeStartLetter:mandatory")));
         }
-        if (nameRangeEndLetter == null) {
+        if (StringUtils.isBlank(nameRangeEndLetter)) {
             throw new APIMessage.APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.CLIENT_GROUP.TYPE_NAME,

@@ -247,7 +247,7 @@ public class ProctoringSettingsPopup {
             final EnumSet<ProctoringFeature> featureFlags = (StringUtils.isNotBlank(features))
                     ? EnumSet.copyOf(Arrays.asList(StringUtils.split(features, Constants.LIST_SEPARATOR))
                             .stream()
-                            .map(str -> ProctoringFeature.valueOf(str))
+                            .map(ProctoringFeature::valueOf)
                             .collect(Collectors.toSet()))
                     : EnumSet.noneOf(ProctoringFeature.class);
 
@@ -311,248 +311,236 @@ public class ProctoringSettingsPopup {
         return false;
     }
 
-    private final class SEBProctoringPropertiesForm
-            implements ModalInputDialogComposer<FormHandle<?>> {
-
-        private final PageService pageService;
-        private final PageContext pageContext;
-        private final ResetButtonHandler resetButtonHandler;
-
-        protected SEBProctoringPropertiesForm(
-                final PageService pageService,
-                final PageContext pageContext,
-                final ResetButtonHandler resetButtonHandler) {
-
-            this.pageService = pageService;
-            this.pageContext = pageContext;
-            this.resetButtonHandler = resetButtonHandler;
-        }
+    private record SEBProctoringPropertiesForm(
+            PageService pageService, 
+            PageContext pageContext,
+            ResetButtonHandler resetButtonHandler) implements ModalInputDialogComposer<FormHandle<?>> {
 
         @Override
-        public Supplier<FormHandle<?>> compose(final Composite parent) {
-            final RestService restService = this.pageService.getRestService();
-            final EntityKey entityKey = this.pageContext.getEntityKey();
-
-            final Composite warningPanel = this.pageService.getWidgetFactory().createWarningPanel(parent);
-            this.pageService.getWidgetFactory().labelLocalized(warningPanel, WidgetFactory.CustomVariant.TITLE_LABEL, DEPRECATION_NOTE);
-            this.pageService.getWidgetFactory().labelLocalized(warningPanel, WidgetFactory.CustomVariant.SUBTITLE, DEPRECATION_MESSAGE, null);
-
-            final Composite content = this.pageService
-                    .getWidgetFactory()
-                    .createPopupScrollComposite(parent);
-
-            final ProctoringServiceSettings proctoringSettings = restService
-                    .getBuilder(
-                            entityKey.entityType == EntityType.EXAM
-                                    ? GetExamProctoringSettings.class
-                                    : GetExamTemplateProctoringSettings.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .call()
-                    .getOrThrow();
-
-            this.resetButtonHandler.enable(proctoringSettings.serviceInUse);
-            final FormHandleAnchor formHandleAnchor = new FormHandleAnchor();
-            formHandleAnchor.formContext = this.pageContext
-                    .copyOf(content)
-                    .clearEntityKeys();
-
-            buildFormAccordingToService(
-                    proctoringSettings,
-                    proctoringSettings.serverType.name(),
-                    formHandleAnchor);
-
-            return () -> formHandleAnchor.formHandle;
-        }
-
-        private void buildFormAccordingToService(
-                final ProctoringServiceSettings proctoringServiceSettings,
-                final String serviceType,
-                final FormHandleAnchor formHandleAnchor) {
-
-            if (ProctoringServerType.JITSI_MEET.name().equals(serviceType)) {
-                PageService.clearComposite(formHandleAnchor.formContext.getParent());
-                formHandleAnchor.formHandle = buildFormForJitsi(proctoringServiceSettings, formHandleAnchor);
-            } else if (ProctoringServerType.ZOOM.name().equals(serviceType)) {
-                PageService.clearComposite(formHandleAnchor.formContext.getParent());
-                formHandleAnchor.formHandle = buildFormForZoom(proctoringServiceSettings, formHandleAnchor);
+            public Supplier<FormHandle<?>> compose(final Composite parent) {
+                final RestService restService = this.pageService.getRestService();
+                final EntityKey entityKey = this.pageContext.getEntityKey();
+    
+                final Composite warningPanel = this.pageService.getWidgetFactory().createWarningPanel(parent);
+                this.pageService.getWidgetFactory().labelLocalized(warningPanel, WidgetFactory.CustomVariant.TITLE_LABEL, DEPRECATION_NOTE);
+                this.pageService.getWidgetFactory().labelLocalized(warningPanel, WidgetFactory.CustomVariant.SUBTITLE, DEPRECATION_MESSAGE, null);
+    
+                final Composite content = this.pageService
+                        .getWidgetFactory()
+                        .createPopupScrollComposite(parent);
+    
+                final ProctoringServiceSettings proctoringSettings = restService
+                        .getBuilder(
+                                entityKey.entityType == EntityType.EXAM
+                                        ? GetExamProctoringSettings.class
+                                        : GetExamTemplateProctoringSettings.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                        .call()
+                        .getOrThrow();
+    
+                this.resetButtonHandler.enable(proctoringSettings.serviceInUse);
+                final FormHandleAnchor formHandleAnchor = new FormHandleAnchor();
+                formHandleAnchor.formContext = this.pageContext
+                        .copyOf(content)
+                        .clearEntityKeys();
+    
+                buildFormAccordingToService(
+                        proctoringSettings,
+                        proctoringSettings.serverType.name(),
+                        formHandleAnchor);
+    
+                return () -> formHandleAnchor.formHandle;
             }
-
-            if (proctoringServiceSettings.serviceInUse) {
-                final Form form = formHandleAnchor.formHandle.getForm();
-                form.getFieldInput(ProctoringServiceSettings.ATTR_SERVER_TYPE).setEnabled(false);
-                form.getFieldInput(ProctoringServiceSettings.ATTR_SERVER_URL).setEnabled(false);
+    
+            private void buildFormAccordingToService(
+                    final ProctoringServiceSettings proctoringServiceSettings,
+                    final String serviceType,
+                    final FormHandleAnchor formHandleAnchor) {
+    
+                if (ProctoringServerType.JITSI_MEET.name().equals(serviceType)) {
+                    PageService.clearComposite(formHandleAnchor.formContext.getParent());
+                    formHandleAnchor.formHandle = buildFormForJitsi(proctoringServiceSettings, formHandleAnchor);
+                } else if (ProctoringServerType.ZOOM.name().equals(serviceType)) {
+                    PageService.clearComposite(formHandleAnchor.formContext.getParent());
+                    formHandleAnchor.formHandle = buildFormForZoom(proctoringServiceSettings, formHandleAnchor);
+                }
+    
+                if (proctoringServiceSettings.serviceInUse) {
+                    final Form form = formHandleAnchor.formHandle.getForm();
+                    form.getFieldInput(ProctoringServiceSettings.ATTR_SERVER_TYPE).setEnabled(false);
+                    form.getFieldInput(ProctoringServiceSettings.ATTR_SERVER_URL).setEnabled(false);
+                }
+    
+                formHandleAnchor.formContext.getParent().getParent().getParent().layout(true, true);
             }
-
-            formHandleAnchor.formContext.getParent().getParent().getParent().layout(true, true);
+    
+            private FormHandle<ProctoringServiceSettings> buildFormForJitsi(
+                    final ProctoringServiceSettings proctoringSettings,
+                    final FormHandleAnchor formHandleAnchor) {
+    
+                final ResourceService resourceService = this.pageService.getResourceService();
+                final boolean isReadonly = BooleanUtils.toBoolean(
+                        this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
+    
+                final FormBuilder formBuilder = buildHeader(proctoringSettings, formHandleAnchor, isReadonly);
+    
+                formBuilder.addField(FormBuilder.singleSelection(
+                                        ProctoringServiceSettings.ATTR_SERVER_TYPE,
+                                        SEB_PROCTORING_FORM_TYPE,
+                                        ProctoringServerType.JITSI_MEET.name(),
+                                        resourceService::examProctoringTypeResources)
+                                .withSelectionListener(form -> buildFormAccordingToService(
+                                        proctoringSettings,
+                                        form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE),
+                                        formHandleAnchor)))
+    
+                        .addField(FormBuilder.text(
+                                        ProctoringServiceSettings.ATTR_SERVER_URL,
+                                        SEB_PROCTORING_FORM_URL,
+                                        proctoringSettings.serverURL)
+                                .mandatory())
+    
+                        .addField(FormBuilder.text(
+                                ProctoringServiceSettings.ATTR_APP_KEY,
+                                SEB_PROCTORING_FORM_APPKEY_JITSI,
+                                proctoringSettings.appKey))
+                        .withEmptyCellSeparation(false)
+    
+                        .addField(FormBuilder.password(
+                                ProctoringServiceSettings.ATTR_APP_SECRET,
+                                SEB_PROCTORING_FORM_SECRET_JITSI,
+                                (proctoringSettings.appSecret != null)
+                                        ? String.valueOf(proctoringSettings.appSecret)
+                                        : null));
+    
+                return buildFooter(proctoringSettings, resourceService, formBuilder);
+            }
+    
+            private FormHandle<ProctoringServiceSettings> buildFormForZoom(
+                    final ProctoringServiceSettings proctoringSettings,
+                    final FormHandleAnchor formHandleAnchor) {
+    
+                final ResourceService resourceService = this.pageService.getResourceService();
+                final boolean isReadonly = BooleanUtils.toBoolean(
+                        this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
+    
+                final FormBuilder formBuilder = buildHeader(proctoringSettings, formHandleAnchor, isReadonly);
+    
+                formBuilder
+                        .addField(FormBuilder.singleSelection(
+                                        ProctoringServiceSettings.ATTR_SERVER_TYPE,
+                                        SEB_PROCTORING_FORM_TYPE,
+                                        ProctoringServerType.ZOOM.name(),
+                                        resourceService::examProctoringTypeResources)
+    
+                                .withSelectionListener(form -> buildFormAccordingToService(
+                                        proctoringSettings,
+                                        form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE),
+                                        formHandleAnchor)))
+    
+                        .addField(FormBuilder.text(
+                                        ProctoringServiceSettings.ATTR_SERVER_URL,
+                                        SEB_PROCTORING_FORM_URL,
+                                        proctoringSettings.serverURL)
+                                .mandatory())
+    
+                        .addField(FormBuilder.text(
+                                        ProctoringServiceSettings.ATTR_ACCOUNT_ID,
+                                        SEB_PROCTORING_FORM_ACCOUNT_ID,
+                                        proctoringSettings.accountId)
+                                .mandatory())
+                        .withEmptyCellSeparation(false)
+    
+                        .addField(FormBuilder.text(
+                                        ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_ID,
+                                        SEB_PROCTORING_FORM_CLIENT_ID,
+                                        proctoringSettings.clientId)
+                                .mandatory())
+                        .withEmptyCellSeparation(false)
+    
+                        .addField(FormBuilder.password(
+                                        ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_SECRET,
+                                        SEB_PROCTORING_FORM_CLIENT_SECRET,
+                                        (proctoringSettings.clientSecret != null)
+                                                ? String.valueOf(proctoringSettings.clientSecret)
+                                                : null)
+                                .mandatory())
+    
+                        .addField(FormBuilder.text(
+                                        ProctoringServiceSettings.ATTR_SDK_KEY,
+                                        SEB_PROCTORING_FORM_SDKKEY,
+                                        proctoringSettings.sdkKey)
+                                .mandatory())
+                        .withEmptyCellSeparation(false)
+    
+                        .addField(FormBuilder.password(
+                                        ProctoringServiceSettings.ATTR_SDK_SECRET,
+                                        SEB_PROCTORING_FORM_SDKSECRET,
+                                        (proctoringSettings.sdkSecret != null)
+                                                ? String.valueOf(proctoringSettings.sdkSecret)
+                                                : null)
+                                .mandatory());
+    
+                return buildFooter(proctoringSettings, resourceService, formBuilder);
+    
+            }
+    
+            private FormBuilder buildHeader(
+                    final ProctoringServiceSettings proctoringSettings,
+                    final FormHandleAnchor formHandleAnchor,
+                    final boolean isReadonly) {
+    
+                final FormBuilder formBuilder = this.pageService.formBuilder(
+                                formHandleAnchor.formContext)
+                        .withDefaultSpanInput(5)
+                        .withEmptyCellSeparation(true)
+                        .withDefaultSpanEmptyCell(1)
+                        .readonly(isReadonly)
+    
+                        .addField(FormBuilder.text(
+                                        "Info",
+                                        SEB_PROCTORING_FORM_INFO_TITLE,
+                                        this.pageService.getI18nSupport().getText(SEB_PROCTORING_FORM_INFO))
+                                .asArea(50)
+                                .asHTML()
+                                .readonly(true))
+    
+                        .addField(FormBuilder.checkbox(
+                                ProctoringServiceSettings.ATTR_ENABLE_PROCTORING,
+                                SEB_PROCTORING_FORM_ENABLE,
+                                String.valueOf(proctoringSettings.enableProctoring)));
+                return formBuilder;
+            }
+    
+            private FormHandle<ProctoringServiceSettings> buildFooter(final ProctoringServiceSettings proctoringSettings,
+                                                                      final ResourceService resourceService, final FormBuilder formBuilder) {
+                return formBuilder.withDefaultSpanInput(1)
+                        .addField(FormBuilder.text(
+                                        ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
+                                        SEB_PROCTORING_FORM_ROOM_SIZE,
+                                        String.valueOf(proctoringSettings.getCollectingRoomSize()))
+                                .asNumber(numString -> Long.parseLong(numString)))
+                        .withEmptyCellSeparation(true)
+                        .withDefaultSpanEmptyCell(4)
+                        .withDefaultSpanInput(5)
+    
+                        .addField(FormBuilder.checkbox(
+                                ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM,
+                                SEB_PROCTORING_FORM_USE_ZOOM_APP_CLIENT,
+                                String.valueOf(proctoringSettings.useZoomAppClientForCollectingRoom)))
+                        .withDefaultSpanInput(5)
+                        .withEmptyCellSeparation(true)
+                        .withDefaultSpanEmptyCell(1)
+    
+                        .addField(FormBuilder.multiCheckboxSelection(
+                                ProctoringServiceSettings.ATTR_ENABLED_FEATURES,
+                                SEB_PROCTORING_FORM_FEATURES,
+                                StringUtils.join(proctoringSettings.enabledFeatures, Constants.LIST_SEPARATOR),
+                                resourceService::examProctoringFeaturesResources))
+    
+                        .build();
+            }
         }
-
-        private FormHandle<ProctoringServiceSettings> buildFormForJitsi(
-                final ProctoringServiceSettings proctoringSettings,
-                final FormHandleAnchor formHandleAnchor) {
-
-            final ResourceService resourceService = this.pageService.getResourceService();
-            final boolean isReadonly = BooleanUtils.toBoolean(
-                    this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
-
-            final FormBuilder formBuilder = buildHeader(proctoringSettings, formHandleAnchor, isReadonly);
-
-            formBuilder.addField(FormBuilder.singleSelection(
-                    ProctoringServiceSettings.ATTR_SERVER_TYPE,
-                    SEB_PROCTORING_FORM_TYPE,
-                    ProctoringServerType.JITSI_MEET.name(),
-                    resourceService::examProctoringTypeResources)
-                    .withSelectionListener(form -> buildFormAccordingToService(
-                            proctoringSettings,
-                            form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE),
-                            formHandleAnchor)))
-
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_SERVER_URL,
-                            SEB_PROCTORING_FORM_URL,
-                            proctoringSettings.serverURL)
-                            .mandatory())
-
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_APP_KEY,
-                            SEB_PROCTORING_FORM_APPKEY_JITSI,
-                            proctoringSettings.appKey))
-                    .withEmptyCellSeparation(false)
-
-                    .addField(FormBuilder.password(
-                            ProctoringServiceSettings.ATTR_APP_SECRET,
-                            SEB_PROCTORING_FORM_SECRET_JITSI,
-                            (proctoringSettings.appSecret != null)
-                                    ? String.valueOf(proctoringSettings.appSecret)
-                                    : null));
-
-            return buildFooter(proctoringSettings, resourceService, formBuilder);
-        }
-
-        private FormHandle<ProctoringServiceSettings> buildFormForZoom(
-                final ProctoringServiceSettings proctoringSettings,
-                final FormHandleAnchor formHandleAnchor) {
-
-            final ResourceService resourceService = this.pageService.getResourceService();
-            final boolean isReadonly = BooleanUtils.toBoolean(
-                    this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
-
-            final FormBuilder formBuilder = buildHeader(proctoringSettings, formHandleAnchor, isReadonly);
-
-            formBuilder
-                    .addField(FormBuilder.singleSelection(
-                            ProctoringServiceSettings.ATTR_SERVER_TYPE,
-                            SEB_PROCTORING_FORM_TYPE,
-                            ProctoringServerType.ZOOM.name(),
-                            resourceService::examProctoringTypeResources)
-
-                            .withSelectionListener(form -> buildFormAccordingToService(
-                                    proctoringSettings,
-                                    form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE),
-                                    formHandleAnchor)))
-
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_SERVER_URL,
-                            SEB_PROCTORING_FORM_URL,
-                            proctoringSettings.serverURL)
-                            .mandatory())
-
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_ACCOUNT_ID,
-                            SEB_PROCTORING_FORM_ACCOUNT_ID,
-                            proctoringSettings.accountId)
-                            .mandatory())
-                    .withEmptyCellSeparation(false)
-
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_ID,
-                            SEB_PROCTORING_FORM_CLIENT_ID,
-                            proctoringSettings.clientId)
-                            .mandatory())
-                    .withEmptyCellSeparation(false)
-
-                    .addField(FormBuilder.password(
-                            ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_SECRET,
-                            SEB_PROCTORING_FORM_CLIENT_SECRET,
-                            (proctoringSettings.clientSecret != null)
-                                    ? String.valueOf(proctoringSettings.clientSecret)
-                                    : null)
-                            .mandatory())
-
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_SDK_KEY,
-                            SEB_PROCTORING_FORM_SDKKEY,
-                            proctoringSettings.sdkKey)
-                            .mandatory())
-                    .withEmptyCellSeparation(false)
-
-                    .addField(FormBuilder.password(
-                            ProctoringServiceSettings.ATTR_SDK_SECRET,
-                            SEB_PROCTORING_FORM_SDKSECRET,
-                            (proctoringSettings.sdkSecret != null)
-                                    ? String.valueOf(proctoringSettings.sdkSecret)
-                                    : null)
-                            .mandatory());
-
-            return buildFooter(proctoringSettings, resourceService, formBuilder);
-
-        }
-
-        private FormBuilder buildHeader(
-                final ProctoringServiceSettings proctoringSettings,
-                final FormHandleAnchor formHandleAnchor,
-                final boolean isReadonly) {
-
-            final FormBuilder formBuilder = this.pageService.formBuilder(
-                    formHandleAnchor.formContext)
-                    .withDefaultSpanInput(5)
-                    .withEmptyCellSeparation(true)
-                    .withDefaultSpanEmptyCell(1)
-                    .readonly(isReadonly)
-
-                    .addField(FormBuilder.text(
-                            "Info",
-                            SEB_PROCTORING_FORM_INFO_TITLE,
-                            this.pageService.getI18nSupport().getText(SEB_PROCTORING_FORM_INFO))
-                            .asArea(50)
-                            .asHTML()
-                            .readonly(true))
-
-                    .addField(FormBuilder.checkbox(
-                            ProctoringServiceSettings.ATTR_ENABLE_PROCTORING,
-                            SEB_PROCTORING_FORM_ENABLE,
-                            String.valueOf(proctoringSettings.enableProctoring)));
-            return formBuilder;
-        }
-
-        private FormHandle<ProctoringServiceSettings> buildFooter(final ProctoringServiceSettings proctoringSettings,
-                final ResourceService resourceService, final FormBuilder formBuilder) {
-            return formBuilder.withDefaultSpanInput(1)
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
-                            SEB_PROCTORING_FORM_ROOM_SIZE,
-                            String.valueOf(proctoringSettings.getCollectingRoomSize()))
-                            .asNumber(numString -> Long.parseLong(numString)))
-                    .withEmptyCellSeparation(true)
-                    .withDefaultSpanEmptyCell(4)
-                    .withDefaultSpanInput(5)
-
-                    .addField(FormBuilder.checkbox(
-                            ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM,
-                            SEB_PROCTORING_FORM_USE_ZOOM_APP_CLIENT,
-                            String.valueOf(proctoringSettings.useZoomAppClientForCollectingRoom)))
-                    .withDefaultSpanInput(5)
-                    .withEmptyCellSeparation(true)
-                    .withDefaultSpanEmptyCell(1)
-
-                    .addField(FormBuilder.multiCheckboxSelection(
-                            ProctoringServiceSettings.ATTR_ENABLED_FEATURES,
-                            SEB_PROCTORING_FORM_FEATURES,
-                            StringUtils.join(proctoringSettings.enabledFeatures, Constants.LIST_SEPARATOR),
-                            resourceService::examProctoringFeaturesResources))
-
-                    .build();
-        }
-    }
 
     private void handleResetError(final PageContext pageContext, final EntityKey entityKey, final Exception error) {
         if (error.getMessage().contains("active connections") ||

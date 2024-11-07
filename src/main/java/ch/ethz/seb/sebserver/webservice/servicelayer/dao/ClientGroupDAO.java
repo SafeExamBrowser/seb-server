@@ -46,5 +46,5 @@ public interface ClientGroupDAO extends EntityDAO<ClientGroup, ClientGroup>, Bul
      * @param examId the exam identifier
      * @return Result refer to the list of deleted client groups or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
-
+    
 }

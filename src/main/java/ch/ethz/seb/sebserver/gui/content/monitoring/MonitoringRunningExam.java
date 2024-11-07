@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
@@ -288,14 +289,17 @@ public class MonitoringRunningExam implements TemplateComposer {
                     isExamSupporter,
                     exam.checkASK,
                     exam.allowedSEBVersions));
-
-
-
+            
             final ProctoringServiceSettings proctoringSettings = new ProctoringServiceSettings(exam);
+            final ScreenProctoringSettings screenProctoringSettings = restService
+                    .getBuilder(GetScreenProctoringSettings.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                    .call()
+                    .getOrThrow();
             guiUpdates.add(createProctoringActions(
                     proctoringSettings,
                     currentUser.isFeatureEnabled(EXAM_SCREEN_PROCTORING)
-                            ? new ScreenProctoringSettings(exam)
+                            ? screenProctoringSettings
                             : null,
                     currentUser.getProctoringGUIService(),
                     pageContext,

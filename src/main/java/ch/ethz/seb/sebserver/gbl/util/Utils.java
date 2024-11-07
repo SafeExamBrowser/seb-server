@@ -941,4 +941,14 @@ public final class Utils {
                         StringBuilder::append)
                 .toString();
     }
+
+    public static List<String> reduceToErrorMessages(final Throwable error) {
+        final List<String> result = new ArrayList<>();
+        Throwable e = error;
+        while (e != null) {
+            result.add(e.getMessage());
+            e = e.getCause();
+        }
+        return result;
+    }
 }

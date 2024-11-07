@@ -578,8 +578,8 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Boolean> upToDate(final Exam exam) {
-        return Result.tryCatch(() -> {
+    public boolean upToDate(final Exam exam) {
+        try {
             if (exam.lastModified == null) {
                 return this.examRecordMapper.countByExample()
                         .where(ExamRecordDynamicSqlSupport.id, isEqualTo(exam.id))
@@ -593,7 +593,10 @@ public class ExamDAOImpl implements ExamDAO {
                         .build()
                         .execute() > 0;
             }
-        });
+        } catch (final Exception e) {
+            log.warn("Failed to verify if exam is up to date: {}", e.getMessage());
+            return true;
+        }
     }
 
     @Override

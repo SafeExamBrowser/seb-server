@@ -8,8 +8,12 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import org.apache.commons.lang3.BooleanUtils;
 import org.hibernate.validator.constraints.URL;
 
@@ -21,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ScreenProctoringSettings implements SPSAPIAccessData {
+public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     public static final String ATTR_ENABLE_SCREEN_PROCTORING = "enableScreenProctoring";
     public static final String ATTR_SPS_SERVICE_URL = "spsServiceURL";
@@ -33,9 +37,12 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
     public static final String ATTR_SPS_ACCOUNT_PASSWORD = "spsAccountPassword";
 
     public static final String ATTR_COLLECTING_STRATEGY = "spsCollectingStrategy";
+    public static final String ATTR_COLLECTING_GROUP_NAME = "spsCollectingGroupName";
     public static final String ATTR_COLLECTING_GROUP_SIZE = "spsCollectingGroupSize";
+    public static final String ATT_SEB_GROUPS_SELECTION = "spsSEBGroupsSelection";
 
     public static final String ATTR_SPS_BUNDLED = "bundled";
+    public static final String ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME = "SCREEN_PROCTORING_SETTINGS";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
@@ -62,8 +69,15 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
     @JsonProperty(ATTR_COLLECTING_STRATEGY)
     public final CollectingStrategy collectingStrategy;
 
+    @JsonProperty(ATTR_COLLECTING_GROUP_NAME)
+    @NotEmpty(message = "screenProctoringSettings:spsCollectingGroupName:notNull")
+    public final String collectingGroupName;
+
     @JsonProperty(ATTR_COLLECTING_GROUP_SIZE)
     public final Integer collectingGroupSize;
+
+    @JsonProperty(ATT_SEB_GROUPS_SELECTION)
+    public final String sebGroupsSelection;
 
     @JsonProperty(ATTR_SPS_BUNDLED)
     public final boolean bundled;
@@ -78,7 +92,9 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
             @JsonProperty(ATTR_SPS_ACCOUNT_ID) final String spsAccountId,
             @JsonProperty(ATTR_SPS_ACCOUNT_PASSWORD) final CharSequence spsAccountPassword,
             @JsonProperty(ATTR_COLLECTING_STRATEGY) final CollectingStrategy collectingStrategy,
+            @JsonProperty(ATTR_COLLECTING_GROUP_NAME) final String collectingGroupName,
             @JsonProperty(ATTR_COLLECTING_GROUP_SIZE) final Integer collectingGroupSize,
+            @JsonProperty(ATT_SEB_GROUPS_SELECTION) final String sebGroupsSelection,
             @JsonProperty(ATTR_SPS_BUNDLED) final boolean bundled) {
 
         this.examId = examId;
@@ -89,7 +105,9 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
         this.spsAccountId = spsAccountId;
         this.spsAccountPassword = spsAccountPassword;
         this.collectingStrategy = collectingStrategy;
+        this.collectingGroupName = collectingGroupName;
         this.collectingGroupSize = collectingGroupSize;
+        this.sebGroupsSelection = sebGroupsSelection;
         this.bundled = bundled;
     }
 
@@ -102,7 +120,9 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
             final String spsAccountId,
             final CharSequence spsAccountPassword,
             final CollectingStrategy collectingStrategy,
-            final Integer collectingGroupSize) {
+            final String collectingGroupName,
+            final Integer collectingGroupSize,
+            final String sebGroupsSelection) {
 
         this.examId = examId;
         this.enableScreenProctoring = enableScreenProctoring;
@@ -112,34 +132,25 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
         this.spsAccountId = spsAccountId;
         this.spsAccountPassword = spsAccountPassword;
         this.collectingStrategy = collectingStrategy;
+        this.collectingGroupName = collectingGroupName;
         this.collectingGroupSize = collectingGroupSize;
+        this.sebGroupsSelection = sebGroupsSelection;
         this.bundled = false;
     }
 
-    public ScreenProctoringSettings(final Exam exam) {
-        if (exam == null) {
-            throw new IllegalStateException("Exam has null reference");
-        }
-        if (!exam.additionalAttributesIncluded()) {
-            throw new IllegalStateException("Exam has no additional attributes");
-        }
+    @Override
+    public String getModelId() {
+        return (this.examId != null) ? String.valueOf(this.examId) : null;
+    }
 
-        this.examId = exam.id;
-        this.enableScreenProctoring = BooleanUtils.toBooleanObject(exam.additionalAttributes.getOrDefault(
-                ATTR_ENABLE_SCREEN_PROCTORING,
-                Constants.FALSE_STRING));
-        this.spsServiceURL = exam.additionalAttributes.get(ATTR_SPS_SERVICE_URL);
-        this.spsAPIKey = exam.additionalAttributes.get(ATTR_SPS_API_KEY);
-        this.spsAPISecret = exam.additionalAttributes.get(ATTR_SPS_API_SECRET);
-        this.spsAccountId = exam.additionalAttributes.get(ATTR_SPS_ACCOUNT_ID);
-        this.spsAccountPassword = exam.additionalAttributes.get(ATTR_SPS_ACCOUNT_PASSWORD);
-        this.collectingStrategy = CollectingStrategy.valueOf(exam.additionalAttributes.getOrDefault(
-                ATTR_COLLECTING_STRATEGY,
-                CollectingStrategy.EXAM.name()));
-        this.collectingGroupSize = Integer.parseInt(exam.additionalAttributes.getOrDefault(
-                ATTR_COLLECTING_GROUP_SIZE,
-                "-1"));
-        this.bundled = false;
+    @Override
+    public EntityType entityType() {
+        return EntityType.EXAM_PROCTOR_DATA;
+    }
+
+    @Override
+    public String getName() {
+        return this.spsServiceURL;
     }
 
     public Long getExamId() {
@@ -178,6 +189,14 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
         return this.collectingGroupSize;
     }
 
+    public String getCollectingGroupName() {
+        return collectingGroupName;
+    }
+
+    public String getSebGroupsSelection() {
+        return sebGroupsSelection;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(this.examId);
@@ -201,27 +220,17 @@ public class ScreenProctoringSettings implements SPSAPIAccessData {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ScreenProctoringSettings [examId=");
-        builder.append(this.examId);
-        builder.append(", enableScreenProctoring=");
-        builder.append(this.enableScreenProctoring);
-        builder.append(", spsServiceURL=");
-        builder.append(this.spsServiceURL);
-        builder.append(", spsAPIKey=");
-        builder.append(this.spsAPIKey);
-        builder.append(", spsAPISecret=");
-        builder.append(this.spsAPISecret);
-        builder.append(", spsAccountId=");
-        builder.append(this.spsAccountId);
-        builder.append(", spsAccountPassword=");
-        builder.append(this.spsAccountPassword);
-        builder.append(", collectingStrategy=");
-        builder.append(this.collectingStrategy);
-        builder.append(", collectingGroupSize=");
-        builder.append(this.collectingGroupSize);
-        builder.append("]");
-        return builder.toString();
+        return "ScreenProctoringSettings{" +
+                "examId=" + examId +
+                ", enableScreenProctoring=" + enableScreenProctoring +
+                ", spsServiceURL='" + spsServiceURL + '\'' +
+                ", spsAPIKey='" + spsAPIKey + '\'' +
+                ", spsAccountId='" + spsAccountId + '\'' +
+                ", collectingStrategy=" + collectingStrategy +
+                ", collectingGroupName='" + collectingGroupName + '\'' +
+                ", collectingGroupSize=" + collectingGroupSize +
+                ", sebGroupsSelection='" + sebGroupsSelection + '\'' +
+                ", bundled=" + bundled +
+                '}';
     }
-
 }

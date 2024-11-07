@@ -126,7 +126,9 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                         this.screenProctoringServiceBundle.apiAccountName,
                         this.cryptor.decrypt(this.screenProctoringServiceBundle.apiAccountPassword).getOrThrow(),
                         screenProctoringSettings.collectingStrategy,
+                        screenProctoringSettings.collectingGroupName,
                         screenProctoringSettings.collectingGroupSize,
+                        screenProctoringSettings.sebGroupsSelection,
                         true);
             }
 

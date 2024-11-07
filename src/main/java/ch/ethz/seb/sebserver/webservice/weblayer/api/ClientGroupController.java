@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,6 +42,7 @@ public class ClientGroupController extends EntityController<ClientGroup, ClientG
 
     private final ExamDAO examDao;
     private final ExamSessionService examSessionService;
+    private final ProctoringAdminService proctoringAdminService;
 
     protected ClientGroupController(
             final AuthorizationService authorization,
@@ -50,7 +52,8 @@ public class ClientGroupController extends EntityController<ClientGroup, ClientG
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ExamSessionService examSessionService) {
+            final ExamSessionService examSessionService, 
+            final ProctoringAdminService proctoringAdminService) {
 
         super(authorization,
                 bulkActionService,
@@ -61,6 +64,7 @@ public class ClientGroupController extends EntityController<ClientGroup, ClientG
 
         this.examDao = examDao;
         this.examSessionService = examSessionService;
+        this.proctoringAdminService = proctoringAdminService;
     }
 
     @Override
@@ -124,7 +128,13 @@ public class ClientGroupController extends EntityController<ClientGroup, ClientG
 
     @Override
     protected Result<ClientGroup> notifySaved(final ClientGroup entity) {
+        examDao.markUpdate(entity.examId);
         flushExamSessionCaches(entity);
+
+        examDao
+                .byPK(entity.examId)
+                .onSuccess(proctoringAdminService::notifyExamSaved);
+        
         return super.notifySaved(entity);
     }
 

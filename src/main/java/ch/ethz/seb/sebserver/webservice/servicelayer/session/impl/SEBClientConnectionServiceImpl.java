@@ -872,9 +872,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         if (this.isDistributedSetup) {
             // if the cached Exam is not up-to-date anymore, we have to update the cache first
-            this.examSessionService
-                    .updateExamCache(examId)
-                    .onError(error -> log.warn("Failed to update Exam-Cache for Exam: {}", examId));
+            this.examSessionService.updateExamCache(examId);
         }
 
         if (currentExamId != null && !examId.equals(currentExamId)) {

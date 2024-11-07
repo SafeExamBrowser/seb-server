@@ -3,5 +3,5 @@
 -- ----------------------------------------------------------------
 
 ALTER TABLE `screen_proctoring_group`
-ADD COLUMN IF NOT EXISTS `collecting_strategy` VARCHAR(45) NULL,
+ADD COLUMN IF NOT EXISTS `is_fallback` INT(1) UNSIGNED NULL,
 ADD COLUMN IF NOT EXISTS `seb_group_id` BIGINT UNSIGNED NULL;

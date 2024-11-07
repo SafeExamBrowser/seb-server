@@ -147,7 +147,7 @@ public class FormHandle<T extends Entity> {
                     .getAPIMessages()
                     .stream()
                     .filter(APIMessage.ErrorMessage.FIELD_VALIDATION::isOf)
-                    .collect(Collectors.toList());
+                    .toList();
 
             final List<APIMessage> noneFieldValidationErrors = ((RestCallError) error)
                     .getAPIMessages()

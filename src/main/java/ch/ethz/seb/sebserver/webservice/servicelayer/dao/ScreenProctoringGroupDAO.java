@@ -22,13 +22,13 @@ public interface ScreenProctoringGroupDAO {
      * @return Result refer to the indication or to an error when happened. */
     Result<Boolean> isServiceInUse(Long examId);
 
-    /** The the group with given identifier (PK).
+    /** The group with given identifier (PK).
      *
      * @param pk the group record primary key
      * @return Result refer to the group or to an error when happened */
     Result<ScreenProctoringGroup> getScreenProctoringGroup(Long pk);
 
-    /** The the group with given uuid. The uuid is the reference to the group on SPS Service
+    /** The group with given uuid. The uuid is the reference to the group on SPS Service
      *
      * @param uuid the groups record uuid
      * @return Result refer to the group or to an error when happened */
@@ -83,4 +83,6 @@ public interface ScreenProctoringGroupDAO {
     void resetAllForExam(Long examId);
 
     boolean hasActiveGroups();
+
+    void updateName(Long id, String name);
 }

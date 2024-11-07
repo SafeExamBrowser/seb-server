@@ -8,10 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -76,6 +80,16 @@ public class ScreenProctoringSettingsPopup {
             new LocTextKey("sebserver.exam.sps.form.accountId");
     private final static LocTextKey FORM_ACCOUNT_SECRET_SPS =
             new LocTextKey("sebserver.exam.sps.form.accountSecret");
+
+    private final static LocTextKey FORM_COLLECTING_STRATEGY =
+            new LocTextKey("sebserver.exam.sps.form.collect.strategy");
+    private final static LocTextKey FORM_GROUP_NAME =
+            new LocTextKey("sebserver.exam.sps.form.group.name");
+    private final static LocTextKey FORM_SEB_CLIENT_GROUPS =
+            new LocTextKey("sebserver.exam.sps.form.clientgroups");
+    private final static LocTextKey FORM_FALLBACK_GROUP_NAME =
+            new LocTextKey("sebserver.exam.sps.form.fallback.group.name");
+    
     private final static LocTextKey BUNDLED_ACTIVATION_ERROR =
             new LocTextKey("sebserver.exam.sps.form.saveSettings.error");
     private final static LocTextKey SAVE_TEXT_KEY =
@@ -93,7 +107,8 @@ public class ScreenProctoringSettingsPopup {
                     new ModalInputDialog<FormHandle<?>>(
                             action.pageContext().getParent().getShell(),
                             pageService.getWidgetFactory())
-                                    .setDialogWidth(860);
+                                    .setDialogWidth(860)
+                                    .setDialogHeight(400);
 
             if (modifyGrant) {
 
@@ -154,7 +169,8 @@ public class ScreenProctoringSettingsPopup {
                     form.getFieldValue(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
             final String groupSizeString = form.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE);
             final int groupSize = StringUtils.isNotBlank(groupSizeString) ? Integer.parseInt(groupSizeString) : 0;
-
+            final CollectingStrategy collectingStrategy = CollectingStrategy.valueOf(form.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY));
+            
             settings = new ScreenProctoringSettings(
                     Long.parseLong(entityKey.modelId),
                     enabled,
@@ -163,8 +179,10 @@ public class ScreenProctoringSettingsPopup {
                     form.getFieldValue(ScreenProctoringSettings.ATTR_SPS_API_SECRET),
                     form.getFieldValue(ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
                     form.getFieldValue(ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
-                    CollectingStrategy.EXAM,
-                    groupSize);
+                    collectingStrategy,
+                    form.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME),
+                    groupSize,
+            form.getFieldValue(ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION));
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get settings from form: ", e);
@@ -183,12 +201,8 @@ public class ScreenProctoringSettingsPopup {
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withBody(settings)
                 .call();
-
-        final boolean saveOk = !saveRequest
-                .onError(formHandle::handleError)
-                .hasError();
-
-        if (saveOk) {
+        
+        if (!saveRequest.hasError()) {
             final PageAction action = pageService.pageActionBuilder(pageContext)
                     .newAction(
                             entityKey.entityType == EntityType.EXAM
@@ -201,24 +215,40 @@ public class ScreenProctoringSettingsPopup {
                     action.pageContext());
             return true;
         } else {
-            final String bundled = formHandle.getForm().getStaticValue(ScreenProctoringSettings.ATTR_SPS_BUNDLED);
-            if (bundled != null) {
-                pageContext.notifyError(BUNDLED_ACTIVATION_ERROR, null);
+            Exception error = saveRequest.getError();
+            boolean onlyFieldErrors = false;
+            if (error instanceof RestCallError) {
+                onlyFieldErrors = ((RestCallError) error)
+                        .getAPIMessages()
+                        .stream()
+                        .filter(message -> !APIMessage.ErrorMessage.FIELD_VALIDATION.isOf(message))
+                        .toList()
+                        .isEmpty();
+            }
+            
+            if (onlyFieldErrors) {
+                formHandle.handleError(error);
+                return false;
             } else {
-                pageContext.notifyActivationError(EntityType.SCREEN_PROCTORING_GROUP, saveRequest.getError());
+                final String bundled = formHandle.getForm().getStaticValue(ScreenProctoringSettings.ATTR_SPS_BUNDLED);
+                if (bundled != null) {
+                    pageContext.notifyError(BUNDLED_ACTIVATION_ERROR, null);
+                } else {
+                    pageContext.notifyActivationError(EntityType.SCREEN_PROCTORING_GROUP, saveRequest.getError());
+                }
             }
         }
 
         return false;
     }
 
-    private final class ScreenProctoringPropertiesForm
+    private static final class ScreenProctoringPropertiesForm
             implements ModalInputDialogComposer<FormHandle<?>> {
 
         private final PageService pageService;
         private final PageContext pageContext;
 
-        protected ScreenProctoringPropertiesForm(
+        private ScreenProctoringPropertiesForm(
                 final PageService pageService,
                 final PageContext pageContext) {
 
@@ -233,7 +263,7 @@ public class ScreenProctoringSettingsPopup {
 
             final Composite content = this.pageService
                     .getWidgetFactory()
-                    .createPopupScrollComposite(parent);
+                    .createPopupScrollCompositeFilled(parent);
 
             final PageContext formContext = this.pageContext
                     .copyOf(content)
@@ -248,10 +278,36 @@ public class ScreenProctoringSettingsPopup {
                     .call()
                     .getOrThrow();
 
-            final boolean isReadonly = BooleanUtils.toBoolean(
-                    this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
+            final Composite formRoot = this.pageService.getWidgetFactory().voidComposite(content);
+            final FormHandleAnchor formHandleAnchor = new FormHandleAnchor();
+            formHandleAnchor.formContext = pageContext
+                    .copyOf(formRoot)
+                    .clearEntityKeys();
 
-            final FormHandle<Entity> form = this.pageService.formBuilder(formContext)
+            buildFormForCollectingStrategy(
+                    settings.collectingStrategy.name(),
+                    formHandleAnchor,
+                    settings,
+                    true);
+            
+            return () -> formHandleAnchor.formHandle;
+        }
+
+        private void buildFormForCollectingStrategy(
+                final String selection,
+                final FormHandleAnchor formHandleAnchor,
+                final ScreenProctoringSettings settings,
+                final boolean init
+        ) {
+
+            if (!init) {
+                PageService.clearComposite(formHandleAnchor.formContext.getParent());
+            }
+
+            final boolean isReadonly = BooleanUtils.toBoolean(
+                    pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
+
+            formHandleAnchor.formHandle = this.pageService.formBuilder(formHandleAnchor.formContext)
                     .putStaticValueIf(
                             () -> settings.bundled,
                             ScreenProctoringSettings.ATTR_SPS_BUNDLED,
@@ -261,9 +317,9 @@ public class ScreenProctoringSettingsPopup {
                     .withDefaultSpanEmptyCell(1)
                     .readonly(isReadonly)
                     .addField(FormBuilder.text(
-                            "Info",
-                            FORM_INFO_TITLE,
-                            this.pageService.getI18nSupport().getText(FORM_INFO))
+                                    "Info",
+                                    FORM_INFO_TITLE,
+                                    this.pageService.getI18nSupport().getText(FORM_INFO))
                             .asArea(80)
                             .asHTML()
                             .readonly(true))
@@ -274,16 +330,18 @@ public class ScreenProctoringSettingsPopup {
                             String.valueOf(settings.enableScreenProctoring)))
 
                     .addField(FormBuilder.text(
-                            ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
-                            FORM_URL,
-                            settings.spsServiceURL)
+                                    ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
+                                    FORM_URL,
+                                    settings.spsServiceURL)
                             .mandatory()
                             .readonly(settings.bundled))
 
-                    .addField(FormBuilder.text(
-                            ScreenProctoringSettings.ATTR_SPS_API_KEY,
-                            FORM_APPKEY_SPS,
-                            settings.spsAPIKey)
+                    .addFieldIf(
+                            () -> !settings.bundled,
+                            () -> FormBuilder.text(
+                                    ScreenProctoringSettings.ATTR_SPS_API_KEY,
+                                    FORM_APPKEY_SPS,
+                                    settings.spsAPIKey)
                             .readonly(settings.bundled))
                     .withEmptyCellSeparation(false)
 
@@ -296,10 +354,11 @@ public class ScreenProctoringSettingsPopup {
                                             ? String.valueOf(settings.spsAPISecret)
                                             : null))
 
-                    .addField(FormBuilder.text(
-                            ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID,
-                            FORM_ACCOUNT_ID_SPS,
-                            settings.spsAccountId)
+                    .addFieldIf(() -> !settings.bundled,
+                            () -> FormBuilder.text(
+                                    ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID,
+                                    FORM_ACCOUNT_ID_SPS,
+                                    settings.spsAccountId)
                             .readonly(settings.bundled))
                     .withEmptyCellSeparation(false)
                     .addFieldIf(
@@ -310,11 +369,47 @@ public class ScreenProctoringSettingsPopup {
                                     (settings.spsAccountPassword != null)
                                             ? String.valueOf(settings.spsAccountPassword)
                                             : null))
-
+                    
+                    .addField(FormBuilder.singleSelection(
+                            ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY,
+                            FORM_COLLECTING_STRATEGY,
+                            selection,
+                                    () -> this.pageService.getResourceService().getCollectingStrategySelection())
+                            .withSelectionListener(f -> buildFormForCollectingStrategy(
+                                    f.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY),
+                                    formHandleAnchor,
+                                    settings,
+                                    false)))
+                    .addFieldIf(
+                            () -> CollectingStrategy.EXAM.name().equals(selection),
+                            () -> FormBuilder.text(
+                                    ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME,
+                                    FORM_GROUP_NAME,
+                                    settings.collectingGroupName))
+                    .addFieldIf(
+                            () -> CollectingStrategy.APPLY_SEB_GROUPS.name().equals(selection),
+                            () -> FormBuilder.multiCheckboxSelection(
+                                    ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION,
+                                    FORM_SEB_CLIENT_GROUPS,
+                                    settings.sebGroupsSelection,
+                                    () -> this.pageService.getResourceService().getSEBGroupSelection(String.valueOf(settings.examId))))
+                    .addFieldIf(
+                            () -> CollectingStrategy.APPLY_SEB_GROUPS.name().equals(selection),
+                            () -> FormBuilder.text(
+                                    ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME,
+                                    FORM_FALLBACK_GROUP_NAME,
+                                    settings.collectingGroupName)
+                                    .mandatory())
                     .build();
 
-            return () -> form;
+            if (!init) {
+               formHandleAnchor.formContext.getParent().layout();
+            }
         }
     }
-
+    
+    private static final class FormHandleAnchor {
+        FormHandle<ScreenProctoringSettings> formHandle;
+        PageContext formContext;
+    }
 }

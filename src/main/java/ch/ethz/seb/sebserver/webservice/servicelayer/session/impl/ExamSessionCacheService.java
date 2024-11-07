@@ -9,7 +9,10 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,10 +24,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 
 /** Handles caching for exam session and defines caching for following object:
@@ -43,6 +42,7 @@ public class ExamSessionCacheService {
     public static final String CACHE_NAME_RUNNING_EXAM = "RUNNING_EXAM";
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
+    public static final String CACHE_NAME_SCREEN_PROCTORING_GROUPS = "SCREEN_PROCTORING_GROUPS";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
@@ -51,6 +51,7 @@ public class ExamSessionCacheService {
     private final ClientConnectionDAO clientConnectionDAO;
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final ExamConfigService sebExamConfigService;
+    private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
@@ -58,13 +59,15 @@ public class ExamSessionCacheService {
             final ClientConnectionDAO clientConnectionDAO,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final ExamConfigService sebExamConfigService,
-            final RemoteProctoringRoomDAO remoteProctoringRoomDAO) {
+            final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
+            final ScreenProctoringGroupDAO screenProctoringGroupDAO) {
 
         this.examDAO = examDAO;
         this.clientGroupDAO = clientGroupDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.sebExamConfigService = sebExamConfigService;
+        this.screenProctoringGroupDAO = screenProctoringGroupDAO;
     }
 
     @Cacheable(
@@ -159,6 +162,34 @@ public class ExamSessionCacheService {
     }
 
     @Cacheable(
+            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+            key = "#examId",
+            unless = "#result == null")
+    public Result<Collection<ScreenProctoringGroup>> getScreenProctoringGroups(final Long examId) {
+        final Result<Collection<ScreenProctoringGroup>> result = screenProctoringGroupDAO
+                .getCollectingGroups(examId)
+                .onError(error -> log.error(
+                        "Failed to screen proctoring groups for exam: {}, cause: {}",
+                        examId,
+                        error.getMessage()));
+        
+        if (result.hasError()) {
+            return null;
+        }
+        
+        return result;
+    }
+
+    @CacheEvict(
+            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+            key = "#examId")
+    public void evictScreenProctoringGroups(final Long examId) {
+        if (log.isTraceEnabled()) {
+            log.trace("Eviction of ScreenProctoringGroups from cache for exam: {}", examId);
+        }
+    }
+
+    @Cacheable(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
             key = "#examId",
             sync = true)
@@ -217,5 +248,5 @@ public class ExamSessionCacheService {
         }
         return result.get();
     }
-
+    
 }

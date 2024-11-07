@@ -11,16 +11,20 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 import static ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_SCREEN_PROCTORING.*;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.monitoring.ClientGroupMatcherService;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ClientConnectionDAOImpl;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,16 +46,9 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ProctoringSettingsDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ScreenProctoringGroupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ScreenProctoringGroupDAOImpl.AllGroupsFullException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ScreenProctoringAPIBinding.SPSData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.SPS_API.SPSData;
 
 @Lazy
 @Service
@@ -61,6 +58,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringServiceImpl.class);
     public static final Logger INIT_LOGGER = LoggerFactory.getLogger("ch.ethz.seb.SEB_SERVER_INIT");
     
+    private final ClientGroupMatcherService clientGroupMatcherService;
+    private final ClientGroupDAO clientGroupDAO;
     private final Cryptor cryptor;
     private final ScreenProctoringAPIBinding screenProctoringAPIBinding;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
@@ -73,12 +72,15 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle;
 
     public ScreenProctoringServiceImpl(
+            final ClientGroupMatcherService clientGroupMatcherService,
+            final ClientGroupDAO clientGroupDAO1,
             final Cryptor cryptor,
             final ProctoringSettingsDAO proctoringSettingsDAO,
             final AsyncService asyncService,
             final JSONMapper jsonMapper,
             final UserDAO userDAO,
             final ExamDAO examDAO,
+            final ClientGroupDAO clientGroupDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final ScreenProctoringGroupDAO screenProctoringGroupDAO,
@@ -86,7 +88,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final ExamSessionCacheService examSessionCacheService,
             final WebserviceInfo webserviceInfo,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
-
+        
+        this.clientGroupMatcherService = clientGroupMatcherService;
+        this.clientGroupDAO = clientGroupDAO1;
         this.cryptor = cryptor;
         this.examDAO = examDAO;
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
@@ -99,6 +103,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         this.screenProctoringAPIBinding = new ScreenProctoringAPIBinding(
                 userDAO,
+                clientGroupDAO,
                 cryptor,
                 asyncService,
                 jsonMapper,
@@ -165,7 +170,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     screenProctoringSettings.spsAccountId,
                     this.cryptor.encrypt(screenProctoringSettings.spsAccountPassword).getOrThrow(),
                     screenProctoringSettings.collectingStrategy,
-                    screenProctoringSettings.collectingGroupSize);
+                    screenProctoringSettings.collectingGroupName,
+                    screenProctoringSettings.collectingGroupSize,
+                    screenProctoringSettings.sebGroupsSelection);
 
             this.screenProctoringAPIBinding
                     .testConnection(proctoringServiceSettings)
@@ -189,11 +196,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         // if screen proctoring has been enabled
                         this.screenProctoringAPIBinding
                                 .startScreenProctoring(exam)
-                                .onError(error -> log.error(
-                                        "Failed to apply screen proctoring for exam: {}",
-                                        exam,
-                                        error))
-                                .map(groups -> createExamGroups(exam, groups))
+                                .onError(error -> log.error("Failed to apply screen proctoring for exam: {}", exam, error))
                                 .getOrThrow();
 
                         this.examDAO.markUpdate(exam.id);
@@ -202,50 +205,20 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         // if screen proctoring has been disabled...
                         this.screenProctoringAPIBinding
                                 .deactivateScreenProctoring(exam)
-                                .onError(error -> log.error("Failed to dispose screen proctoring for exam: {}",
-                                        exam,
-                                        error))
+                                .onError(error -> log.error("Failed to dispose screen proctoring for exam: {}", exam, error))
                                 .getOrThrow();
 
                         this.examDAO.markUpdate(exam.id);
+                    } else if (isEnabling) {
+                        this.screenProctoringAPIBinding.synchronizeGroups(exam);
                     }
                     return exam;
                 });
     }
     
-    private Exam createExamGroups(final Exam exam, final Collection<ScreenProctoringGroup> groups) {
-        
-        final Map<String, ScreenProctoringGroup> existingGroups = this.screenProctoringGroupDAO
-                .getCollectingGroups(exam.id)
-                .onError(error -> log.error("Failed to get existing groups to check integrity: ", error))
-                .getOr(Collections.emptyList())
-                .stream().collect(Collectors.toMap( g -> g.name, Function.identity()));
-        
-        groups.forEach(newGroup ->
-                {
-                    if (existingGroups.containsKey(newGroup.name)) {
-                        final ScreenProctoringGroup screenProctoringGroup = existingGroups.get(newGroup.name);
-                        
-                        log.warn(
-                                "There exists already a local screen proctoring group with the name: {}. This is deleted due to the fact that a new one is going to be created with the same name. Groups {}",
-                                screenProctoringGroup.name,
-                                screenProctoringGroup);
-                        
-                        this.screenProctoringGroupDAO.deleteGroup(screenProctoringGroup.id)
-                                .onError(error -> log.error("Failed to delete screen proctoring group due to group mismatch", error));
-                    }
-                    
-                    createNewLocalGroup(exam, newGroup);
-                });
-                
-        return exam;
-    }
-
-    // TODO Put this within CacheService and update in sync with Running Exam update.
-    //      Also check that when ScreenProctoringGroup gets saves or deleted for an exam, the exam update time changes
     @Override
     public Result<Collection<ScreenProctoringGroup>> getCollectingGroups(final Long examId) {
-        return this.screenProctoringGroupDAO.getCollectingGroups(examId);
+        return this.examSessionCacheService.getScreenProctoringGroups(examId);
     }
 
     @Override
@@ -425,8 +398,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
-
-        Long placeReservedInGroup = null;
+        
 
         try {
             final Long examId = ccRecord.getExamId();
@@ -439,7 +411,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 final ScreenProctoringGroup group = applySEBConnectionToGroup(
                         ccRecord,
                         runningExam);
-                placeReservedInGroup = group.id;
 
                 // create screen proctoring session for SEB connection on SPS service
                 final String spsSessionToken = this.screenProctoringAPIBinding
@@ -464,15 +435,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         } catch (final Exception e) {
             log.error("Failed to apply screen proctoring session to SEB with connection: {}", ccRecord, e);
-
-            if (placeReservedInGroup != null) {
-                // release reserved place in group
-                this.screenProctoringGroupDAO.releasePlaceInCollectingGroup(
-                        ccRecord.getExamId(),
-                        placeReservedInGroup)
-                        .onError(
-                                error -> log.warn("Failed to release reserved place in group: {}", error.getMessage()));
-            }
         }
     }
 
@@ -487,18 +449,11 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         final CollectingStrategy strategy = CollectingStrategy.valueOf(exam.additionalAttributes
                 .get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY));
-
-        switch (strategy) {
-            case SEB_GROUP: {
-                // TODO
-                throw new UnsupportedOperationException("SEB_GROUP based group collection is not supported yet");
-            }
-            case EXAM:
-            case FIX_SIZE:
-            default: {
-                return applyToDefaultGroup(ccRecord.getId(), ccRecord.getConnectionToken(), exam);
-            }
-        }
+        
+        return switch (strategy) {
+            case APPLY_SEB_GROUPS -> applyToSEBClientGroup(ccRecord, exam);
+            case EXAM -> applyToDefaultGroup(ccRecord.getId(), ccRecord.getConnectionToken(), exam);
+        };
     }
 
     private ScreenProctoringGroup applyToDefaultGroup(
@@ -506,7 +461,25 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final String connectionToken,
             final Exam exam) {
 
-        final ScreenProctoringGroup screenProctoringGroup = reservePlaceOnProctoringGroup(exam);
+        final Collection<ScreenProctoringGroup> groups = screenProctoringGroupDAO
+                .getCollectingGroups(exam.id)
+                .getOrThrow();
+        
+        if (groups.isEmpty()) {
+            throw new IllegalStateException("Exam has no local SPS Groups defined: " + exam);
+        }
+
+        ScreenProctoringGroup screenProctoringGroup = null;
+        if (groups.size() == 1) {
+            screenProctoringGroup = groups.iterator().next();
+        } else {
+            groups.stream().filter(group -> BooleanUtils.isTrue(group.isFallback)).findFirst().orElseGet(null);
+        }
+        
+        if (screenProctoringGroup == null) {
+            throw new IllegalStateException("Exam has no local default or fallback SPS Groups defined: " + exam);
+        }
+        
         this.clientConnectionDAO.assignToScreenProctoringGroup(
                 connectionId,
                 connectionToken,
@@ -516,48 +489,47 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return screenProctoringGroup;
     }
 
-    private ScreenProctoringGroup reservePlaceOnProctoringGroup(final Exam exam) {
+    private ScreenProctoringGroup applyToSEBClientGroup(
+            final ClientConnectionRecord ccRecord,
+            final Exam exam) {
 
-        int collectingGroupSize = 0;
-        if (exam.additionalAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE)) {
-            collectingGroupSize = Integer.parseInt(exam.additionalAttributes
-                    .get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE));
-        }
-
-        final Result<ScreenProctoringGroup> reserve = this.screenProctoringGroupDAO
-                .reservePlaceInCollectingGroup(
-                        exam.id,
-                        collectingGroupSize);
-
-        ScreenProctoringGroup screenProctoringGroup = null;
-        if (reserve.hasError()) {
-            if (reserve.getError() instanceof AllGroupsFullException) {
-                screenProctoringGroup = applyNewGroup(exam, collectingGroupSize);
-            } else {
-                throw new RuntimeException(
-                        "Failed to create new screen proctoring group: ",
-                        reserve.getError());
-            }
-        } else {
-            screenProctoringGroup = reserve.get();
-        }
-        return screenProctoringGroup;
-    }
-
-    private ScreenProctoringGroup applyNewGroup(final Exam exam, final Integer groupSize) {
-
-        final String spsExamUUID = this.screenProctoringAPIBinding
-                .getSPSData(exam.id)
-                .spsExamUUID;
-
-        return this.screenProctoringGroupDAO
-                .getCollectingGroups(exam.id)
-                .flatMap(count -> this.screenProctoringAPIBinding
-                        .createGroup(spsExamUUID, count.size() + 1, "Created by SEB Server", exam))
-                .flatMap(this.screenProctoringGroupDAO::createNewGroup)
-                .flatMap(group -> this.screenProctoringGroupDAO
-                        .reservePlaceInCollectingGroup(exam.id, groupSize != null ? groupSize : 0))
+        final ClientConnection clientConnection = ClientConnectionDAOImpl
+                .toDomainModel(ccRecord)
                 .getOrThrow();
+        
+        ScreenProctoringGroup defaultGroup = null;
+        final Collection<ScreenProctoringGroup> groups = this.
+                getCollectingGroups(exam.id)
+                .getOrThrow();
+        
+        for (ScreenProctoringGroup group : groups) {
+            if (group.sebGroupId != null) {
+                final ClientGroup clientGroup = clientGroupDAO
+                        .byPK(group.sebGroupId)
+                        .getOrThrow();
+                if (this.clientGroupMatcherService.isInGroup(clientConnection, clientGroup)) {
+                    this.clientConnectionDAO.assignToScreenProctoringGroup(
+                                    clientConnection.id,
+                                    clientConnection.connectionToken,
+                                    group.id)
+                            .getOrThrow();
+                    return group;
+                }
+            } else {
+                defaultGroup = group;
+            }
+        }
+        
+        if (defaultGroup != null) {
+            this.clientConnectionDAO.assignToScreenProctoringGroup(
+                            clientConnection.id,
+                            clientConnection.connectionToken,
+                            defaultGroup.id)
+                    .getOrThrow();
+            return defaultGroup;
+        } else {
+            return null;
+        }
     }
 
     private Result<Exam> deleteForExam(final Long examId) {
@@ -589,20 +561,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 .onError(error -> log.error("Failed to delete all groups for exam: {}", exam, error))
                 .map(x -> exam)
                 .getOrThrow();
-    }
-
-    private void createNewLocalGroup(final Exam exam, final ScreenProctoringGroup newGroup) {
-
-        if (log.isDebugEnabled()) {
-            log.debug(
-                    "Create new local screen proctoring group for exam: {}, group: {}",
-                    exam.externalId, newGroup);
-        }
-
-        this.screenProctoringGroupDAO
-                .createNewGroup(newGroup)
-                .onError(error -> log.error("Failed to create local screen proctoring group: {}",
-                        newGroup, error));
     }
 
     private void registerJoinInstruction(

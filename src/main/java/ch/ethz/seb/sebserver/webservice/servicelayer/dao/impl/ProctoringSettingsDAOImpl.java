@@ -10,13 +10,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,17 +54,20 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle;
     private final Cryptor cryptor;
+    private final JSONMapper jsonMapper;
 
     public ProctoringSettingsDAOImpl(
             final AdditionalAttributesDAO additionalAttributesDAO,
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final WebserviceInfo webserviceInfo,
-            final Cryptor cryptor) {
+            final Cryptor cryptor, 
+            final JSONMapper jsonMapper) {
 
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.screenProctoringServiceBundle = webserviceInfo.getScreenProctoringServiceBundle();
         this.cryptor = cryptor;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -72,33 +76,21 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         return Result.tryCatch(() -> {
             final Long entityId = Long.parseLong(entityKey.modelId);
 
-            return this.additionalAttributesDAO
-                    .getAdditionalAttributes(entityKey.entityType, entityId)
-                    .map(attrs -> attrs.stream()
-                            .collect(Collectors.toMap(
-                                    AdditionalAttributeRecord::getName,
-                                    Function.identity())))
-                    .map(mapping -> {
-                        return new ProctoringServiceSettings(
-                                entityId,
-                                getEnabled(mapping),
-                                getServerType(mapping),
-                                getString(mapping, ProctoringServiceSettings.ATTR_SERVER_URL),
-                                getCollectingRoomSize(mapping),
-                                getEnabledFeatures(mapping),
-                                entityKey.entityType == EntityType.EXAM
-                                        ? this.remoteProctoringRoomDAO.isServiceInUse(entityId).getOr(true)
-                                        : false,
-                                getString(mapping, ProctoringServiceSettings.ATTR_APP_KEY),
-                                getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET),
-                                getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_ID),
-                                getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_ID),
-                                getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_SECRET),
-                                getString(mapping, ProctoringServiceSettings.ATTR_SDK_KEY),
-                                getString(mapping, ProctoringServiceSettings.ATTR_SDK_SECRET),
-                                getBoolean(mapping,
-                                        ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM));
+            return additionalAttributesDAO
+                    .getAdditionalAttribute(entityKey.entityType, entityId, ProctoringServiceSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME)
+                    .map(rec -> {
+                        final String encryptedSetting = rec.getValue();
+                        final String jsonSettings = this.cryptor.decrypt(encryptedSetting).getOrThrow().toString();
+                        try {
+                            return jsonMapper.readValue(jsonSettings, ProctoringServiceSettings.class);
+                        } catch (final JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
                     })
+                    .onErrorDo( error -> {
+                        log.warn("Failed to get Live Proctoring Settings with single additional attribute store method. Try legacy method to get Live Proctoring Settings...");
+                        return getLegacyProctoringServiceSettings(entityKey, entityId);
+                    } )
                     .getOrThrow();
         });
     }
@@ -111,54 +103,23 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
 
         return Result.tryCatch(() -> {
             final Long entityId = Long.parseLong(entityKey.modelId);
+            final String json = jsonMapper.writeValueAsString(proctoringServiceSettings);
+            final String encryptedSettings = this.cryptor.encrypt(Utils.trim(json))
+                    .getOrThrow()
+                    .toString();
 
-            final Map<String, String> attributes = new HashMap<>();
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_ENABLE_PROCTORING,
-                    String.valueOf(proctoringServiceSettings.enableProctoring));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_SERVER_TYPE,
-                    proctoringServiceSettings.serverType.name());
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_SERVER_URL,
-                    StringUtils.trim(proctoringServiceSettings.serverURL));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
-                    String.valueOf(proctoringServiceSettings.collectingRoomSize));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_APP_KEY,
-                    StringUtils.trim(proctoringServiceSettings.appKey));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_APP_SECRET,
-                    encryptSecret(Utils.trim(proctoringServiceSettings.appSecret)));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_ACCOUNT_ID,
-                    StringUtils.trim(proctoringServiceSettings.accountId));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_ID,
-                    StringUtils.trim(proctoringServiceSettings.clientId));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_SECRET,
-                    encryptSecret(Utils.trim(proctoringServiceSettings.clientSecret)));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_SDK_KEY,
-                    StringUtils.trim(proctoringServiceSettings.sdkKey));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_SDK_SECRET,
-                    encryptSecret(Utils.trim(proctoringServiceSettings.sdkSecret)));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_ENABLED_FEATURES,
-                    StringUtils.join(proctoringServiceSettings.enabledFeatures, Constants.LIST_SEPARATOR));
-            attributes.put(
-                    ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM,
-                    String.valueOf(proctoringServiceSettings.useZoomAppClientForCollectingRoom));
-
-            this.additionalAttributesDAO.saveAdditionalAttributes(
+            this.additionalAttributesDAO.saveAdditionalAttribute(
                     entityKey.entityType,
                     entityId,
-                    attributes,
-                    true);
+                    ProctoringServiceSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME,
+                    encryptedSettings);
 
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    entityKey.entityType,
+                    entityId,
+                    ProctoringServiceSettings.ATTR_ENABLE_PROCTORING,
+                    String.valueOf(proctoringServiceSettings.enableProctoring));
+            
             return proctoringServiceSettings;
         });
     }
@@ -169,39 +130,21 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         return Result.tryCatch(() -> {
             final Long entityId = Long.parseLong(entityKey.modelId);
 
-            return this.additionalAttributesDAO
-                    .getAdditionalAttributes(entityKey.entityType, entityId)
-                    .map(attrs -> attrs.stream()
-                            .collect(Collectors.toMap(
-                                    AdditionalAttributeRecord::getName,
-                                    Function.identity())))
-                    .map(mapping -> {
-                        if (screenProctoringServiceBundle.bundled) {
-                            return new ScreenProctoringSettings(
-                                    entityId,
-                                    getScreenproctoringEnabled(mapping),
-                                    screenProctoringServiceBundle.serviceURL,
-                                    screenProctoringServiceBundle.clientId,
-                                    screenProctoringServiceBundle.clientSecret.toString(),
-                                    screenProctoringServiceBundle.apiAccountName,
-                                    screenProctoringServiceBundle.apiAccountPassword.toString(),
-                                    getScreenProctoringCollectingStrategy(mapping),
-                                    getScreenProctoringCollectingSize(mapping),
-                                    true);
-                        } else {
-                            return new ScreenProctoringSettings(
-                                    entityId,
-                                    getScreenproctoringEnabled(mapping),
-                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_SERVICE_URL),
-                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_KEY),
-                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_SECRET),
-                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
-                                    getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
-                                    getScreenProctoringCollectingStrategy(mapping),
-                                    getScreenProctoringCollectingSize(mapping),
-                                    false);
+            return additionalAttributesDAO
+                    .getAdditionalAttribute(entityKey.entityType, entityId, ScreenProctoringSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME)
+                    .map(rec -> {
+                        final String encryptedSetting = rec.getValue();
+                        final String jsonSettings = this.cryptor.decrypt(encryptedSetting).getOrThrow().toString();
+                        try {
+                            return jsonMapper.readValue(jsonSettings, ScreenProctoringSettings.class);
+                        } catch (final JsonProcessingException e) {
+                            throw new RuntimeException(e);
                         }
                     })
+                    .onErrorDo( error -> {
+                        log.warn("Failed to get SPS Settings with single additional attribute store method. Try legacy method to get SPS Settings...");
+                        return getLegacyScreenProctoringSettings(entityKey, entityId);
+                    } )
                     .getOrThrow();
         });
     }
@@ -215,50 +158,23 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         return Result.tryCatch(() -> {
 
             final Long entityId = Long.parseLong(entityKey.modelId);
+            final String json = jsonMapper.writeValueAsString(screenProctoringSettings);
+            final String encryptedSettings = this.cryptor.encrypt(Utils.trim(json))
+                    .getOrThrow()
+                    .toString();
 
-            final Map<String, String> attributes = new HashMap<>();
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING,
-                    String.valueOf(screenProctoringSettings.enableScreenProctoring));
-
-            // we need to store this only if it is an unbundled setup otherwise attributes are known by the service
-            //todo: find a better way to get the proctoring credentials
-            //if (!screenProctoringServiceBundle.bundled) {
-                attributes.put(
-                        ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
-                        StringUtils.trim(screenProctoringSettings.spsServiceURL));
-                attributes.put(
-                        ScreenProctoringSettings.ATTR_SPS_API_KEY,
-                        StringUtils.trim(screenProctoringSettings.spsAPIKey));
-                attributes.put(
-                        ScreenProctoringSettings.ATTR_SPS_API_SECRET,
-                        encryptSecret(Utils.trim(screenProctoringSettings.spsAPISecret)));
-                attributes.put(
-                        ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID,
-                        StringUtils.trim(screenProctoringSettings.spsAccountId));
-                attributes.put(
-                        ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD,
-                        encryptSecret(Utils.trim(screenProctoringSettings.spsAccountPassword)));
-            //}
-
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY,
-                    String.valueOf(screenProctoringSettings.collectingStrategy));
-            attributes.put(
-                    ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE,
-                    String.valueOf(screenProctoringSettings.collectingGroupSize));
-
-
-            this.additionalAttributesDAO.saveAdditionalAttributes(
+            this.additionalAttributesDAO.saveAdditionalAttribute(
                     entityKey.entityType,
                     entityId,
-                    attributes,
-                    true)
-                    .onError(error -> log.warn(
-                            "Failed to store SPS attributes for Exam: {} error: {}",
-                            entityKey,
-                            error.getMessage()));
+                    ScreenProctoringSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME,
+                    encryptedSettings);
 
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    entityKey.entityType,
+                    entityId,
+                    ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING,
+                    String.valueOf(screenProctoringSettings.enableScreenProctoring));
+            
             return screenProctoringSettings;
         });
     }
@@ -287,6 +203,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                 .getOr(false);
     }
 
+    @Deprecated
     private Boolean getEnabled(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)) {
             return BooleanUtils.toBoolean(mapping.get(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING).getValue());
@@ -295,6 +212,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private Boolean getScreenproctoringEnabled(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)) {
             return BooleanUtils
@@ -304,6 +222,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private ProctoringServerType getServerType(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ProctoringServiceSettings.ATTR_SERVER_TYPE)) {
             return ProctoringServerType
@@ -313,6 +232,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private String getString(final Map<String, AdditionalAttributeRecord> mapping, final String name) {
         if (mapping.containsKey(name)) {
             return mapping.get(name).getValue();
@@ -321,6 +241,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private Boolean getBoolean(final Map<String, AdditionalAttributeRecord> mapping, final String name) {
         if (mapping.containsKey(name)) {
             return BooleanUtils.toBooleanObject(mapping.get(name).getValue());
@@ -329,6 +250,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private Integer getCollectingRoomSize(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE)) {
             return Integer.valueOf(mapping.get(ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE).getValue());
@@ -337,16 +259,18 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private CollectingStrategy getScreenProctoringCollectingStrategy(
             final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)) {
             return CollectingStrategy
                     .valueOf(mapping.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY).getValue());
         } else {
-            return CollectingStrategy.FIX_SIZE;
+            return CollectingStrategy.EXAM;
         }
     }
 
+    @Deprecated
     private Integer getScreenProctoringCollectingSize(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE)) {
             return Integer.valueOf(mapping.get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE).getValue());
@@ -355,6 +279,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private EnumSet<ProctoringFeature> getEnabledFeatures(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ProctoringServiceSettings.ATTR_ENABLED_FEATURES)) {
             try {
@@ -383,6 +308,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         }
     }
 
+    @Deprecated
     private String encryptSecret(final CharSequence secret) {
         if (StringUtils.isBlank(secret)) {
             return null;
@@ -390,6 +316,78 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         return this.cryptor.encrypt(Utils.trim(secret))
                 .getOrThrow()
                 .toString();
+    }
+
+    private ScreenProctoringSettings getLegacyScreenProctoringSettings(final EntityKey entityKey, final Long entityId) {
+        return this.additionalAttributesDAO
+                .getAdditionalAttributes(entityKey.entityType, entityId)
+                .map(attrs -> attrs.stream()
+                        .collect(Collectors.toMap(
+                                AdditionalAttributeRecord::getName,
+                                Function.identity())))
+                .map(mapping -> {
+                    if (screenProctoringServiceBundle.bundled) {
+                        return new ScreenProctoringSettings(
+                                entityId,
+                                getScreenproctoringEnabled(mapping),
+                                screenProctoringServiceBundle.serviceURL,
+                                screenProctoringServiceBundle.clientId,
+                                screenProctoringServiceBundle.clientSecret.toString(),
+                                screenProctoringServiceBundle.apiAccountName,
+                                screenProctoringServiceBundle.apiAccountPassword.toString(),
+                                getScreenProctoringCollectingStrategy(mapping),
+                                null,
+                                getScreenProctoringCollectingSize(mapping),
+                                null,
+                                true);
+                    } else {
+                        return new ScreenProctoringSettings(
+                                entityId,
+                                getScreenproctoringEnabled(mapping),
+                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_SERVICE_URL),
+                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_KEY),
+                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_SECRET),
+                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
+                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
+                                getScreenProctoringCollectingStrategy(mapping),
+                                null,
+                                getScreenProctoringCollectingSize(mapping),
+                                null,
+                                false);
+                    }
+                })
+                .getOrThrow();
+    }
+
+    private ProctoringServiceSettings getLegacyProctoringServiceSettings(final EntityKey entityKey, final Long entityId) {
+        return this.additionalAttributesDAO
+                .getAdditionalAttributes(entityKey.entityType, entityId)
+                .map(attrs -> attrs.stream()
+                        .collect(Collectors.toMap(
+                                AdditionalAttributeRecord::getName,
+                                Function.identity())))
+                .map(mapping -> {
+                    return new ProctoringServiceSettings(
+                            entityId,
+                            getEnabled(mapping),
+                            getServerType(mapping),
+                            getString(mapping, ProctoringServiceSettings.ATTR_SERVER_URL),
+                            getCollectingRoomSize(mapping),
+                            getEnabledFeatures(mapping),
+                            entityKey.entityType == EntityType.EXAM
+                                    ? this.remoteProctoringRoomDAO.isServiceInUse(entityId).getOr(true)
+                                    : false,
+                            getString(mapping, ProctoringServiceSettings.ATTR_APP_KEY),
+                            getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET),
+                            getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_ID),
+                            getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_ID),
+                            getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_SECRET),
+                            getString(mapping, ProctoringServiceSettings.ATTR_SDK_KEY),
+                            getString(mapping, ProctoringServiceSettings.ATTR_SDK_SECRET),
+                            getBoolean(mapping,
+                                    ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM));
+                })
+                .getOrThrow();
     }
 
 }
