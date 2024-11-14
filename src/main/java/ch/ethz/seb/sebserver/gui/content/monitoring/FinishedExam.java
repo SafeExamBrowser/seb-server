@@ -192,7 +192,7 @@ public class FinishedExam implements TemplateComposer {
                                 pageContext,
                                 ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION));
 
-        indicators.stream().forEach(indicator -> {
+        indicators.forEach(indicator -> {
             if (indicator.type == IndicatorType.LAST_PING || indicator.type == IndicatorType.NONE) {
                 return;
             }
@@ -244,7 +244,7 @@ public class FinishedExam implements TemplateComposer {
                                 .withEntityKey(exam.getEntityKey())
                                 .withExec(_action -> monitoringProctoringService.openScreenProctoringTab(
                                         screenProctoringSettings,
-                                        group,
+                                        group.uuid,
                                         _action))
                                 .withNameAttributes(group.name, group.size)
                                 .noEventPropagation()

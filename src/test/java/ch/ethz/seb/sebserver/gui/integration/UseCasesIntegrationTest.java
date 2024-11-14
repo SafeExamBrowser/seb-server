@@ -3231,6 +3231,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(Domain.EXAM.ATTR_EXAM_TEMPLATE_ID, savedTemplate.getModelId())
                 .call();
 
+        if (newExamResult.hasError()) {
+            System.out.println(newExamResult.getError());
+        }
         assertFalse(newExamResult.hasError());
         final Exam exam = newExamResult.get();
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);

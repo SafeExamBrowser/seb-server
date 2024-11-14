@@ -11,13 +11,18 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 import static ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_SCREEN_PROCTORING.*;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import ch.ethz.seb.sebserver.gbl.monitoring.ClientGroupMatcherService;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
@@ -120,8 +125,16 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
-    public Result<ScreenProctoringSettings> testSettings(final ScreenProctoringSettings screenProctoringSettings) {
+    public Result<ScreenProctoringSettings> testSettings(
+            final ScreenProctoringSettings screenProctoringSettings,
+            final EntityKey parentKey) {
+        
         return Result.tryCatch(() -> {
+            
+            if (!BooleanUtils.isTrue(screenProctoringSettings.enableScreenProctoring)) {
+                log.debug("Screen Proctoring is not enabled --> not test is applied");
+                return screenProctoringSettings;
+            }
 
             final Collection<APIMessage> fieldChecks = new ArrayList<>();
             if (StringUtils.isBlank(screenProctoringSettings.spsServiceURL)) {
@@ -156,7 +169,61 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         "clientSecret",
                         "screenProctoringSettings:spsAccountPassword:notNull"));
             }
+            
+            if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS &&
+            StringUtils.isBlank(screenProctoringSettings.sebGroupsSelection)) {
+                fieldChecks.add(APIMessage.fieldValidationError(
+                        "clientSecret",
+                        "screenProctoringSettings:spsSEBGroupsSelection:notNull"));
+            }
+            
+            if (parentKey.entityType == EntityType.EXAM) {
 
+                if (this.clientConnectionDAO.hasActiveSEBConnections(screenProctoringSettings.examId)) {
+                    throw new APIMessageException(APIMessage.ErrorMessage.CLIENT_CONNECTION_INTEGRITY_VIOLATION.of());
+                }
+
+                // get existing groups 
+                final Collection<ScreenProctoringGroup> existingGroups = this
+                        .getCollectingGroups(screenProctoringSettings.examId)
+                        .getOr(Collections.emptyList());
+
+                if (!existingGroups.isEmpty()) {
+                    // check for when there are already existing groups
+                    final ScreenProctoringSettings oldSettings = this.proctoringSettingsDAO
+                            .getScreenProctoringSettings(parentKey)
+                            .getOr(null);
+                    
+                    if (oldSettings != null && oldSettings.collectingStrategy != screenProctoringSettings.collectingStrategy) {
+                        // not possible to change grouping strategy when it has already groups
+                        fieldChecks.add(APIMessage.fieldValidationError(
+                                "spsCollectingStrategy",
+                                "screenProctoringSettings:spsCollectingStrategy:collecting-strategy-not-changeable"));
+                    }
+                    
+                    // find deletion and check possibility (only deletable if no sessions)
+                    if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
+                        final Map<Long, ScreenProctoringGroup> existing = existingGroups.stream()
+                                .filter(g -> !g.isFallback)
+                                .collect(Collectors.toMap( g -> g.sebGroupId, Function.identity()));
+
+                        Arrays.stream(StringUtils.split(
+                                screenProctoringSettings.sebGroupsSelection, 
+                                        Constants.LIST_SEPARATOR_CHAR))
+                                .map(Long::valueOf)
+                                .forEach(existing::remove);
+
+                        existing.values().forEach( g -> {
+                            if (g.size != null && g.size > 0) {
+                                fieldChecks.add(APIMessage.fieldValidationError(
+                                        "clientSecret",
+                                        "screenProctoringSettings:spsSEBGroupsSelection:group-not-deletable"));
+                            }
+                        });
+                    }
+                }
+            }
+            
             if (!fieldChecks.isEmpty()) {
                 throw new APIMessageException(fieldChecks);
             }
@@ -212,13 +279,24 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     } else if (isEnabling) {
                         this.screenProctoringAPIBinding.synchronizeGroups(exam);
                     }
+                    
                     return exam;
                 });
     }
-    
+
+    @Override
+    public Result<Collection<ProctoringGroupMonitoringData>> getCollectingGroupsMonitoringData(final Long examId) {
+        return this.examSessionCacheService.getScreenProctoringGroups(examId);
+    }
+
     @Override
     public Result<Collection<ScreenProctoringGroup>> getCollectingGroups(final Long examId) {
-        return this.examSessionCacheService.getScreenProctoringGroups(examId);
+        return screenProctoringGroupDAO
+                .getCollectingGroups(examId)
+                .onError(error -> log.error(
+                        "Failed to screen proctoring groups for exam: {}, cause: {}",
+                        examId,
+                        error.getMessage()));
     }
 
     @Override
@@ -258,19 +336,19 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     public void updateActiveGroups() {
         try {
 
+            // only 
             if (!webserviceInfo.isMaster()) {
                 return;
             }
 
+            // TODO make this more performant (batch update, check if size has changed, caching...
             if (screenProctoringGroupDAO.hasActiveGroups()) {
                 screenProctoringAPIBinding
                         .getActiveGroupSessionCounts()
-                        .forEach(groupCount -> {
-                            screenProctoringGroupDAO.updateGroupSize(
-                                    groupCount.groupUUID,
-                                    groupCount.activeCount,
-                                    groupCount.totalCount);
-                        });
+                        .forEach(groupCount -> screenProctoringGroupDAO.updateGroupSize(
+                                groupCount.groupUUID,
+                                groupCount.activeCount,
+                                groupCount.totalCount));
             }
         } catch (final Exception e) {
             log.warn("Failed to update actual group session counts.");
@@ -399,7 +477,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
         
-
         try {
             final Long examId = ccRecord.getExamId();
             final Exam runningExam = this.examSessionCacheService.getRunningExam(examId);
@@ -434,7 +511,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     .getOrThrow();
 
         } catch (final Exception e) {
-            log.error("Failed to apply screen proctoring session to SEB with connection: {}", ccRecord, e);
+            log.error("Failed to apply screen proctoring session to SEB with connection: {} cause: {}", ccRecord, e.getMessage());
         }
     }
 
@@ -442,15 +519,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final ClientConnectionRecord ccRecord,
             final Exam exam) {
 
-        if (!exam.additionalAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)) {
-            log.warn("Can't verify collecting strategy for exam: {} use default group assignment.", exam.id);
-            return applyToDefaultGroup(ccRecord.getId(), ccRecord.getConnectionToken(), exam);
-        }
-
-        final CollectingStrategy strategy = CollectingStrategy.valueOf(exam.additionalAttributes
-                .get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY));
+        final ScreenProctoringSettings settingsForExam = this.screenProctoringAPIBinding.getSettingsForExam(exam);
         
-        return switch (strategy) {
+        return switch (settingsForExam.collectingStrategy) {
             case APPLY_SEB_GROUPS -> applyToSEBClientGroup(ccRecord, exam);
             case EXAM -> applyToDefaultGroup(ccRecord.getId(), ccRecord.getConnectionToken(), exam);
         };
@@ -473,7 +544,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         if (groups.size() == 1) {
             screenProctoringGroup = groups.iterator().next();
         } else {
-            groups.stream().filter(group -> BooleanUtils.isTrue(group.isFallback)).findFirst().orElseGet(null);
+            screenProctoringGroup = groups.stream()
+                    .filter(group -> BooleanUtils.isTrue(group.isFallback))
+                    .findFirst()
+                    .orElseGet(null);
         }
         
         if (screenProctoringGroup == null) {
@@ -502,7 +576,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 getCollectingGroups(exam.id)
                 .getOrThrow();
         
-        for (ScreenProctoringGroup group : groups) {
+        for (final ScreenProctoringGroup group : groups) {
             if (group.sebGroupId != null) {
                 final ClientGroup clientGroup = clientGroupDAO
                         .byPK(group.sebGroupId)

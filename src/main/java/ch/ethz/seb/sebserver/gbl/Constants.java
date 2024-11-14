@@ -28,6 +28,9 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
+    
+    public static final String UNICODE_LOWEST = Character.toString(0x00);
+    public static final String UNICODE_HIGHEST = Character.toString(0x10FFFF);
 
     public static final String FILE_EXT_CSV = ".csv";
 

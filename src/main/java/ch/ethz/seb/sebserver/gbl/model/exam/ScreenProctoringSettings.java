@@ -233,4 +233,5 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
                 ", bundled=" + bundled +
                 '}';
     }
+    
 }

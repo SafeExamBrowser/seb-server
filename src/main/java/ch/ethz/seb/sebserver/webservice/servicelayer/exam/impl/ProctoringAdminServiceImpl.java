@@ -84,7 +84,7 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
             if (parentEntityKey.entityType == EntityType.EXAM) {
                 try {
-                    this.examSessionCacheService.evict(Long.parseLong(parentEntityKey.modelId));
+                    this.examSessionCacheService.evictScreenProctoringGroups(Long.parseLong(parentEntityKey.modelId));
                 } catch (final Exception e) {
                     log.warn("Failed to update Exam cache:_{}", e.getMessage());
                 }
@@ -133,7 +133,7 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
             }
 
             this.screenProctoringService
-                    .testSettings(settings)
+                    .testSettings(settings, parentEntityKey)
                     .flatMap(s -> this.proctoringSettingsDAO.storeScreenProctoringSettings(parentEntityKey, s))
                     .getOrThrow();
 
@@ -144,9 +144,10 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                         .onError(error -> this.proctoringSettingsDAO
                                 .disableScreenProctoring(screenProctoringSettings.examId))
                         .getOrThrow();
-
+                
+                // TODO this needs to be done elsewhere. Do proper Exam cache flush on SPS Settings save
                 try {
-                    this.examSessionCacheService.evict(Long.parseLong(parentEntityKey.modelId));
+                    this.examSessionCacheService.evictScreenProctoringGroups(settings.examId);
                 } catch (final Exception e) {
                     log.warn("Failed to update Exam cache:_{}", e.getMessage());
                 }

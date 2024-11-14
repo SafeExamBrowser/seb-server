@@ -139,6 +139,7 @@ interface SPS_API {
         }
     }
 
+    // TODO make this more compact
     @JsonIgnoreProperties(ignoreUnknown = true)
     final class GroupSessionCount {
         @JsonProperty("uuid")
@@ -230,7 +231,7 @@ interface SPS_API {
 
             CharSequence decryptedSecret = apiBinding.cryptor
                     .decrypt(clientCredentials.secret)
-                    .getOrThrow();
+                    .getOr(clientCredentials.secret);
 
             final ResourceOwnerPasswordResourceDetails resource = new ResourceOwnerPasswordResourceDetails();
             resource.setAccessTokenUri(spsAPIAccessData.getSpsServiceURL() + TOKEN_ENDPOINT);
@@ -244,7 +245,7 @@ interface SPS_API {
 
             decryptedSecret = apiBinding.cryptor
                     .decrypt(userCredentials.secret)
-                    .getOrThrow();
+                    .getOr(userCredentials.secret);
 
             resource.setUsername(userCredentials.clientIdAsString());
             resource.setPassword(decryptedSecret.toString());

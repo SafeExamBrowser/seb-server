@@ -226,6 +226,25 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean hasActiveSEBConnections(final Long examId) {
+        try {
+            return this.clientConnectionRecordMapper
+                    .countByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.examId,
+                            SqlBuilder.isEqualTo(examId))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.status,
+                            SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .build()
+                    .execute() > 0;
+        } catch (final Exception e) {
+            return true;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
         return Result.tryCatch(() -> this.clientConnectionMinMapper
                 .selectByExample()

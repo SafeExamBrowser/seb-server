@@ -64,6 +64,8 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the collection of connection tokens or to an error when happened */
     Result<Collection<String>> getActiveConnectionTokens(Long examId);
 
+    boolean hasActiveSEBConnections(Long examId);
+
     /** Get a list of all connection tokens of all connections of an exam
      * that are in state an active state. See <code>ClientConnection</code>
      *
@@ -249,4 +251,5 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the list of deleted client connections or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
+    
 }

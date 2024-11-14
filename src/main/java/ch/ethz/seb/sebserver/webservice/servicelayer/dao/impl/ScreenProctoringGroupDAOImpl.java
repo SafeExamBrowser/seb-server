@@ -258,7 +258,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         } catch (final Exception e) {
             log.warn("Failed to update SPS group size: {}", e.getMessage());
         }
-
     }
 
     @Override

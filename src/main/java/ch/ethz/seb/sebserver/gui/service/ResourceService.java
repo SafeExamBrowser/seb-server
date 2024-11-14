@@ -14,9 +14,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.user.*;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -961,21 +963,40 @@ public class ResourceService {
                 .getText(ResourceService.COLLECTING_STRATEGY_PREFIX + settings.collectingStrategy.name());
     }
 
-    public List<Tuple<String>> getSEBGroupSelection(final String examModelId) {
-        return this.restService.getBuilder(GetClientGroups.class)
-                .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, examModelId)
-                .call()
-                .onError(error -> log.error("Failed to get SEB client groups for exam: {}, cause {}",examModelId, error.getMessage()))
-                .getOr(Collections.emptyList())
-                .stream()
-                .map( group -> new Tuple3<>(
-                        group.getModelId(),
-                        group.name,
-                        Utils.formatLineBreaks(this.i18nSupport.getText(
-                                "sebserver.exam.proctoring.collecting.strategy.clientgroup.tooltip",
-                                group.name))))
-                .sorted(RESOURCE_COMPARATOR)
-                .collect(Collectors.toList());
+    public List<Tuple<String>> getSEBGroupSelection(final EntityKey entityKey) {
+        if (entityKey.entityType == EntityType.EXAM) {
+            return this.restService.getBuilder(GetClientGroups.class)
+                    .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, entityKey.modelId)
+                    .call()
+                    .onError(error -> log.error("Failed to get SEB client groups for exam: {}, cause {}", entityKey.modelId, error.getMessage()))
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .map(group -> new Tuple3<>(
+                            group.getModelId(),
+                            group.name,
+                            Utils.formatLineBreaks(this.i18nSupport.getText(
+                                    "sebserver.exam.proctoring.collecting.strategy.clientgroup.tooltip",
+                                    group.name))))
+                    .sorted(RESOURCE_COMPARATOR)
+                    .collect(Collectors.toList());
+        } else {
+            return restService
+                    .getBuilder(GetExamTemplate.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .map(t -> t.clientGroupTemplates
+                            .stream()
+                            .map( group -> (Tuple<String>) new Tuple3<>(
+                                    group.getModelId(),
+                                    group.name,
+                                    Utils.formatLineBreaks(i18nSupport.getText(
+                                            "sebserver.exam.proctoring.collecting.strategy.clientgroup.tooltip",
+                                            group.name))))
+                            .toList()
+                    )
+                    .onError(error -> log.error("Failed to get SEB client groups for exam template: {}, cause {}", entityKey.modelId, error.getMessage()))
+                    .getOr(Collections.emptyList());
+        }
     }
 
 }

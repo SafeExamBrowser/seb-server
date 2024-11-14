@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.monitoring;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -33,7 +34,11 @@ public class AlphabeticalNameRangeMatcher implements ClientGroupConnectionMatche
         final String start = group.nameRangeStartLetter != null ? group.nameRangeStartLetter.substring(0, 1) : "A";
         final String end = group.nameRangeStartLetter != null ? group.nameRangeEndLetter.substring(0, 1) : "Z";
         
+        return isInRange(name, start, end);
+    }
+    
+    public boolean isInRange(final String name, final String start, final String end) {
         return name.compareToIgnoreCase(start) >= 0 &&
-                name.compareToIgnoreCase(end) <= 0;
+                name.compareToIgnoreCase(end  + Constants.UNICODE_HIGHEST) <= 0;
     }
 }

@@ -153,6 +153,22 @@ class ScreenProctoringAPIBinding {
         }
     }
 
+    ScreenProctoringSettings getSettingsForExam(final Exam exam) {
+        if (exam.additionalAttributes.containsKey(ScreenProctoringSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME)) {
+            try {
+                final String encrypted = exam.additionalAttributes.get(ScreenProctoringSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME);
+                return jsonMapper.readValue(cryptor.decrypt(encrypted).getOrThrow().toString(), ScreenProctoringSettings.class);
+            } catch (final Exception e) {
+                log.warn("Failed to parse ScreenProctoringSettings from Exam additional attributes: {}", e.getMessage());
+            }
+        }
+        
+        // load it from DB
+        return this.proctoringSettingsDAO
+                .getScreenProctoringSettings(new EntityKey(exam.id, EntityType.EXAM))
+                .getOrThrow();
+    }
+
     /** This is called when the Screen Proctoring is been enabled for an Exam
      * If the needed resources on SPS side has been already created before, this just reactivates
      * all resources on SPS side.
@@ -363,17 +379,20 @@ class ScreenProctoringAPIBinding {
                 final ScreenProctoringGroup existing = sebGroupIdMap.remove(sebGroup.id);
                 if (existing == null) {
                     // create new group locally as well as on SPS
-                    createNewLocalGroup(
-                            exam,
-                            createGroupOnSPS(
-                                    0,
-                                    exam.id,
-                                    existing.name,
-                                    spsData.spsExamUUID,
-                                    false,
-                                    sebGroup.id,
-                                    apiTemplate));
-                    
+                    try {
+                        createNewLocalGroup(
+                                exam,
+                                createGroupOnSPS(
+                                        0,
+                                        exam.id,
+                                        sebGroup.name,
+                                        spsData.spsExamUUID,
+                                        false,
+                                        sebGroup.id,
+                                        apiTemplate));
+                    } catch (final Exception e) {
+                        log.error("Failed to create SPS group while synchronizing for exam: {} group: {} cause: {}", exam, sebGroup, e.getMessage());
+                    }
                 } else {
                     // update existing group if name has changed
                     if (!Objects.equals(existing.name, sebGroup.name)) {
@@ -383,7 +402,7 @@ class ScreenProctoringAPIBinding {
                     final SPSGroup spsGroup = spsGroups.get(existing.uuid);
                     if (spsGroup != null) {
                         if (!Objects.equals(spsGroup.name(), settings.collectingGroupName)) {
-                            updateGroupOnSPS(spsData, settings, apiTemplate, spsGroup);
+                            updateGroupOnSPS(spsData, sebGroup.name, apiTemplate, spsGroup);
                         }
                     } else {
                         log.warn(
@@ -461,23 +480,23 @@ class ScreenProctoringAPIBinding {
         }
         // if name has changed synchronize on SPS
         if (!Objects.equals(spsGroup.name(), settings.collectingGroupName)) {
-            updateGroupOnSPS(spsData, settings, apiTemplate, spsGroup);
+            updateGroupOnSPS(spsData, settings.collectingGroupName, apiTemplate, spsGroup);
         }
     }
 
     private void updateGroupOnSPS(
             final SPSData spsData,
-            final ScreenProctoringSettings settings,
+            final String name,
             final ScreenProctoringServiceOAuthTemplate apiTemplate,
             final SPSGroup spsGroup) {
         
         final String groupRequestURI = UriComponentsBuilder
                 .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
-                .path(GROUP_BY_EXAM_ENDPOINT)
-                .pathSegment(spsData.spsExamUUID)
+                .path(GROUP_ENDPOINT)
+                .pathSegment(spsGroup.uuid())
                 .build().toUriString();
         final Map<String, String> values = Map.of(
-                "name", settings.collectingGroupName,
+                "name", name,
                 "description", spsGroup.description()
         );
         try {
@@ -550,12 +569,15 @@ class ScreenProctoringAPIBinding {
         
         final String groupRequestURI = UriComponentsBuilder
                 .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
-                .path(GROUP_ENDPOINT)
+                .path(GROUP_BY_EXAM_ENDPOINT)
                 .pathSegment(spsExamUUID)
                 .build()
                 .toUriString();
         final ResponseEntity<String> exchangeGroups = apiTemplate.exchange(groupRequestURI, HttpMethod.GET);
-        if (exchangeGroups.getStatusCode() != HttpStatus.OK)  {
+        if (exchangeGroups.getStatusCode() == HttpStatus.NOT_FOUND)  {
+            log.info("No SPS Groups found for exam: {} on SPS", exam);
+            return Collections.emptyList();
+        } else if (exchangeGroups.getStatusCode() != HttpStatus.OK)  {
             throw new RuntimeException("Failed to get groups for exam from SPS. Status: " + exchangeGroups.getStatusCode());
         }
         return jsonMapper.readValue(
@@ -819,17 +841,19 @@ class ScreenProctoringAPIBinding {
 
     void deleteExamOnScreenProctoring(final Exam exam) {
         try {
-
-            if (!BooleanUtils.toBoolean(exam.additionalAttributes.get(SPSData.ATTR_SPS_ACTIVE))) {
-                return;
-            }
-
+            
             if (log.isDebugEnabled()) {
-                log.debug("Deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
+                log.info("Delete or deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
             }
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
             final SPSData spsData = this.getSPSData(exam.id);
+            
+            if (spsData == null) {
+                log.info("There os no SPS data for this exam");
+                return;
+            }
+            
             deletion(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, apiTemplate);
             activation(exam, EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
 
@@ -858,7 +882,6 @@ class ScreenProctoringAPIBinding {
         } catch (final Exception e) {
             log.warn("Failed to apply SPS deletion of exam: {} error: {}", exam, e.getMessage());
         }
-        return;
     }
 
     public Collection<GroupSessionCount> getActiveGroupSessionCounts() {

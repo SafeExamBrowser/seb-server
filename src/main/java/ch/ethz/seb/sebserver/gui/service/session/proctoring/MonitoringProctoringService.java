@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -46,7 +47,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.Proctoring
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -163,19 +163,11 @@ public class MonitoringProctoringService {
     }
 
     public void updateCollectingRoomActions(
-            final Collection<RemoteProctoringRoom> collectingRooms,
-            final Collection<ScreenProctoringGroup> screenProctoringGroups,
+            final Collection<ProctoringGroupMonitoringData> screenProctoringGroups,
             final PageContext pageContext,
             final ProctoringServiceSettings proctoringSettings,
             final ProctoringGUIService proctoringGUIService,
             final ScreenProctoringSettings screenProctoringSettings) {
-
-        collectingRooms
-                .forEach(room -> updateProctoringAction(
-                        pageContext,
-                        proctoringSettings,
-                        proctoringGUIService,
-                        room));
 
         if (BooleanUtils.isTrue(proctoringSettings.enableProctoring) &&
                 proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
@@ -197,31 +189,31 @@ public class MonitoringProctoringService {
             final PageContext pageContext,
             final ScreenProctoringSettings settings,
             final ProctoringGUIService proctoringGUIService,
-            final ScreenProctoringGroup group) {
+            final ProctoringGroupMonitoringData group) {
 
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
         final EntityKey entityKey = pageContext.getEntityKey();
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
 
-        final TreeItem screeProctoringGroupAction = proctoringGUIService.getScreeProctoringGroupAction(group);
+        final TreeItem screeProctoringGroupAction = proctoringGUIService.getScreeProctoringGroupAction(group.uuid());
         if (screeProctoringGroupAction != null) {
             // update action
             screeProctoringGroupAction.setText(i18nSupport.getText(new LocTextKey(
                     ActionDefinition.MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP.title.name,
-                    group.name,
-                    group.size)));
+                    group.name(),
+                    group.size())));
 
         } else {
             // create action
             this.pageService.publishAction(
                     actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP)
                             .withEntityKey(entityKey)
-                            .withExec(_action -> openScreenProctoringTab(settings, group, _action))
-                            .withNameAttributes(group.name, group.size)
+                            .withExec(_action -> openScreenProctoringTab(settings, group.uuid(), _action))
+                            .withNameAttributes(group.name(), group.size())
                             .noEventPropagation()
                             .create(),
-                    _treeItem -> proctoringGUIService.registerScreeProctoringGroupAction(group, _treeItem));
+                    _treeItem -> proctoringGUIService.registerScreeProctoringGroupAction(group.uuid(), _treeItem));
         }
     }
 
@@ -307,7 +299,7 @@ public class MonitoringProctoringService {
 
     public PageAction openScreenProctoringTab(
             final ScreenProctoringSettings settings,
-            final ScreenProctoringGroup group,
+            final String groupUUID,
             final PageAction _action) {
 
         try {
@@ -329,7 +321,7 @@ public class MonitoringProctoringService {
                     HttpHeaders.AUTHORIZATION,
                     Utils.createBasicAuthHeader(
                             settings.spsAPIKey,
-                            this.cryptor.decrypt(settings.getSpsAPISecret()).getOrThrow()));
+                            this.cryptor.decrypt(settings.spsAPISecret).getOr(settings.spsAPISecret)));
             httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
 
             // user credential and redirect info for jwt token request in body - form URL encoded format
@@ -340,7 +332,7 @@ public class MonitoringProctoringService {
                     .getUserPassword();
             final String body = "username=" + currentUser.get().username
                     + "&password=" + userPassword.toString()
-                    + "&redirect=/gallery-view/" + group.uuid;
+                    + "&redirect=/gallery-view/" + groupUUID;
 
             // apply jwt token request
             final HttpEntity<String> httpEntity = new HttpEntity<>(body, httpHeaders);
@@ -358,12 +350,8 @@ public class MonitoringProctoringService {
 
             // Open SPS Gui redirect URL with login token (jwt token) in new browser tab
             final String redirectLocation = redirect.getBody() + "/jwt?token=" + tokenRequest.getBody();
-       //     final String script = "var win = window.open('', 'seb_screen_proctoring'); win.location.href = '"+ redirectLocation + "';";
             final UrlLauncher launcher = RWT.getClient().getService(UrlLauncher.class);
             launcher.openURL(redirectLocation);
-//            RWT.getClient()
-//                    .getService(JavaScriptExecutor.class)
-//                    .execute(script);
         } catch (final Exception e) {
             if (e instanceof HttpClientErrorException) {
                 if (((HttpClientErrorException) e).getRawStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
@@ -625,7 +613,7 @@ public class MonitoringProctoringService {
             treeItem.setForeground(active ? null : new Color(display, Constants.GREY_DISABLED));
 
         } catch (final Exception e) {
-            log.warn("Failed to set Proctor-Room-Activation: ", e.getMessage());
+            log.warn("Failed to set Proctor-Room-Activation: {}", e.getMessage());
         }
     }
 

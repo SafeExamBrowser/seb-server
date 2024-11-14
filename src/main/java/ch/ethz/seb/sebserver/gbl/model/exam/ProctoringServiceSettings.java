@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.URL;
@@ -31,6 +32,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.ValidProctoringS
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ValidProctoringSettings
 public class ProctoringServiceSettings implements Entity {
+
 
     public enum ProctoringServerType {
         JITSI_MEET,

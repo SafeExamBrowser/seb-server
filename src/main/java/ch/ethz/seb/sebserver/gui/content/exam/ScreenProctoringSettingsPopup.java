@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.CollectingStrategy;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
@@ -94,6 +93,9 @@ public class ScreenProctoringSettingsPopup {
             new LocTextKey("sebserver.exam.sps.form.saveSettings.error");
     private final static LocTextKey SAVE_TEXT_KEY =
             new LocTextKey("sebserver.exam.sps.form.saveSettings");
+    
+    private final static LocTextKey ACTIVE_SEB_CLIENT_MSG = 
+            new LocTextKey("sebserver.exam.sps.form.active-seb-clients");
 
     Function<PageAction, PageAction> settingsFunction(final PageService pageService, final boolean modifyGrant) {
         return action -> {
@@ -215,15 +217,23 @@ public class ScreenProctoringSettingsPopup {
                     action.pageContext());
             return true;
         } else {
-            Exception error = saveRequest.getError();
+            final Exception error = saveRequest.getError();
             boolean onlyFieldErrors = false;
             if (error instanceof RestCallError) {
-                onlyFieldErrors = ((RestCallError) error)
+                final List<APIMessage> noneFieldErrors = ((RestCallError) error)
                         .getAPIMessages()
                         .stream()
                         .filter(message -> !APIMessage.ErrorMessage.FIELD_VALIDATION.isOf(message))
-                        .toList()
-                        .isEmpty();
+                        .toList();
+                
+                if (!noneFieldErrors.isEmpty()) {
+                    if (APIMessage.ErrorMessage.CLIENT_CONNECTION_INTEGRITY_VIOLATION.isOf(noneFieldErrors.get(0))) {
+                        pageContext.publishInfo(ACTIVE_SEB_CLIENT_MSG);
+                        return false;
+                    }
+                }
+
+                onlyFieldErrors = noneFieldErrors.isEmpty();
             }
             
             if (onlyFieldErrors) {
@@ -238,7 +248,6 @@ public class ScreenProctoringSettingsPopup {
                 }
             }
         }
-
         return false;
     }
 
@@ -260,6 +269,7 @@ public class ScreenProctoringSettingsPopup {
         public Supplier<FormHandle<?>> compose(final Composite parent) {
             final RestService restService = this.pageService.getRestService();
             final EntityKey entityKey = this.pageContext.getEntityKey();
+            final I18nSupport i18nSupport = this.pageService.getI18nSupport();
 
             final Composite content = this.pageService
                     .getWidgetFactory()
@@ -277,6 +287,7 @@ public class ScreenProctoringSettingsPopup {
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
                     .getOrThrow();
+                    
 
             final Composite formRoot = this.pageService.getWidgetFactory().voidComposite(content);
             final FormHandleAnchor formHandleAnchor = new FormHandleAnchor();
@@ -285,6 +296,7 @@ public class ScreenProctoringSettingsPopup {
                     .clearEntityKeys();
 
             buildFormForCollectingStrategy(
+                    entityKey,
                     settings.collectingStrategy.name(),
                     formHandleAnchor,
                     settings,
@@ -294,13 +306,18 @@ public class ScreenProctoringSettingsPopup {
         }
 
         private void buildFormForCollectingStrategy(
+                final EntityKey entityKey,
                 final String selection,
                 final FormHandleAnchor formHandleAnchor,
                 final ScreenProctoringSettings settings,
                 final boolean init
         ) {
 
+            Boolean enableScreenProctoring = settings.enableScreenProctoring;
+
             if (!init) {
+                enableScreenProctoring = BooleanUtils.toBoolean(formHandleAnchor.formHandle.getForm().getFieldValue(
+                        ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
                 PageService.clearComposite(formHandleAnchor.formContext.getParent());
             }
 
@@ -327,7 +344,7 @@ public class ScreenProctoringSettingsPopup {
                     .addField(FormBuilder.checkbox(
                             ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING,
                             FORM_ENABLE,
-                            String.valueOf(settings.enableScreenProctoring)))
+                            String.valueOf(enableScreenProctoring)))
 
                     .addField(FormBuilder.text(
                                     ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
@@ -376,6 +393,7 @@ public class ScreenProctoringSettingsPopup {
                             selection,
                                     () -> this.pageService.getResourceService().getCollectingStrategySelection())
                             .withSelectionListener(f -> buildFormForCollectingStrategy(
+                                    entityKey,
                                     f.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY),
                                     formHandleAnchor,
                                     settings,
@@ -392,7 +410,7 @@ public class ScreenProctoringSettingsPopup {
                                     ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION,
                                     FORM_SEB_CLIENT_GROUPS,
                                     settings.sebGroupsSelection,
-                                    () -> this.pageService.getResourceService().getSEBGroupSelection(String.valueOf(settings.examId))))
+                                    () -> this.pageService.getResourceService().getSEBGroupSelection(entityKey)))
                     .addFieldIf(
                             () -> CollectingStrategy.APPLY_SEB_GROUPS.name().equals(selection),
                             () -> FormBuilder.text(

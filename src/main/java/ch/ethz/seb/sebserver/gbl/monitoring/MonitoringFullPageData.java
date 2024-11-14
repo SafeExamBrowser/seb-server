@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.monitoring;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -28,20 +29,20 @@ public class MonitoringFullPageData {
     public final Long examId;
     @JsonProperty(ATTR_CONNECTIONS_DATA)
     public final MonitoringSEBConnectionData monitoringConnectionData;
-    @JsonProperty(ATTR_PROCTORING_DATA)
-    public final Collection<RemoteProctoringRoom> proctoringData;
+//    @JsonProperty(ATTR_PROCTORING_DATA)
+//    public final Collection<RemoteProctoringRoom> proctoringData;
     @JsonProperty(ATTR_SCREEN_PROCTORING_DATA)
-    final Collection<ScreenProctoringGroup> screenProctoringData;
+    final Collection<ProctoringGroupMonitoringData> screenProctoringData;
 
     public MonitoringFullPageData(
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(ATTR_CONNECTIONS_DATA) final MonitoringSEBConnectionData monitoringConnectionData,
-            @JsonProperty(ATTR_PROCTORING_DATA) final Collection<RemoteProctoringRoom> proctoringData,
-            @JsonProperty(ATTR_SCREEN_PROCTORING_DATA) final Collection<ScreenProctoringGroup> screenProctoringData) {
+           // @JsonProperty(ATTR_PROCTORING_DATA) final Collection<RemoteProctoringRoom> proctoringData,
+            @JsonProperty(ATTR_SCREEN_PROCTORING_DATA) final Collection<ProctoringGroupMonitoringData> screenProctoringData) {
 
         this.examId = examId;
         this.monitoringConnectionData = monitoringConnectionData;
-        this.proctoringData = proctoringData;
+     //   this.proctoringData = proctoringData;
         this.screenProctoringData = screenProctoringData;
     }
 
@@ -53,11 +54,11 @@ public class MonitoringFullPageData {
         return this.monitoringConnectionData;
     }
 
-    public Collection<RemoteProctoringRoom> getProctoringData() {
-        return this.proctoringData;
-    }
+//    public Collection<RemoteProctoringRoom> getProctoringData() {
+//        return this.proctoringData;
+//    }
 
-    public Collection<ScreenProctoringGroup> getScreenProctoringData() {
+    public Collection<ProctoringGroupMonitoringData> getScreenProctoringData() {
         return this.screenProctoringData;
     }
 
@@ -88,17 +89,13 @@ public class MonitoringFullPageData {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("MonitoringFullPageData [examId=");
-        builder.append(this.examId);
-        builder.append(", monitoringConnectionData=");
-        builder.append(this.monitoringConnectionData);
-        builder.append(", proctoringData=");
-        builder.append(this.proctoringData);
-        builder.append(", screenProctoringData=");
-        builder.append(this.screenProctoringData);
-        builder.append("]");
-        return builder.toString();
+        return "MonitoringFullPageData [examId=" +
+                this.examId +
+                ", monitoringConnectionData=" +
+                this.monitoringConnectionData +
+                ", screenProctoringData=" +
+                this.screenProctoringData +
+                "]";
     }
 
 }

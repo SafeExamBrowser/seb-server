@@ -12,6 +12,7 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import org.springframework.context.event.EventListener;
 
@@ -41,8 +42,9 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * connect to the given SEB screen proctoring service.
      *
      * @param settings ScreenProctoringSettings
+     * @param parentKey the modelId of the parent Exam or ExamTemplate
      * @return Result refer to the settings or to an error when happened */
-    Result<ScreenProctoringSettings> testSettings(ScreenProctoringSettings settings);
+    Result<ScreenProctoringSettings> testSettings(ScreenProctoringSettings settings, EntityKey parentKey);
 
     /** This applies the stored screen proctoring for the given exam.
      * If screen proctoring for the exam is enabled, this initializes or re-activate all
@@ -53,8 +55,12 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * @param entityKey use the screen proctoring settings of the exam with the given exam id
      * @return Result refer to the given Exam or to an error when happened */
     Result<Exam> applyScreenProctoringForExam(EntityKey entityKey);
+    
+    Result<Collection<ProctoringGroupMonitoringData>> getCollectingGroupsMonitoringData(final Long examId);
 
-    /** Get list of all screen proctoring collecting groups for a particular exam.
+    /** Get map of all screen proctoring collecting groups for a particular exam.
+     * The ScreenProctoringGroup is mapped to its uuids.
+     * The groups are get from cache if available and load to cache if not
      *
      * @param examId The exam identifier (PK)
      * @return Result refer to the list of ScreenProctoringGroup or to an error when happened */
@@ -104,8 +110,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUser(final String userUUID);
-
-
+    
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUserForExam(final Long examId);
 

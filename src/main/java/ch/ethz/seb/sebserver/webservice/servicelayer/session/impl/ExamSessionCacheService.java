@@ -10,7 +10,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.slf4j.Logger;
@@ -107,19 +112,6 @@ public class ExamSessionCacheService {
         return exam;
     }
 
-    @CacheEvict(
-            cacheNames = CACHE_NAME_RUNNING_EXAM,
-            key = "#examId")
-    public Long evict(final Long examId) {
-
-        if (log.isTraceEnabled()) {
-            log.trace("Conditional eviction of running Exam from cache: {}", examId);
-        }
-
-        this.clientGroupDAO.evictCacheForExam(examId);
-        return examId;
-    }
-
     public boolean isRunning(final Exam exam) {
         if (exam == null || !exam.active) {
             return false;
@@ -160,29 +152,36 @@ public class ExamSessionCacheService {
             log.trace("Eviction of ClientConnectionData from cache: {}", connectionToken);
         }
     }
+    
+// TODO currently caching is not enabled because difficulty with distributed setup and size update task on master
+//    @Cacheable(
+//            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+//            key = "#examId",
+//            unless = "#result == null")
+    public Result<Collection<ProctoringGroupMonitoringData>> getScreenProctoringGroups(final Long examId) {
 
-    @Cacheable(
-            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
-            key = "#examId",
-            unless = "#result == null")
-    public Result<Collection<ScreenProctoringGroup>> getScreenProctoringGroups(final Long examId) {
-        final Result<Collection<ScreenProctoringGroup>> result = screenProctoringGroupDAO
+        // TODO get it directly from new DAO method
+        final Result<Collection<ProctoringGroupMonitoringData>> result = screenProctoringGroupDAO
                 .getCollectingGroups(examId)
+                .map(list -> (Collection<ProctoringGroupMonitoringData>) list
+                        .stream()
+                        .map(g -> new ProctoringGroupMonitoringData(g.uuid, g.name, g.size))
+                        .toList())
                 .onError(error -> log.error(
                         "Failed to screen proctoring groups for exam: {}, cause: {}",
                         examId,
                         error.getMessage()));
-        
+
         if (result.hasError()) {
             return null;
         }
-        
+
         return result;
     }
 
-    @CacheEvict(
-            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
-            key = "#examId")
+//    @CacheEvict(
+//            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+//            key = "#examId")
     public void evictScreenProctoringGroups(final Long examId) {
         if (log.isTraceEnabled()) {
             log.trace("Eviction of ScreenProctoringGroups from cache for exam: {}", examId);

@@ -87,10 +87,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                             throw new RuntimeException(e);
                         }
                     })
-                    .onErrorDo( error -> {
-                        log.warn("Failed to get Live Proctoring Settings with single additional attribute store method. Try legacy method to get Live Proctoring Settings...");
-                        return getLegacyProctoringServiceSettings(entityKey, entityId);
-                    } )
+                    .onErrorDo( error -> getLegacyProctoringServiceSettings(entityKey, entityId))
                     .getOrThrow();
         });
     }
@@ -141,10 +138,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                             throw new RuntimeException(e);
                         }
                     })
-                    .onErrorDo( error -> {
-                        log.warn("Failed to get SPS Settings with single additional attribute store method. Try legacy method to get SPS Settings...");
-                        return getLegacyScreenProctoringSettings(entityKey, entityId);
-                    } )
+                    .onErrorDo( error -> getLegacyScreenProctoringSettings(entityKey, entityId))
                     .getOrThrow();
         });
     }

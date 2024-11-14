@@ -52,8 +52,8 @@ public class ClientGroupTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.clientgroup.form.type");
     private static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.exam.clientgroup.form.name");
-    private static final LocTextKey FORM_EXAM_TEXT_KEY =
-            new LocTextKey("sebserver.exam.clientgroup.form.exam");
+    private static final LocTextKey FORM_EXAM_TEMPLATE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.clientgroup.form.exam-template");
     private static final LocTextKey FORM_DESC_TEXT_KEY =
             new LocTextKey("sebserver.exam.clientgroup.form.description");
     private static final LocTextKey FORM_IP_START_KEY =
@@ -164,9 +164,23 @@ public class ClientGroupTemplateForm implements TemplateComposer {
             final PageContext pageContext,
             final boolean init) {
 
+
+        final String name = init
+                ? clientGroupTemplate.getName()
+                : formHandleAnchor.formHandle.getForm().getFieldValue(Domain.CLIENT_GROUP.ATTR_NAME);
+        final String color = init
+                ? clientGroupTemplate.getColor()
+                : formHandleAnchor.formHandle.getForm().getFieldValue(Domain.CLIENT_GROUP.ATTR_COLOR);
+
         if (!init) {
             PageService.clearComposite(formHandleAnchor.formContext.getParent());
         }
+
+        final ClientGroupData.ClientGroupType type = selection != null ? ClientGroupData.ClientGroupType.valueOf(selection) : null;
+        final String typeDescription = (type != null)
+                ? Utils.formatLineBreaks(
+                this.i18nSupport.getText(CLIENT_GROUP_TYPE_DESC_PREFIX + type.name()))
+                : Constants.EMPTY_NOTE;
 
         final RestService restService = this.resourceService.getRestService();
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
@@ -175,15 +189,7 @@ public class ClientGroupTemplateForm implements TemplateComposer {
         final boolean isNew = entityKey == null;
         final boolean isReadonly = pageContext.isReadonly();
 
-        final ClientGroupData.ClientGroupType type = selection != null 
-                ? ClientGroupData.ClientGroupType.valueOf(selection) 
-                : null;
-        final String typeDescription = (type != null)
-                ? Utils.formatLineBreaks(
-                this.i18nSupport.getText(CLIENT_GROUP_TYPE_DESC_PREFIX + clientGroupTemplate.type.name()))
-                : Constants.EMPTY_NOTE;
-
-        final FormHandle<ClientGroupTemplate> formHandle = this.pageService.formBuilder(formHandleAnchor.formContext)
+        formHandleAnchor.formHandle = this.pageService.formBuilder(formHandleAnchor.formContext)
                 .readonly(isReadonly)
                 .putStaticValueIf(() -> !isNew,
                         Domain.CLIENT_GROUP.ATTR_ID,
@@ -196,26 +202,27 @@ public class ClientGroupTemplateForm implements TemplateComposer {
                         parentEntityKey.getModelId())
 
                 .addField(FormBuilder.text(
-                        Domain.EXAM_TEMPLATE.ATTR_NAME,
-                        FORM_EXAM_TEXT_KEY,
+                        "templateName",
+                                FORM_EXAM_TEMPLATE_TEXT_KEY,
                         examTemplate.name)
                         .readonly(true))
+                
                 .addField(FormBuilder.text(
                         Domain.CLIENT_GROUP.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
-                        clientGroupTemplate.name)
+                        name)
                         .mandatory(!isReadonly))
 
                 .addField(FormBuilder.colorSelection(
                         Domain.CLIENT_GROUP.ATTR_COLOR,
                         FORM_COLOR_TEXT_KEY,
-                        clientGroupTemplate.color)
+                        color)
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.singleSelection(
                         Domain.CLIENT_GROUP.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
-                        (clientGroupTemplate.type != null) ? clientGroupTemplate.type.name() : null,
+                                type != null ? type.name() : null,
                         this.resourceService::clientGroupTypeResources)
                         .withSelectionListener(form -> buildFormAccordingToSelection(
                                 form.getFieldValue(Domain.CLIENT_GROUP.ATTR_TYPE),
@@ -272,6 +279,8 @@ public class ClientGroupTemplateForm implements TemplateComposer {
                 .buildFor((isNew)
                         ? restService.getRestCall(NewClientGroupTemplate.class)
                         : restService.getRestCall(SaveClientGroupTemplate.class));
+
+        formHandleAnchor.formContext.getParent().layout();
     }
 
     static final class FormHandleAnchor {

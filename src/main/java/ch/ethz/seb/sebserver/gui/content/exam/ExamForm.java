@@ -203,6 +203,8 @@ public class ExamForm implements TemplateComposer {
         final boolean modifyGrant = entityGrantCheck.m();
         final boolean writeGrant = entityGrantCheck.w();
         final boolean editable = modifyGrant && Exam.ACTIVE_STATES.contains(exam.getStatus());
+        
+        
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         final boolean sebRestrictionAvailable = readonly && hasSEBRestrictionAPI(exam);

@@ -8,15 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -258,22 +256,80 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             return Result.of(exam);
         }
 
-        return proctoringAdminService
-                .getScreenProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE))
-                .map(settings -> {
-                    if (BooleanUtils.isTrue(settings.enableScreenProctoring)) {
-                        proctoringAdminService
-                                .saveScreenProctoringSettings(exam.getEntityKey(), settings)
-                                .getOrThrow();
-                    }
-                    return settings;
-                })
+        return Result.tryCatch(() -> {
+            final ExamTemplate examTemplate = this.examTemplateDAO
+                    .byPK(exam.examTemplateId)
+                    .onError(error -> log.warn("No exam template found for id: {} error: {}",
+                            exam.examTemplateId,
+                            error.getMessage()))
+                    .getOrThrow();
 
-                .onError(error -> log.warn(
-                        "Failed to apply screen proctoring settings from Exam Template {} to Exam {}",
-                        exam.examTemplateId,
-                        exam))
-                .map(settings ->  exam);
+
+            final Result<ScreenProctoringSettings> screenProctoringSettings = proctoringAdminService
+                    .getScreenProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE));
+
+            if (!screenProctoringSettings.hasError()) {
+                return screenProctoringSettings
+                        .map(settings -> convertSPSTemplateSettings(exam, examTemplate, settings))
+                        .map(settings -> proctoringAdminService
+                                .saveScreenProctoringSettings(exam.getEntityKey(), settings)
+                                .getOrThrow())
+                        .map(settings -> exam)
+                        .onError(error -> log.warn(
+                                "Failed to apply screen proctoring settings from Exam Template {} to Exam {} cause: {}",
+                                exam.examTemplateId,
+                                exam,
+                                error.getMessage()))
+                        .getOr(exam);
+            } else {
+                log.debug("No Screen Proctoring settings found for Exam Template: {}", examTemplate);
+                return exam;
+            }
+        });
+    }
+
+    private ScreenProctoringSettings convertSPSTemplateSettings(
+            final Exam exam,
+            final ExamTemplate examTemplate,
+            final ScreenProctoringSettings screenProctoringSettings) {
+        if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
+            // in this case we need to map the selected template client groups to the just created exam client groups
+            final Set<Long> selectedTemplateIds = Arrays.stream(StringUtils.split(
+                    screenProctoringSettings.sebGroupsSelection, 
+                    Constants.LIST_SEPARATOR_CHAR))
+                    .map(Long::valueOf)
+                    .collect(Collectors.toSet());
+
+            final List<String> selectedNames = examTemplate.clientGroupTemplates
+                    .stream()
+                    .filter(gt -> selectedTemplateIds.contains(gt.id))
+                    .map(gt -> gt.name)
+                    .toList();
+
+            final List<String> selectedInstances = clientGroupDAO
+                    .allForExam(exam.id)
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .filter(g -> selectedNames.contains(g.name))
+                    .map(g -> String.valueOf(g.id))
+                    .toList();
+            
+            return new ScreenProctoringSettings(
+                    screenProctoringSettings.examId,
+                    screenProctoringSettings.enableScreenProctoring,
+                    screenProctoringSettings.spsServiceURL,
+                    screenProctoringSettings.spsAPIKey,
+                    screenProctoringSettings.spsAPISecret,
+                    screenProctoringSettings.spsAccountId,
+                    screenProctoringSettings.spsAccountPassword,
+                    screenProctoringSettings.collectingStrategy,
+                    screenProctoringSettings.collectingGroupName,
+                    screenProctoringSettings.collectingGroupSize,
+                    StringUtils.join(selectedInstances, Constants.LIST_SEPARATOR),
+                    screenProctoringSettings.bundled
+            );
+        }
+        return screenProctoringSettings;
     }
 
     private ConfigurationNode createOrReuseConfig(final Exam exam, final ExamTemplate examTemplate) {
