@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -80,8 +82,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final boolean checkExamSupporter;
     private final boolean distributedSetup;
     private final long distributedConnectionUpdate;
-
-    private long lastConnectionTokenCacheUpdate = 0;
 
     protected ExamSessionServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
@@ -600,15 +600,24 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     // If we are in a distributed setup the active connection token cache get flushed
     // in specified time interval. This allows caching over multiple monitoring requests but
     // ensure an update every now and then for new incoming connections
+    private long lastConnectionTokenCacheUpdate = 0;
+    private final Set<Long> examIds = ConcurrentHashMap.newKeySet();
     private void updateClientConnections(final Long examId) {
         try {
+            if (!this.distributedSetup) {
+                return;
+            }
+            
             final long currentTimeMillis = System.currentTimeMillis();
-            if (this.distributedSetup &&
-                    currentTimeMillis - this.lastConnectionTokenCacheUpdate > this.distributedConnectionUpdate) {
+            if (currentTimeMillis - this.lastConnectionTokenCacheUpdate > this.distributedConnectionUpdate) {
+                examIds.clear();
+                this.lastConnectionTokenCacheUpdate = currentTimeMillis;
+            }
+            
+            if (!examIds.contains(examId)) {
 
                 // go through all client connection and update the ones that not up to date
                 this.clientConnectionDAO.evictConnectionTokenCache(examId);
-
                 final Set<Long> timestamps = this.clientConnectionDAO
                         .getConnectionTokens(examId)
                         .getOrThrow()
@@ -622,7 +631,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         .getOrElse(Collections::emptySet)
                         .forEach(this.examSessionCacheService::evictClientConnection);
 
-                this.lastConnectionTokenCacheUpdate = currentTimeMillis;
+                examIds.add(examId);
             }
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update client connections: ", e);

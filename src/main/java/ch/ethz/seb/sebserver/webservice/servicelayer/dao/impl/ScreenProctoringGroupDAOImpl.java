@@ -243,7 +243,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
             final Integer totalCount) {
 
         try {
-
             UpdateDSL
                     .updateWithMapper(
                             this.screenProctoringGroopRecordMapper::update,
