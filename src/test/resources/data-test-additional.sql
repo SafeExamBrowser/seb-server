@@ -336,7 +336,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1574, 'startURLAllowDeepLink', 'CHECKBOX', null, null, null, null, 'false'),
     (1575, 'tabFocusesLinks', 'CHECKBOX', null, null, null, null, 'true'),
     (1576, 'terminateProcesses', 'CHECKBOX', null, null, null, null, 'false'),
-    (1577, 'prohibitedProcesses.ignoreInAAC', 'CHECKBOX', 73, null, null, null, 'true'),
+    (1577, 'prohibitedProcesses.ignoreInAAC', 'CHECKBOX', 93, null, null, null, 'true'),
     
     (1578, 'sebAllowedVersions', 'TEXT_FIELD_LIST', null, null, null, null, null)
     

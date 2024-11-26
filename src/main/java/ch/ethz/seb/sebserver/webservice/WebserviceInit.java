@@ -174,11 +174,13 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
         final ScreenProctoringServiceBundle spsBundle = this.webserviceInfo.getScreenProctoringServiceBundle();
         SEBServerInit.INIT_LOGGER.info("----> ");
-        SEBServerInit.INIT_LOGGER.info("----> Screen Proctoring Bundle enabled: {}", spsBundle.bundled);
-        if (spsBundle.bundled) {
-            SEBServerInit.INIT_LOGGER.info("------> {}", spsBundle);
+        if (spsBundle != null) {
+            SEBServerInit.INIT_LOGGER.info("----> Screen Proctoring Bundle enabled: {}", spsBundle.bundled);
+            if (spsBundle.bundled) {
+                SEBServerInit.INIT_LOGGER.info("------> {}", spsBundle);
+            }
         } else {
-            throw new IllegalStateException("Only bundled SEB Server Screen Proctoring is supported yet");
+            SEBServerInit.INIT_LOGGER.info("----> NO Screen Proctoring!");
         }
 
         SEBServerInit.INIT_LOGGER.info("----> ");

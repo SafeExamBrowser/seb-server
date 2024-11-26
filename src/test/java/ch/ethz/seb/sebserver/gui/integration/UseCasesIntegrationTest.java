@@ -1335,7 +1335,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(GetExamConfigNodePage.class)
                 .call();
 
-        // there should be not configuration (for this institution of examAdmin2) now
+        // there should be no configuration (for this institution of examAdmin2) now
         assertNotNull(pageResponse);
         assertFalse(pageResponse.hasError());
         final Page<ConfigurationNode> page = pageResponse.get();
