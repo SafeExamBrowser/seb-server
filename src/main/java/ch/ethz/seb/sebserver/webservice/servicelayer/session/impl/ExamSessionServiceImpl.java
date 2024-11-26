@@ -552,18 +552,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     
     @Override
     public void updateExamCache(final Long examId) {
-        
-        // TODO is this really needed?
-//        try {
-//            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM);
-//            final ValueWrapper valueWrapper = cache.get(examId);
-//            if (valueWrapper == null || valueWrapper.get() == null) {
-//                return Result.ofEmpty();
-//            }
-//        } catch (final Exception e) {
-//            log.error("Failed to check exam cache: {}", e.getMessage());
-//        }
-
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
         if (exam != null) {
             final long now = Utils.getMillisecondsNow();

@@ -78,7 +78,7 @@ public class AllowedSEBVersion {
 
         if (split.length > 3) {
             try {
-                num = Integer.valueOf(split[3]);
+                num = Integer.parseInt(split[3]);
             } catch (final Exception e) {
                 num = 0;
                 if (split[3].equals(ALLIANCE_EDITION_IDENTIFIER)) {
@@ -174,19 +174,12 @@ public class AllowedSEBVersion {
 
         @Override
         public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("ClientVersion [osTypeString=");
-            builder.append(this.osTypeString);
-            builder.append(", major=");
-            builder.append(this.major);
-            builder.append(", minor=");
-            builder.append(this.minor);
-            builder.append(", patch=");
-            builder.append(this.patch);
-            builder.append(", isAllianceVersion=");
-            builder.append(this.isAllianceEdition);
-            builder.append("]");
-            return builder.toString();
+            return "ClientVersion [osTypeString=" +
+                this.osTypeString + ", major=" +
+                this.major + ", minor=" +
+                this.minor + ", patch=" +
+                this.patch + ", isAllianceVersion=" +
+                this.isAllianceEdition + "]";
         }
     }
 

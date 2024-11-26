@@ -156,7 +156,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
                     | (!isGrantChecked() ? ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED : 0)
                     | (isGrantDenied() ? ClientMonitoringDataView.FLAG_GRANT_DENIED : 0)
                     | (isSEBVersionDenied() ? ClientMonitoringDataView.FLAG_INVALID_SEB_VERSION : 0);
-
+            
             return (flag > 0) ? flag : null;
         }
 

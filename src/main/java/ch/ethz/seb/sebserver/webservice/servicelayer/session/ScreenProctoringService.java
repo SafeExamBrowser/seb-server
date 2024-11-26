@@ -56,7 +56,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * @return Result refer to the given Exam or to an error when happened */
     Result<Exam> applyScreenProctoringForExam(EntityKey entityKey);
     
-    Result<Collection<ProctoringGroupMonitoringData>> getCollectingGroupsMonitoringData(final Long examId);
+    Result<Collection<ProctoringGroupMonitoringData>> getCollectingGroupsMonitoringData(Long examId);
 
     /** Get map of all screen proctoring collecting groups for a particular exam.
      * The ScreenProctoringGroup is mapped to its uuids.
@@ -85,10 +85,10 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      *
      * @param event The ExamDeletionEvent reference all PKs of Exams that are going to be deleted. */
     @EventListener(ExamDeletionEvent.class)
-    void notifyExamDeletion(final ExamDeletionEvent event);
+    void notifyExamDeletion(ExamDeletionEvent event);
 
     @EventListener(LmsSetupChangeEvent.class)
-    void notifyLmsSetupChange(final LmsSetupChangeEvent event);
+    void notifyLmsSetupChange(LmsSetupChangeEvent event);
 
     /** This is used to update the exam equivalent on the screen proctoring service side
      * if screen proctoring is enabled for the specified exam.

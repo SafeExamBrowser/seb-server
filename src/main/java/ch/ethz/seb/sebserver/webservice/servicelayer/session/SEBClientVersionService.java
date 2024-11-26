@@ -26,7 +26,7 @@ public interface SEBClientVersionService {
             String clientVersion,
             List<AllowedSEBVersion> allowedSEBVersions);
 
-    void checkVersionAndUpdateClientConnection(
+    boolean checkVersionAndUpdateClientConnection(
             ClientConnectionRecord record,
             List<AllowedSEBVersion> allowedSEBVersions);
 

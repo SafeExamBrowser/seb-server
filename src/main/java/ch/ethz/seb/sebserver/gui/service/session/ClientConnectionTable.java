@@ -133,7 +133,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         this.exam = exam;
         this.checkSecurityGrant = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
-        this.checkSEBVersion = exam.additionalAttributes.containsKey(Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS);
+        this.checkSEBVersion = exam.additionalAttributes.containsKey(Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS) ||
+                exam.additionalAttributes.containsKey("spsExamActive");
+
         this.distributedSetup = distributedSetup;
 
         final WidgetFactory widgetFactory = pageService.getWidgetFactory();

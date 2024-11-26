@@ -50,6 +50,8 @@ interface SPS_API {
     String GROUP_ENDPOINT = "/admin-api/v1/group";
     String GROUP_BY_EXAM_ENDPOINT =  GROUP_ENDPOINT + "/by-exam";
     String SESSION_ENDPOINT = "/admin-api/v1/session";
+    String SESSION_ENCRYPTION_KEY_ENDPOINT = SESSION_ENDPOINT + "/encrypt-key";
+    String SESSION_ENCRYPTION_KEY_REQUEST_HEADER = "seb_session_encrypt_key";
     String ACTIVE_PATH_SEGMENT = "/active";
     String INACTIVE_PATH_SEGMENT = "/inactive";
 
@@ -75,9 +77,10 @@ interface SPS_API {
         String ATTR_DESCRIPTION = "description";
         String ATTR_URL = "url";
         String ATTR_TYPE = "type";
+        String ATTR_SUPPORTER = "supporter";
         String ATTR_START_TIME = "startTime";
         String ATTR_END_TIME = "endTime";
-        String ATTR_USER_IDS = "userUUIDs";
+        String ATTR_DELETION_TIME = "deletionTime";
     }
 
     /**
@@ -113,12 +116,14 @@ interface SPS_API {
         final String url;
         @JsonProperty(EXAM.ATTR_TYPE)
         final String type;
+        @JsonProperty(EXAM.ATTR_SUPPORTER)
+        final Collection<String> supporter;
         @JsonProperty(EXAM.ATTR_START_TIME)
         final Long startTime;
         @JsonProperty(EXAM.ATTR_END_TIME)
         final Long endTime;
-        @JsonProperty(EXAM.ATTR_USER_IDS)
-        final Collection<String> userIds;
+        @JsonProperty(EXAM.ATTR_DELETION_TIME)
+        final Long deletionTime;
 
         public ExamUpdate(
                 final String name,
@@ -127,7 +132,8 @@ interface SPS_API {
                 final String type,
                 final Long startTime,
                 final Long endTime,
-                final Collection<String> userIds) {
+                final Long deletionTime,
+                final Collection<String> supporter) {
 
             this.name = name;
             this.description = description;
@@ -135,7 +141,8 @@ interface SPS_API {
             this.type = type;
             this.startTime = startTime;
             this.endTime = endTime;
-            this.userIds = userIds;
+            this.deletionTime = deletionTime;
+            this.supporter = supporter;
         }
     }
 
@@ -211,7 +218,8 @@ interface SPS_API {
         static final List<String> SCOPES = Collections.unmodifiableList(
                 Arrays.asList("read", "write"));
 
-        final SPSAPIAccessData spsAPIAccessData;
+        //final SPSAPIAccessData spsAPIAccessData;
+        final String spsServiceURL;
         final CircuitBreaker<ResponseEntity<String>> circuitBreaker;
         final OAuth2RestTemplate restTemplate;
 
@@ -219,7 +227,8 @@ interface SPS_API {
                 final ScreenProctoringAPIBinding apiBinding,
                 final SPSAPIAccessData spsAPIAccessData) {
 
-            this.spsAPIAccessData = spsAPIAccessData;
+            this.spsServiceURL = spsAPIAccessData.getSpsServiceURL();
+            //this.spsAPIAccessData = spsAPIAccessData;
             this.circuitBreaker = apiBinding.asyncService.createCircuitBreaker(
                     2,
                     10 * Constants.SECOND_IN_MILLIS,
@@ -270,7 +279,7 @@ interface SPS_API {
             try {
 
                 final String url = UriComponentsBuilder
-                        .fromUriString(this.spsAPIAccessData.getSpsServiceURL())
+                        .fromUriString(this.spsServiceURL)
                         .path(TEST_ENDPOINT)
                         .queryParam("pageSize", "1")
                         .queryParam("pageNumber", "1")
@@ -286,12 +295,8 @@ interface SPS_API {
             }
         }
 
-        boolean isValid(final Long examId) {
-
-            if (!Objects.equals(this.spsAPIAccessData.getExamId(), examId)) {
-                return false;
-            }
-
+        boolean isValid() {
+            
             try {
 
                 final OAuth2AccessToken accessToken = this.restTemplate.getAccessToken();

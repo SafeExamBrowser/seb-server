@@ -14,16 +14,16 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import ch.ethz.seb.sebserver.gbl.monitoring.ClientGroupMatcherService;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ClientConnectionDAOImpl;
@@ -33,17 +33,13 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
-import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.async.AsyncService;
-import ch.ethz.seb.sebserver.gbl.model.exam.CollectingStrategy;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
@@ -75,24 +71,23 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private final ExamSessionCacheService examSessionCacheService;
     private final WebserviceInfo webserviceInfo;
     private final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle;
+    private final SEBClientVersionService sebClientVersionService;
+    private final List<AllowedSEBVersion> sebMinVersion;
 
     public ScreenProctoringServiceImpl(
             final ClientGroupMatcherService clientGroupMatcherService,
             final ClientGroupDAO clientGroupDAO1,
             final Cryptor cryptor,
             final ProctoringSettingsDAO proctoringSettingsDAO,
-            final AsyncService asyncService,
-            final JSONMapper jsonMapper,
-            final UserDAO userDAO,
             final ExamDAO examDAO,
-            final ClientGroupDAO clientGroupDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final AdditionalAttributesDAO additionalAttributesDAO,
             final ScreenProctoringGroupDAO screenProctoringGroupDAO,
             final SEBClientInstructionService sebInstructionService,
             final ExamSessionCacheService examSessionCacheService,
             final WebserviceInfo webserviceInfo,
-            final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
+            final SEBClientVersionService sebClientVersionService,
+            final ScreenProctoringAPIBinding screenProctoringAPIBinding,
+            final @Value("${sebserver.feature.exam.seb.screenProctoring.minsebversions:}") String sebMinVersion) {
         
         this.clientGroupMatcherService = clientGroupMatcherService;
         this.clientGroupDAO = clientGroupDAO1;
@@ -105,18 +100,23 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.webserviceInfo = webserviceInfo;
         this.screenProctoringServiceBundle = webserviceInfo.getScreenProctoringServiceBundle();
-
-        this.screenProctoringAPIBinding = new ScreenProctoringAPIBinding(
-                userDAO,
-                clientGroupDAO,
-                cryptor,
-                asyncService,
-                jsonMapper,
-                proctoringSettingsDAO,
-                additionalAttributesDAO,
-                screenProctoringGroupDAO,
-                clientHttpRequestFactoryService,
-                webserviceInfo);
+        this.sebClientVersionService = sebClientVersionService;
+        this.screenProctoringAPIBinding = screenProctoringAPIBinding;
+        
+        if (StringUtils.isNotBlank(sebMinVersion)) {
+            this.sebMinVersion = new ArrayList<>();
+            final String[] split = StringUtils.split(sebMinVersion, Constants.LIST_SEPARATOR_CHAR);
+            for (final String version : split) {
+                final AllowedSEBVersion allowedSEBVersion = new AllowedSEBVersion(version);
+                if (allowedSEBVersion.isValidFormat) {
+                    this.sebMinVersion.add(allowedSEBVersion);
+                } else {
+                    log.warn("No valid SEB version for min SEB Version check on SPS: {}", version);
+                }
+            }
+        } else {
+            this.sebMinVersion = Collections.emptyList();
+        }
     }
 
     @Override
@@ -325,7 +325,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     .allIdsOfRunningWithScreenProctoringEnabled()
                     .flatMap(this.clientConnectionDAO::getAllForScreenProctoringUpdate)
                     .getOrThrow()
-                    .forEach(this::applyScreenProctoringSession);
+                    .forEach(this::updateClientConnection);
 
         } catch (final Exception e) {
             log.error("Failed to update active SEB connections for screen proctoring");
@@ -335,8 +335,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     @Override
     public void updateActiveGroups() {
         try {
-
-            // only 
+            
             if (!webserviceInfo.isMaster()) {
                 return;
             }
@@ -475,9 +474,57 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
     }
 
-    private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
-        
+    private void updateClientConnection(final ClientConnectionRecord ccRecord) {
         try {
+            final ClientConnection.ConnectionStatus connectionStatus = ClientConnection.ConnectionStatus.valueOf(ccRecord.getStatus());
+            if (connectionStatus == ClientConnection.ConnectionStatus.ACTIVE || connectionStatus == ClientConnection.ConnectionStatus.READY) {
+                applyScreenProctoringSession(ccRecord);
+            } else if (connectionStatus == ClientConnection.ConnectionStatus. CLOSED || connectionStatus == ClientConnection.ConnectionStatus.DISABLED) {
+                closeScreenProctoringSession(ccRecord);
+            } else {
+                log.warn("Illegal state for SEB client connection Update. Unmark client connection for update: {}", ccRecord);
+                this.clientConnectionDAO.markScreenProctoringApplied(
+                        ccRecord.getId(), 
+                        ccRecord.getConnectionToken());
+            }
+        } catch (final Exception e) {
+            log.error("Failed to update SEB client connection for SPS: {}", e.getMessage());
+        }
+    }
+
+    private void closeScreenProctoringSession(final ClientConnectionRecord ccRecord) {
+        try {
+            
+            this.screenProctoringAPIBinding.closeSEBSession(ccRecord);
+            
+            this.clientConnectionDAO.markScreenProctoringApplied(
+                    ccRecord.getId(),
+                    ccRecord.getConnectionToken());
+            
+        } catch (final Exception e) {
+            log.error("Failed to close SEB client connection for SPS: {}", ccRecord, e);
+        }
+    }
+
+    
+
+    private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
+        try {
+            
+            // check if SEB client version has already Screen Proctoring
+            if (!this.sebMinVersion.isEmpty() && !this.sebClientVersionService.checkVersionAndUpdateClientConnection(
+                    ccRecord,
+                    this.sebMinVersion)) {
+                
+                log.warn("Detected invalid SEB Version for screen proctoring: {}", ccRecord);
+
+                this.clientConnectionDAO.markScreenProctoringApplied(
+                        ccRecord.getId(),
+                        ccRecord.getConnectionToken());
+                
+                return;
+            }
+            
             final Long examId = ccRecord.getExamId();
             final Exam runningExam = this.examSessionCacheService.getRunningExam(examId);
             final Long existingGroupId = ccRecord.getScreenProctoringGroupId();
@@ -490,11 +537,16 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         runningExam);
 
                 // create screen proctoring session for SEB connection on SPS service
-                final String spsSessionToken = this.screenProctoringAPIBinding
+                final Tuple<String> sessionData = this.screenProctoringAPIBinding
                         .createSEBSession(examId, group, ccRecord);
 
                 // create instruction for SEB and add it to instruction queue for SEB connection
-                registerJoinInstruction(ccRecord, spsSessionToken, group, runningExam);
+                registerJoinInstruction(
+                        ccRecord,
+                        sessionData._1,
+                        sessionData._2,
+                        group, 
+                        runningExam);
             } else {
                 // just update session on SPS site
                 this.screenProctoringGroupDAO
@@ -503,15 +555,14 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                                 group.id,
                                 ccRecord))
                         .onError(error -> log.error("Failed to update SEB Session on SPS: {}", ccRecord, error));
-
             }
 
-            this.clientConnectionDAO
-                    .markScreenProctoringApplied(ccRecord.getId(), ccRecord.getConnectionToken())
-                    .getOrThrow();
+            this.clientConnectionDAO.markScreenProctoringApplied(
+                    ccRecord.getId(),
+                    ccRecord.getConnectionToken());
 
         } catch (final Exception e) {
-            log.error("Failed to apply screen proctoring session to SEB with connection: {} cause: {}", ccRecord, e.getMessage());
+            log.error("Failed to apply screen proctoring session to SEB with connection: {} cause:", ccRecord, e);
         }
     }
 
@@ -640,6 +691,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private void registerJoinInstruction(
             final ClientConnectionRecord ccRecord,
             final String spsSessionToken,
+            final String encryptionKey,
             final ScreenProctoringGroup group,
             final Exam exam) {
 
@@ -661,6 +713,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         attributes.put(CLIENT_SECRET, spsData.spsSEBAccessPWD);
         attributes.put(GROUP_ID, group.uuid);
         attributes.put(SESSION_ID, spsSessionToken);
+        attributes.put(SESSION_ENCRYPTION_KEY, encryptionKey);
 
         this.sebInstructionService
                 .registerInstruction(

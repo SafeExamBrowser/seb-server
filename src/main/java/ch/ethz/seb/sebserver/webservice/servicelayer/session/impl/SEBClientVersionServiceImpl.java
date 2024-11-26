@@ -86,14 +86,16 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
     }
 
     @Override
-    public void checkVersionAndUpdateClientConnection(
+    public boolean checkVersionAndUpdateClientConnection(
             final ClientConnectionRecord record,
             final List<AllowedSEBVersion> allowedSEBVersions) {
 
         if (isAllowedVersion(record.getClientOsName(), record.getClientVersion(), allowedSEBVersions)) {
             saveSecurityCheckState(record, true);
+            return true;
         } else {
             saveSecurityCheckState(record, false);
+            return false;
         }
     }
 
@@ -108,7 +110,7 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
     protected ClientVersion extractClientVersion(final String clientOSName, final String clientVersion) {
         try {
             // first check if this is a known restricted version
-            if (this.knownRestrictedVersions.stream().filter(clientVersion::contains).findFirst().isPresent()) {
+            if (this.knownRestrictedVersions.stream().anyMatch(clientVersion::contains)) {
                 log.warn("Found default restricted SEB client version: {}", clientVersion);
                 return null;
             }

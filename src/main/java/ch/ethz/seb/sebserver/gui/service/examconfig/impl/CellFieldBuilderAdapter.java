@@ -316,7 +316,7 @@ interface CellFieldBuilderAdapter {
 
                 int h = (value.size() + ((groups.size() > 0) ? groups.size() + 1 : 0)) * HEIGHT_PER_FIELD;
                 if (expandItemKey.equals("ScreenProctoring")) {
-                    h = h + 50;
+                    h = h + 80;
                 }
 
                 expandItem.setHeight(h);

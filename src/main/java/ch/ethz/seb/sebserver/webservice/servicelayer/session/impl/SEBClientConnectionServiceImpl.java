@@ -467,12 +467,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
-            // if proctoring is enabled for exam, mark for room update
-            final Boolean proctoringEnabled = this.examAdminService
-                    .isProctoringEnabled(clientConnection.examId)
-                    .getOr(false);
-            if (proctoringEnabled) {
-                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
+            // if screen proctoring is enabled, close the client session also on SPS site
+            // usually it should have been closed by SEB but if not, SEB Server closes it
+            if (BooleanUtils.isTrue(this.examAdminService.isScreenProctoringEnabled(clientConnection.examId).getOr(false))) {
+                this.clientConnectionDAO.markForScreenProctoringUpdate(updatedClientConnection.id);
             }
 
             // delete stored ping if this is a distributed setup
@@ -527,13 +525,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 log.warn("SEB client connection in invalid state for disabling: {}", clientConnection);
                 updatedClientConnection = clientConnection;
             }
-
-            // if proctoring is enabled for exam, mark for room update
-            final Boolean proctoringEnabled = this.examAdminService
-                    .isProctoringEnabled(clientConnection.examId)
-                    .getOr(false);
-            if (proctoringEnabled) {
-                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
+            
+            // if screen proctoring is enabled, close the client session also on SPS site
+            if (BooleanUtils.isTrue(this.examAdminService.isScreenProctoringEnabled(clientConnection.examId).getOr(false))) {
+                this.clientConnectionDAO.markForScreenProctoringUpdate(updatedClientConnection.id);
             }
 
             // delete stored ping if this is a distributed setup
@@ -906,14 +901,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     }
 
     private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
-        final Boolean proctoringEnabled = this.examAdminService
-                .isProctoringEnabled(clientConnection.examId)
-                .getOr(false);
-
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null, status,
                 null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                proctoringEnabled, null, null, null))
+                false, null, null, null))
                 .getOrThrow();
     }
 

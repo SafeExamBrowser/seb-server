@@ -32,7 +32,7 @@ public class RemoteProctoringServiceFactory {
         this.services = new EnumMap<>(proctorServices
                 .stream()
                 .collect(Collectors.<RemoteProctoringService, ProctoringServerType, RemoteProctoringService> toMap(
-                        s -> s.getType(),
+                        RemoteProctoringService::getType,
                         Function.identity())));
     }
 

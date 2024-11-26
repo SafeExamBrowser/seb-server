@@ -488,8 +488,7 @@ public class ExamMonitoringController {
                     required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
-
-        // TODO do this in async in new thread
+        
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
             // If we have a bunch of client connections to disable, make it asynchronously and respond to the caller immediately
             this.executor.execute(() -> {

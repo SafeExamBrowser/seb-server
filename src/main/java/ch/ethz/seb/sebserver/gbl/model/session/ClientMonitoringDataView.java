@@ -63,6 +63,7 @@ public interface ClientMonitoringDataView {
 
     default boolean isSEBVersionDenied() {
         final Integer notificationFlag = notificationFlag();
+        System.out.println("************** notificationFlag: " + notificationFlag);
         return notificationFlag != null && (notificationFlag & FLAG_INVALID_SEB_VERSION) > 0;
     }
 

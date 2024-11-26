@@ -18,6 +18,8 @@ import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
@@ -25,6 +27,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +35,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
+import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -56,7 +60,10 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 
-class ScreenProctoringAPIBinding {
+@Lazy
+@Service
+@WebServiceProfile
+public class ScreenProctoringAPIBinding {
 
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringAPIBinding.class);
 
@@ -222,7 +229,7 @@ class ScreenProctoringAPIBinding {
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(EXAM_ENDPOINT)
                     .pathSegment(createExamUUID(exam))
                     .build().toUriString();
@@ -257,7 +264,7 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
             // check if user exists on SPS
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(USER_ACCOUNT_ENDPOINT + userUUID)
                     .build()
                     .toUriString();
@@ -287,13 +294,14 @@ class ScreenProctoringAPIBinding {
             log.error("Failed to synchronize user accounts with SPS for exam: {}", exam, e);
         }
     }
+    
     void deleteSPSUser(final String userUUID) {
         try {
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
 
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(USER_ACCOUNT_ENDPOINT + userUUID)
                     .build()
                     .toUriString();
@@ -431,7 +439,7 @@ class ScreenProctoringAPIBinding {
 
         // group delete request on SPS
         final String uri = UriComponentsBuilder
-                .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                .fromUriString(apiTemplate.spsServiceURL)
                 .path(GROUP_ENDPOINT)
                 .pathSegment(screenProctoringGroup.uuid)
                 .pathSegment(GROUP_DELETE_REQUEST_ENDPOINT)
@@ -466,7 +474,7 @@ class ScreenProctoringAPIBinding {
                 .orElse(null);
         final SPSGroup spsGroup = spsGroups.get(localGroup.uuid);
 
-        if (spsGroup == null || localGroup == null) {
+        if (spsGroup == null) {
             log.warn(
                     "Expecting only one default SPS group for exam: {} but there are local groups: {} and groups on SPS: {}", 
                     exam, 
@@ -491,7 +499,7 @@ class ScreenProctoringAPIBinding {
             final SPSGroup spsGroup) {
         
         final String groupRequestURI = UriComponentsBuilder
-                .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                .fromUriString(apiTemplate.spsServiceURL)
                 .path(GROUP_ENDPOINT)
                 .pathSegment(spsGroup.uuid())
                 .build().toUriString();
@@ -568,7 +576,7 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate) throws JsonProcessingException {
         
         final String groupRequestURI = UriComponentsBuilder
-                .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                .fromUriString(apiTemplate.spsServiceURL)
                 .path(GROUP_BY_EXAM_ENDPOINT)
                 .pathSegment(spsExamUUID)
                 .build()
@@ -595,7 +603,7 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
 
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(EXAM_ENDPOINT)
                     .pathSegment(spsData.spsExamUUID)
                     .build()
@@ -609,7 +617,9 @@ class ScreenProctoringAPIBinding {
                     exam.getType().name(),
                     exam.startTime != null ? exam.startTime.getMillis() : null,
                     exam.endTime != null ? exam.endTime.getMillis() : null,
-                    supporterIds);
+                    null, // TODO
+                    supporterIds
+                    );
 
             final String jsonExamUpdate = this.jsonMapper.writeValueAsString(examUpdate);
 
@@ -645,8 +655,8 @@ class ScreenProctoringAPIBinding {
 
             final SPSData spsData = this.getSPSData(exam.id);
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
-            activation(exam, SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, false, apiTemplate);
-            activation(exam, EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
+            activation(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, false, apiTemplate);
+            activation(EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
 
             // mark local for successfully dispose on SPS side
             this.additionalAttributesDAO.saveAdditionalAttribute(
@@ -673,8 +683,8 @@ class ScreenProctoringAPIBinding {
             }
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
-            activation(exam, SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, true, apiTemplate);
-            activation(exam, EXAM_ENDPOINT, spsData.spsExamUUID, true, apiTemplate);
+            activation(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, true, apiTemplate);
+            activation(EXAM_ENDPOINT, spsData.spsExamUUID, true, apiTemplate);
 
             // mark local for successfully activated on SPS side
             this.additionalAttributesDAO.saveAdditionalAttribute(
@@ -726,7 +736,7 @@ class ScreenProctoringAPIBinding {
             // get exam from SPS
             final String examUUID = createExamUUID(exam);
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(EXAM_ENDPOINT)
                     .pathSegment(examUUID)
                     .build().toUriString();
@@ -766,7 +776,7 @@ class ScreenProctoringAPIBinding {
         }
     }
 
-    String createSEBSession(
+    Tuple<String> createSEBSession(
             final Long examId,
             final ScreenProctoringGroup localGroup,
             final ClientConnectionRecord clientConnection) {
@@ -775,7 +785,7 @@ class ScreenProctoringAPIBinding {
         final String token = clientConnection.getConnectionToken();
         final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(examId);
         final String uri = UriComponentsBuilder
-                .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                .fromUriString(apiTemplate.spsServiceURL)
                 .path(SESSION_ENDPOINT)
                 .build()
                 .toUriString();
@@ -795,8 +805,27 @@ class ScreenProctoringAPIBinding {
             throw new RuntimeException(
                     "Failed to create SPS SEB session for SEB connection: " + token);
         }
+        
+        // get generated encryption key from SPS 
+        final String getKeyRequestURI = UriComponentsBuilder
+                .fromUriString(apiTemplate.spsServiceURL)
+                .path(SESSION_ENCRYPTION_KEY_ENDPOINT)
+                .pathSegment(token)
+                .build()
+                .toUriString();
 
-        return token;
+        final ResponseEntity<String> exchange1 = apiTemplate.exchange(getKeyRequestURI, HttpMethod.GET);
+        if (exchange1.getStatusCode() != HttpStatus.OK) {
+            throw new RuntimeException(
+                    "Failed to get SPS SEB session encryption key for SEB connection: " + token);
+        }
+
+        final String key = exchange1.getHeaders().getFirst(SESSION_ENCRYPTION_KEY_REQUEST_HEADER);
+        if (StringUtils.isBlank(key)) {
+            log.error("Failed to get SEB session encryption key form SPS");
+        }
+
+        return new Tuple<>(token, key);
     }
 
     String updateSEBSession(
@@ -807,7 +836,7 @@ class ScreenProctoringAPIBinding {
         final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(clientConnection.getExamId());
 
         final String uri = UriComponentsBuilder
-                .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                .fromUriString(apiTemplate.spsServiceURL)
                 .path(SESSION_ENDPOINT)
                 .pathSegment(token)
                 .build()
@@ -837,6 +866,12 @@ class ScreenProctoringAPIBinding {
 
         return token;
     }
+    
+    void closeSEBSession(final ClientConnectionRecord clientConnection) {
+        final String token = clientConnection.getConnectionToken();
+        final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(clientConnection.getExamId());
+        activation(SESSION_ENDPOINT, token, false, apiTemplate);
+    }
 
 
     void deleteExamOnScreenProctoring(final Exam exam) {
@@ -855,11 +890,11 @@ class ScreenProctoringAPIBinding {
             }
             
             deletion(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, apiTemplate);
-            activation(exam, EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
+            activation(EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
 
             // exam delete request on SPS
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(EXAM_ENDPOINT)
                     .pathSegment(spsData.spsExamUUID)
                     .pathSegment(EXAM_DELETE_REQUEST_ENDPOINT)
@@ -890,7 +925,7 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
 
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(GROUP_COUNT_ENDPOINT)
                     .build()
                     .toUriString();
@@ -932,7 +967,7 @@ class ScreenProctoringAPIBinding {
 
             final UserMod userMod = getUserModifications(userInfo, accountInfo);
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(USERSYNC_SEBSERVER_ENDPOINT)
                     .build()
                     .toUriString();
@@ -949,7 +984,7 @@ class ScreenProctoringAPIBinding {
 
             // sync activity
             final String activityURI = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(USER_ACCOUNT_ENDPOINT)
                     .pathSegment(userUUID)
                     .path(BooleanUtils.isTrue(userInfo.active) ? "/active" : "/inactive")
@@ -1021,7 +1056,7 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate) {
 
         final String uri = UriComponentsBuilder
-                .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                .fromUriString(apiTemplate.spsServiceURL)
                 .path(GROUP_ENDPOINT)
                 .build()
                 .toUriString();
@@ -1059,12 +1094,19 @@ class ScreenProctoringAPIBinding {
 
             final List<String> supporterIds = getSupporterIds(exam);
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(EXAM_ENDPOINT)
                     .build().toUriString();
+            final ScreenProctoringSettings settings = this.proctoringSettingsDAO
+                    .getScreenProctoringSettings(new EntityKey(exam.id, EntityType.EXAM))
+                    .getOrThrow();
 
             final String uuid = createExamUUID(exam);
-            final MultiValueMap<String, String> params = createExamCreationParams(exam, uuid, supporterIds);
+            final MultiValueMap<String, String> params = createExamCreationParams(
+                    exam, 
+                    uuid, 
+                    null, // TODO settings.getDeletionTime
+                    supporterIds);
             final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
@@ -1098,6 +1140,7 @@ class ScreenProctoringAPIBinding {
     private static MultiValueMap<String, String> createExamCreationParams(
             final Exam exam,
             final String uuid,
+            final Long deletionTime,
             final List<String> supporterIds) {
 
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -1108,13 +1151,17 @@ class ScreenProctoringAPIBinding {
         }
         params.add(EXAM.ATTR_URL, exam.getStartURL());
         if (!supporterIds.isEmpty()) {
-            params.add(EXAM.ATTR_USER_IDS, StringUtils.join(supporterIds, Constants.LIST_SEPARATOR));
+            params.add(EXAM.ATTR_SUPPORTER, StringUtils.join(supporterIds, Constants.LIST_SEPARATOR));
         }
         params.add(EXAM.ATTR_TYPE, exam.getType().name());
-        params.add(EXAM.ATTR_START_TIME, String.valueOf(exam.startTime.getMillis()));
+        params.add(EXAM.ATTR_START_TIME, java.lang.String.valueOf(exam.startTime.getMillis()));
 
         if (exam.endTime != null) {
-            params.add(EXAM.ATTR_END_TIME, String.valueOf(exam.endTime.getMillis()));
+            params.add(EXAM.ATTR_END_TIME, java.lang.String.valueOf(exam.endTime.getMillis()));
+        }
+        
+        if (deletionTime != null) {
+            params.add(EXAM.ATTR_DELETION_TIME, java.lang.String.valueOf(deletionTime));
         }
         return params;
     }
@@ -1134,7 +1181,7 @@ class ScreenProctoringAPIBinding {
 
             // first try to get existing one by name and link it if available
             String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(SEB_ACCESS_ENDPOINT)
                     .queryParam(SEB_ACCESS.ATTR_NAME, name)
                     .build()
@@ -1174,7 +1221,7 @@ class ScreenProctoringAPIBinding {
 
             // otherwise create new one and link it
             uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(SEB_ACCESS_ENDPOINT)
                     .build()
                     .toUriString();
@@ -1206,7 +1253,6 @@ class ScreenProctoringAPIBinding {
     }
 
     private void activation(
-            final Exam exam,
             final String domainPath,
             final String uuid,
             final boolean activate,
@@ -1215,7 +1261,7 @@ class ScreenProctoringAPIBinding {
         try {
 
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(domainPath)
                     .pathSegment(uuid)
                     .pathSegment(activate ? ACTIVE_PATH_SEGMENT : INACTIVE_PATH_SEGMENT)
@@ -1239,7 +1285,7 @@ class ScreenProctoringAPIBinding {
         try {
 
             final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .fromUriString(apiTemplate.spsServiceURL)
                     .path(domainPath)
                     .pathSegment(uuid)
                     .build()
@@ -1283,46 +1329,35 @@ class ScreenProctoringAPIBinding {
             deletion(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, apiTemplate);
         }
     }
-
-    private ScreenProctoringServiceOAuthTemplate apiTemplateExam = null;
-    private ScreenProctoringServiceOAuthTemplate apiTemplateBundle = null;
+    
+    private ScreenProctoringServiceOAuthTemplate apiTemplate = null;
     private ScreenProctoringServiceOAuthTemplate getAPITemplate(final Long examId) {
-        if (examId == null) {
-            if (apiTemplateBundle == null) {
+        if (apiTemplate == null || !apiTemplate.isValid()) {
+
                 if (log.isDebugEnabled()) {
                     log.debug("Create new ScreenProctoringServiceOAuthTemplate for bundle");
                 }
 
                 final WebserviceInfo.ScreenProctoringServiceBundle bundle = this.webserviceInfo
                         .getScreenProctoringServiceBundle();
-
-                this.testConnection(bundle).getOrThrow();
-                this.apiTemplateBundle = new ScreenProctoringServiceOAuthTemplate(this, bundle);
-            }
-            return apiTemplateBundle;
-        } else {
-            if (this.apiTemplateExam == null || !this.apiTemplateExam.isValid(examId)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for exam: {}", examId);
+                
+                if (!bundle.bundled) {
+                    throw new IllegalStateException("Only bundled SEB Server Screen Proctoring is supported yet");
                 }
 
-                final ScreenProctoringSettings settings = this.proctoringSettingsDAO
-                        .getScreenProctoringSettings(new EntityKey(examId, EntityType.EXAM))
-                        .getOrThrow();
-                this.testConnection(settings).getOrThrow();
-                this.apiTemplateExam = new ScreenProctoringServiceOAuthTemplate(this, settings);
-            }
-
-            return apiTemplateExam;
+                this.testConnection(bundle).getOrThrow();
+                this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, bundle);
         }
+        
+        return apiTemplate;
     }
 
     private static List<String> getSupporterIds(final Exam exam) {
-        final List<String> supporterIds = new ArrayList<>(exam.supporter);
+        final Set<String> supporterIds = new HashSet<>(exam.supporter);
         if (exam.owner != null && !UserService.LMS_INTEGRATION_CLIENT_UUID.equals(exam.owner)) {
             supporterIds.add(exam.owner);
         }
-        return supporterIds;
+        return new ArrayList<>(supporterIds);
     }
 
     OAuth2RestTemplate getOAuth2RestTemplate(final ResourceOwnerPasswordResourceDetails resource) {

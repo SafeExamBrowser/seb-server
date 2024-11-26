@@ -52,7 +52,7 @@ public interface ClientConnectionDAO extends
             cacheNames = CONNECTION_TOKENS_CACHE,
             key = "#examId")
     default void evictConnectionTokenCache(final Long examId) {
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             log.debug("Evict SEB connection tokens for exam: {}", examId);
         }
     }
@@ -150,10 +150,14 @@ public interface ClientConnectionDAO extends
             key = "#connectionToken")
     Result<Void> assignToScreenProctoringGroup(Long connectionId, String connectionToken, Long groupId);
 
+    
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
             key = "#connectionToken")
-    Result<Void> markScreenProctoringApplied(Long connectionId, String connectionToken);
+    void markScreenProctoringApplied(Long connectionId, String connectionToken);
+
+    /** Used to re-mark a client connection record for screen proctoring update. */
+    void markForScreenProctoringUpdate(final Long id);
 
     /** Get a ClientConnection by connection token.
      *
