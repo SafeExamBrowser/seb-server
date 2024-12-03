@@ -330,10 +330,11 @@ public class MonitoringProctoringService {
                     .getAuthorizationContextHolder()
                     .getAuthorizationContext()
                     .getUserPassword();
-            final String body = "username=" + currentUser.get().username
-                    + "&password=" + userPassword.toString()
-                    + "&redirect=/gallery-view/" + groupUUID;
-
+            
+            final String body = "username=" + Utils.encodeFormURL_UTF_8(currentUser.get().username)
+                    + "&password=" + Utils.encodeFormURL_UTF_8(userPassword.toString())
+                    + "&redirect=/gallery-view/" + Utils.encodeFormURL_UTF_8(groupUUID);
+            
             // apply jwt token request
             final HttpEntity<String> httpEntity = new HttpEntity<>(body, httpHeaders);
             final ResponseEntity<String> tokenRequest = restTemplate.exchange(

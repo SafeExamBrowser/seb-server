@@ -33,7 +33,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -71,8 +70,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private final ExamSessionCacheService examSessionCacheService;
     private final WebserviceInfo webserviceInfo;
     private final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle;
-    private final SEBClientVersionService sebClientVersionService;
-    private final List<AllowedSEBVersion> sebMinVersion;
 
     public ScreenProctoringServiceImpl(
             final ClientGroupMatcherService clientGroupMatcherService,
@@ -86,8 +83,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final ExamSessionCacheService examSessionCacheService,
             final WebserviceInfo webserviceInfo,
             final SEBClientVersionService sebClientVersionService,
-            final ScreenProctoringAPIBinding screenProctoringAPIBinding,
-            final @Value("${sebserver.feature.exam.seb.screenProctoring.minsebversions:}") String sebMinVersion) {
+            final ScreenProctoringAPIBinding screenProctoringAPIBinding) {
         
         this.clientGroupMatcherService = clientGroupMatcherService;
         this.clientGroupDAO = clientGroupDAO1;
@@ -100,23 +96,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.webserviceInfo = webserviceInfo;
         this.screenProctoringServiceBundle = webserviceInfo.getScreenProctoringServiceBundle();
-        this.sebClientVersionService = sebClientVersionService;
         this.screenProctoringAPIBinding = screenProctoringAPIBinding;
-        
-        if (StringUtils.isNotBlank(sebMinVersion)) {
-            this.sebMinVersion = new ArrayList<>();
-            final String[] split = StringUtils.split(sebMinVersion, Constants.LIST_SEPARATOR_CHAR);
-            for (final String version : split) {
-                final AllowedSEBVersion allowedSEBVersion = new AllowedSEBVersion(version);
-                if (allowedSEBVersion.isValidFormat) {
-                    this.sebMinVersion.add(allowedSEBVersion);
-                } else {
-                    log.warn("No valid SEB version for min SEB Version check on SPS: {}", version);
-                }
-            }
-        } else {
-            this.sebMinVersion = Collections.emptyList();
-        }
     }
 
     @Override
@@ -204,7 +184,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     // find deletion and check possibility (only deletable if no sessions)
                     if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
                         final Map<Long, ScreenProctoringGroup> existing = existingGroups.stream()
-                                .filter(g -> !g.isFallback)
+                                .filter(g -> !BooleanUtils.isTrue(g.isFallback))
                                 .collect(Collectors.toMap( g -> g.sebGroupId, Function.identity()));
 
                         Arrays.stream(StringUtils.split(
@@ -510,18 +490,15 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
         try {
-            
-            // check if SEB client version has already Screen Proctoring
-            if (!this.sebMinVersion.isEmpty() && !this.sebClientVersionService.checkVersionAndUpdateClientConnection(
-                    ccRecord,
-                    this.sebMinVersion)) {
-                
+
+            // check if SEB client version is granted if checked. If not granted, no SPS Session is created
+            if (ccRecord.getClientVersionGranted() != null && ccRecord.getClientVersionGranted() == 0) {
                 log.warn("Detected invalid SEB Version for screen proctoring: {}", ccRecord);
 
                 this.clientConnectionDAO.markScreenProctoringApplied(
                         ccRecord.getId(),
                         ccRecord.getConnectionToken());
-                
+
                 return;
             }
             

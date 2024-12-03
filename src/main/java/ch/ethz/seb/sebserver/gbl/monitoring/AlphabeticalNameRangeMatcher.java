@@ -30,9 +30,9 @@ public class AlphabeticalNameRangeMatcher implements ClientGroupConnectionMatche
             return false;
         }
 
-        final String name = clientConnection.userSessionId.substring(0, 1);
-        final String start = group.nameRangeStartLetter != null ? group.nameRangeStartLetter.substring(0, 1) : "A";
-        final String end = group.nameRangeStartLetter != null ? group.nameRangeEndLetter.substring(0, 1) : "Z";
+        final String name = clientConnection.userSessionId;
+        final String start = group.nameRangeStartLetter != null ? group.nameRangeStartLetter : "A";
+        final String end = group.nameRangeStartLetter != null ? group.nameRangeEndLetter : "Z";
         
         return isInRange(name, start, end);
     }

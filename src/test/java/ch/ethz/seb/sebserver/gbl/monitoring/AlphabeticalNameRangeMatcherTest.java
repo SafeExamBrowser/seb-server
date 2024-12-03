@@ -89,5 +89,20 @@ public class AlphabeticalNameRangeMatcherTest {
         assertFalse(alphabeticalNameRangeMatcher.isInRange("nn", start1, end1));
         assertFalse(alphabeticalNameRangeMatcher.isInRange("NM", start1, end1));
 
+        assertFalse(alphabeticalNameRangeMatcher.isInRange("Mbrcel", start1, end1));
+    }
+
+    @Test
+    public void test3() {
+        final AlphabeticalNameRangeMatcher alphabeticalNameRangeMatcher = new AlphabeticalNameRangeMatcher();
+
+        final String start1 = "Maria";
+        final String end1 = "Zorro";
+
+        assertTrue(alphabeticalNameRangeMatcher.isInRange("Zorro", start1, end1));
+        assertFalse(alphabeticalNameRangeMatcher.isInRange("Zurro", start1, end1));
+        assertFalse(alphabeticalNameRangeMatcher.isInRange("Zzzz", start1, end1));
     }
 }
+
+
