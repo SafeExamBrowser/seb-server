@@ -396,7 +396,9 @@ public class ScreenProctoringSettingsPopup {
                             FORM_COLLECTING_DELETION_TIME,
                             settings.deletionTime != null 
                                     ? settings.deletionTime
-                                    : Utils.toDateTimeUTC(Utils.getMillisecondsNow()).plusYears(2)
+                                    : Utils.toDateTimeUTC(Utils.getMillisecondsNow())
+                                        .plusYears(2)
+                                        .minusHours(Utils.toDateTimeUTC(Utils.getMillisecondsNow()).hourOfDay().get())
                     ))
                     
                     .addField(FormBuilder.singleSelection(
