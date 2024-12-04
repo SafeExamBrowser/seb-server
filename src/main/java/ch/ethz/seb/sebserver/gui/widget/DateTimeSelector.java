@@ -11,11 +11,9 @@ import org.joda.time.DateTimeZone;
 
 public class DateTimeSelector extends Composite  {
 
-    private DateTime date;
-    private DateTime time;
-    private Label timeZoneLabel;
+    private final DateTime date;
+    private final DateTime time;
     private final DateTimeZone timeZone;
-    private final String testKey;
 
     public DateTimeSelector(
             final Composite parent,
@@ -26,7 +24,6 @@ public class DateTimeSelector extends Composite  {
 
         super(parent, SWT.NONE);
         this.timeZone = timeZone;
-        this.testKey = testKey;
 
         final GridLayout gridLayout = new GridLayout(3, false);
         gridLayout.verticalSpacing = 5;
@@ -37,12 +34,8 @@ public class DateTimeSelector extends Composite  {
 
         this.date = widgetFactory.dateSelector(this, new LocTextKey(label), testKey);
         this.time = widgetFactory.timeSelector(this, new LocTextKey(label), testKey);
-        this.timeZoneLabel = widgetFactory.label(this, timeZone.getID());
+        final Label timeZoneLabel = widgetFactory.label(this, timeZone.getID());
 
-        this.setValue(Utils.getMillisecondsNow());
-    }
-
-    public void setValue(final long timestamp) {
         setDateTime(org.joda.time.DateTime.now(this.timeZone));
     }
 

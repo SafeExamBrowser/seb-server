@@ -216,6 +216,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     this.cryptor.encrypt(screenProctoringSettings.spsAPISecret).getOrThrow(),
                     screenProctoringSettings.spsAccountId,
                     this.cryptor.encrypt(screenProctoringSettings.spsAccountPassword).getOrThrow(),
+                    screenProctoringSettings.deletionTime,
                     screenProctoringSettings.collectingStrategy,
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,
@@ -257,6 +258,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
                         this.examDAO.markUpdate(exam.id);
                     } else if (isEnabling) {
+                        this.screenProctoringAPIBinding.updateExam(exam);
                         this.screenProctoringAPIBinding.synchronizeGroups(exam);
                     }
                     

@@ -322,6 +322,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     screenProctoringSettings.spsAPISecret,
                     screenProctoringSettings.spsAccountId,
                     screenProctoringSettings.spsAccountPassword,
+                    screenProctoringSettings.deletionTime,
                     screenProctoringSettings.collectingStrategy,
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,

@@ -80,6 +80,8 @@ public class ScreenProctoringSettingsPopup {
     private final static LocTextKey FORM_ACCOUNT_SECRET_SPS =
             new LocTextKey("sebserver.exam.sps.form.accountSecret");
 
+    private final static LocTextKey FORM_COLLECTING_DELETION_TIME =
+            new LocTextKey("sebserver.exam.sps.form.collect.deletion.time");
     private final static LocTextKey FORM_COLLECTING_STRATEGY =
             new LocTextKey("sebserver.exam.sps.form.collect.strategy");
     private final static LocTextKey FORM_GROUP_NAME =
@@ -172,6 +174,7 @@ public class ScreenProctoringSettingsPopup {
             final String groupSizeString = form.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE);
             final int groupSize = StringUtils.isNotBlank(groupSizeString) ? Integer.parseInt(groupSizeString) : 0;
             final CollectingStrategy collectingStrategy = CollectingStrategy.valueOf(form.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY));
+            final String deletionTimeString = form.getFieldValue(ScreenProctoringSettings.ATT_SPS_DELETION_TIME);
             
             settings = new ScreenProctoringSettings(
                     Long.parseLong(entityKey.modelId),
@@ -181,6 +184,7 @@ public class ScreenProctoringSettingsPopup {
                     form.getFieldValue(ScreenProctoringSettings.ATTR_SPS_API_SECRET),
                     form.getFieldValue(ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
                     form.getFieldValue(ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
+                    Utils.toDateTime(deletionTimeString),
                     collectingStrategy,
                     form.getFieldValue(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME),
                     groupSize,
@@ -386,6 +390,14 @@ public class ScreenProctoringSettingsPopup {
                                     (settings.spsAccountPassword != null)
                                             ? String.valueOf(settings.spsAccountPassword)
                                             : null))
+                    
+                    .addField(FormBuilder.dateTime(
+                            ScreenProctoringSettings.ATT_SPS_DELETION_TIME,
+                            FORM_COLLECTING_DELETION_TIME,
+                            settings.deletionTime != null 
+                                    ? settings.deletionTime
+                                    : Utils.toDateTimeUTC(Utils.getMillisecondsNow()).plusYears(2)
+                    ))
                     
                     .addField(FormBuilder.singleSelection(
                             ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY,

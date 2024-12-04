@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -601,6 +602,9 @@ public class ScreenProctoringAPIBinding {
         try {
             final SPSData spsData = this.getSPSData(exam.id);
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
+            final ScreenProctoringSettings settings = this.proctoringSettingsDAO
+                    .getScreenProctoringSettings(new EntityKey(exam.id, EntityType.EXAM))
+                    .getOrThrow();
 
             final String uri = UriComponentsBuilder
                     .fromUriString(apiTemplate.spsServiceURL)
@@ -617,7 +621,7 @@ public class ScreenProctoringAPIBinding {
                     exam.getType().name(),
                     exam.startTime != null ? exam.startTime.getMillis() : null,
                     exam.endTime != null ? exam.endTime.getMillis() : null,
-                    null, // TODO
+                    settings.deletionTime != null ? settings.deletionTime.getMillis() : null, 
                     supporterIds
                     );
 
@@ -1104,9 +1108,9 @@ public class ScreenProctoringAPIBinding {
             final String uuid = createExamUUID(exam);
             final MultiValueMap<String, String> params = createExamCreationParams(
                     exam, 
-                    uuid, 
-                    null, // TODO settings.getDeletionTime
-                    supporterIds);
+                    uuid,
+            settings.deletionTime,
+            supporterIds);
             final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
@@ -1140,7 +1144,7 @@ public class ScreenProctoringAPIBinding {
     private static MultiValueMap<String, String> createExamCreationParams(
             final Exam exam,
             final String uuid,
-            final Long deletionTime,
+            final DateTime deletionTime,
             final List<String> supporterIds) {
 
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -1161,7 +1165,7 @@ public class ScreenProctoringAPIBinding {
         }
         
         if (deletionTime != null) {
-            params.add(EXAM.ATTR_DELETION_TIME, java.lang.String.valueOf(deletionTime));
+            params.add(EXAM.ATTR_DELETION_TIME, java.lang.String.valueOf(deletionTime.getMillis()));
         }
         return params;
     }
