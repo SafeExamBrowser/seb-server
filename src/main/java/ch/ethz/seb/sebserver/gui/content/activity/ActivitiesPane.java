@@ -93,9 +93,8 @@ public class ActivitiesPane implements TemplateComposer {
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext);
 
-        final boolean isTeacherOnly = this.currentUser.get().hasAnyRole(UserRole.TEACHER) &&
-                !this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER) &&
-                !this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN) ;
+        final boolean isTeacherOnly = this.currentUser.get().hasRole(UserRole.TEACHER) && 
+                this.currentUser.get().roles.size() == 1 ;
 
         //--------------------------------------------------------------------------------------
         // ---- SEB ADMIN ----------------------------------------------------------------------
@@ -103,7 +102,7 @@ public class ActivitiesPane implements TemplateComposer {
         final boolean isServerOrInstAdmin = this.currentUser.get()
                 .hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN);
 
-        if (isServerOrInstAdmin) {
+        if (!isTeacherOnly) {
             // SEB Server Administration
             final TreeItem sebAdmin = this.widgetFactory.treeItemLocalized(
                     navigation,
@@ -140,7 +139,7 @@ public class ActivitiesPane implements TemplateComposer {
 
             // User Account
             // if current user has role seb-server admin or institutional-admin, show list
-            if (!pageService.isLightSetup() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)) {
+            if (!pageService.isLightSetup() && isServerOrInstAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_USER_ADMINISTRATION)) {
 
                 final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                         sebAdmin,
