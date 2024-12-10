@@ -192,13 +192,16 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         public boolean isLoggedIn() {
             final OAuth2AccessToken accessToken = this.restTemplate.getOAuth2ClientContext().getAccessToken();
             if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
+                log.warn("No Access Token for user: {}", this.restTemplate.getOAuth2ClientContext().getAccessTokenRequest().getHeaders());
                 return false;
             }
 
             try {
                 final ResponseEntity<String> forEntity =
                         this.restTemplate.getForEntity(this.currentUserURI, String.class);
+                
                 if (forEntity.getStatusCode() != HttpStatus.OK) {
+                    log.warn("Failed to verify user login on webservice: {}", forEntity.getBody());
                     return false;
                 }
             } catch (final Exception e) {
