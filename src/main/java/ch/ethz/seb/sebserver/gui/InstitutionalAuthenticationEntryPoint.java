@@ -21,7 +21,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
@@ -67,21 +66,19 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
     private final String guiEntryPoint;
 
-    private final String remoteProctoringEndpoint;
+
     private final String defaultLogo;
     private final WebserviceURIService webserviceURIService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
-    protected InstitutionalAuthenticationEntryPoint(
+    public InstitutionalAuthenticationEntryPoint(
             @Value("${sebserver.gui.entrypoint}") final String guiEntryPoint,
-            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
             @Value("${sebserver.gui.defaultLogo:" + Constants.NO_NAME + "}") final String defaultLogoFileName,
             final WebserviceURIService webserviceURIService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ResourceLoader resourceLoader) {
 
         this.guiEntryPoint = guiEntryPoint;
-        this.remoteProctoringEndpoint = remoteProctoringEndpoint;
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
 
@@ -139,7 +136,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
             if (authorizationContext.autoLogin(jwt)) {
                 log.info("Autologin successful, redirect to: {}", this.guiEntryPoint);
-                forwardToEntryPoint(request, response, this.guiEntryPoint, true);
+                forwardToEntryPoint(request, response, /* this.guiEntryPoint */ "/", true);
                 return;
             }
         }
@@ -208,17 +205,6 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             final HttpServletResponse response,
             final String entryPoint,
             final boolean redirect) throws ServletException, IOException {
-
-        final String requestURI = request.getRequestURI();
-        if (requestURI.startsWith(this.remoteProctoringEndpoint)) {
-
-            final RequestDispatcher dispatcher = request
-                    .getServletContext()
-                    .getRequestDispatcher(this.remoteProctoringEndpoint);
-
-            dispatcher.forward(request, response);
-            return;
-        }
 
         if (redirect) {
             response.sendRedirect(entryPoint);

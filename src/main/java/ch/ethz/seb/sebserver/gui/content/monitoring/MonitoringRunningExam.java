@@ -104,6 +104,8 @@ public class MonitoringRunningExam implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.action.closeTownhall.confirm");
     private static final LocTextKey CONFIRM_DISABLE_SELECTED =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.disable.selected.confirm");
+    private static final LocTextKey NOT_RUNNING_MESSAGE =
+            new LocTextKey("sebserver.monitoring.exam.notrunning.message");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -174,6 +176,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                 new LocTextKey(
                         "sebserver.monitoring.exam",
                         StringEscapeUtils.escapeXml11(exam.name)));
+        
+        if (exam.status != Exam.ExamStatus.RUNNING) {
+            pageContext.publishInfo(NOT_RUNNING_MESSAGE);
+            return;
+        }
 
         final Composite tablePane = new Composite(content, SWT.NONE);
         tablePane.setLayout(new GridLayout());

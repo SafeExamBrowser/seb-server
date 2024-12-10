@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,17 +69,6 @@ public class RAPSpringConfig {
                 new RWTServlet(),
                 this.entrypoint + "/*",
                 this.remoteProctoringEndpoint + "/*");
-    }
-
-    @Bean
-    public ServletRegistrationBean<ProctoringServlet> servletProctoringRegistrationBean(
-            final ApplicationContext applicationContext) {
-
-        final ProctoringServlet proctoringServlet = applicationContext
-                .getBean(ProctoringServlet.class);
-        return new ServletRegistrationBean<>(
-                proctoringServlet,
-                this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/*");
     }
 
     @Bean
