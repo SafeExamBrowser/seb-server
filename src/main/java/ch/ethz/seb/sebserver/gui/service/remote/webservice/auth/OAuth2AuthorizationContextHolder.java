@@ -294,9 +294,9 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 this.resource.setUsername(loginInfo.username);
                 this.resource.setPassword(loginInfo.userUUID);
                 
-                this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
-                this.restTemplate.getAccessToken();
-                //this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
+//                this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
+//                this.restTemplate.getAccessToken();
+                this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
 
                 loginForward = loginInfo.login_forward;
                 return this.isLoggedIn();

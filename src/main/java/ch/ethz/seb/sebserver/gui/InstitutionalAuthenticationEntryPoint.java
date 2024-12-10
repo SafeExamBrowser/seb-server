@@ -132,10 +132,10 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                     .getAuthorizationContext(request.getSession());
 
             // check first if we already have an active session if so, invalidate it first
-            if (authorizationContext.isLoggedIn()) {
-                authorizationContext.logout();
-                authorizationContext = authorizationContextHolder.getAuthorizationContext(request.getSession());
-            }
+//            if (authorizationContext.isLoggedIn()) {
+//                authorizationContext.logout();
+//                authorizationContext = authorizationContextHolder.getAuthorizationContext(request.getSession());
+//            }
 
             if (authorizationContext.autoLogin(jwt)) {
                 forwardToEntryPoint(request, response, this.guiEntryPoint, true);
