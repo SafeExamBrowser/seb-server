@@ -133,6 +133,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final AdHocAccountData adHocAccountData,
             final boolean createIfNotExists) {
 
+        // TODO check if Exam is running, if not deny access
+        
         return this.userDAO
                 .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))
                 .onErrorDo(error -> handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData))
