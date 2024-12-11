@@ -132,7 +132,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             }
 
             if (authorizationContext.autoLogin(jwt)) {
-                final String uriString = this.webserviceURIService.getURIBuilder().toUriString();
+                final String uriString = "https://raph.ethz.ch";
                 log.info("Autologin successful, redirect to: {}", uriString);
                 response.setStatus(HttpStatus.TEMPORARY_REDIRECT.value());
                 response.setHeader(HttpHeaders.LOCATION, uriString);
