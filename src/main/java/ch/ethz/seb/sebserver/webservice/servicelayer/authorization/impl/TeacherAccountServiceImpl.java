@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountD
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
 import io.jsonwebtoken.Claims;
@@ -133,7 +134,9 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final AdHocAccountData adHocAccountData,
             final boolean createIfNotExists) {
 
-        // TODO check if Exam is running, if not deny access
+        if (exam.status != Exam.ExamStatus.RUNNING) {
+            return Result.ofError(new IllegalStateException("Exam is not running"));
+        }
         
         return this.userDAO
                 .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))

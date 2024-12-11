@@ -198,7 +198,7 @@ public class LmsIntegrationController {
 
         final String token = this.fullLmsIntegrationService
                 .getOneTimeLoginToken(lmsUUId, courseId, quizId, adHocAccountData)
-                .onError(error -> log.error("Failed to create ad-hoc account with one time login token, error: {}", error.getMessage()))
+                .onError(error -> log.warn("Failed to create ad-hoc account with one time login token, error: {}", error.getMessage()))
                 .getOrThrow();
 
         return new FullLmsIntegrationService.TokenLoginResponse(

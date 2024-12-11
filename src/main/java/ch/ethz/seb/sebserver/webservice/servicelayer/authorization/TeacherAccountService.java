@@ -12,6 +12,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import org.springframework.context.event.EventListener;
 
 /** Service used to maintain Teacher Ad-Hoc Accounts */
 public interface TeacherAccountService {
