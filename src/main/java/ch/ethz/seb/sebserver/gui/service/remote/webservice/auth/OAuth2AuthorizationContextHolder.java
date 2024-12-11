@@ -192,7 +192,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         public boolean isLoggedIn() {
             final OAuth2AccessToken accessToken = this.restTemplate.getOAuth2ClientContext().getAccessToken();
             if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
-                log.warn("No Access Token for user: {}", this.restTemplate.getOAuth2ClientContext().getAccessTokenRequest().getHeaders());
                 return false;
             }
 
@@ -293,9 +292,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 final TokenLoginInfo loginInfo = response.getBody();
                 this.resource.setUsername(loginInfo.username);
                 this.resource.setPassword(loginInfo.userUUID);
-                
-//                this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
-//                this.restTemplate.getAccessToken();
                 this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
 
                 loginForward = loginInfo.login_forward;

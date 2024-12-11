@@ -65,6 +65,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
 
     private final String defaultLogo;
+    private final GuiServiceInfo guiServiceInfo;
     private final WebserviceURIService webserviceURIService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
@@ -73,11 +74,13 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             @Value("${sebserver.gui.defaultLogo:" + Constants.NO_NAME + "}") final String defaultLogoFileName,
             final WebserviceURIService webserviceURIService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            final ResourceLoader resourceLoader) {
+            final ResourceLoader resourceLoader, 
+            final GuiServiceInfo guiServiceInfo) {
 
         this.guiEntryPoint = guiEntryPoint;
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.guiServiceInfo = guiServiceInfo;
 
         String _defaultLogo;
         if (!Constants.NO_NAME.equals(defaultLogoFileName)) {
@@ -132,11 +135,10 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             }
 
             if (authorizationContext.autoLogin(jwt)) {
-                final String uriString = "https://ralph.ethz.ch";
-                log.info("Autologin successful, redirect to: {}", uriString);
+                final String redirect = guiServiceInfo.getExternalServerURIBuilder().toUriString();
+                log.info("Autologin successful, redirect to: {}", redirect);
                 response.setStatus(HttpStatus.TEMPORARY_REDIRECT.value());
-                response.setHeader(HttpHeaders.LOCATION, uriString);
-                //forwardToEntryPoint(request, response, /* this.guiEntryPoint */ "/", true);
+                response.setHeader(HttpHeaders.LOCATION, redirect);
                 return;
             }
         }
