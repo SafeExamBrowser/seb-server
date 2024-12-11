@@ -34,10 +34,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -135,8 +132,11 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             }
 
             if (authorizationContext.autoLogin(jwt)) {
-                log.info("Autologin successful, redirect to: {}", this.guiEntryPoint);
-                forwardToEntryPoint(request, response, /* this.guiEntryPoint */ "/", true);
+                final String uriString = this.webserviceURIService.getURIBuilder().toUriString();
+                log.info("Autologin successful, redirect to: {}", uriString);
+                response.setStatus(HttpStatus.TEMPORARY_REDIRECT.value());
+                response.setHeader(HttpHeaders.LOCATION, uriString);
+                //forwardToEntryPoint(request, response, /* this.guiEntryPoint */ "/", true);
                 return;
             }
         }
