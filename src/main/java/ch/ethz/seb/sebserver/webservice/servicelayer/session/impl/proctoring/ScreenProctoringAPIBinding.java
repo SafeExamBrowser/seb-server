@@ -1058,9 +1058,7 @@ public class ScreenProctoringAPIBinding {
     private static UserMod getUserModifications(final UserInfo userInfo, final SEBServerUser accountInfo) {
         final Set<String> spsUserRoles = new HashSet<>();
         spsUserRoles.add(SPSUserRole.PROCTOR.name());
-        if (userInfo.roles.contains(UserRole.SEB_SERVER_ADMIN.name()) ||
-                userInfo.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name()) ||
-                userInfo.roles.contains(UserRole.EXAM_ADMIN.name())) {
+        if (userInfo.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
             spsUserRoles.add(SPSUserRole.ADMIN.name());
         }
 
