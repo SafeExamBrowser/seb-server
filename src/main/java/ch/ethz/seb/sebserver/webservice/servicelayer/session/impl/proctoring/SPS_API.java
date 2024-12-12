@@ -272,7 +272,7 @@ interface SPS_API {
                 if (errors.contains("Connection refused")) {
                     return new ResponseEntity<>( errors, HttpStatus.SERVICE_UNAVAILABLE);
                 }
-                // TODO Test SSL error
+
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 

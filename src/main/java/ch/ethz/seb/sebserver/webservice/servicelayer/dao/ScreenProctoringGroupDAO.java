@@ -34,13 +34,6 @@ public interface ScreenProctoringGroupDAO {
      * @return Result refer to the group or to an error when happened */
     Result<ScreenProctoringGroup> getScreenProctoringGroup(String uuid);
 
-    /** Get the group record with specified name for a given exam.
-     *
-     * @param examId the exam identifier
-     * @param groupName the name of the group
-     * @return Result refer to the group record or to an error when happened */
-    Result<ScreenProctoringGroup> getGroupByName(Long examId, String groupName);
-
     /** Get all collecting group that exists for a given exam.
      *
      * @param examId the exam identifier
@@ -85,4 +78,6 @@ public interface ScreenProctoringGroupDAO {
     boolean hasActiveGroups();
 
     void updateName(Long id, String name);
+
+    Result<ScreenProctoringGroup> updateFromSPS(Long id, ScreenProctoringGroup groupOnSPS);
 }

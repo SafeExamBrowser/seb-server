@@ -258,7 +258,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
                         this.examDAO.markUpdate(exam.id);
                     } else if (isEnabling) {
-                        this.screenProctoringAPIBinding.updateExam(exam);
+                        this.screenProctoringAPIBinding.updateExam(exam).getOrThrow();
                         this.screenProctoringAPIBinding.synchronizeGroups(exam);
                     }
                     
@@ -343,7 +343,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         this.screenProctoringAPIBinding.synchronizeUserAccounts(exam);
-        this.screenProctoringAPIBinding.updateExam(exam);
+        this.screenProctoringAPIBinding
+                .updateExam(exam)
+                .onError(error -> log.warn("Failed to update exam on SPS: ", error));
         this.screenProctoringAPIBinding.synchronizeGroups(exam);
     }
 
@@ -487,8 +489,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             log.error("Failed to close SEB client connection for SPS: {}", ccRecord, e);
         }
     }
-
-    
 
     private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
         try {

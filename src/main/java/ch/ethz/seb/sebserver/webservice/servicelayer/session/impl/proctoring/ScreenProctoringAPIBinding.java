@@ -201,6 +201,13 @@ public class ScreenProctoringAPIBinding {
                 log.info("SPS Exam for SEB Server Exam: {} already exists. Try to re-activate", exam.externalId);
 
                 final SPSData spsData = this.getSPSData(exam.id);
+                
+                if (!existsExamOnSPS(exam)) {
+                    log.warn("Exam does not exist on SPS but has local data. Try to reinitialize Screen Proctoring for exam: {}", exam.name);
+                    initializeScreenProctoring(exam, apiTemplate);
+                    return exam;
+                }
+                
                 // re-activate all needed entities on SPS side
                 if (exam.status == Exam.ExamStatus.RUNNING) {
                     activateScreenProctoring(exam).getOrThrow();
@@ -416,8 +423,26 @@ public class ScreenProctoringAPIBinding {
                     } else {
                         log.warn(
                                 "Screen Proctoring group mismatch detected. No SPS group found for exam: {} and local group: {}", 
-                                exam, 
+                                exam.name, 
                                 existing);
+                        log.info("Try to create new one on SPS");
+                        try {
+                            final ScreenProctoringGroup groupOnSPS = createGroupOnSPS(
+                                    0,
+                                    exam.id,
+                                    sebGroup.name,
+                                    spsData.spsExamUUID,
+                                    existing.isFallback,
+                                    sebGroup.id,
+                                    apiTemplate);
+
+                            this.screenProctoringGroupDAO
+                                    .updateFromSPS(existing.id, groupOnSPS)
+                                    .getOrThrow();
+                            
+                        } catch (final Exception e) {
+                            log.error("Failed to synchronize SEB Group on SPS: {}", sebGroup, e);
+                        }
                     }
                 }
             }
@@ -476,11 +501,30 @@ public class ScreenProctoringAPIBinding {
         final SPSGroup spsGroup = spsGroups.get(localGroup.uuid);
 
         if (spsGroup == null) {
+            // try re-create group on SPS
             log.warn(
-                    "Expecting only one default SPS group for exam: {} but there are local groups: {} and groups on SPS: {}", 
-                    exam, 
-                    localGroups.values(),
-                    spsGroups.values());
+                    "Screen Proctoring group mismatch detected. No SPS group found for exam: {} and local group: {}",
+                    exam.name,
+                    localGroup);
+            log.info("Try to create new one on SPS");
+            try {
+                final ScreenProctoringGroup groupOnSPS = createGroupOnSPS(
+                        0,
+                        exam.id,
+                        localGroup.name,
+                        spsData.spsExamUUID,
+                        localGroup.isFallback,
+                        localGroup.id,
+                        apiTemplate);
+
+                this.screenProctoringGroupDAO
+                        .updateFromSPS(localGroup.id, groupOnSPS)
+                        .getOrThrow();
+
+            } catch (final Exception e) {
+                log.error("Failed to synchronize SEB Group on SPS: {}", localGroup, e);
+            }
+            return;
         }
         
         // if name has changed synchronize locally
@@ -597,9 +641,9 @@ public class ScreenProctoringAPIBinding {
     /** This is called when an exam has changed its parameter and needs data update on SPS side
      *
      * @param exam The exam*/
-    void updateExam(final Exam exam) {
-
-        try {
+    Result<Exam> updateExam(final Exam exam) {
+        
+        return Result.tryCatch(() -> {
             final SPSData spsData = this.getSPSData(exam.id);
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
             final ScreenProctoringSettings settings = this.proctoringSettingsDAO
@@ -621,9 +665,9 @@ public class ScreenProctoringAPIBinding {
                     exam.getType().name(),
                     exam.startTime != null ? exam.startTime.getMillis() : null,
                     exam.endTime != null ? exam.endTime.getMillis() : null,
-                    settings.deletionTime != null ? settings.deletionTime.getMillis() : null, 
+                    settings.deletionTime != null ? settings.deletionTime.getMillis() : null,
                     supporterIds
-                    );
+            );
 
             final String jsonExamUpdate = this.jsonMapper.writeValueAsString(examUpdate);
 
@@ -632,13 +676,13 @@ public class ScreenProctoringAPIBinding {
                     HttpMethod.PUT,
                     jsonExamUpdate,
                     apiTemplate.getHeadersJSONRequest());
+            
             if (exchange.getStatusCode() != HttpStatus.OK) {
-                log.error("Failed to update SPS exam data: {}", exchange);
+                throw new RuntimeException("Failed to update SPS exam data: " + exchange);
             }
-
-        } catch (final Exception e) {
-            log.error("Failed to update exam on SPS service for exam: {}", exam, e);
-        }
+            
+            return exam;
+        });
     }
 
     /** This is called when an exam finishes and deactivates the Exam, SEB Client Access on Screen Proctoring Service side.
@@ -704,7 +748,7 @@ public class ScreenProctoringAPIBinding {
     private void initializeScreenProctoring(
             final Exam exam,
             final ScreenProctoringServiceOAuthTemplate apiTemplate) throws JsonProcessingException {
-
+        
         final SPSData spsData = new SPSData();
         log.info(
                 "SPS Exam for SEB Server Exam: {} don't exists yet, create necessary structures on SPS",
@@ -826,7 +870,7 @@ public class ScreenProctoringAPIBinding {
 
         final String key = exchange1.getHeaders().getFirst(SESSION_ENCRYPTION_KEY_REQUEST_HEADER);
         if (StringUtils.isBlank(key)) {
-            log.error("Failed to get SEB session encryption key form SPS");
+            log.error("Failed to get SEB session encryption key from SPS");
         }
 
         return new Tuple<>(token, key);

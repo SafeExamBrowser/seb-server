@@ -99,20 +99,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<ScreenProctoringGroup> getGroupByName(final Long examId, final String groupName) {
-        return Result.tryCatch(() -> {
-            return this.screenProctoringGroopRecordMapper.selectByExample()
-                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.examId, isEqualTo(examId))
-                    .and(ScreenProctoringGroopRecordDynamicSqlSupport.name, isEqualTo(groupName))
-                    .build()
-                    .execute()
-                    .get(0);
-        })
-                .map(this::toDomainModel);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Result<Collection<ScreenProctoringGroup>> getCollectingGroups(final Long examId) {
         return Result.tryCatch(() -> this.screenProctoringGroopRecordMapper
                 .selectByExample()
@@ -316,6 +302,26 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         } catch (final Exception e) {
             log.error("Failed to update name of group: {} new name {}", groupId, name);
         }
+    }
+
+    @Override
+    @Transactional
+    public Result<ScreenProctoringGroup> updateFromSPS(final Long id, final ScreenProctoringGroup groupOnSPS) {
+        return Result.tryCatch(() -> {
+            UpdateDSL
+                    .updateWithMapper(
+                            this.screenProctoringGroopRecordMapper::update,
+                            ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.uuid).equalTo(groupOnSPS.uuid)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.data).equalTo(groupOnSPS.additionalData)
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(id))
+                    .build()
+                    .execute();
+            
+            return id;
+        })
+                .flatMap(this::getScreenProctoringGroup)
+                .onError(TransactionHandler::rollback);
     }
 
     private ScreenProctoringGroup toDomainModel(final ScreenProctoringGroopRecord record) {
