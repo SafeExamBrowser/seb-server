@@ -707,9 +707,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // log SEB client IP address change
             log.warn(
-                    "ClientConnection integrity violation: client address mismatch: {}, {}",
+                    "ClientConnection integrity violation: client address mismatch: {}, {} connection: {}",
                     clientAddress,
-                    clientConnection.clientAddress);
+                    clientConnection.clientAddress,
+                    clientConnection.connectionToken);
 
             try {
                 final long now = Utils.getMillisecondsNow();
