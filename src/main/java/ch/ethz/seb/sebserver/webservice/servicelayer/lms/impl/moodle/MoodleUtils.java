@@ -42,7 +42,7 @@ public abstract class MoodleUtils {
             final String courseId,
             final String shortname,
             final String idnumber) {
-
+        
         return StringUtils.join(
                 new String[] {
                         quizId,
@@ -54,7 +54,11 @@ public abstract class MoodleUtils {
     }
 
     private static String maskShortName(final String shortname) {
-        return shortname
+        if (shortname == null) {
+            return null;
+        }
+        
+        String shortName = shortname
                 .replace(Constants.SEMICOLON.toString(), "_SC_")
                 .replace(Constants.COLON.toString(), "_COLON_")
                 .replace(Constants.SLASH.toString(), "_SL_")
@@ -62,6 +66,13 @@ public abstract class MoodleUtils {
                 .replace(Constants.AMPERSAND.toString(), "_AMP_")
                 .replace(Constants.ANGLE_BRACE_OPEN.toString(), "_AO_")
                 .replace(Constants.ANGLE_BRACE_CLOSE.toString(), "_AC_");
+        
+        if (shortName.length() > 200) {
+            log.warn("Moodle course short name is too long: {}. Cut it down to 200 chars", shortName.length());
+            shortName = shortName.substring(0, 200);
+        }
+        
+        return shortName;
     }
 
     private static String unmaskShortName(final String shortname) {
