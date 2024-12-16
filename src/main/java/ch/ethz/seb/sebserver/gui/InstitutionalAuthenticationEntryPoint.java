@@ -158,6 +158,11 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                         .uriVariables(uriVars)
                         .toUriString();
                 final RestTemplate restTemplate = new RestTemplate();
+                final Result<ClientHttpRequestFactory> clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                        .getClientHttpRequestFactory();
+                if (!clientHttpRequestFactory.hasError()) {
+                    restTemplate.setRequestFactory(clientHttpRequestFactory.get());
+                }
                 final List<EntityName> institutions = restTemplate
                         .exchange(
                                 uriString,

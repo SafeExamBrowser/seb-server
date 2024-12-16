@@ -1333,6 +1333,7 @@ class ScreenProctoringAPIBinding {
             resource.setUsername(userCredentials.clientIdAsString());
             resource.setPassword(decryptedSecret.toString());
 
+            // TODO use overall HttpRequestFactory to avoid SSL issues
             final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
             requestFactory.setOutputStreaming(false);
             final OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(resource);
@@ -1345,7 +1346,7 @@ class ScreenProctoringAPIBinding {
             try {
                 this.restTemplate.getAccessToken();
             } catch (final Exception e) {
-                log.info("Failed to get access token for SEB Screen Proctoring Service: {}", e.getMessage());
+                log.error("Failed to get access token for SEB Screen Proctoring Service: ", e);
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
 
