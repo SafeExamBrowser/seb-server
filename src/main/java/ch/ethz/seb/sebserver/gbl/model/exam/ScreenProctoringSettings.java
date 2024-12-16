@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -73,6 +74,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     @JsonProperty(ATTR_COLLECTING_GROUP_NAME)
     @NotEmpty(message = "screenProctoringSettings:spsCollectingGroupName:notNull")
+    @Size(min = 3, max = 255, message = "screenProctoringSettings:spsCollectingGroupName:size:{min}:{max}:${validatedValue}")
     public final String collectingGroupName;
 
     @JsonProperty(ATTR_COLLECTING_GROUP_SIZE)
