@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.util.Collections;
-
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +31,7 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
 
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientInstructionService sebClientInstructionService;
-
+    
     public SEBClientPingBlockingService(
             final ExamSessionCacheService examSessionCacheService,
             final SEBClientInstructionService sebClientInstructionService) {
@@ -60,19 +57,16 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
         if (connectionData != null) {
             if (connectionData.clientConnection.status == ClientConnection.ConnectionStatus.DISABLED) {
                 // SEBSERV-440 send quit instruction to SEB
-                sebClientInstructionService.registerInstruction(
-                        connectionData.clientConnection.examId,
-                        ClientInstruction.InstructionType.SEB_QUIT,
-                        Collections.emptyMap(),
-                        connectionData.clientConnection.connectionToken,
-                        false,
-                        false
-                );
+                this.sebClientInstructionService.sendQuitInstruction(
+                        connectionToken,
+                        connectionData.clientConnection.examId);
             }
 
             connectionData.notifyPing(Utils.getMillisecondsNow());
         } else {
-            log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
+            // SEBSERV-613 send quit instruction if exam is not running
+            log.warn("Failed to get ClientConnectionDataInternal probably due to finished Exam for: {}.", connectionToken);
+            this.sebClientInstructionService.sendQuitInstruction(connectionToken,null);
         }
 
         if (StringUtils.isNotBlank(instructionConfirm)) {
@@ -81,5 +75,6 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
 
         return this.sebClientInstructionService.getInstructionJSON(connectionToken);
     }
+    
 
 }

@@ -132,7 +132,6 @@ public class ExamSessionCacheService {
             }
 
             final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
-            // TODO check running exam within cache instead of DB call
             if (clientConnection == null || (clientConnection.examId != null && !examDAO.isRunning(clientConnection.examId))) {
                 return null;
             } else {

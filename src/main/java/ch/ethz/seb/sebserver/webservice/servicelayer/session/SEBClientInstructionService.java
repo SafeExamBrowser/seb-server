@@ -136,4 +136,9 @@ public interface SEBClientInstructionService {
     /** Used to clean up out-dated instructions on the persistent storage */
     void cleanupInstructions();
 
+    /** Used to send automated quit instruction to given SEB connection.
+     * 
+     * @param connectionToken SEB connection token to send quit instruction to
+     * @param examId exam identifier, if null try to get it from connection*/
+    void sendQuitInstruction(String connectionToken, Long examId);
 }
