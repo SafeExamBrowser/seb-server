@@ -139,6 +139,7 @@ public class ExamSessionCacheService {
             final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
             // TODO check running exam within cache instead of DB call
             if (clientConnection == null || (clientConnection.examId != null && !examDAO.isRunning(clientConnection.examId))) {
+                log.debug("ClientConnection integrity violation, expecting running exam: {}", clientConnection);
                 return null;
             } else {
                 return this.internalClientConnectionDataFactory.createClientConnectionData(clientConnection);

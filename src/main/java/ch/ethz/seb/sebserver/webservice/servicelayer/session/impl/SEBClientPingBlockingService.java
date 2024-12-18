@@ -72,7 +72,7 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
 
             connectionData.notifyPing(Utils.getMillisecondsNow());
         } else {
-            log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
+            log.debug("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
         }
 
         if (StringUtils.isNotBlank(instructionConfirm)) {
