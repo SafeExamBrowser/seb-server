@@ -90,3 +90,18 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
     (1633, 0,  @app_view_id, null, 0, 11, 1, 1, 'LEFT'),
     (1634, 0,  @app_view_id, null, 0, 12, 1, 1, 'LEFT')
 ;
+
+-- -----------------------------------------------------------------
+-- SEBSERV-592 - User Interface addition
+-- -----------------------------------------------------------------
+
+SET @ui_view_id = (SELECT id FROM view WHERE name='user_interface' AND template_id=0 LIMIT 1);
+
+INSERT IGNORE INTO configuration_attribute VALUES
+    (1640, 'enableScrollLock', 'CHECKBOX', null, null, null, null, 'true')
+;
+
+INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (1640, 0,  @ui_view_id, null, 7, 8, 5, 1, 'NONE')
+;
+UPDATE orientation SET y_position=7 WHERE config_attribute_id=1595 AND template_id=0;
