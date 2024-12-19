@@ -89,6 +89,8 @@ public class ExamSignatureKeyForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.signaturekey.grantlist.pleaseSelect");
     private static final LocTextKey GRANT_LIST_DELETE_CONFORM =
             new LocTextKey("sebserver.exam.signaturekey.grantlist.delete.confirm");
+    private static final LocTextKey GRANT_LIST_NO_ASK_SENT =
+            new LocTextKey("sebserver.exam.signaturekey.grantlist.noask");
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -169,10 +171,12 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                 .withPaging(-1)
                 .hideNavigation()
 
-                .withColumn(new ColumnDefinition<>(
+                .withColumn(new ColumnDefinition<AppSignatureKeyInfo>(
                         Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE,
                         APP_SIG_KEY_LIST_KEY,
-                        AppSignatureKeyInfo::getKey)
+                         i ->  StringUtils.isNotBlank(i.key) 
+                                 ? i.key 
+                                 : pageService.getI18nSupport().getText(GRANT_LIST_NO_ASK_SENT))
                                 .widthProportion(2))
 
                 .withColumn(new ColumnDefinition<>(

@@ -69,6 +69,8 @@ public class AddSecurityKeyGrantPopup {
             new LocTextKey("sebserver.exam.signaturekey.list.info");
     private static final LocTextKey TABLE_COLUMN_STATUS =
             new LocTextKey("sebserver.exam.signaturekey.list.status");
+    private static final LocTextKey GRANT_LIST_NO_ASK_SENT =
+            new LocTextKey("sebserver.exam.signaturekey.grantlist.noask");
 
     private final PageService pageService;
 
@@ -139,8 +141,8 @@ public class AddSecurityKeyGrantPopup {
                             Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE,
                             TITLE_TEXT_FORM_SIGNATURE,
                             (hasASK)
-                                    ? String.valueOf(this.appSignatureKeyInfo.key)
-                                    : Constants.EMPTY_NOTE)
+                                    ? this.appSignatureKeyInfo.key
+                                    : pageService.getI18nSupport().getText(GRANT_LIST_NO_ASK_SENT))
                             .readonly(true))
 
                     .addFieldIf(() -> hasASK && !readonly,
