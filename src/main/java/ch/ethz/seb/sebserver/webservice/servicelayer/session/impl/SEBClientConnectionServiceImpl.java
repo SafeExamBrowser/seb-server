@@ -844,11 +844,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             // otherwise apply new name
-            return accountId +
+            final String userSessionName = accountId +
                     Constants.SPACE +
                     Constants.EMBEDDED_LIST_SEPARATOR +
                     Constants.SPACE +
                     clientConnection.userSessionId;
+            if (userSessionName.length() > 255) {
+                return Utils.truncateText(userSessionName, 240);
+            } else {
+                return userSessionName;
+            }
         } catch (final Exception e) {
             log.error("Unexpected error while try to update userSessionId for connection: {}", clientConnection, e);
             return null;
