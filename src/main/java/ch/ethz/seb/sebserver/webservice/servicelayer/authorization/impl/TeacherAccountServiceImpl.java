@@ -133,7 +133,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final AdHocAccountData adHocAccountData,
             final boolean createIfNotExists) {
 
-        if (exam.status != Exam.ExamStatus.RUNNING && exam.status != Exam.ExamStatus.TEST_RUN) {
+        if (exam.status == Exam.ExamStatus.FINISHED || exam.status == Exam.ExamStatus.ARCHIVED) {
             return Result.ofError(new IllegalStateException("Exam is not running"));
         }
         
