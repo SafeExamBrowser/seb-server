@@ -648,18 +648,17 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             response.setStatus(HttpStatus.OK.value());
 
-        }catch(Exception e){
+        } catch ( final Exception e ) {
             final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
             outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         } finally {
-
             try {
                 outputStream.flush();
                 outputStream.close();
 
-            } catch (IOException e) {
+            } catch (final IOException e) {
                  log.error("error while flushing / closing output stream", e);
             }
         }
