@@ -177,7 +177,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         "sebserver.monitoring.exam",
                         StringEscapeUtils.escapeXml11(exam.name)));
         
-        if (exam.status != Exam.ExamStatus.RUNNING) {
+        if (exam.status != Exam.ExamStatus.RUNNING && exam.status != Exam.ExamStatus.TEST_RUN) {
             pageContext.publishInfo(NOT_RUNNING_MESSAGE);
             return;
         }
