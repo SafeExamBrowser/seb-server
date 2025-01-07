@@ -592,6 +592,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                             .getOrThrow();
                     return exam;
                 })
+                .flatMap(this.examAdminService::applySPSEnabled)
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
@@ -627,16 +628,17 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @Override
     protected Result<Exam> notifyCreated(final Exam entity) {
         return examImportService.applyExamImportInitialization(entity)
-                .flatMap(this.fullLmsIntegrationService::applyExamDataToLMS)
-                .flatMap(this.sebRestrictionService::applySEBRestrictionIfExamRunning);
+                .flatMapIgnoreError(this.fullLmsIntegrationService::applyExamDataToLMS)
+                .flatMapIgnoreError(this.sebRestrictionService::applySEBRestrictionIfExamRunning);
     }
 
     @Override
     protected Result<Exam> notifySaved(final Exam entity) {
         return this.examAdminService.notifyExamSaved(entity)
-                .flatMap(this.examAdminService::applyQuitPassword)
-                .flatMap(this.fullLmsIntegrationService::applyExamDataToLMS)
-                .flatMap(this.examSessionService::flushCache);
+                .flatMapIgnoreError(this.examAdminService::applyQuitPassword)
+                .flatMapIgnoreError(this.examAdminService::applySPSEnabled)
+                .flatMapIgnoreError(this.fullLmsIntegrationService::applyExamDataToLMS)
+                .flatMapIgnoreError(this.examSessionService::flushCache);
     }
 
     @Override

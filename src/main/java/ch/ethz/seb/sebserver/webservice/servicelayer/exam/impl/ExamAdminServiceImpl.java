@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 @Lazy
@@ -51,7 +50,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final LmsAPIService lmsAPIService;
     private final ExamConfigurationValueService examConfigurationValueService;
-    private final SEBRestrictionService sebRestrictionService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     protected ExamAdminServiceImpl(
@@ -62,7 +60,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final LmsAPIService lmsAPIService,
             final ExamConfigurationValueService examConfigurationValueService,
-            final SEBRestrictionService sebRestrictionService,
             final ApplicationEventPublisher applicationEventPublisher) {
 
         this.examDAO = examDAO;
@@ -72,7 +69,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.lmsAPIService = lmsAPIService;
         this.examConfigurationValueService = examConfigurationValueService;
-        this.sebRestrictionService = sebRestrictionService;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -256,7 +252,16 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     public Result<Exam> applyQuitPassword(final Exam exam) {
         return this.examConfigurationValueService
                 .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
-                .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t))
+                .onError(t -> log.error("Failed to apply quit password to Exam configuration for Exam: {}", exam, t))
+                .map(id -> exam);
+    }
+
+    @Override
+    public Result<Exam> applySPSEnabled(final Exam exam) {
+        return getProctoringAdminService()
+                .getScreenProctoringSettings(exam.getEntityKey())
+                .flatMap(settings -> this.examConfigurationValueService.applySPSEnabledToConfigs(exam.id, settings.enableScreenProctoring))
+                .onError(t -> log.error("Failed to apply screen proctoring enabled setting for Exam configuration for Exam: {}", exam, t))
                 .map(id -> exam);
     }
 

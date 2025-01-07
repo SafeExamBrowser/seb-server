@@ -233,6 +233,11 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                         // copy quit password from exam to config
                         examConfigurationValueService.applyQuitPasswordToConfigs(exam.id, exam.quitPassword);
                     }
+                    
+                    // apply SPS enabled setting from exam to config
+                    examAdminService
+                            .applySPSEnabled(exam)
+                            .onError(error -> log.warn("Failed to apply SPS enabled setting from exam: {} error: {}", exam, error.getMessage()));
 
                     // update seb client restriction if the feature is activated for the exam
                     this.examUpdateHandler

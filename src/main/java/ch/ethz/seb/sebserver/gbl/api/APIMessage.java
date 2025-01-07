@@ -74,6 +74,8 @@ public class APIMessage implements Serializable {
 
         EXAM_IMPORT_ERROR_QUIT_PASSWORD("1604", HttpStatus.PARTIAL_CONTENT,
                 "Failed to automatically apply quit password to Exam Configuration or the involved LMS"),
+        EXAM_IMPORT_ERROR_SPS_ENABLED("1605", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically apply SPS enabled setting to Exam Configuration"),
 
         EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS("1605", HttpStatus.PARTIAL_CONTENT,
                 "Failed to automatically apply Screen Proctoring settings for the imported exam"),

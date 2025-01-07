@@ -246,6 +246,25 @@ public final class Result<T> {
         }
     }
 
+    public <U> Result<U> flatMapIgnoreError(final Function<? super T, Result<U>> mapFunction) {
+        try {
+            return mapFunction.apply(this.value);
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
+    }
+
+    public <U> Result<U> flatMapIgnoreErrorButLog(final Function<? super T, Result<U>> mapFunction) {
+        if (this.error != null) {
+            log.error("Step Failed error: ", this.error);
+        }
+        try {
+            return mapFunction.apply(this.value);
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
+    }
+
     public Result<T> whenDo(final Predicate<T> predicate, final Function<T, T> handler) {
         if (this.error == null && predicate.test(this.value)) {
             return Result.tryCatch(() -> handler.apply(this.value));

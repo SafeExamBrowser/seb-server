@@ -133,6 +133,8 @@ public interface ExamAdminService {
      * @param exam the exam that has been changed and saved */
     Result<Exam> notifyExamSaved(Exam exam);
 
-    Result<Exam>  applyQuitPassword(Exam exam);
+    Result<Exam> applyQuitPassword(Exam exam);
+    
+    Result<Exam> applySPSEnabled(Exam exam);
 
 }

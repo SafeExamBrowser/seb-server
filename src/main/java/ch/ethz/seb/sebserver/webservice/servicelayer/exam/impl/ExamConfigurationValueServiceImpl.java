@@ -13,6 +13,7 @@ import java.util.Objects;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,6 +157,25 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                     examId, 
                     CONFIG_ATTR_NAME_QUIT_SECRET, 
                     StringUtils.isBlank(quitSecret) ? StringUtils.EMPTY : quitSecret);
+        });
+    }
+
+    @Override
+    public Result<Long> applySPSEnabledToConfigs(final Long examId, final Boolean enabled) {
+        return Result.tryCatch(() -> {
+            final String stringTrueFalse = BooleanUtils.toStringTrueFalse(enabled);
+            final String oldSetting = getMappedDefaultConfigAttributeValue(
+                    examId, 
+                    CONFIG_ATTR_NAME_ENABLE_SCREEN_PROCTORING,
+                    null);
+            if (oldSetting != null && !Objects.equals(stringTrueFalse, oldSetting)) {
+                return saveSEBAttributeValueToConfig(
+                        examId,
+                        CONFIG_ATTR_NAME_ENABLE_SCREEN_PROCTORING,
+                        stringTrueFalse);
+            }
+            
+            return examId;
         });
     }
 

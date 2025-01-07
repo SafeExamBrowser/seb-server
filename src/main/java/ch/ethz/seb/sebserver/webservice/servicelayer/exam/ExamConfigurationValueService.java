@@ -15,6 +15,7 @@ public interface ExamConfigurationValueService {
     String CONFIG_ATTR_NAME_QUIT_LINK = "quitURL";
     String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
     String CONFIG_ATTR_NAME_ALLOWED_SEB_VERSION = "sebAllowedVersions";
+    String CONFIG_ATTR_NAME_ENABLE_SCREEN_PROCTORING = "enableScreenProctoring";
 
     /** Get the actual SEB settings attribute value for the exam configuration mapped as default configuration
      * to the given exam
@@ -46,13 +47,21 @@ public interface ExamConfigurationValueService {
 
     String getQuitPasswordFromConfigTemplate(Long configTemplateId);
 
-    /** Used to apply the quit pass given from the exam to all exam configuration for the exam.
+    /** Used to apply the quit password given from the exam to all exam configuration for the exam.
      *
      * @param examId The exam identifier
      * @param quitPassword The quit password to set to all exam configuration of the given exam
      * @return Result to the given exam id or to an error when happened
      */
     Result<Long> applyQuitPasswordToConfigs(Long examId, String quitPassword);
+
+    /** Used to apply the enables screen proctoring setting given from the exam to all exam configuration for the exam.
+     *
+     * @param examId The exam identifier
+     * @param enabled The enables screen proctoring setting
+     * @return Result to the given exam id or to an error when happened
+     */
+    Result<Long> applySPSEnabledToConfigs(Long examId, Boolean enabled);
 
     /** Used to apply the quit pass given from the exam to all exam configuration for the exam.
      *
