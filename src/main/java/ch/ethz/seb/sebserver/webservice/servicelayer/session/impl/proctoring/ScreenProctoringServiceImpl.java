@@ -216,7 +216,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     this.cryptor.encrypt(screenProctoringSettings.spsAPISecret).getOrThrow(),
                     screenProctoringSettings.spsAccountId,
                     this.cryptor.encrypt(screenProctoringSettings.spsAccountPassword).getOrThrow(),
-                    screenProctoringSettings.deletionTime,
                     screenProctoringSettings.collectingStrategy,
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,

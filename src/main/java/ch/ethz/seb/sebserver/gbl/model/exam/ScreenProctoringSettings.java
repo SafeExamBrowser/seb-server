@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import org.joda.time.DateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
@@ -34,8 +33,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     public static final String ATTR_SPS_ACCOUNT_ID = "spsAccountId";
     public static final String ATTR_SPS_ACCOUNT_PASSWORD = "spsAccountPassword";
-
-    public static final String ATT_SPS_DELETION_TIME = "spsDeletionTime";
+    
     public static final String ATTR_COLLECTING_STRATEGY = "spsCollectingStrategy";
     public static final String ATTR_COLLECTING_GROUP_NAME = "spsCollectingGroupName";
     public static final String ATTR_COLLECTING_GROUP_SIZE = "spsCollectingGroupSize";
@@ -65,10 +63,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     @JsonProperty(ATTR_SPS_ACCOUNT_PASSWORD)
     public final CharSequence spsAccountPassword;
-
-    @JsonProperty(ATT_SPS_DELETION_TIME)
-    public final DateTime deletionTime;
-
+    
     @JsonProperty(ATTR_COLLECTING_STRATEGY)
     public final CollectingStrategy collectingStrategy;
 
@@ -95,7 +90,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
             @JsonProperty(ATTR_SPS_API_SECRET) final CharSequence spsAPISecret,
             @JsonProperty(ATTR_SPS_ACCOUNT_ID) final String spsAccountId,
             @JsonProperty(ATTR_SPS_ACCOUNT_PASSWORD) final CharSequence spsAccountPassword,
-            @JsonProperty(ATT_SPS_DELETION_TIME) final DateTime deletionTime,
             @JsonProperty(ATTR_COLLECTING_STRATEGY) final CollectingStrategy collectingStrategy,
             @JsonProperty(ATTR_COLLECTING_GROUP_NAME) final String collectingGroupName,
             @JsonProperty(ATTR_COLLECTING_GROUP_SIZE) final Integer collectingGroupSize,
@@ -109,7 +103,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
         this.spsAPISecret = spsAPISecret;
         this.spsAccountId = spsAccountId;
         this.spsAccountPassword = spsAccountPassword;
-        this.deletionTime = deletionTime;
         this.collectingStrategy = collectingStrategy;
         this.collectingGroupName = collectingGroupName;
         this.collectingGroupSize = collectingGroupSize;
@@ -125,7 +118,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
             final CharSequence spsAPISecret,
             final String spsAccountId,
             final CharSequence spsAccountPassword,
-            final DateTime deletionTime,
             final CollectingStrategy collectingStrategy,
             final String collectingGroupName,
             final Integer collectingGroupSize,
@@ -138,7 +130,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
         this.spsAPISecret = spsAPISecret;
         this.spsAccountId = spsAccountId;
         this.spsAccountPassword = spsAccountPassword;
-        this.deletionTime = deletionTime;
         this.collectingStrategy = collectingStrategy;
         this.collectingGroupName = collectingGroupName;
         this.collectingGroupSize = collectingGroupSize;
@@ -189,10 +180,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
         return this.spsAccountPassword;
     }
 
-    public DateTime getDeletionTime() {
-        return deletionTime;
-    }
-
     public CollectingStrategy getCollectingStrategy() {
         return this.collectingStrategy;
     }
@@ -240,7 +227,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
                 ", spsAPISecret=" + spsAPISecret +
                 ", spsAccountId='" + spsAccountId + '\'' +
                 ", spsAccountPassword=" + spsAccountPassword +
-                ", deletionTime=" + deletionTime +
                 ", collectingStrategy=" + collectingStrategy +
                 ", collectingGroupName='" + collectingGroupName + '\'' +
                 ", collectingGroupSize=" + collectingGroupSize +

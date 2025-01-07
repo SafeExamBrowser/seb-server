@@ -665,7 +665,7 @@ public class ScreenProctoringAPIBinding {
                     exam.getType().name(),
                     exam.startTime != null ? exam.startTime.getMillis() : null,
                     exam.endTime != null ? exam.endTime.getMillis() : null,
-                    settings.deletionTime != null ? settings.deletionTime.getMillis() : null,
+                    null,
                     supporterIds
             );
 
@@ -1151,7 +1151,7 @@ public class ScreenProctoringAPIBinding {
             final MultiValueMap<String, String> params = createExamCreationParams(
                     exam, 
                     uuid,
-            settings.deletionTime,
+            /*settings.deletionTime */ null,
             supporterIds);
             final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
 
