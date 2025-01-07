@@ -315,7 +315,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .toList();
             
             return new ScreenProctoringSettings(
-                    screenProctoringSettings.examId,
+                    exam.id,
                     screenProctoringSettings.enableScreenProctoring,
                     screenProctoringSettings.spsServiceURL,
                     screenProctoringSettings.spsAPIKey,
