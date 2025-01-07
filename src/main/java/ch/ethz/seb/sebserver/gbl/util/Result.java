@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -142,7 +143,7 @@ public final class Result<T> {
             if (this.error instanceof RuntimeException) {
                 throw (RuntimeException) this.error;
             } else {
-                String cause = this.error.getMessage() != null ? this.error.getMessage() : this.error.toString();
+                final String cause = this.error.getMessage() != null ? this.error.getMessage() : this.error.toString();
                 throw new RuntimeException("RuntimeExceptionWrapper cause: " + cause, this.error);
             }
         }
@@ -381,20 +382,11 @@ public final class Result<T> {
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final Result<?> other = (Result<?>) obj;
-        if (this.value == null) {
-            if (other.value != null)
-                return false;
-        } else if (!this.value.equals(other.value))
-            return false;
-        return true;
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Result<?> result = (Result<?>) o;
+        return Objects.equals(value, result.value) && Objects.equals(error, result.error);
     }
 
     @Override
