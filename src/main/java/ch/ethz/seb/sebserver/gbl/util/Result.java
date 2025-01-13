@@ -292,6 +292,13 @@ public final class Result<T> {
         return this;
     }
 
+    public Result<T> onErrorHandle(final Function<Exception, Exception> errorHandler) {
+        if (this.error != null) {
+            return Result.ofError( errorHandler.apply(this.error));
+        }
+        return this;
+    }
+
     public Result<T> onErrorDo(final Function<Exception, T> errorHandler) {
         if (this.error != null) {
             return Result.tryCatch(() -> errorHandler.apply(this.error));
