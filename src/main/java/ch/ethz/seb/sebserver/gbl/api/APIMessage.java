@@ -203,17 +203,15 @@ public class APIMessage implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("APIMessage [messageCode=");
-        builder.append(this.messageCode);
-        builder.append(", systemMessage=");
-        builder.append(this.systemMessage);
-        builder.append(", details=");
-        builder.append(this.details);
-        builder.append(", attributes=");
-        builder.append(this.attributes);
-        builder.append("]");
-        return builder.toString();
+        return "APIMessage [messageCode=" +
+                this.messageCode +
+                ", systemMessage=" +
+                this.systemMessage +
+                ", details=" +
+                this.details +
+                ", attributes=" +
+                this.attributes +
+                "]";
     }
 
     /** Use this as a conversion from a given FieldError of Spring to a APIMessage
@@ -255,8 +253,14 @@ public class APIMessage implements Serializable {
         private final Collection<APIMessage> apiMessages;
 
         public APIMessageException(final Collection<APIMessage> apiMessages) {
-            super();
+            super(getMessage(apiMessages));
             this.apiMessages = apiMessages;
+        }
+        
+        static String getMessage(final Collection<APIMessage> apiMessages) {
+            if (apiMessages == null || apiMessages.isEmpty())
+                return "none";
+            return apiMessages.iterator().next().systemMessage;
         }
 
         public APIMessageException(final APIMessage apiMessage) {
@@ -331,16 +335,13 @@ public class APIMessage implements Serializable {
     }
 
     public static boolean checkError(final Exception error, final ErrorMessage errorMessage) {
-        if (!(error instanceof APIMessageError)) {
+        if (!(error instanceof final APIMessageError _error)) {
             return false;
         }
 
-        final APIMessageError _error = (APIMessageError) error;
         return _error.getAPIMessages()
                 .stream()
-                .filter(msg -> errorMessage.messageCode.equals(msg.messageCode))
-                .findFirst()
-                .isPresent();
+                .anyMatch(msg -> errorMessage.messageCode.equals(msg.messageCode));
     }
 
 }

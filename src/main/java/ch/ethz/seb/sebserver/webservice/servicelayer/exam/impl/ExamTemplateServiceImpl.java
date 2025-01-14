@@ -339,10 +339,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         filterMap.putIfAbsent(Entity.FILTER_ATTR_NAME, configName);
 
         // get existing config if available
-        final ConfigurationNode examConfig = this.configurationNodeDAO
+        Collection<ConfigurationNode> allConfigs = this.configurationNodeDAO
                 .allMatching(filterMap)
-                .getOrThrow()
-                .stream()
+                .getOrThrow();
+        final ConfigurationNode examConfig = allConfigs.stream()
                 .filter(res -> res.name.equals(configName))
                 .findFirst()
                 .orElse(null);
@@ -354,7 +354,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 !Objects.equals(examConfig.templateId, examTemplate.configTemplateId)) {
 
             final String newName = (examConfig != null && examConfig.name.equals(configName))
-                    ? examConfig.name + "_" + DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER)
+                    ? examConfig.name + "_" + 
+                        DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER + 
+                        "_(" + allConfigs.size() + ")")
                     : configName;
 
             final ConfigurationNode config = new ConfigurationNode(
@@ -372,11 +374,11 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             return this.configurationNodeDAO
                     .createNew(config)
                     .onError(error -> log.error(
-                            "Failed to create exam configuration for exam: {} from template: {} examConfig: {}",
+                            "Failed to create exam configuration for exam: {} from template: {} examConfig: {} error: {}",
                             exam.name,
                             examTemplate.name,
                             config,
-                            error))
+                            error.getMessage()))
                     .getOrThrow(error -> new APIMessageException(
                             ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG,
                             error));
