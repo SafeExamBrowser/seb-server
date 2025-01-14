@@ -311,10 +311,10 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                         null,
                         Void.class);
                 if (response.getStatusCode() != HttpStatus.OK) {
-                    log.error("Failed to log logout: {}", response.getStatusCode());
+                    log.warn("Failed to log logout: {}", response.getStatusCode());
                 }
             } catch (final Exception e) {
-                log.error("Failed to log logout: {}", e.getMessage());
+                log.warn("Failed to log logout: {}", e.getMessage());
             }
 
             // set this context invalid to force creation of a new context on next request

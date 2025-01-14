@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -73,7 +74,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyServ
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -87,7 +87,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final UserDAO userDAO;
     private final ExamAdminService examAdminService;
     private final ExamImportService examImportService;
-    private final RemoteProctoringRoomService remoteProctoringRoomService;
     private final LmsAPIService lmsAPIService;
     private final ExamSessionService examSessionService;
     private final SEBRestrictionService sebRestrictionService;
@@ -106,7 +105,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final UserDAO userDAO,
             final ExamAdminService examAdminService,
             final ExamImportService examImportService,
-            final RemoteProctoringRoomService remoteProctoringRoomService,
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
             final SecurityKeyService securityKeyService,
@@ -124,7 +122,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.userDAO = userDAO;
         this.examAdminService = examAdminService;
         this.examImportService = examImportService;
-        this.remoteProctoringRoomService = remoteProctoringRoomService;
         this.lmsAPIService = lmsAPIService;
         this.examSessionService = examSessionService;
         this.sebRestrictionService = sebRestrictionService;
@@ -512,34 +509,34 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_RESET_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Exam resetProctoringRooms(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
-
-        checkModifyPrivilege(institutionId);
-
-        return this.entityDAO
-                .byPK(examId)
-                .flatMap(this.remoteProctoringRoomService::cleanupAllRooms)
-                .map(exam -> {
-                    this.examAdminService.getExamProctoringService(exam.id)
-                            .onSuccess(service -> service.clearRestTemplateCache(exam.id))
-                            .onError(error -> log.warn(
-                                    "Failed to clear proctoring rest template cache for exam: {}",
-                                    error.getMessage()));
-                    return exam;
-                })
-                .getOrThrow();
-    }
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_PROCTORING_RESET_PATH_SEGMENT,
+//            method = RequestMethod.POST,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Exam resetProctoringRooms(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
+//
+//        checkModifyPrivilege(institutionId);
+//
+//        return this.entityDAO
+//                .byPK(examId)
+//                .flatMap(this.remoteProctoringRoomService::cleanupAllRooms)
+//                .map(exam -> {
+//                    this.examAdminService.getExamProctoringService(exam.id)
+//                            .onSuccess(service -> service.clearRestTemplateCache(exam.id))
+//                            .onError(error -> log.warn(
+//                                    "Failed to clear proctoring rest template cache for exam: {}",
+//                                    error.getMessage()));
+//                    return exam;
+//                })
+//                .getOrThrow();
+//    }
 
     // **** Proctoring
     // ****************************************************************************
@@ -652,7 +649,47 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return super.validForSave(entity)
                 .map(this::checkExamSupporterRole)
                 .map(ExamUtils::noLMSFieldValidation)
-                .map(this::checkQuitPasswordChange);
+                .map(this::checkQuitPasswordChange)
+                .map(this::mergeTeacherAccounts);
+    }
+
+    private Exam mergeTeacherAccounts(final Exam exam) {
+        return examDAO.byPK(exam.id).map(oldExam -> {
+            if (oldExam.supporter != null) {
+                final List<String> teacherAccounts = oldExam.supporter
+                        .stream()
+                        .filter(s -> s.contains(TeacherAccountService.AD_HOC_TEACHER_ID_PREFIX))
+                        .toList();
+                if (!teacherAccounts.isEmpty()) {
+                    final ArrayList<String> supporterAndTeacher = new ArrayList<>(teacherAccounts);
+                    supporterAndTeacher.addAll(exam.supporter);
+                
+                    return new Exam(
+                            exam.id,
+                            exam.institutionId,
+                            exam.lmsSetupId,
+                            exam.externalId,
+                            exam.lmsAvailable,
+                            exam.name,
+                            exam.startTime,
+                            exam.endTime,
+                            exam.type,
+                            exam.owner,
+                            supporterAndTeacher,
+                            exam.status,
+                            exam.quitPassword,
+                            exam.sebRestriction,
+                            exam.browserExamKeys,
+                            exam.active,
+                            exam.lastUpdate,
+                            exam.examTemplateId,
+                            exam.lastModified,
+                            exam.additionalAttributes);
+                }
+            }
+            return exam;
+        })
+                .getOr(exam);
     }
 
     @Override

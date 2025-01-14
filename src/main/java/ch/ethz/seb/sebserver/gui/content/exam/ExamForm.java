@@ -617,7 +617,7 @@ public class ExamForm implements TemplateComposer {
                                 Domain.EXAM.ATTR_SUPPORTER,
                                 FORM_SUPPORTER_TEXT_KEY,
                                 StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
-                                this.resourceService::examSupporterResources)
+                                this.resourceService::examSupporterResourcesNoTeacher)
                         .readonlyIf(() -> isLight && newExam))
 
                 .buildFor(importFromLMS
