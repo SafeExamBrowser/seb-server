@@ -304,7 +304,13 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                         WebserviceInfo.class);
 
                 if (StringUtils.isBlank(webserviceInfo.username) || StringUtils.isBlank(webserviceInfo.userid)) {
-                    throw new RuntimeException("Invalid WebserviceInfo Response");
+                    if (apiInfo != null && (apiInfo.startsWith("{exception") || apiInfo.contains("\"exception\":"))) {
+                        if (apiInfo.contains("sitemaintenance")) {
+                            throw new RuntimeException("Moodle is currently in maintenance mode!");
+                        }
+                        throw new RuntimeException("Moodle respond with error: " + apiInfo);
+                    }
+                    throw new RuntimeException("Invalid WebserviceInfo Response: " + apiInfo);
                 }
 
                 if (functions != null) {
@@ -358,12 +364,13 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
             final String body = createMoodleFormPostBody(queryAttributes);
 
-            // TODO remove this after testing
-            try {
-                final String uriString = URLDecoder.decode(queryParam.toUriString(), "UTF8");
-                log.info("POST To Moodle URI (decoded UTF8): {}, body: {}", uriString, body);
-            } catch (final Exception e) {
-                // ignore
+            if (log.isDebugEnabled()) {
+                try {
+                    final String uriString = URLDecoder.decode(queryParam.toUriString(), "UTF8");
+                    log.info("POST To Moodle URI (decoded UTF8): {}, body: {}", uriString, body);
+                } catch (final Exception e) {
+                    // ignore
+                }
             }
 
             final HttpHeaders headers = new HttpHeaders();
