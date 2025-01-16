@@ -364,7 +364,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 queryParam.queryParams(queryParams);
             }
 
-            final String body = URLEncoder.encode(createMoodleFormPostBody(queryAttributes), StandardCharsets.UTF_8);
+            final String body = createMoodleFormPostBody(queryAttributes);
 
             if (log.isDebugEnabled()) {
                 try {
@@ -392,7 +392,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             final StringBuffer sb = new StringBuffer();
             queryAttributes.forEach(
                     (name1, value1) -> value1.forEach(
-                            (key, value) -> sb.append(name1).append("[").append(key).append("]=").append(value).append("&")));
+                            (key, value) -> sb.append(name1).append("[").append(key).append("]=").append(URLEncoder.encode(value, StandardCharsets.UTF_8)).append("&")));
 
             sb.deleteCharAt(sb.length() - 1);
             return sb.toString();
