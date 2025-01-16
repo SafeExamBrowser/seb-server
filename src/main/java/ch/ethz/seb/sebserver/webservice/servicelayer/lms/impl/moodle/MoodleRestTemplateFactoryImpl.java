@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -362,7 +364,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 queryParam.queryParams(queryParams);
             }
 
-            final String body = createMoodleFormPostBody(queryAttributes);
+            final String body = URLEncoder.encode(createMoodleFormPostBody(queryAttributes), StandardCharsets.UTF_8);
 
             if (log.isDebugEnabled()) {
                 try {
