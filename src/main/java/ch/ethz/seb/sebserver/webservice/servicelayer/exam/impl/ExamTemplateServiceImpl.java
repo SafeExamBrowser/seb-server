@@ -355,8 +355,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             final String newName = (examConfig != null && examConfig.name.equals(configName))
                     ? examConfig.name + "_" + 
-                        DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER + 
-                        "_(" + allConfigs.size() + ")")
+                        DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER) +
+                        "_(" + allConfigs.size() + ")"
                     : configName;
 
             final ConfigurationNode config = new ConfigurationNode(
