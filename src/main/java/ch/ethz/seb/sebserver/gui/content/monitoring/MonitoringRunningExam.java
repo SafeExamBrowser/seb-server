@@ -224,18 +224,18 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         actionBuilder
 
-                .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
-                .withEntityKey(entityKey)
-                .withExec(this::openSearchPopup)
-                .noEventPropagation()
-                .publishIf(isExamSupporter)
-
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
                 .withEntityKey(entityKey)
                 .withConfirm(() -> CONFIRM_QUIT_ALL)
                 .withExec(action -> this.quitSEBClients(action, clientTable, true))
                 .noEventPropagation()
                 .publishIf(() -> isExamSupporter.getAsBoolean() && quitEnabled)
+
+                .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
+                .withEntityKey(entityKey)
+                .withExec(this::openSearchPopup)
+                .noEventPropagation()
+                .publishIf(isExamSupporter)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_SELECTED)
                 .withEntityKey(entityKey)

@@ -983,7 +983,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all"),
             ImageIcon.SEND_QUIT,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.EXAM_MONITORING_2),
+            ActionCategory.FORM),
     MONITOR_EXAM_LOCK_SELECTED(
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.lock.selected"),
             ImageIcon.LOCK,

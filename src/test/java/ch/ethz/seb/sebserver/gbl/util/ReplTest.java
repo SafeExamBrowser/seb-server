@@ -12,6 +12,8 @@ import static org.junit.Assert.*;
 
 import java.util.Objects;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -61,6 +63,17 @@ public class ReplTest {
         assertTrue(Objects.equals(null, null));
         assertFalse(Objects.equals("", null));
     }
+    
+//    @Test
+//    public void testSystemTime() {
+//        DateTime now = DateTime.now().withZone(DateTimeZone.UTC);
+//        long now1 = Utils.getMillisecondsNow();
+//        DateTime now2 = new DateTime(Long.valueOf(String.valueOf(now1)), DateTimeZone.UTC);
+//        Utils.toDateTimeUTCUnix(System.currentTimeMillis());
+//         
+//        System.out.println("******************* now Date Time " + now);
+//        System.out.println("******************* now System    " + now2);
+//    }
 
     @Test
     public void encryptSignatureKey() {
