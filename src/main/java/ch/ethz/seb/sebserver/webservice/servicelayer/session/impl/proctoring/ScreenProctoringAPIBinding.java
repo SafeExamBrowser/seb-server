@@ -495,7 +495,7 @@ public class ScreenProctoringAPIBinding {
 
         final ScreenProctoringGroup localGroup = localGroups.values()
                 .stream()
-                .filter(g -> g.isFallback)
+                .filter(g -> BooleanUtils.isTrue(g.isFallback))
                 .findFirst()
                 .orElse(null);
         final SPSGroup spsGroup = spsGroups.get(localGroup.uuid);
@@ -916,6 +916,14 @@ public class ScreenProctoringAPIBinding {
     }
     
     void closeSEBSession(final ClientConnectionRecord clientConnection) {
+        if (clientConnection.getScreenProctoringGroupId() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Skip closing SPS session because SEB Server connection seems not to have a SPS session before closing: {}", 
+                        clientConnection);
+            }
+            return;
+        }
         final String token = clientConnection.getConnectionToken();
         final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(clientConnection.getExamId());
         activation(SESSION_ENDPOINT, token, false, apiTemplate);
