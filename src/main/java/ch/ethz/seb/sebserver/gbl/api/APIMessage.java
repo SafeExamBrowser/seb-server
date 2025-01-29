@@ -85,7 +85,10 @@ public class APIMessage implements Serializable {
                 "Failed to automatically link auto-generated exam configuration to the exam"),
 
         CLIENT_CONNECTION_INTEGRITY_VIOLATION("1700", HttpStatus.NOT_ACCEPTABLE,
-                "SEB client connection is not in valid state to apply requested operation");
+                "SEB client connection is not in valid state to apply requested operation"),
+
+        NEED_CONFIRMATION("1800", HttpStatus.PARTIAL_CONTENT,
+                "Some additional user confirmation needed");
 
         public final String messageCode;
         public final HttpStatus httpStatus;

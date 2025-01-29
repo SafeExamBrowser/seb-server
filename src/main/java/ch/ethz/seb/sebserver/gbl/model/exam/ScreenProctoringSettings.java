@@ -41,6 +41,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     public static final String ATTR_SPS_BUNDLED = "bundled";
     public static final String ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME = "SCREEN_PROCTORING_SETTINGS";
+    public static final String ATTR_CHANGE_STRATEGY_CONFIRM = "changeStrategyConfirm";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
@@ -81,6 +82,9 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
     @JsonProperty(ATTR_SPS_BUNDLED)
     public final boolean bundled;
 
+    @JsonProperty(ATTR_CHANGE_STRATEGY_CONFIRM)
+    public final boolean confirmChangeStrategy;
+
     @JsonCreator
     public ScreenProctoringSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
@@ -94,7 +98,8 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
             @JsonProperty(ATTR_COLLECTING_GROUP_NAME) final String collectingGroupName,
             @JsonProperty(ATTR_COLLECTING_GROUP_SIZE) final Integer collectingGroupSize,
             @JsonProperty(ATT_SEB_GROUPS_SELECTION) final String sebGroupsSelection,
-            @JsonProperty(ATTR_SPS_BUNDLED) final boolean bundled) {
+            @JsonProperty(ATTR_SPS_BUNDLED) final boolean bundled,
+            @JsonProperty(ATTR_CHANGE_STRATEGY_CONFIRM) final boolean confirmChangeStrategy) {
 
         this.examId = examId;
         this.enableScreenProctoring = enableScreenProctoring;
@@ -108,6 +113,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
         this.collectingGroupSize = collectingGroupSize;
         this.sebGroupsSelection = sebGroupsSelection;
         this.bundled = bundled;
+        this.confirmChangeStrategy = confirmChangeStrategy;
     }
 
     public ScreenProctoringSettings(
@@ -121,7 +127,8 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
             final CollectingStrategy collectingStrategy,
             final String collectingGroupName,
             final Integer collectingGroupSize,
-            final String sebGroupsSelection) {
+            final String sebGroupsSelection,
+            final boolean confirmChangeStrategy) {
 
         this.examId = examId;
         this.enableScreenProctoring = enableScreenProctoring;
@@ -135,6 +142,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
         this.collectingGroupSize = collectingGroupSize;
         this.sebGroupsSelection = sebGroupsSelection;
         this.bundled = false;
+        this.confirmChangeStrategy = confirmChangeStrategy;
     }
 
     @Override
@@ -204,7 +212,11 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
     public boolean isBundled() {
         return this.bundled;
     }
-    
+
+    public boolean isConfirmChangeStrategy() {
+        return confirmChangeStrategy;
+    }
+
     @Override
     public boolean equals(final Object obj) {
         if (this == obj)

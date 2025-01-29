@@ -129,7 +129,8 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                         screenProctoringSettings.collectingGroupName,
                         screenProctoringSettings.collectingGroupSize,
                         screenProctoringSettings.sebGroupsSelection,
-                        true);
+                        true,
+                        screenProctoringSettings.confirmChangeStrategy);
             }
 
             this.screenProctoringService

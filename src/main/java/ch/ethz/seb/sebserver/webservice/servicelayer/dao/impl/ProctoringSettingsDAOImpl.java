@@ -333,7 +333,8 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                                 null,
                                 getScreenProctoringCollectingSize(mapping),
                                 null,
-                                true);
+                                true,
+                                false);
                     } else {
                         return new ScreenProctoringSettings(
                                 entityId,
@@ -347,6 +348,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                                 null,
                                 getScreenProctoringCollectingSize(mapping),
                                 null,
+                                false,
                                 false);
                     }
                 })

@@ -232,7 +232,7 @@ interface SPS_API {
             this.circuitBreaker = apiBinding.asyncService.createCircuitBreaker(
                     2,
                     10 * Constants.SECOND_IN_MILLIS,
-                    10 * Constants.SECOND_IN_MILLIS);
+                    30 * Constants.SECOND_IN_MILLIS);
 
             final ClientCredentials clientCredentials = new ClientCredentials(
                     spsAPIAccessData.getSpsAPIKey(),

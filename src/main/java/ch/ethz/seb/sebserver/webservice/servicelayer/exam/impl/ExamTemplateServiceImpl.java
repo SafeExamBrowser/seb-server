@@ -326,7 +326,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,
                     StringUtils.join(selectedInstances, Constants.LIST_SEPARATOR),
-                    screenProctoringSettings.bundled
+                    screenProctoringSettings.bundled, 
+                    false
             );
         }
         return screenProctoringSettings;

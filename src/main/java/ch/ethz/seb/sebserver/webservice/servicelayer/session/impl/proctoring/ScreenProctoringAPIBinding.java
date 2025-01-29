@@ -365,7 +365,7 @@ public class ScreenProctoringAPIBinding {
             // synchronize
             if (!localGroups.isEmpty()) {
                 switch (settings.collectingStrategy) {
-                    case EXAM -> synchronizeDefaultGroup(exam, spsData, settings, localGroups, spsGroups, apiTemplate);
+                    case EXAM -> synchronizeExamSingleGroup(exam, spsData, settings, localGroups, spsGroups, apiTemplate);
                     case APPLY_SEB_GROUPS -> synchronizeFromSEBGroups(exam, spsData, localGroups, spsGroups, settings, apiTemplate);
                 }
             }
@@ -373,6 +373,23 @@ public class ScreenProctoringAPIBinding {
         } catch (final Exception e) {
             log.error("Failed to synchronize groups for exam: {} error: {}", exam.name, e.getMessage());
         }
+    }
+    
+    private void synchronizeExamSingleGroup(
+            final Exam exam,
+            final SPSData spsData,
+            final ScreenProctoringSettings settings,
+            final Map<String, ScreenProctoringGroup> localGroups,
+            final Map<String, SPSGroup> spsGroups,
+            final ScreenProctoringServiceOAuthTemplate apiTemplate) {
+        
+        // delete every existing none default group first since this strategy has only one default group
+        localGroups.entrySet()
+                .stream()
+                .filter(entry -> !BooleanUtils.isTrue(entry.getValue().isFallback))
+                .forEach( entry -> deleteGroup(apiTemplate, entry.getValue()));
+
+        synchronizeDefaultGroup(exam, spsData, settings, localGroups, spsGroups, apiTemplate);
     }
 
     private void synchronizeFromSEBGroups(
@@ -989,7 +1006,7 @@ public class ScreenProctoringAPIBinding {
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.POST);
             if (exchange.getStatusCode() != HttpStatus.OK) {
-                log.error("Failed to request active group session counts: {}", exchange);
+                log.warn("Failed to request active group session counts: {}", exchange);
                 return Collections.emptyList();
             }
 
@@ -999,7 +1016,9 @@ public class ScreenProctoringAPIBinding {
                     });
 
         } catch (final Exception e) {
-            log.error("Failed to get active group session counts: {}", e.getMessage());
+            if (!e.getMessage().contains("Open CircuitBreaker")) {
+                log.warn("Failed to get active group session counts: {}", e.getMessage());
+            }
             return Collections.emptyList();
         }
     }

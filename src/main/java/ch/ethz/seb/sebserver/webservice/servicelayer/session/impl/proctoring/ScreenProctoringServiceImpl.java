@@ -156,9 +156,14 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         "clientSecret",
                         "screenProctoringSettings:spsSEBGroupsSelection:notNull"));
             }
+
+            if (!fieldChecks.isEmpty()) {
+                throw new APIMessageException(fieldChecks);
+            }
             
             if (parentKey.entityType == EntityType.EXAM) {
 
+                // only changeable of there are no active connections
                 if (this.clientConnectionDAO.hasActiveSEBConnections(screenProctoringSettings.examId)) {
                     throw new APIMessageException(APIMessage.ErrorMessage.CLIENT_CONNECTION_INTEGRITY_VIOLATION.of());
                 }
@@ -169,44 +174,49 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         .getOr(Collections.emptyList());
 
                 if (!existingGroups.isEmpty()) {
-                    // check for when there are already existing groups
-                    final ScreenProctoringSettings oldSettings = this.proctoringSettingsDAO
-                            .getScreenProctoringSettings(parentKey)
-                            .getOr(null);
-                    
-                    if (oldSettings != null && oldSettings.collectingStrategy != screenProctoringSettings.collectingStrategy) {
-                        // not possible to change grouping strategy when it has already groups
-                        fieldChecks.add(APIMessage.fieldValidationError(
-                                "spsCollectingStrategy",
-                                "screenProctoringSettings:spsCollectingStrategy:collecting-strategy-not-changeable"));
+                    // if we have a confirmChangeStrategy then we can apply the changing settings otherwise not
+                    if (!screenProctoringSettings.confirmChangeStrategy) {
+                        // just check if there are differences?
+                        throw new APIMessageException(APIMessage.ErrorMessage.NEED_CONFIRMATION.of());
                     }
                     
-                    // find deletion and check possibility (only deletable if no sessions)
-                    if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
-                        final Map<Long, ScreenProctoringGroup> existing = existingGroups.stream()
-                                .filter(g -> !BooleanUtils.isTrue(g.isFallback))
-                                .collect(Collectors.toMap( g -> g.sebGroupId, Function.identity()));
-
-                        Arrays.stream(StringUtils.split(
-                                screenProctoringSettings.sebGroupsSelection, 
-                                        Constants.LIST_SEPARATOR_CHAR))
-                                .map(Long::valueOf)
-                                .forEach(existing::remove);
-
-                        existing.values().forEach( g -> {
-                            if (g.size != null && g.size > 0) {
-                                fieldChecks.add(APIMessage.fieldValidationError(
-                                        "clientSecret",
-                                        "screenProctoringSettings:spsSEBGroupsSelection:group-not-deletable"));
-                            }
-                        });
-                    }
+//                    final ScreenProctoringSettings oldSettings = this.proctoringSettingsDAO
+//                            .getScreenProctoringSettings(parentKey)
+//                            .getOr(null);
+//                    
+//                    if (oldSettings != null && oldSettings.collectingStrategy != screenProctoringSettings.collectingStrategy) {
+//                        // not possible to change grouping strategy when it has already groups
+//                        fieldChecks.add(APIMessage.fieldValidationError(
+//                                "spsCollectingStrategy",
+//                                "screenProctoringSettings:spsCollectingStrategy:collecting-strategy-not-changeable"));
+//                    }
+//                    
+//                    // find deletion and check possibility (only deletable if no sessions)
+//                    if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
+//                        final Map<Long, ScreenProctoringGroup> existing = existingGroups.stream()
+//                                .filter(g -> !BooleanUtils.isTrue(g.isFallback))
+//                                .collect(Collectors.toMap( g -> g.sebGroupId, Function.identity()));
+//
+//                        Arrays.stream(StringUtils.split(
+//                                screenProctoringSettings.sebGroupsSelection, 
+//                                        Constants.LIST_SEPARATOR_CHAR))
+//                                .map(Long::valueOf)
+//                                .forEach(existing::remove);
+//
+//                        existing.values().forEach( g -> {
+//                            if (g.size != null && g.size > 0) {
+//                                fieldChecks.add(APIMessage.fieldValidationError(
+//                                        "clientSecret",
+//                                        "screenProctoringSettings:spsSEBGroupsSelection:group-not-deletable"));
+//                            }
+//                        });
+//                    }
                 }
             }
             
-            if (!fieldChecks.isEmpty()) {
-                throw new APIMessageException(fieldChecks);
-            }
+//            if (!fieldChecks.isEmpty()) {
+//                throw new APIMessageException(fieldChecks);
+//            }
 
             final ScreenProctoringSettings proctoringServiceSettings = new ScreenProctoringSettings(
                     screenProctoringSettings.examId,
@@ -219,7 +229,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     screenProctoringSettings.collectingStrategy,
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,
-                    screenProctoringSettings.sebGroupsSelection);
+                    screenProctoringSettings.sebGroupsSelection,
+            false);
 
             this.screenProctoringAPIBinding
                     .testConnection(proctoringServiceSettings)
