@@ -15,7 +15,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
