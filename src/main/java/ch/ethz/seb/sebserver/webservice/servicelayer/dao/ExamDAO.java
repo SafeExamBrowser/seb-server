@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -263,4 +264,13 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     void updateQuitPassword(Exam exam, String quitPassword);
     
     void saveBrowserExamKeys(Long examId, String bek);
+
+    void updateSupporterAccounts(Long examId, List<String> supporterUUIDs);
+
+    /** This gets the number of exams that references a given Supporter or Teacher account UUID
+     * 
+     * @param uuid Supporter/Teacher account UUID
+     * @return number of exams that has a supporter reference for given UUID
+     */
+    int numOfExamsReferencingSupporter(String uuid);
 }

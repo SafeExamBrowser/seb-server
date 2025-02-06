@@ -614,6 +614,39 @@ public class ExamRecordDAO {
         .onError(TransactionHandler::rollback);
     }
 
+    @Transactional
+    public Result<ExamRecord> updateSupporterAccounts(final Long examId, final List<String> supporterUUIDs) {
+        return Result.tryCatch(() -> {
+
+                    final String joinedUUIds = StringUtils.join(supporterUUIDs, Constants.COMMA);
+                    UpdateDSL.updateWithMapper(examRecordMapper::update, ExamRecordDynamicSqlSupport.examRecord)
+                            .set(supporter).equalTo(joinedUUIds)
+                            .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                            .where(id,  isEqualTo(examId))
+                            .build()
+                            .execute();
+
+                    return this.examRecordMapper.selectByPrimaryKey(examId);
+                })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Transactional(readOnly = true)
+    public int numOfExamsReferencingSupporter(final String uuid) {
+        try {
+            
+            return examRecordMapper.countByExample()
+                    .where(supporter, isLike(Utils.toSQLWildcard(uuid)))
+                    .build()
+                    .execute()
+                    .intValue();
+            
+        } catch (final Exception e) {
+            log.error("Failed to verify number of exams with supporter accounts. cause: {}", e.getMessage());
+            return -1;
+        }
+    }
+
     private String getEncryptedQuitPassword(final String pwd) {
         return (StringUtils.isNotBlank(pwd))
                 ?  this.cryptor
@@ -624,5 +657,7 @@ public class ExamRecordDAO {
                 : null;
     }
 
+
+    
 }
 

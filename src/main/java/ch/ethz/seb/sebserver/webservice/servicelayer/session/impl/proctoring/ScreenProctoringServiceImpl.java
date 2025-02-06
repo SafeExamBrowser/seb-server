@@ -11,10 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 import static ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_SCREEN_PROCTORING.*;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;

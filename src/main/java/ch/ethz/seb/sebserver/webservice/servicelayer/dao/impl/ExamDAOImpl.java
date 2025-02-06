@@ -256,6 +256,18 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public void updateSupporterAccounts(final Long examId, final List<String> supporterUUIDs) {
+        this.examRecordDAO
+                .updateSupporterAccounts(examId, supporterUUIDs)
+                .onError(err -> log.error("Failed to update supporter uuids on exam: {}", examId, err));
+    }
+
+    @Override
+    public int numOfExamsReferencingSupporter(final String uuid) {
+        return this.examRecordDAO.numOfExamsReferencingSupporter(uuid);
+    }
+
+    @Override
     public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return this.examRecordDAO
                 .setSEBRestriction(examId, sebRestriction)
