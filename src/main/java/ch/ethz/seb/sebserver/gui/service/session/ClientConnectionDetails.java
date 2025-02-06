@@ -175,6 +175,9 @@ public class ClientConnectionDetails implements MonitoringEntry {
     }
 
     public boolean isActive() {
+        if (this.connectionData == null) {
+            return true;
+        }
         return this.connectionData.clientConnection.status != null
                 && this.connectionData.clientConnection.status.clientActiveStatus;
     }
@@ -201,6 +204,9 @@ public class ClientConnectionDetails implements MonitoringEntry {
 
     @Override
     public boolean sebVersionDenied() {
+        if (this.connectionData == null) {
+            return false;
+        }
         return this.connectionData.clientConnection.clientVersionGranted != null &&
                 !this.connectionData.clientConnection.clientVersionGranted;
     }
