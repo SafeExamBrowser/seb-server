@@ -176,44 +176,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         // just check if there are differences?
                         throw new APIMessageException(APIMessage.ErrorMessage.NEED_CONFIRMATION.of());
                     }
-                    
-//                    final ScreenProctoringSettings oldSettings = this.proctoringSettingsDAO
-//                            .getScreenProctoringSettings(parentKey)
-//                            .getOr(null);
-//                    
-//                    if (oldSettings != null && oldSettings.collectingStrategy != screenProctoringSettings.collectingStrategy) {
-//                        // not possible to change grouping strategy when it has already groups
-//                        fieldChecks.add(APIMessage.fieldValidationError(
-//                                "spsCollectingStrategy",
-//                                "screenProctoringSettings:spsCollectingStrategy:collecting-strategy-not-changeable"));
-//                    }
-//                    
-//                    // find deletion and check possibility (only deletable if no sessions)
-//                    if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
-//                        final Map<Long, ScreenProctoringGroup> existing = existingGroups.stream()
-//                                .filter(g -> !BooleanUtils.isTrue(g.isFallback))
-//                                .collect(Collectors.toMap( g -> g.sebGroupId, Function.identity()));
-//
-//                        Arrays.stream(StringUtils.split(
-//                                screenProctoringSettings.sebGroupsSelection, 
-//                                        Constants.LIST_SEPARATOR_CHAR))
-//                                .map(Long::valueOf)
-//                                .forEach(existing::remove);
-//
-//                        existing.values().forEach( g -> {
-//                            if (g.size != null && g.size > 0) {
-//                                fieldChecks.add(APIMessage.fieldValidationError(
-//                                        "clientSecret",
-//                                        "screenProctoringSettings:spsSEBGroupsSelection:group-not-deletable"));
-//                            }
-//                        });
-//                    }
                 }
             }
-            
-//            if (!fieldChecks.isEmpty()) {
-//                throw new APIMessageException(fieldChecks);
-//            }
 
             final ScreenProctoringSettings proctoringServiceSettings = new ScreenProctoringSettings(
                     screenProctoringSettings.examId,

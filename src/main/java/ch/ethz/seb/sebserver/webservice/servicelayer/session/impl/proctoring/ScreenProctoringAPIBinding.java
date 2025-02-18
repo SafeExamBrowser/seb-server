@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ScreenProctoringGroopRecordDynamicSqlSupport.sebGroupId;
 import static ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.SPS_API.*;
 
 import java.util.*;
@@ -15,8 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
-import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -50,8 +50,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
@@ -368,11 +366,64 @@ public class ScreenProctoringAPIBinding {
                     case EXAM -> synchronizeExamSingleGroup(exam, spsData, settings, localGroups, spsGroups, apiTemplate);
                     case APPLY_SEB_GROUPS -> synchronizeFromSEBGroups(exam, spsData, localGroups, spsGroups, settings, apiTemplate);
                 }
+            } else {
+                mergeSPSGroupsToLocalGroups(exam, spsData, settings, spsGroups, apiTemplate);
             }
             
         } catch (final Exception e) {
             log.error("Failed to synchronize groups for exam: {} error: {}", exam.name, e.getMessage());
         }
+    }
+    
+    private void mergeSPSGroupsToLocalGroups(
+            final Exam exam,
+            final SPSData spsData,
+            final ScreenProctoringSettings settings,
+            final Map<String, SPSGroup> spsGroups,
+            final ScreenProctoringServiceOAuthTemplate apiTemplate
+    ) {
+
+        final Map<String, SPSGroup> spsGroupsByName = spsGroups.values().stream()
+                .collect(Collectors.toMap(SPSGroup::name, Function.identity()));
+        
+        // merge selected groups
+        if (settings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
+            getSelectedSEBClientGroups(exam, settings).forEach( sebGroup -> {
+                try {
+                    final SPSGroup spsGroup = spsGroupsByName.get(sebGroup.name);
+                    if (spsGroup != null) {
+                        final String json = jsonMapper.writeValueAsString(spsGroup);
+                        createNewLocalGroup(
+                                exam,
+                                new ScreenProctoringGroup(null, exam.id, spsGroup.uuid(), sebGroup.name, 0, json, false, sebGroup.id));
+                    } else {
+                        createNewLocalGroup(
+                                exam,
+                                createGroupOnSPS(0, exam.id, sebGroup.name, spsData.spsExamUUID, false, sebGroup.id, apiTemplate));
+                    }
+                } catch (final Exception e) {
+                    log.error("Failed to merge SPS group to local group for selected group: {} cause: {}", sebGroup, e.getMessage());
+                }
+            });
+        }
+        
+        // merge the default group
+        try {
+            final SPSGroup spsGroup = spsGroupsByName.get(settings.collectingGroupName);
+            if (spsGroup != null) {
+                final String json = jsonMapper.writeValueAsString(spsGroup);
+                createNewLocalGroup(
+                        exam,
+                        new ScreenProctoringGroup(null, exam.id, spsGroup.uuid(), settings.collectingGroupName, 0, json, true, null));
+            } else {
+                createNewLocalGroup(
+                        exam,
+                        createGroupOnSPS(0, exam.id, settings.collectingGroupName, spsData.spsExamUUID, true, null, apiTemplate));
+            }
+        } catch (final Exception e) {
+            log.error("Failed to merge SPS group to local group for default group: {} cause: {}", settings.collectingGroupName, e.getMessage());
+        }
+        
     }
     
     private void synchronizeExamSingleGroup(
