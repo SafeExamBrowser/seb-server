@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
@@ -57,6 +59,11 @@ public class SEBClientEventExportTransactionHandler {
     public Result<List<Long>> getConnectionIds(final FilterMap filterMap, final String sort) {
         return Result.tryCatch(() -> {
             final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
+
+            final Long clientEventConnectionId = filterMap.getClientEventConnectionId();
+            if (clientEventConnectionId != null) {
+                return Arrays.asList(clientEventConnectionId);
+            }
             
             return this.clientConnectionRecordMapper
                     .selectIdsByExample()
@@ -114,55 +121,6 @@ public class SEBClientEventExportTransactionHandler {
                     .build()
                     .execute();
         });
-    }
-
-    @Deprecated
-    @Transactional(readOnly = true)
-    public Result<Collection<ClientEventRecord>> allMatching(
-            final FilterMap filterMap,
-            final Predicate<ClientEvent> predicate) {
-
-        return Result.tryCatch(() -> this.clientEventRecordMapper
-                .selectByExample()
-                .leftJoin(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
-                .on(
-                        ClientConnectionRecordDynamicSqlSupport.id,
-                        equalTo(ClientEventRecordDynamicSqlSupport.clientConnectionId))
-                .where(
-                        ClientConnectionRecordDynamicSqlSupport.institutionId,
-                        isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
-                        ClientConnectionRecordDynamicSqlSupport.examId,
-                        isEqualToWhenPresent(filterMap.getClientEventExamId()))
-                .and(
-                        ClientConnectionRecordDynamicSqlSupport.examUserSessionId,
-                        SqlBuilder.isLikeWhenPresent(filterMap.getSQLWildcard(ClientConnection.FILTER_ATTR_SESSION_ID)))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.clientConnectionId,
-                        isEqualToWhenPresent(filterMap.getClientEventConnectionId()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.type,
-                        isEqualToWhenPresent(filterMap.getClientEventTypeId()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.type,
-                        SqlBuilder.isNotEqualTo(5)) //  formerly defined as EventType.LAST_PING
-                .and(
-                        ClientEventRecordDynamicSqlSupport.clientTime,
-                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.clientTime,
-                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeTo()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.serverTime,
-                        SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeFrom()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.serverTime,
-                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getClientEventServerTimeTo()))
-                .and(
-                        ClientEventRecordDynamicSqlSupport.text,
-                        SqlBuilder.isLikeWhenPresent(filterMap.getClientEventText()))
-                .build()
-                .execute());
     }
 
     @Transactional(readOnly = true)
