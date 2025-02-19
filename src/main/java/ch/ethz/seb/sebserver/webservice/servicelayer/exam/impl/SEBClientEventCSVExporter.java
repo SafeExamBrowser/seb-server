@@ -89,7 +89,7 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             try {
                 output.flush();
             } catch (final IOException e) {
-                e.printStackTrace();
+                log.error("Failed to flush CSV header: ", e);
             }
         }
     }
@@ -144,7 +144,7 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             try {
                 output.flush();
             } catch (final IOException e) {
-                e.printStackTrace();
+                log.error("Failed to flush CSV line: ", e);
             }
         }
     }
