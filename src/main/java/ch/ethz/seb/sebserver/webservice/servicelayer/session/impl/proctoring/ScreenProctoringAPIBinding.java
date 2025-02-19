@@ -1068,7 +1068,12 @@ public class ScreenProctoringAPIBinding {
 
         } catch (final Exception e) {
             if (!e.getMessage().contains("Open CircuitBreaker")) {
-                log.warn("Failed to get active group session counts: {}", e.getMessage());
+                final String message = e.getMessage();
+                if (message.contains("503 SERVICE_UNAVAILABLE")) {
+                    log.warn("SPS Service not available!");
+                } else {
+                    log.warn("Failed to get active group session counts: {}", e.getMessage());
+                }
             }
             return Collections.emptyList();
         }

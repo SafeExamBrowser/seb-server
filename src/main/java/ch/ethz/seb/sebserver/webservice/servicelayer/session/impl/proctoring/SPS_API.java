@@ -268,7 +268,11 @@ interface SPS_API {
                 this.restTemplate.getAccessToken();
             } catch (final Exception e) {
                 final String errors = StringUtils.join(Utils.reduceToErrorMessages(e), "\n  --> ");
-                log.error("Failed to get access token for SEB Screen Proctoring Service: {}", errors);
+                if (errors.contains("Connection refused")) {
+                    log.warn("SPS Service Connection refused");
+                } else {
+                    log.error("Failed to get access token for SEB Screen Proctoring Service: {}", errors);
+                }
                 if (errors.contains("Connection refused")) {
                     return new ResponseEntity<>( errors, HttpStatus.SERVICE_UNAVAILABLE);
                 }
