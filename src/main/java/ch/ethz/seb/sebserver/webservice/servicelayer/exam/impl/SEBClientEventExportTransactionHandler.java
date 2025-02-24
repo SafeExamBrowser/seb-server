@@ -10,11 +10,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -24,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
