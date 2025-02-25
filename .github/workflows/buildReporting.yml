@@ -139,7 +139,7 @@ jobs:
         TAGS: ${{ steps.meta.outputs.tags }}
         
   docker-admin-build:
-    needs: maven-build-docker
+    needs: maven-build-reporting
     # Run only on tagging
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
