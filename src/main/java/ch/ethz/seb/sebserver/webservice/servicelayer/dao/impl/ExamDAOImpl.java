@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,19 +69,22 @@ public class ExamDAOImpl implements ExamDAO {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final JSONMapper jsonMapper;
+    private final Cryptor cryptor;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamRecordDAO examRecordDAO,
             final ApplicationEventPublisher applicationEventPublisher,
             final AdditionalAttributesDAO additionalAttributesDAO,
-            final JSONMapper jsonMapper) {
+            final JSONMapper jsonMapper,
+            final Cryptor cryptor) {
 
         this.examRecordMapper = examRecordMapper;
         this.examRecordDAO = examRecordDAO;
         this.applicationEventPublisher = applicationEventPublisher;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.jsonMapper = jsonMapper;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -915,7 +919,8 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getOwner(),
                     supporter,
                     status,
-                    record.getQuitPassword(),
+                    //decrypts the quit password if it exists
+                    record.getQuitPassword() == null ? record.getQuitPassword() : this.cryptor.decrypt(record.getQuitPassword()).getOr(record.getQuitPassword()).toString(),
                     BooleanUtils.toBooleanObject(record.getLmsSebRestriction()),
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject(record.getActive()),
