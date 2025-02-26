@@ -16,18 +16,18 @@ Exam import and were connecting SEB clients are scheduled to after they have suc
 Currently there are two different types of possible Screen Proctoring group generation. The default "One Group for Exam" where
 you only generate one Screen Proctoring group for the exam and can give them a name:
 
-.. image:: images/exam_template/sps_one_group.png
+.. image:: images/exam/sps_one_group.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/sps_one_group.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/sps_one_group.png
 
 The other one is to apply the Screen Proctoring groups to existing Client Groups. When you define some Client Groups within the 
-Exam Template an choose "Apply to SEB Client Groups" within the Screen Proctoring configuration pop-up, you are able to select
+Exam and choose "Apply to SEB Client Groups" within the Screen Proctoring configuration pop-up, you are able to select
 the needed SEB Client Groups from the list of available SEB Client Groups and additionally can gave a name für the Fallback Group
 The Fallback Groups is been used to schedule connecting SEB clients to that do not belong to any of the selected SEB Client Groups
 
-.. image:: images/exam_template/sps_seb_groups.png
+.. image:: images/exam/sps_seb_groups.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/sps_seb_groups.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/sps_seb_groups.png
 
 
 Since SEB Server version 2.1 enabling or disabling Screen Proctoring on Exam also automatically enables or disables Screen Proctoring
