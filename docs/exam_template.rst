@@ -49,14 +49,14 @@ view that looks similar to the exam administration view.
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/view.png
 
 Here you can edit the settings done before by using the "Edit Exam Template" action form the right action pane.
-You can also delete an exam template entirely by using the "Delete Exam Template" action from the right action pane.
-And you are able to add/edit/remove monitoring indicators for the exam template just like you would do for exams in the exam administration view.
+And you can also add some additional settings like in the Exam.with
 
-.. image:: images/exam_template/indicator.png
-    :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/indicator.png
-    
-TODO Screen Proctoring Settings
+.. include: exam_indicator.rst
+
+
+.. include: exam_clientgroups.rst
+
+TODO Screen Proctoring
 
 
 Import Exam with Template

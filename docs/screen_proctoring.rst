@@ -193,8 +193,10 @@ Use the "date" button on the right side to change the sort oder.
       If the session is still live the proctoring view won't open at the given time but instead jumps to the latest image.
 
 
-|
-|
+Application View Search
+---------------
+
+TODO
 
 Metadata
 ---------
