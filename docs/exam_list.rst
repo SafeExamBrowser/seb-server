@@ -9,14 +9,14 @@ once unreachable exam, the respective exam would change back to normal and is no
 
 .. image:: images/exam/examList.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examList.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examList.png
     
 Sometimes an entire LMS/Assessment Tool is not available and a lot of exams are grayed. In this case you can use the new filter "Show/Hide Missing Exams" from the
 action pane on the right to filter out this exams from the list.
 
 .. image:: images/exam/examListHideMissing.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examListHideMissing.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examListHideMissing.png
     
 To get more information about what is missing for an exam that is marked in red, just open the exam by select and use "View Exam" or by double-click
 on the list entry. In the Exam view page you will see a warning message pointing out all the missing things to setup the exam.
@@ -34,7 +34,7 @@ you want to archive or delete, select the respective batch action on the right a
 
 .. image:: images/exam/examBatchArchive.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examBatchArchive.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examBatchArchive.png
     
 You see your selection again within a list on the pop-up and when ready you can start the batch action and apply it to every selected exam
 that is in a valid state to apply the action. 

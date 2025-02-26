@@ -16,7 +16,7 @@ a specific template by name for example.
 
 .. image:: images/config_templates/list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/config_templates/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/config_templates/list.png
 
 To create a new exam configuration template, use the "Add Configuration Template" action from the right action pane. You will see the creation form
 with a name and description for the new template. At least a unique name is mandatory, and the description is optional.
@@ -32,7 +32,7 @@ SEB Server. The name of an attribute is composed of the internal attribute name 
 
 .. image:: images/config_templates/templateView.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/config_templates/templateView.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/config_templates/templateView.png
 
 The type of the attribute defines the input field type and cannot be changed in any way. The view defines the tab on which the settings attribute is placed.
 And the group defines the named group where a settings attribute belongs to. 
@@ -59,7 +59,7 @@ use the "View Configuration Template" action from the right action pane.
 
 .. image:: images/config_templates/templateAttribute.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/config_templates/templateAttribute.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/config_templates/templateAttribute.png
     
 Back in the exam configuration template view you are able to create a new SEB exam configuration directly from this template by using the "Create Exam Configuration"
 action from the right action pane. The application will present you a creation dialog within a pop-up where you can define a name and description for the
@@ -67,7 +67,7 @@ new SEB exam configuration. At least a unique name is mandatory.
 
  .. image:: images/config_templates/createConfig.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/config_templates/createConfig.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/config_templates/createConfig.png
     
 After defining a name and description for the new SEB exam configuration you can click on "OK" to do so, and the application will show you the new created 
 SEB exam configuration in the usual place.

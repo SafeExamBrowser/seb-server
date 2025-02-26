@@ -39,7 +39,7 @@ This are usually password protected certificates in different file-formats. SEB 
 
 .. image:: images/certificates/cert_list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/certificates/cert_list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/certificates/cert_list.png
 
 
 Use Cases

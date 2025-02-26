@@ -9,7 +9,7 @@ add some other indicators to the exam to be able to get notified while monitorin
 
 .. image:: images/exam/examIndicators.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examIndicators.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examIndicators.png
     
 To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you are able to give the
 new indicator a name. This name will be displayed in the SEB client connection table on monitoring section as column name for the column of this
@@ -18,7 +18,7 @@ If you have selected one indicator type, a description will be shown just below 
 
 .. image:: images/exam/editIndicator.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/editIndicator.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/editIndicator.png
     
 The type of indicators are pre-defined within the SEB Server and restricts the number of available indicators that can be used. Currently following
 indicators are supported:

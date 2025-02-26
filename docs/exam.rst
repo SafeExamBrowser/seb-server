@@ -23,7 +23,7 @@ indicators for monitoring as well as defining details of the SEB restriction if 
 
 .. image:: images/exam/examNotReady.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examNotReady.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examNotReady.png
     
 
 At the beginning of the page - if there is no note - you see all the details of the exam. 
@@ -70,7 +70,7 @@ the pop-up shows the description and the status of the selected configuration.
 
 .. image:: images/exam/addExamConfig.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/addExamConfig.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/addExamConfig.png
     
 There is also the possibility to encrypt the SEB exam configuration by a password. This is done before the SEB configuration is send to a connecting 
 SEB client. Since in the most cases the SEB client connections are over HTTPS / TSL there is already a good protection in place and an
@@ -85,7 +85,7 @@ The new action "Edit Encryption Password" can be used to open up the original ap
 
 .. image:: images/exam/editEncryptionPassword.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/editEncryptionPassword.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/editEncryptionPassword.png
 
 .. note::
     If you need to use the same SEB exam configuration for different exams, you can just make a copy of a SEB exam configuration that is already used
@@ -101,7 +101,7 @@ the SEB restriction details with the generated Config-Key. See :ref:`sebRestrict
 
 .. image:: images/exam/examConfig.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examConfig.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examConfig.png
     
 To just generate the Config-Key for testing purposes or to manually apply it on an LMS/Assessment Tool without the automated SEB restriction feature you can
 use the "Export Config-Key" action to generate the key. The Config-Key is presented by a pop-up and can be selected and copied to the clip-board.
@@ -170,7 +170,7 @@ section in the monitoring view.
 
 .. image:: images/exam/archiveExamsFilter.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/archiveExamsFilter.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/archiveExamsFilter.png
 
 This is also a good use-case if you want to remove an LMS/Assessment Tool and LMS/Assessment Tool Setup but still want to be able to access the exams data on the SEB Server.
 In this case you can archive all exams from that LMS/Assessment Tool Setup before deactivating or deleting the respective LMS/Assessment Tool Setup.
@@ -196,7 +196,7 @@ If you have "Exam Administrator" privileges you are able to entirely delete an e
 
 .. image:: images/exam/deleteExam.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/deleteExam.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/deleteExam.png
     
 - Within the delete exam dialog you see a list of a dependencies that also will be deleted. Please check them carefully before deletion.
 - Use the below action to either delete the exam or cancel the action and go back to the exam view.

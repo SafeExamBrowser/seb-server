@@ -13,7 +13,7 @@ You can set an Exam into Test-Run status by using the respective action on the E
 
 .. image:: images/exam/examEnableTestrun.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examEnableTestrun.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examEnableTestrun.png
 
 After enable Test-Run for an Exam, you can see an information at the top if the Exam view that informs you about the 
 Test Run status of the Exam.
@@ -23,7 +23,7 @@ goes back to up-coming status and is not available anymore for SEB connections a
 
 .. image:: images/exam/examEnableTestrun.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examEnableTestrun.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examEnableTestrun.png
 
 .. note:: 
     If an Exam changes to Running status due to the start time passing and is still in status Test-Run, SEB Sever will
