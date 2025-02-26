@@ -52,10 +52,19 @@ Here you can edit the settings done before by using the "Edit Exam Template" act
 And you can also add some additional settings like in the Exam:
 
 
-.. include:: exam_indicator.rst
+Monitoring Indicators
+-------
 
+For monitoring connected SEB clients, SEB Server supports some indicators that can be defined within an Exam and Exam Template and that are shown and measured during an exam. When you define indicators for a Exam Template, they will be automatically applied to an Exam that is imported with this Exam Template. Configuring Indicators for an Exam Template is quit the same as configuring it on the Exam itself. Therefore please have a look to 
+:ref:`examIndicators-label` for more information on that topic.
 
-.. include:: exam_clientgroups.rst
+SEB Client Groups
+-------
+
+SEB client groups are a new feature since SEB Server 1.5 release and allows you to group SEB client connection to specified groups that are
+graphically tagged in the exam monitoring view and can be shown or hided by usual filter on the exam monitoring view. All SEB Client Groups 
+that are defined for an Exam Template will be applied to an Exam that is imported within this Exam Template. Configuring SEB Client Groups
+for an Exam Template is quit the same as configuring it on the Exam itself. Therefore please have a look to :ref:`examClientgroups-label` for more information on that topic.
 
 
 Screen Proctoring
