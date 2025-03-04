@@ -63,6 +63,12 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
     @JsonProperty(ATTR_CLIENT_OS)
     public final ClientOS clientOS;
 
+    @JsonProperty(ATTR_NAME_RANGE_START_LETTER)
+    public final String nameRangeStartLetter;
+
+    @JsonProperty(ATTR_NAME_RANGE_END_LETTER)
+    public final String nameRangeEndLetter;
+
     @JsonCreator
     public ClientGroup(
             @JsonProperty(CLIENT_GROUP.ATTR_ID) final Long id,
@@ -73,7 +79,9 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
             @JsonProperty(CLIENT_GROUP.ATTR_ICON) final String icon,
             @JsonProperty(ATTR_IP_RANGE_START) final String ipRangeStart,
             @JsonProperty(ATTR_IP_RANGE_END) final String ipRangeEnd,
-            @JsonProperty(ATTR_CLIENT_OS) final ClientOS clientOS) {
+            @JsonProperty(ATTR_CLIENT_OS) final ClientOS clientOS,
+            @JsonProperty(ATTR_NAME_RANGE_START_LETTER) final String nameRangeStartLetter,
+            @JsonProperty(ATTR_NAME_RANGE_END_LETTER) final String nameRangeEndLetter) {
 
         super();
         this.id = id;
@@ -85,6 +93,8 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         this.ipRangeStart = ipRangeStart;
         this.ipRangeEnd = ipRangeEnd;
         this.clientOS = clientOS == null ? ClientOS.NONE : clientOS;
+        this.nameRangeStartLetter = nameRangeStartLetter;
+        this.nameRangeEndLetter = nameRangeEndLetter;
     }
 
     public ClientGroup(
@@ -106,22 +116,47 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
 
         switch (this.type) {
             case IP_V4_RANGE: {
-                final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
-                this.ipRangeStart = split[0];
-                this.ipRangeEnd = split[1];
+                if (StringUtils.isNotBlank(data)) {
+                    final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
+                    this.ipRangeStart = (split.length > 0 && StringUtils.isNotBlank(split[0])) ? split[0] : null;
+                    this.ipRangeEnd = (split.length > 1 && StringUtils.isNotBlank(split[1])) ? split[1] : null;
+                } else {
+                    this.ipRangeStart = null;
+                    this.ipRangeEnd = null;
+                }
                 this.clientOS = ClientOS.NONE;
+                this.nameRangeStartLetter = null;
+                this.nameRangeEndLetter = null;
                 break;
             }
             case CLIENT_OS: {
                 this.ipRangeStart = null;
                 this.ipRangeEnd = null;
                 this.clientOS = Utils.enumFromString(data, ClientOS.class, ClientOS.NONE);
+                this.nameRangeStartLetter = null;
+                this.nameRangeEndLetter = null;
+                break;
+            }
+            case NAME_ALPHABETICAL_RANGE: {
+                this.ipRangeStart = null;
+                this.ipRangeEnd = null;
+                this.clientOS = ClientOS.NONE;
+                if (StringUtils.isNotBlank(data)) {
+                    final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
+                    this.nameRangeStartLetter = (split.length > 0 && StringUtils.isNotBlank(split[0])) ? split[0] : null;
+                    this.nameRangeEndLetter = (split.length > 1 && StringUtils.isNotBlank(split[1])) ? split[1] : null;
+                } else {
+                    this.nameRangeStartLetter = null;
+                    this.nameRangeEndLetter = null;
+                }
                 break;
             }
             default: {
                 this.ipRangeStart = null;
                 this.ipRangeEnd = null;
                 this.clientOS = ClientOS.NONE;
+                this.nameRangeStartLetter = null;
+                this.nameRangeEndLetter = null;
                 break;
             }
         }
@@ -137,14 +172,12 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         this.ipRangeStart = postParams.getString(ATTR_IP_RANGE_START);
         this.ipRangeEnd = postParams.getString(ATTR_IP_RANGE_END);
         this.clientOS = postParams.getEnum(ATTR_CLIENT_OS, ClientOS.class);
+        this.nameRangeStartLetter = postParams.getString(ATTR_NAME_RANGE_START_LETTER);
+        this.nameRangeEndLetter = postParams.getString(ATTR_NAME_RANGE_END_LETTER);
     }
 
     public static ClientGroup createNew(final String examId) {
-        try {
-            return new ClientGroup(null, Long.parseLong(examId), null, null, null, null, null, null, null);
-        } catch (final Exception e) {
-            return new ClientGroup(null, null, null, null, null, null, null, null, null);
-        }
+        return new ClientGroup(null, Long.parseLong(examId), null, null, null, null, null, null, null, null, null);
     }
 
     @Override
@@ -217,6 +250,16 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         return this.clientOS;
     }
 
+    @Override
+    public String getNameRangeStartLetter() {
+        return this.nameRangeStartLetter;
+    }
+
+    @Override
+    public String getNameRangeEndLetter() {
+        return this.nameRangeEndLetter;
+    }
+
     @JsonIgnore
     public String getData() {
         switch (this.type) {
@@ -226,63 +269,30 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
             case CLIENT_OS: {
                 return this.clientOS.name();
             }
+            case NAME_ALPHABETICAL_RANGE: {
+                return this.nameRangeStartLetter + Constants.EMBEDDED_LIST_SEPARATOR + this.nameRangeEndLetter;
+            }
             default: {
                 return StringUtils.EMPTY;
             }
         }
     }
-
+    
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ClientGroup [id=");
-        builder.append(this.id);
-        builder.append(", examId=");
-        builder.append(this.examId);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", type=");
-        builder.append(this.type);
-        builder.append(", color=");
-        builder.append(this.color);
-        builder.append(", icon=");
-        builder.append(this.icon);
-        builder.append(", ipRangeStart=");
-        builder.append(this.ipRangeStart);
-        builder.append(", ipRangeEnd=");
-        builder.append(this.ipRangeEnd);
-        builder.append(", clientOS=");
-        builder.append(this.clientOS);
-        builder.append("]");
-        return builder.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final ClientGroup other = (ClientGroup) obj;
-        if (this.id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!this.id.equals(other.id))
-            return false;
-        if (this.type != other.type)
-            return false;
-        return true;
+        return "ClientGroup{" +
+                "id=" + id +
+                ", examId=" + examId +
+                ", name='" + name + '\'' +
+                ", type=" + type +
+                ", color='" + color + '\'' +
+                ", icon='" + icon + '\'' +
+                ", ipRangeStart='" + ipRangeStart + '\'' +
+                ", ipRangeEnd='" + ipRangeEnd + '\'' +
+                ", clientOS=" + clientOS +
+                ", nameRangeStartLetter=" + nameRangeStartLetter +
+                ", nameRangeEndLetter=" + nameRangeEndLetter +
+                '}';
     }
 
     @Override

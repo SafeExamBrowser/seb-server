@@ -22,24 +22,17 @@ public interface ScreenProctoringGroupDAO {
      * @return Result refer to the indication or to an error when happened. */
     Result<Boolean> isServiceInUse(Long examId);
 
-    /** The the group with given identifier (PK).
+    /** The group with given identifier (PK).
      *
      * @param pk the group record primary key
      * @return Result refer to the group or to an error when happened */
     Result<ScreenProctoringGroup> getScreenProctoringGroup(Long pk);
 
-    /** The the group with given uuid. The uuid is the reference to the group on SPS Service
+    /** The group with given uuid. The uuid is the reference to the group on SPS Service
      *
      * @param uuid the groups record uuid
      * @return Result refer to the group or to an error when happened */
     Result<ScreenProctoringGroup> getScreenProctoringGroup(String uuid);
-
-    /** Get the group record with specified name for a given exam.
-     *
-     * @param examId the exam identifier
-     * @param groupName the name of the group
-     * @return Result refer to the group record or to an error when happened */
-    Result<ScreenProctoringGroup> getGroupByName(Long examId, String groupName);
 
     /** Get all collecting group that exists for a given exam.
      *
@@ -70,7 +63,7 @@ public interface ScreenProctoringGroupDAO {
      *
      * @param pk the group identifier (PK)
      * @return Result refer to the entity key of the former group record or to an error when happened */
-    Result<EntityKey> deleteRoom(Long pk);
+    Result<EntityKey> deleteGroup(Long pk);
 
     /** Delete all groups records for a given exam.
      *
@@ -83,4 +76,8 @@ public interface ScreenProctoringGroupDAO {
     void resetAllForExam(Long examId);
 
     boolean hasActiveGroups();
+
+    void updateName(Long id, String name);
+
+    Result<ScreenProctoringGroup> updateFromSPS(Long id, ScreenProctoringGroup groupOnSPS);
 }

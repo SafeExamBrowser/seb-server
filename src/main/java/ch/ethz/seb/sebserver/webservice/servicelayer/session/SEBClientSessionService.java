@@ -31,6 +31,7 @@ public interface SEBClientSessionService extends ExamUpdateTask, SessionUpdateTa
 
     @Override
     default void processSessionUpdateTask() {
+        // TODO get all running exam ids first because both methods need it
         updatePingEvents();
         updateASKGrants();
     }

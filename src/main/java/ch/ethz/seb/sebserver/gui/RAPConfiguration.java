@@ -79,13 +79,6 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
             application.addEntryPoint(guiEntrypoint, new RAPSpringEntryPointFactory(), properties);
 
-            properties.put(WebClient.PAGE_TITLE, "SEB Server Proctoring");
-            properties.put(WebClient.BODY_HTML, "<big>Loading Application<big>");
-            properties.put(WebClient.THEME_ID, DEFAULT_THEME_NAME);
-            properties.put(WebClient.FAVICON, "fav_icon");
-
-            application.addEntryPoint(proctoringEntrypoint, new RAPRemoteProcotringEntryPointFactory(), properties);
-
         } catch (final RuntimeException re) {
             throw re;
         } catch (final Exception e) {
@@ -103,36 +96,36 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
     }
 
-    public static final class RAPRemoteProcotringEntryPointFactory implements EntryPointFactory {
-
-        @Override
-        public EntryPoint create() {
-            return new AbstractEntryPoint() {
-
-                private static final long serialVersionUID = -1299125117752916270L;
-
-                @Override
-                protected void createContents(final Composite parent) {
-
-                    final HttpSession httpSession = RWT
-                            .getUISession(parent.getDisplay())
-                            .getHttpSession();
-
-                    final WebApplicationContext webApplicationContext = getWebApplicationContext(httpSession);
-                    final boolean authenticated = isAuthenticated(httpSession, webApplicationContext);
-                    if (authenticated) {
-
-                        final EntryPointService entryPointService = webApplicationContext
-                                .getBean(EntryPointService.class);
-                        entryPointService.loadProctoringView(parent);
-                    } else {
-                        final HttpServletResponse response = RWT.getResponse();
-                        response.setStatus(HttpStatus.FORBIDDEN.value());
-                    }
-                }
-            };
-        }
-    }
+//    public static final class RAPRemoteProcotringEntryPointFactory implements EntryPointFactory {
+//
+//        @Override
+//        public EntryPoint create() {
+//            return new AbstractEntryPoint() {
+//
+//                private static final long serialVersionUID = -1299125117752916270L;
+//
+//                @Override
+//                protected void createContents(final Composite parent) {
+//
+//                    final HttpSession httpSession = RWT
+//                            .getUISession(parent.getDisplay())
+//                            .getHttpSession();
+//
+//                    final WebApplicationContext webApplicationContext = getWebApplicationContext(httpSession);
+//                    final boolean authenticated = isAuthenticated(httpSession, webApplicationContext);
+//                    if (authenticated) {
+//
+//                        final EntryPointService entryPointService = webApplicationContext
+//                                .getBean(EntryPointService.class);
+//                        entryPointService.loadProctoringView(parent);
+//                    } else {
+//                        final HttpServletResponse response = RWT.getResponse();
+//                        response.setStatus(HttpStatus.FORBIDDEN.value());
+//                    }
+//                }
+//            };
+//        }
+//    }
 
     public static final class RAPSpringEntryPointFactory implements EntryPointFactory {
 

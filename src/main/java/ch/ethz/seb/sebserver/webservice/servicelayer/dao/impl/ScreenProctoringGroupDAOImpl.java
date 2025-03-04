@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
@@ -98,20 +99,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<ScreenProctoringGroup> getGroupByName(final Long examId, final String groupName) {
-        return Result.tryCatch(() -> {
-            return this.screenProctoringGroopRecordMapper.selectByExample()
-                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.examId, isEqualTo(examId))
-                    .and(ScreenProctoringGroopRecordDynamicSqlSupport.name, isEqualTo(groupName))
-                    .build()
-                    .execute()
-                    .get(0);
-        })
-                .map(this::toDomainModel);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Result<Collection<ScreenProctoringGroup>> getCollectingGroups(final Long examId) {
         return Result.tryCatch(() -> this.screenProctoringGroopRecordMapper
                 .selectByExample()
@@ -177,7 +164,9 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         return Result.tryCatch(() -> {
 
             final ScreenProctoringGroopRecord screenProctoringGroopRecord = new ScreenProctoringGroopRecord(
-                    null, group.examId, group.uuid, group.name, 0, group.additionalData);
+                    null, group.examId, group.uuid, group.name, 0, group.additionalData,
+                    BooleanUtils.toIntegerObject(group.isFallback), 
+                    group.sebGroupId);
 
             this.screenProctoringGroopRecordMapper.insert(screenProctoringGroopRecord);
 
@@ -190,7 +179,7 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
     @Override
     @Transactional
-    public Result<EntityKey> deleteRoom(final Long pk) {
+    public Result<EntityKey> deleteGroup(final Long pk) {
         return Result.tryCatch(() -> {
 
             this.screenProctoringGroopRecordMapper
@@ -240,7 +229,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
             final Integer totalCount) {
 
         try {
-
             UpdateDSL
                     .updateWithMapper(
                             this.screenProctoringGroopRecordMapper::update,
@@ -255,7 +243,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         } catch (final Exception e) {
             log.warn("Failed to update SPS group size: {}", e.getMessage());
         }
-
     }
 
     @Override
@@ -297,6 +284,46 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
         }
     }
 
+    @Override
+    @Transactional
+    public void updateName(final Long groupId, final String name) {
+        try  {
+
+            UpdateDSL
+                    .updateWithMapper(
+                            this.screenProctoringGroopRecordMapper::update,
+                            ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.name)
+                    .equalTo(name)
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(groupId))
+                    .build()
+                    .execute();
+            
+        } catch (final Exception e) {
+            log.error("Failed to update name of group: {} new name {}", groupId, name);
+        }
+    }
+
+    @Override
+    @Transactional
+    public Result<ScreenProctoringGroup> updateFromSPS(final Long id, final ScreenProctoringGroup groupOnSPS) {
+        return Result.tryCatch(() -> {
+            UpdateDSL
+                    .updateWithMapper(
+                            this.screenProctoringGroopRecordMapper::update,
+                            ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.uuid).equalTo(groupOnSPS.uuid)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.data).equalTo(groupOnSPS.additionalData)
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(id))
+                    .build()
+                    .execute();
+            
+            return id;
+        })
+                .flatMap(this::getScreenProctoringGroup)
+                .onError(TransactionHandler::rollback);
+    }
+
     private ScreenProctoringGroup toDomainModel(final ScreenProctoringGroopRecord record) {
         return new ScreenProctoringGroup(
                 record.getId(),
@@ -304,8 +331,11 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
                 record.getUuid(),
                 record.getName(),
                 record.getSize(),
-                record.getData());
+                record.getData(),
+                BooleanUtils.toBooleanObject(record.getIsFallback()),
+                record.getSebGroupId());
     }
+    
     public static final class AllGroupsFullException extends RuntimeException {
         private static final long serialVersionUID = 3283129187819160485L;
     }

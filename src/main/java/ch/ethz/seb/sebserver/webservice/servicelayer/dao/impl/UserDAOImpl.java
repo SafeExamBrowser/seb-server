@@ -400,6 +400,22 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public Result<Collection<EntityKey>> deleteAdHocAccountsForLMS(
+            final String adHocTeacherIdPrefix, 
+            final Long lmsSetupId) {
+        
+        return Result.tryCatch(() ->this.userRecordMapper.selectByExample()
+                .where(uuid, isLike(adHocTeacherIdPrefix + Constants.PERCENTAGE))
+                .build()
+                .execute()
+                .stream()
+                .map(record -> new EntityKey(record.getUuid(), EntityType.USER))
+                .collect(Collectors.toSet())
+        )
+                .flatMap(this::delete);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // all of institution

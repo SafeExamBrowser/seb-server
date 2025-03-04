@@ -74,6 +74,8 @@ public class APIMessage implements Serializable {
 
         EXAM_IMPORT_ERROR_QUIT_PASSWORD("1604", HttpStatus.PARTIAL_CONTENT,
                 "Failed to automatically apply quit password to Exam Configuration or the involved LMS"),
+        EXAM_IMPORT_ERROR_SPS_ENABLED("1605", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically apply SPS enabled setting to Exam Configuration"),
 
         EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS("1605", HttpStatus.PARTIAL_CONTENT,
                 "Failed to automatically apply Screen Proctoring settings for the imported exam"),
@@ -83,7 +85,10 @@ public class APIMessage implements Serializable {
                 "Failed to automatically link auto-generated exam configuration to the exam"),
 
         CLIENT_CONNECTION_INTEGRITY_VIOLATION("1700", HttpStatus.NOT_ACCEPTABLE,
-                "SEB client connection is not in valid state to apply requested operation");
+                "SEB client connection is not in valid state to apply requested operation"),
+
+        NEED_CONFIRMATION("1800", HttpStatus.PARTIAL_CONTENT,
+                "Some additional user confirmation needed");
 
         public final String messageCode;
         public final HttpStatus httpStatus;
@@ -201,17 +206,15 @@ public class APIMessage implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("APIMessage [messageCode=");
-        builder.append(this.messageCode);
-        builder.append(", systemMessage=");
-        builder.append(this.systemMessage);
-        builder.append(", details=");
-        builder.append(this.details);
-        builder.append(", attributes=");
-        builder.append(this.attributes);
-        builder.append("]");
-        return builder.toString();
+        return "APIMessage [messageCode=" +
+                this.messageCode +
+                ", systemMessage=" +
+                this.systemMessage +
+                ", details=" +
+                this.details +
+                ", attributes=" +
+                this.attributes +
+                "]";
     }
 
     /** Use this as a conversion from a given FieldError of Spring to a APIMessage
@@ -253,8 +256,14 @@ public class APIMessage implements Serializable {
         private final Collection<APIMessage> apiMessages;
 
         public APIMessageException(final Collection<APIMessage> apiMessages) {
-            super();
+            super(getMessage(apiMessages));
             this.apiMessages = apiMessages;
+        }
+        
+        static String getMessage(final Collection<APIMessage> apiMessages) {
+            if (apiMessages == null || apiMessages.isEmpty())
+                return "none";
+            return apiMessages.iterator().next().systemMessage;
         }
 
         public APIMessageException(final APIMessage apiMessage) {
@@ -329,16 +338,13 @@ public class APIMessage implements Serializable {
     }
 
     public static boolean checkError(final Exception error, final ErrorMessage errorMessage) {
-        if (!(error instanceof APIMessageError)) {
+        if (!(error instanceof final APIMessageError _error)) {
             return false;
         }
 
-        final APIMessageError _error = (APIMessageError) error;
         return _error.getAPIMessages()
                 .stream()
-                .filter(msg -> errorMessage.messageCode.equals(msg.messageCode))
-                .findFirst()
-                .isPresent();
+                .anyMatch(msg -> errorMessage.messageCode.equals(msg.messageCode));
     }
 
 }

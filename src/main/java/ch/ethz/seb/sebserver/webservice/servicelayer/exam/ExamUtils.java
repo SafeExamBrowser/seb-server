@@ -144,6 +144,10 @@ public final class ExamUtils {
                 checkClientOS(clientGroup.getClientOS());
                 break;
             }
+            case NAME_ALPHABETICAL_RANGE: {
+                checkAlphabetConsistency(clientGroup);
+                break;
+            }
             default: {
                 throw new APIMessage.APIMessageException(APIMessage.fieldValidationError(
                         new FieldError(
@@ -154,6 +158,37 @@ public final class ExamUtils {
         }
 
         return clientGroup;
+    }
+
+    private static void checkAlphabetConsistency(final ClientGroupData group) {
+        final String nameRangeStartLetter = group.getNameRangeStartLetter();
+        final String nameRangeEndLetter = group.getNameRangeEndLetter();
+        if (StringUtils.isBlank(nameRangeStartLetter )) {
+            throw new APIMessage.APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            ClientGroup.ATTR_NAME_RANGE_START_LETTER,
+                            "clientGroup:nameRangeStartLetter:mandatory")));
+        }
+        if (StringUtils.isBlank(nameRangeEndLetter)) {
+            throw new APIMessage.APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            ClientGroup.ATTR_NAME_RANGE_END_LETTER,
+                            "clientGroup:nameRangeEndLetter:mandatory")));
+        }
+        if (nameRangeStartLetter.compareToIgnoreCase(nameRangeEndLetter) > 0) {
+            throw new APIMessage.APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            ClientGroup.ATTR_NAME_RANGE_START_LETTER,
+                            "clientGroup:nameRangeStartLetter:invalidAlphaRange")),
+                    APIMessage.fieldValidationError(
+                            new FieldError(
+                                    Domain.CLIENT_GROUP.TYPE_NAME,
+                                    ClientGroup.ATTR_NAME_RANGE_END_LETTER,
+                                    "clientGroup:nameRangeEndLetter:invalidAlphaRange")));
+        }
     }
 
     static void checkIPRange(final String ipRangeStart, final String ipRangeEnd) {

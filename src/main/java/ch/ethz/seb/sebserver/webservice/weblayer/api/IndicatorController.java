@@ -30,7 +30,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -129,6 +128,7 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
 
     @Override
     protected Result<Indicator> notifySaved(final Indicator entity) {
+        examDao.markUpdate(entity.examId);
         flushExamSessionCaches(entity);
         return super.notifySaved(entity);
     }
@@ -136,7 +136,7 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
     @Override
     protected Result<Pair<Indicator, EntityProcessingReport>> notifyDeleted(
             final Pair<Indicator, EntityProcessingReport> pair) {
-
+        
         flushExamSessionCaches(pair.a);
         return super.notifyDeleted(pair);
     }

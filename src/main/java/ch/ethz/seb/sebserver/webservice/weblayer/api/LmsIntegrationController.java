@@ -18,7 +18,6 @@ import java.io.PipedOutputStream;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
@@ -81,7 +80,7 @@ public class LmsIntegrationController {
             log.debug("Importing exam from LMS call. All param: {}", request.getParameterNames());
         }
 
-        final Exam exam = fullLmsIntegrationService.importExam(
+        fullLmsIntegrationService.importExam(
                         lmsUUId,
                         courseId,
                         quizId,
@@ -89,10 +88,10 @@ public class LmsIntegrationController {
                         quitPassword,
                         quitLink != null && BooleanUtils.toBoolean(quitLink),
                         examData)
-                .onError(e -> {
+                .onErrorHandle(e -> {
                     log.error(
-                            "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: ",
-                            lmsUUId, courseId, quizId, templateId, e);
+                            "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: {}",
+                            lmsUUId, courseId, quizId, templateId, e.getMessage());
                     log.info("Rollback Exam creation...");
                     fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
                             .onError(error -> {
@@ -102,12 +101,11 @@ public class LmsIntegrationController {
                                     log.error("Failed to rollback auto Exam import: ", error);
                                 }
                             });
+                    
+                    return new LMSAutoImportException("Failed to import Exam due to error: " + e.getMessage() + ". All partial imported Exam components has been deleted on SEB Server (Rollback)", e);
                 })
-                .getOr(null);
-
-        if (exam != null) {
-            log.info("Auto import of exam successful: {}", exam);
-        }
+                .onSuccess(exam -> log.info("Auto import of exam successful: {}", exam))
+                .getOrThrow();
     }
 
     @RequestMapping(
@@ -202,8 +200,13 @@ public class LmsIntegrationController {
 
         final String token = this.fullLmsIntegrationService
                 .getOneTimeLoginToken(lmsUUId, courseId, quizId, adHocAccountData)
-                .onError(error -> log.error("Failed to create ad-hoc account with one time login token, error: {}", error.getMessage()))
-                .getOrThrow();
+                .onError(error -> log.warn("Failed to create ad-hoc account with one time login token, error: {}", error.getMessage()))
+                .getOr(null);
+        
+        if (token == null) {
+            response.setStatus(HttpStatus.NO_CONTENT.value());
+            return null;
+        }
 
         return new FullLmsIntegrationService.TokenLoginResponse(
                 lmsUUId,

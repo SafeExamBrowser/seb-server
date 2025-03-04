@@ -10,6 +10,6 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 public enum CollectingStrategy {
     EXAM,
-    SEB_GROUP,
-    FIX_SIZE
+    APPLY_SEB_GROUPS,
+   // FIX_SIZE
 }

@@ -1100,7 +1100,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 newClientGroup.icon,
                 newClientGroup.ipRangeStart,
                 newClientGroup.ipRangeEnd,
-                newClientGroup.clientOS);
+                newClientGroup.clientOS,
+                newClientGroup.nameRangeStartLetter,
+                newClientGroup.nameRangeEndLetter);
 
         final Result<ClientGroup> savedClientGroupResult = restService
                 .getBuilder(SaveClientGroup.class)
@@ -1333,7 +1335,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(GetExamConfigNodePage.class)
                 .call();
 
-        // there should be not configuration (for this institution of examAdmin2) now
+        // there should be no configuration (for this institution of examAdmin2) now
         assertNotNull(pageResponse);
         assertFalse(pageResponse.hasError());
         final Page<ConfigurationNode> page = pageResponse.get();
@@ -3229,6 +3231,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(Domain.EXAM.ATTR_EXAM_TEMPLATE_ID, savedTemplate.getModelId())
                 .call();
 
+        if (newExamResult.hasError()) {
+            System.out.println(newExamResult.getError());
+        }
         assertFalse(newExamResult.hasError());
         final Exam exam = newExamResult.get();
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);

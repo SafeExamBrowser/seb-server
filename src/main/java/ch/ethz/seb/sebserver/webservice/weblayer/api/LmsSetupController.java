@@ -170,36 +170,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         return super.notifySaved(entity, activation);
     }
 
-//    @Override
-//    protected Result<LmsSetup> validForActivation(final LmsSetup entity, final boolean activation) {
-//        return super.validForActivation(entity, activation)
-//                .map(lmsSetup -> {
-//                    if (!activation) {
-//                        // on deactivation remove all SEB restrictions and delete full integration if in place
-//                        return sebRestrictionService
-//                                .applyLMSSetupDeactivation(lmsSetup)
-//                                .onErrorDo(error -> {
-//                                    log.warn("Failed to apply LMSSetup deactivation for SEB Restriction: ", error);
-//                                    return lmsSetup;
-//                                })
-//                                .flatMap(fullLmsIntegrationService::applyLMSSetupDeactivation)
-//                                .onErrorDo(error -> {
-//                                    log.warn("Failed to apply LMSSetup deactivation for LMS full integration: ", error);
-//                                    return lmsSetup;
-//                                })
-//                                .flatMap(screenProctoringService::applyLMSSetupDeactivation)
-//                                .onErrorDo(error -> {
-//                                    log.warn("Failed to apply LMSSetup deactivation for Screen Proctoring: ", error);
-//                                    return lmsSetup;
-//                                })
-//                                .getOrThrow();
-//                    } else {
-//
-//                    }
-//                    return entity;
-//                });
-//    }
-
     @Override
     protected Result<LmsSetup> validForDelete(final LmsSetup entity) {
         return Result.tryCatch(() -> {

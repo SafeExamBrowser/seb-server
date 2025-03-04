@@ -467,12 +467,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
-            // if proctoring is enabled for exam, mark for room update
-            final Boolean proctoringEnabled = this.examAdminService
-                    .isProctoringEnabled(clientConnection.examId)
-                    .getOr(false);
-            if (proctoringEnabled) {
-                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
+            // if screen proctoring is enabled, close the client session also on SPS site
+            // usually it should have been closed by SEB but if not, SEB Server closes it
+            if (BooleanUtils.isTrue(this.examAdminService.isScreenProctoringEnabled(clientConnection.examId).getOr(false))) {
+                this.clientConnectionDAO.markForScreenProctoringUpdate(updatedClientConnection.id);
             }
 
             // delete stored ping if this is a distributed setup
@@ -527,13 +525,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 log.warn("SEB client connection in invalid state for disabling: {}", clientConnection);
                 updatedClientConnection = clientConnection;
             }
-
-            // if proctoring is enabled for exam, mark for room update
-            final Boolean proctoringEnabled = this.examAdminService
-                    .isProctoringEnabled(clientConnection.examId)
-                    .getOr(false);
-            if (proctoringEnabled) {
-                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
+            
+            // if screen proctoring is enabled, close the client session also on SPS site
+            if (BooleanUtils.isTrue(this.examAdminService.isScreenProctoringEnabled(clientConnection.examId).getOr(false))) {
+                this.clientConnectionDAO.markForScreenProctoringUpdate(updatedClientConnection.id);
             }
 
             // delete stored ping if this is a distributed setup
@@ -653,18 +648,17 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             response.setStatus(HttpStatus.OK.value());
 
-        }catch(Exception e){
+        } catch ( final Exception e ) {
             final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
             outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         } finally {
-
             try {
                 outputStream.flush();
                 outputStream.close();
 
-            } catch (IOException e) {
+            } catch (final IOException e) {
                  log.error("error while flushing / closing output stream", e);
             }
         }
@@ -712,9 +706,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // log SEB client IP address change
             log.warn(
-                    "ClientConnection integrity violation: client address mismatch: {}, {}",
+                    "ClientConnection integrity violation: client address mismatch: {}, {} connection: {}",
                     clientAddress,
-                    clientConnection.clientAddress);
+                    clientConnection.clientAddress,
+                    clientConnection.connectionToken);
 
             try {
                 final long now = Utils.getMillisecondsNow();
@@ -848,11 +843,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             // otherwise apply new name
-            return accountId +
+            final String userSessionName = accountId +
                     Constants.SPACE +
                     Constants.EMBEDDED_LIST_SEPARATOR +
                     Constants.SPACE +
                     clientConnection.userSessionId;
+            if (userSessionName.length() > 255) {
+                return Utils.truncateText(userSessionName, 240);
+            } else {
+                return userSessionName;
+            }
         } catch (final Exception e) {
             log.error("Unexpected error while try to update userSessionId for connection: {}", clientConnection, e);
             return null;
@@ -872,9 +872,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         if (this.isDistributedSetup) {
             // if the cached Exam is not up-to-date anymore, we have to update the cache first
-            this.examSessionService
-                    .updateExamCache(examId)
-                    .onError(error -> log.warn("Failed to update Exam-Cache for Exam: {}", examId));
+            this.examSessionService.updateExamCache(examId);
         }
 
         if (currentExamId != null && !examId.equals(currentExamId)) {
@@ -908,14 +906,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     }
 
     private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
-        final Boolean proctoringEnabled = this.examAdminService
-                .isProctoringEnabled(clientConnection.examId)
-                .getOr(false);
-
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null, status,
                 null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                proctoringEnabled, null, null, null))
+                false, null, null, null))
                 .getOrThrow();
     }
 

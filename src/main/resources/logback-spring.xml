@@ -16,31 +16,34 @@
    </appender>
 
   <springProfile name="dev">
-
     <root level="INFO" additivity="true">
       <appender-ref ref="STDOUT" />
     </root>
     <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </Logger>
-
   </springProfile>
+
+    <springProfile name="bundled">
+        <root level="INFO" additivity="true">
+            <appender-ref ref="STDOUT" />
+        </root>
+        <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+        </Logger>
+    </springProfile>
   
   <springProfile name="test">
-
     <root level="WARN" additivity="true">
       <appender-ref ref="STDOUT" />
     </root>
   </springProfile>
   
   <springProfile name="demo">
-
     <root level="INFO" additivity="true">
       <appender-ref ref="STDOUT" />
     </root>
-    
     <Logger name="ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SebClientConfigServiceImpl" level="DEBUG" additivity="true" />
- 
   </springProfile>
   
   <springProfile name="prod">

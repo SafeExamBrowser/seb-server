@@ -6,31 +6,31 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class SecurityKeyRegistryRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source Table: seb_security_key_registry")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source Table: seb_security_key_registry")
     public static final SecurityKeyRegistryRecord securityKeyRegistryRecord = new SecurityKeyRegistryRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source field: seb_security_key_registry.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source field: seb_security_key_registry.id")
     public static final SqlColumn<Long> id = securityKeyRegistryRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source field: seb_security_key_registry.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source field: seb_security_key_registry.institution_id")
     public static final SqlColumn<Long> institutionId = securityKeyRegistryRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source field: seb_security_key_registry.key_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source field: seb_security_key_registry.key_type")
     public static final SqlColumn<String> keyType = securityKeyRegistryRecord.keyType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source field: seb_security_key_registry.key_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source field: seb_security_key_registry.key_value")
     public static final SqlColumn<String> keyValue = securityKeyRegistryRecord.keyValue;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source field: seb_security_key_registry.tag")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source field: seb_security_key_registry.tag")
     public static final SqlColumn<String> tag = securityKeyRegistryRecord.tag;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source field: seb_security_key_registry.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source field: seb_security_key_registry.exam_id")
     public static final SqlColumn<Long> examId = securityKeyRegistryRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source field: seb_security_key_registry.exam_template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source field: seb_security_key_registry.exam_template_id")
     public static final SqlColumn<Long> examTemplateId = securityKeyRegistryRecord.examTemplateId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.990+02:00", comments="Source Table: seb_security_key_registry")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.863+01:00", comments="Source Table: seb_security_key_registry")
     public static final class SecurityKeyRegistryRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

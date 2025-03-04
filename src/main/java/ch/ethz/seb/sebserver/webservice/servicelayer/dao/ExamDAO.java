@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -109,7 +110,19 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return Result refer to all exams for LMS update or to an error when happened */
     Result<Collection<Exam>> allForLMSUpdate();
 
+    /** Gets all Exams of all active LMS Setups form a given LMS Setup Id list.
+     * 
+     * @param lmsId List of LMS Setup ids
+     * @return Result refer to all Exams of all active LMS Setups form a given LMS Setup Id list or to an error when happened
+     */
     Result<Collection<Exam>> allActiveForLMSSetup(Collection<Long> lmsId);
+
+    /** Get all Exams form LMS Setup with a given id.
+     * 
+     * @param lmsSetupId The LMS Setup id
+     * @return Result refer to all Exam if the LMS Setup or to an error when happened
+     */
+    Result<Collection<Exam>> allForLMSSetup(Long lmsSetupId);
 
     /** This is used to get all Exams that potentially needs a state change.
      * Checks if the stored running time frame of the exam is not in sync with the current state and return
@@ -187,7 +200,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *
      * @param exam the exam to check if it is in sync with the persistent or if there is a newer version
      * @return Result refer to the up-to-date result or to an error if happened */
-    Result<Boolean> upToDate(Exam exam);
+    boolean upToDate(Exam exam);
 
     /** Marks the specified exam as updated (sets the last modified date to now)
      * to notify exam content has changed.
@@ -251,4 +264,13 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     void updateQuitPassword(Exam exam, String quitPassword);
     
     void saveBrowserExamKeys(Long examId, String bek);
+
+    void updateSupporterAccounts(Long examId, List<String> supporterUUIDs);
+
+    /** This gets the number of exams that references a given Supporter or Teacher account UUID
+     * 
+     * @param uuid Supporter/Teacher account UUID
+     * @return number of exams that has a supporter reference for given UUID
+     */
+    int numOfExamsReferencingSupporter(String uuid);
 }

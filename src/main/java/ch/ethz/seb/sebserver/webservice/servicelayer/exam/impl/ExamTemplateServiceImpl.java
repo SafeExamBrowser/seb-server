@@ -8,15 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -258,22 +256,81 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             return Result.of(exam);
         }
 
-        return proctoringAdminService
-                .getScreenProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE))
-                .map(settings -> {
-                    if (BooleanUtils.isTrue(settings.enableScreenProctoring)) {
-                        proctoringAdminService
-                                .saveScreenProctoringSettings(exam.getEntityKey(), settings)
-                                .getOrThrow();
-                    }
-                    return settings;
-                })
+        return Result.tryCatch(() -> {
+            final ExamTemplate examTemplate = this.examTemplateDAO
+                    .byPK(exam.examTemplateId)
+                    .onError(error -> log.warn("No exam template found for id: {} error: {}",
+                            exam.examTemplateId,
+                            error.getMessage()))
+                    .getOrThrow();
 
-                .onError(error -> log.warn(
-                        "Failed to apply screen proctoring settings from Exam Template {} to Exam {}",
-                        exam.examTemplateId,
-                        exam))
-                .map(settings ->  exam);
+
+            final Result<ScreenProctoringSettings> screenProctoringSettings = proctoringAdminService
+                    .getScreenProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE));
+
+            if (!screenProctoringSettings.hasError()) {
+                return screenProctoringSettings
+                        .map(settings -> convertSPSTemplateSettings(exam, examTemplate, settings))
+                        .map(settings -> proctoringAdminService
+                                .saveScreenProctoringSettings(exam.getEntityKey(), settings)
+                                .getOrThrow())
+                        .map(settings -> exam)
+                        .onError(error -> log.warn(
+                                "Failed to apply screen proctoring settings from Exam Template {} to Exam {} cause: {}",
+                                exam.examTemplateId,
+                                exam,
+                                error.getMessage()))
+                        .getOr(exam);
+            } else {
+                log.debug("No Screen Proctoring settings found for Exam Template: {}", examTemplate);
+                return exam;
+            }
+        });
+    }
+
+    private ScreenProctoringSettings convertSPSTemplateSettings(
+            final Exam exam,
+            final ExamTemplate examTemplate,
+            final ScreenProctoringSettings screenProctoringSettings) {
+        if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
+            // in this case we need to map the selected template client groups to the just created exam client groups
+            final Set<Long> selectedTemplateIds = Arrays.stream(StringUtils.split(
+                    screenProctoringSettings.sebGroupsSelection, 
+                    Constants.LIST_SEPARATOR_CHAR))
+                    .map(Long::valueOf)
+                    .collect(Collectors.toSet());
+
+            final List<String> selectedNames = examTemplate.clientGroupTemplates
+                    .stream()
+                    .filter(gt -> selectedTemplateIds.contains(gt.id))
+                    .map(gt -> gt.name)
+                    .toList();
+
+            final List<String> selectedInstances = clientGroupDAO
+                    .allForExam(exam.id)
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .filter(g -> selectedNames.contains(g.name))
+                    .map(g -> String.valueOf(g.id))
+                    .toList();
+            
+            return new ScreenProctoringSettings(
+                    exam.id,
+                    screenProctoringSettings.enableScreenProctoring,
+                    screenProctoringSettings.spsServiceURL,
+                    screenProctoringSettings.spsAPIKey,
+                    screenProctoringSettings.spsAPISecret,
+                    screenProctoringSettings.spsAccountId,
+                    screenProctoringSettings.spsAccountPassword,
+                    screenProctoringSettings.collectingStrategy,
+                    screenProctoringSettings.collectingGroupName,
+                    screenProctoringSettings.collectingGroupSize,
+                    StringUtils.join(selectedInstances, Constants.LIST_SEPARATOR),
+                    screenProctoringSettings.bundled, 
+                    false
+            );
+        }
+        return screenProctoringSettings;
     }
 
     private ConfigurationNode createOrReuseConfig(final Exam exam, final ExamTemplate examTemplate) {
@@ -283,10 +340,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         filterMap.putIfAbsent(Entity.FILTER_ATTR_NAME, configName);
 
         // get existing config if available
-        final ConfigurationNode examConfig = this.configurationNodeDAO
+        Collection<ConfigurationNode> allConfigs = this.configurationNodeDAO
                 .allMatching(filterMap)
-                .getOrThrow()
-                .stream()
+                .getOrThrow();
+        final ConfigurationNode examConfig = allConfigs.stream()
                 .filter(res -> res.name.equals(configName))
                 .findFirst()
                 .orElse(null);
@@ -298,7 +355,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 !Objects.equals(examConfig.templateId, examTemplate.configTemplateId)) {
 
             final String newName = (examConfig != null && examConfig.name.equals(configName))
-                    ? examConfig.name + "_" + DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER)
+                    ? examConfig.name + "_" + 
+                        DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER) +
+                        "_(" + allConfigs.size() + ")"
                     : configName;
 
             final ConfigurationNode config = new ConfigurationNode(
@@ -316,11 +375,11 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             return this.configurationNodeDAO
                     .createNew(config)
                     .onError(error -> log.error(
-                            "Failed to create exam configuration for exam: {} from template: {} examConfig: {}",
+                            "Failed to create exam configuration for exam: {} from template: {} examConfig: {} error: {}",
                             exam.name,
                             examTemplate.name,
                             config,
-                            error))
+                            error.getMessage()))
                     .getOrThrow(error -> new APIMessageException(
                             ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG,
                             error));
@@ -407,7 +466,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         template.icon,
                         template.ipRangeStart,
                         template.ipRangeEnd,
-                        template.clientOS))
+                        template.clientOS,
+                        template.nameRangeStartLetter,
+                        template.nameRangeEndLetter))
                 .onError(
                         error -> log.error("Failed to automatically create client group from template: {} for exam: {}",
                                 template,

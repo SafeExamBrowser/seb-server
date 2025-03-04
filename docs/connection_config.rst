@@ -34,7 +34,7 @@ of the "Configuration" section on the menu on the left hand side.
 
 .. image:: images/connection_config/list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/connection_config/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/connection_config/list.png
 
 The list shows the name, the date of creation and the status of the connection configurations in a column. With SEB Server administrator role
 also an institution column is shown because a SEB Server administrator is able to see all connection configurations of all institutions.
@@ -46,7 +46,7 @@ or remove selection to hide all fallback related attributes.
 
 .. image:: images/connection_config/new.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/connection_config/new.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/connection_config/new.png
 
 Short description of all attributes of a connection configuration:
 
@@ -113,7 +113,7 @@ these exams with the multi selector. It is also possible to filter the list by t
 
 .. image:: images/connection_config/examSelection.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/connection_config/examSelection.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/connection_config/examSelection.png
 
 
 

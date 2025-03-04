@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSuppor
 /** Concrete EntityDAO interface of ClientGroup entities */
 public interface ClientGroupDAO extends EntityDAO<ClientGroup, ClientGroup>, BulkActionSupportDAO<ClientGroup> {
 
-    public static final String CACHE_NAME_RUNNING_EXAM_CLIENT_GROUP_CACHE = "RUNNING_EXAM_CLIENT_GROUP_CACHE";
+    String CACHE_NAME_RUNNING_EXAM_CLIENT_GROUP_CACHE = "RUNNING_EXAM_CLIENT_GROUP_CACHE";
 
     /** Get a collection of all ClientGroup entities for a specified exam.
      *
@@ -46,5 +46,5 @@ public interface ClientGroupDAO extends EntityDAO<ClientGroup, ClientGroup>, Bul
      * @param examId the exam identifier
      * @return Result refer to the list of deleted client groups or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
-
+    
 }

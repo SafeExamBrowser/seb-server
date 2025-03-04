@@ -20,7 +20,6 @@ We will go through all the steps to setting up an exam for Safe Exam Browser wit
    exam_clientgroups
    exam_ask
    exam_restriction
-   exam_screen_proctoring
    exam_list
    exam_template
    exam_testrun

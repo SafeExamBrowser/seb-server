@@ -69,6 +69,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
         return  this.restTemplateFactory
                 .getRestTemplate()
                 .map(template -> template.getMoodlePluginVersion() == MoodleAPIRestTemplate.MoodlePluginVersion.V2_0)
+                .onError(error -> log.error("Failed to check full integration active: ", error))
                 .getOr(false);
     }
 
@@ -158,6 +159,9 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                         MoodleUtils.FullConnectionApplyResponse.class);
 
                 if (!fullConnectionApplyResponse.success && !fullConnectionApplyResponse.warnings.isEmpty()) {
+                    
+                    log.info("Got warnings from Moodle: {}", response);
+                    
                     fullConnectionApplyResponse.warnings.stream()
                             .filter(w -> Objects.equals(w.warningcode, "connectiondoesntmatch"))
                             .findFirst()
@@ -165,10 +169,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                                 throw new MoodleResponseException("Failed to apply SEB Server connection due to connection mismatch\n There seems to be another SEB Server already connected to this LMS instance", response);
                             });
                 }
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Got warnings from Moodle: {}", response);
-                }
+                
             } catch (final MoodleResponseException mre) {
                 throw mre;
             } catch (final Exception e) {
@@ -239,49 +240,10 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
         });
     }
 
-//    @Override
-//    public Result<Exam> applyConnectionConfiguration(final Exam exam, final byte[] configData) {
-//        return Result.tryCatch(() -> {
-//
-//            final String quizId = MoodleUtils.getQuizId(exam.externalId);
-//            final String fileName = getConnectionConfigFileName(exam);
-//
-////            final MultiValueMap<String, Object> multiPartAttributes = new LinkedMultiValueMap<>();
-////            multiPartAttributes.add("quizid", quizId);
-////            multiPartAttributes.add("name", fileName);
-////            multiPartAttributes.add("filename", fileName);
-//
-////            final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-////            //queryAttributes.add("quizid", quizId);
-////            final ByteArrayResource contentsAsResource = new ByteArrayResource(configData) {
-////                @Override
-////                public String getFilename() {
-////                    return fileName; // Filename has to be returned in order to be able to post.
-////                }
-////            };
-////
-////            multiPartAttributes.add("file", contentsAsResource);
-//
-//            final MoodleAPIRestTemplate rest = getRestTemplate().getOrThrow();
-//            final String response = rest.uploadMultiPart(
-//                    UPLOAD_ENDPOINT,
-//                    quizId,
-//                    fileName,
-//                    configData);
-//
-//            if (response != null) {
-//                log.info("Upload Connection Configuration to Moodle: quizid: {}, fileName: {} response: {}", quizId, fileName, response );
-//            }
-//
-//            return exam;
-//        });
-//    }
-
     private String getConnectionConfigFileName(final Exam exam) {
         return "SEBServerConnectionConfiguration-" + exam.id + ".seb";
     }
-
-
+    
     @Override
     public Result<String> deleteConnectionDetails() {
         return Result.tryCatch(() -> {

@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginFullIntegration;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MooldePluginLmsAPITemplateFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +93,9 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
     @Override
     public Result<MoodleAPIRestTemplate> getRestTemplate() {
+        if (activeRestTemplate.hasError()) {
+            createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
+        }
         return activeRestTemplate;
     }
 
@@ -300,7 +306,13 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                         WebserviceInfo.class);
 
                 if (StringUtils.isBlank(webserviceInfo.username) || StringUtils.isBlank(webserviceInfo.userid)) {
-                    throw new RuntimeException("Invalid WebserviceInfo Response");
+                    if (apiInfo != null && (apiInfo.startsWith("{exception") || apiInfo.contains("\"exception\":"))) {
+                        if (apiInfo.contains("sitemaintenance")) {
+                            throw new RuntimeException("Moodle is currently in maintenance mode!");
+                        }
+                        throw new RuntimeException("Moodle respond with error: " + apiInfo);
+                    }
+                    throw new RuntimeException("Invalid WebserviceInfo Response: " + apiInfo);
                 }
 
                 if (functions != null) {
@@ -354,12 +366,13 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
             final String body = createMoodleFormPostBody(queryAttributes);
 
-            // TODO remove this after testing
-            try {
-                final String uriString = URLDecoder.decode(queryParam.toUriString(), "UTF8");
-                log.info("POST To Moodle URI (decoded UTF8): {}, body: {}", uriString, body);
-            } catch (final Exception e) {
-                // ignore
+            if (log.isDebugEnabled()) {
+                try {
+                    final String uriString = URLDecoder.decode(queryParam.toUriString(), "UTF8");
+                    log.info("POST To Moodle URI (decoded UTF8): {}, body: {}", uriString, body);
+                } catch (final Exception e) {
+                    // ignore
+                }
             }
 
             final HttpHeaders headers = new HttpHeaders();
@@ -379,7 +392,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             final StringBuffer sb = new StringBuffer();
             queryAttributes.forEach(
                     (name1, value1) -> value1.forEach(
-                            (key, value) -> sb.append(name1).append("[").append(key).append("]=").append(value).append("&")));
+                            (key, value) -> sb.append(name1).append("[").append(key).append("]=").append(URLEncoder.encode(value, StandardCharsets.UTF_8)).append("&")));
 
             sb.deleteCharAt(sb.length() - 1);
             return sb.toString();

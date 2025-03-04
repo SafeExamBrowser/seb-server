@@ -21,7 +21,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
@@ -35,10 +34,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -67,23 +63,24 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
     private final String guiEntryPoint;
 
-    private final String remoteProctoringEndpoint;
+
     private final String defaultLogo;
+    private final GuiServiceInfo guiServiceInfo;
     private final WebserviceURIService webserviceURIService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
-    protected InstitutionalAuthenticationEntryPoint(
+    public InstitutionalAuthenticationEntryPoint(
             @Value("${sebserver.gui.entrypoint}") final String guiEntryPoint,
-            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
             @Value("${sebserver.gui.defaultLogo:" + Constants.NO_NAME + "}") final String defaultLogoFileName,
             final WebserviceURIService webserviceURIService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            final ResourceLoader resourceLoader) {
+            final ResourceLoader resourceLoader, 
+            final GuiServiceInfo guiServiceInfo) {
 
         this.guiEntryPoint = guiEntryPoint;
-        this.remoteProctoringEndpoint = remoteProctoringEndpoint;
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.guiServiceInfo = guiServiceInfo;
 
         String _defaultLogo;
         if (!Constants.NO_NAME.equals(defaultLogoFileName)) {
@@ -138,7 +135,10 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             }
 
             if (authorizationContext.autoLogin(jwt)) {
-                forwardToEntryPoint(request, response, this.guiEntryPoint, true);
+                final String redirect = guiServiceInfo.getExternalServerURIBuilder().toUriString();
+                log.info("Autologin successful, redirect to: {}", redirect);
+                response.setStatus(HttpStatus.TEMPORARY_REDIRECT.value());
+                response.setHeader(HttpHeaders.LOCATION, redirect);
                 return;
             }
         }
@@ -207,17 +207,6 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             final HttpServletResponse response,
             final String entryPoint,
             final boolean redirect) throws ServletException, IOException {
-
-        final String requestURI = request.getRequestURI();
-        if (requestURI.startsWith(this.remoteProctoringEndpoint)) {
-
-            final RequestDispatcher dispatcher = request
-                    .getServletContext()
-                    .getRequestDispatcher(this.remoteProctoringEndpoint);
-
-            dispatcher.forward(request, response);
-            return;
-        }
 
         if (redirect) {
             response.sendRedirect(entryPoint);

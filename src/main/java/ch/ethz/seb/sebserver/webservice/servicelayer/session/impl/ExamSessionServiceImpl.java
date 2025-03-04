@@ -20,15 +20,16 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache;
-import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -81,8 +82,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final boolean checkExamSupporter;
     private final boolean distributedSetup;
     private final long distributedConnectionUpdate;
-
-    private long lastConnectionTokenCacheUpdate = 0;
 
     protected ExamSessionServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
@@ -548,36 +547,20 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.error("Failed to cleanup on finished exam: {}", event.exam, e);
         }
     }
-
+    
+    private long lastExamUpToDateCheckTime = 0;
+    
     @Override
-    public Result<Exam> updateExamCache(final Long examId) {
-
-        // TODO make interval access. this should only check when the last check was more then 5 seconds ago
-        // TODO is this really needed?
-        try {
-            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM);
-            final ValueWrapper valueWrapper = cache.get(examId);
-            if (valueWrapper == null || valueWrapper.get() == null) {
-                return Result.ofEmpty();
-            }
-        } catch (final Exception e) {
-            log.error("Failed to check exam cache: {}", e.getMessage());
-        }
-
+    public void updateExamCache(final Long examId) {
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
-        if (exam == null) {
-            return Result.ofEmpty();
-        }
-
-        final Boolean isUpToDate = this.examDAO
-                .upToDate(exam)
-                .onError(t -> log.error("Failed to verify if cached exam is up to date: {}", exam, t))
-                .getOr(false);
-
-        if (!BooleanUtils.toBoolean(isUpToDate)) {
-            return flushCache(exam);
-        } else {
-            return Result.of(exam);
+        if (exam != null) {
+            final long now = Utils.getMillisecondsNow();
+            if (now - lastExamUpToDateCheckTime > 2 * Constants.SECOND_IN_MILLIS) {
+                lastExamUpToDateCheckTime = now;
+                if (!this.examDAO.upToDate(exam)) {
+                    flushCache(exam);
+                }
+            }
         }
     }
 
@@ -591,6 +574,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         return Result.tryCatch(() -> {
             this.examSessionCacheService.evict(exam);
             this.examSessionCacheService.evictDefaultSEBConfig(exam.id);
+            this.examSessionCacheService.evictScreenProctoringGroups(exam.id);
             // evict client connection
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)
@@ -604,15 +588,24 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     // If we are in a distributed setup the active connection token cache get flushed
     // in specified time interval. This allows caching over multiple monitoring requests but
     // ensure an update every now and then for new incoming connections
+    private long lastConnectionTokenCacheUpdate = 0;
+    private final Set<Long> examIds = ConcurrentHashMap.newKeySet();
     private void updateClientConnections(final Long examId) {
         try {
+            if (!this.distributedSetup) {
+                return;
+            }
+            
             final long currentTimeMillis = System.currentTimeMillis();
-            if (this.distributedSetup &&
-                    currentTimeMillis - this.lastConnectionTokenCacheUpdate > this.distributedConnectionUpdate) {
+            if (currentTimeMillis - this.lastConnectionTokenCacheUpdate > this.distributedConnectionUpdate) {
+                examIds.clear();
+                this.lastConnectionTokenCacheUpdate = currentTimeMillis;
+            }
+            
+            if (!examIds.contains(examId)) {
 
                 // go through all client connection and update the ones that not up to date
                 this.clientConnectionDAO.evictConnectionTokenCache(examId);
-
                 final Set<Long> timestamps = this.clientConnectionDAO
                         .getConnectionTokens(examId)
                         .getOrThrow()
@@ -626,7 +619,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         .getOrElse(Collections::emptySet)
                         .forEach(this.examSessionCacheService::evictClientConnection);
 
-                this.lastConnectionTokenCacheUpdate = currentTimeMillis;
+                examIds.add(examId);
             }
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update client connections: ", e);

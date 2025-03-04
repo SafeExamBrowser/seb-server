@@ -37,7 +37,9 @@ public class RealNumberConverter implements AttributeValueConverter {
     public static final Set<String> SUPPORTED_ATTR_NAMES = Utils.immutableSetOf(
             "defaultPageZoomLevel",
             "defaultTextZoomLevel",
-            "screenProctoringImageDownscale");
+            "screenProctoringImageDownscale",
+            "batteryChargeThresholdCritical",
+            "batteryChargeThresholdLow");
 
     private static final String XML_TEMPLATE = "<key>%s</key><real>%s</real>";
     private static final String JSON_TEMPLATE = "\"%s\":%s";

@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -42,6 +43,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
+import com.sun.xml.bind.v2.TODO;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,8 +180,11 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @Override
-    protected Result<UserInfo> notifySaved(final UserInfo entity) {
-        final Result<UserInfo> userInfoResult = super.notifySaved(entity);
+    protected Result<UserInfo> notifySaved(
+            final UserInfo entity, 
+            final Activatable.ActivationAction activationAction) {
+
+        final Result<UserInfo> userInfoResult = super.notifySaved(entity, activationAction);
         this.synchronizeUserWithSPS(entity);
         return userInfoResult;
     }

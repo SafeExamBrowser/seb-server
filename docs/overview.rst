@@ -99,7 +99,7 @@ What one will see first when applying to a SEB Server application is the login-s
 
 .. image:: images/overview/login.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/overview/login.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/overview/login.png
 
 If you are already registered you can use your username and password to log in. Or use the "Register" button to go to the registration 
 page to create a new user account. The newly created user account will only have the Exam Supporter role assigned. If you need another 
@@ -107,7 +107,7 @@ role or more privileges, this must be given and granted by an institutional admi
 
 .. image:: images/overview/register.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/overview/register.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/overview/register.png
 
 Fill in the registration form and create a new account. After the user account has been successfully created, the application redirects to the login page for login. 
 On the current version, an e-mail confirmation is not a feature of the SEB Server application and therefore the e-mail address is currently just informative.
@@ -125,7 +125,7 @@ the main content section will show the activity content and the action that are 
 
 .. image:: images/overview/overview.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/overview/overview.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/overview/overview.png
 
 In the header above on the right hand, we see the username of the currently logged-in user and an action button to sign out and go back to the login page.
 
@@ -151,7 +151,7 @@ there are different types of filters:
 
 .. image:: images/overview/list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/overview/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/overview/list.png
 
 A list can be sorted within a column by clicking on the column header. The order of sorting can be changed by clicking again on the same 
 column header of the sorted column. If sorting functionality is available for a column depends on the column type. There are a few columns 
@@ -189,12 +189,12 @@ The following images show the same form, once in read-only mode and once in edit
 .. image:: images/overview/form_readonly.png
     :alt: Form in read-only mode
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/overview/form_readonly.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/overview/form_readonly.png
 
 .. image:: images/overview/form_edit.png
     :alt: Form in edit mode
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/overview/form_edit.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/overview/form_edit.png
 
 There usually is a tooltip on a form field element for almost all attributes that can be activated by either going over and staying on the form 
 field label or the input section. 
@@ -222,4 +222,4 @@ Actions are usually placed on the right action pane of the application and belon
     
 .. image:: images/overview/list_multiselect_actions.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/overview/list_multiselect_actions.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/overview/list_multiselect_actions.png

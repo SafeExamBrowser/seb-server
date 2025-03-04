@@ -16,8 +16,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 
@@ -108,15 +108,11 @@ public interface MonitoringFilter {
     }
 
     default Collection<RemoteProctoringRoom> proctoringData() {
-        final MonitoringFullPageData monitoringFullPageData = getMonitoringFullPageData();
-        if (monitoringFullPageData != null) {
-            return monitoringFullPageData.proctoringData;
-        } else {
-            return null;
-        }
+        // not used anymore
+        return null;
     }
 
-    default Collection<ScreenProctoringGroup> screenProctoringData() {
+    default Collection<ProctoringGroupMonitoringData> screenProctoringData() {
         final MonitoringFullPageData monitoringFullPageData = getMonitoringFullPageData();
         if (monitoringFullPageData != null) {
             return monitoringFullPageData.getScreenProctoringData();

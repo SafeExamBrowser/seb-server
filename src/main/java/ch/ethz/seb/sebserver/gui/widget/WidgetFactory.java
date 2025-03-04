@@ -647,8 +647,7 @@ public class WidgetFactory {
             expandBar.addListener(SWT.Expand, event -> {
                 try {
                     final Widget expandItem = event.item;
-                    Arrays.asList(expandBar.getItems())
-                            .stream()
+                    Arrays.stream(expandBar.getItems())
                             .filter(item -> !item.equals(expandItem))
                             .forEach(item -> item.setExpanded(false));
                 } catch (final Exception e) {
@@ -835,37 +834,16 @@ public class WidgetFactory {
             final String testKey,
             final String ariaLabel) {
 
-        final Selection selection;
-        switch (type) {
-            case SINGLE:
-                selection = new SingleSelection(parent, SWT.READ_ONLY, testKey);
-                break;
-            case SINGLE_COMBO:
-                selection = new SingleSelection(parent, SWT.NONE, testKey);
-                break;
-            case RADIO:
-                selection = new RadioSelection(parent, testKey);
-                break;
-            case MULTI:
-                selection = new MultiSelection(parent, testKey);
-                break;
-            case MULTI_COMBO:
-                selection = new MultiSelectionCombo(
-                        parent,
-                        this,
-                        testKey,
-                        // NOTE parent would work for firefox but on IE and Chrome only parent.getParent().getParent() works
-                        parent.getParent().getParent());
-                break;
-            case MULTI_CHECKBOX:
-                selection = new MultiSelectionCheckbox(parent, testKey);
-                break;
-            case COLOR:
-                selection = new ColorSelection(parent, this, testKey);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported Selection.Type: " + type);
-        }
+        final Selection selection = switch (type) {
+            case SINGLE -> new SingleSelection(parent, SWT.READ_ONLY, testKey);
+            case SINGLE_COMBO -> new SingleSelection(parent, SWT.NONE, testKey);
+            case RADIO -> new RadioSelection(parent, testKey);
+            case MULTI -> new MultiSelection(parent, testKey);
+            // NOTE parent would work for firefox but on IE and Chrome only parent.getParent().getParent() works
+            case MULTI_COMBO -> new MultiSelectionCombo(parent, this, testKey, parent.getParent().getParent());
+            case MULTI_CHECKBOX -> new MultiSelectionCheckbox(parent, testKey);
+            case COLOR -> new ColorSelection(parent, this, testKey);
+        };
 
         if (itemsSupplier != null) {
             final Consumer<Selection> updateFunction = ss -> {
@@ -1079,6 +1057,9 @@ public class WidgetFactory {
             case CLIENT_OS: {
                 return this.i18nSupport.getText(ResourceService.CLIENT_OS_TYPE_PREFIX + data.getClientOS().name());
             }
+            case NAME_ALPHABETICAL_RANGE:{
+                return data.getNameRangeStartLetter() + "&nbsp;-&nbsp;" + data.getNameRangeEndLetter();
+            }
             default: {
                 return Constants.EMPTY_NOTE;
             }
@@ -1086,17 +1067,16 @@ public class WidgetFactory {
     }
 
     public static String getTextWithBackgroundHTML(final String text, final String color) {
-        return new StringBuilder().append("<span style='padding: 5px 5px 5px 5px; background-color: #")
-                .append(color)
-                .append(";")
-                .append((Utils.darkColorContrast(Utils.parseRGB(color)))
+        return "<span style='padding: 5px 5px 5px 5px; background-color: #" +
+                color +
+                ";" +
+                ((Utils.darkColorContrast(Utils.parseRGB(color)))
                         ? "color: #4a4a4a; "
-                        : "color: #FFFFFF;")
-                .append("'>")
-                .append(text)
+                        : "color: #FFFFFF;") +
+                "'>" +
+                text +
                 // .append("&nbsp;")
-                .append("</span>")
-                .toString();
+                "</span>";
     }
 
     public static String getColorValueHTML(final ClientGroupData data) {

@@ -54,7 +54,7 @@ public final class UpdateErrorHandler implements Function<Exception, Boolean> {
                         this.pageService.getI18nSupport());
                 logoutSuccess.open(null);
             } catch (final Exception ee) {
-                log.warn("Unable to auto-logout: ", ee.getMessage());
+                log.warn("Unable to auto-logout: {}", ee.getMessage());
             }
             return false;
         }

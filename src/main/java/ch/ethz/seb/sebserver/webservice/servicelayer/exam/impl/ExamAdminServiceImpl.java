@@ -12,10 +12,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +34,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 @Lazy
@@ -49,7 +50,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final LmsAPIService lmsAPIService;
     private final ExamConfigurationValueService examConfigurationValueService;
-    private final SEBRestrictionService sebRestrictionService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
@@ -59,7 +60,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final LmsAPIService lmsAPIService,
             final ExamConfigurationValueService examConfigurationValueService,
-            final SEBRestrictionService sebRestrictionService) {
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         this.examDAO = examDAO;
         this.proctoringAdminService = proctoringAdminService;
@@ -68,7 +69,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.lmsAPIService = lmsAPIService;
         this.examConfigurationValueService = examConfigurationValueService;
-        this.sebRestrictionService = sebRestrictionService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -174,19 +175,21 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Boolean> isProctoringEnabled(final Long examId) {
-        return this.additionalAttributesDAO.getAdditionalAttribute(
-                EntityType.EXAM,
-                examId,
-                ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)
-                .map(rec -> BooleanUtils.toBoolean(rec.getValue()))
-                .onErrorDo(error -> {
-                    if (log.isDebugEnabled()) {
-                        log.warn("Failed to verify proctoring enabled for exam: {}, {}",
-                                examId,
-                                error.getMessage());
-                    }
-                    return false;
-                });
+        // Live Proctoring is disabled
+        return Result.of(false);
+//        return this.additionalAttributesDAO.getAdditionalAttribute(
+//                EntityType.EXAM,
+//                examId,
+//                ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)
+//                .map(rec -> BooleanUtils.toBoolean(rec.getValue()))
+//                .onErrorDo(error -> {
+//                    if (log.isDebugEnabled()) {
+//                        log.warn("Failed to verify proctoring enabled for exam: {}, {}",
+//                                examId,
+//                                error.getMessage());
+//                    }
+//                    return false;
+//                });
     }
 
     @Override
@@ -249,7 +252,16 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     public Result<Exam> applyQuitPassword(final Exam exam) {
         return this.examConfigurationValueService
                 .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
-                .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t))
+                .onError(t -> log.error("Failed to apply quit password to Exam configuration for Exam: {}", exam, t))
+                .map(id -> exam);
+    }
+
+    @Override
+    public Result<Exam> applySPSEnabled(final Exam exam) {
+        return getProctoringAdminService()
+                .getScreenProctoringSettings(exam.getEntityKey())
+                .flatMap(settings -> this.examConfigurationValueService.applySPSEnabledToConfigs(exam.id, settings.enableScreenProctoring))
+                .onError(t -> log.error("Failed to apply screen proctoring enabled setting for Exam configuration for Exam: {}", exam, t))
                 .map(id -> exam);
     }
 
@@ -287,7 +299,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             this.examConfigurationMapDAO
                     .getConfigurationNodeIds(result.id)
                     .getOrThrow()
-                    .stream()
                     .forEach(configNodeId -> {
                         if (this.examConfigurationMapDAO.checkNoActiveExamReferences(configNodeId).getOr(false)) {
                             log.debug("Also set exam configuration to archived: {}", configNodeId);
@@ -300,6 +311,12 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                         }
                     });
 
+            try {
+                applicationEventPublisher.publishEvent(new ExamArchivedEvent(result));
+            } catch (final Exception e) {
+                log.error("Unexpected error while ExamArchivedEvent processing: ", e);
+            }
+            
             return result;
         });
     }

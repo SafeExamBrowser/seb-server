@@ -52,7 +52,7 @@ public interface ClientConnectionDAO extends
             cacheNames = CONNECTION_TOKENS_CACHE,
             key = "#examId")
     default void evictConnectionTokenCache(final Long examId) {
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             log.debug("Evict SEB connection tokens for exam: {}", examId);
         }
     }
@@ -63,6 +63,8 @@ public interface ClientConnectionDAO extends
      * @param examId The exam identifier
      * @return Result refer to the collection of connection tokens or to an error when happened */
     Result<Collection<String>> getActiveConnectionTokens(Long examId);
+
+    boolean hasActiveSEBConnections(Long examId);
 
     /** Get a list of all connection tokens of all connections of an exam
      * that are in state an active state. See <code>ClientConnection</code>
@@ -148,10 +150,14 @@ public interface ClientConnectionDAO extends
             key = "#connectionToken")
     Result<Void> assignToScreenProctoringGroup(Long connectionId, String connectionToken, Long groupId);
 
+    
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
             key = "#connectionToken")
-    Result<Void> markScreenProctoringApplied(Long connectionId, String connectionToken);
+    void markScreenProctoringApplied(Long connectionId, String connectionToken);
+
+    /** Used to re-mark a client connection record for screen proctoring update. */
+    void markForScreenProctoringUpdate(final Long id);
 
     /** Get a ClientConnection by connection token.
      *
@@ -249,4 +255,5 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the list of deleted client connections or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
+    
 }

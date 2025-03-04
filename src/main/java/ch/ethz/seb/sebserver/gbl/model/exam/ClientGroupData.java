@@ -13,19 +13,22 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 /** Overall interface for client group data used either for template or real client groups */
 public interface ClientGroupData extends Entity {
 
-    public static final String ATTR_IP_RANGE_START = "ipRangeStart";
-    public static final String ATTR_IP_RANGE_END = "ipRangeEnd";
-    public static final String ATTR_CLIENT_OS = "clientOS";
+    String ATTR_IP_RANGE_START = "ipRangeStart";
+    String ATTR_IP_RANGE_END = "ipRangeEnd";
+    String ATTR_CLIENT_OS = "clientOS";
+    String ATTR_NAME_RANGE_START_LETTER = "nameRangeStartLetter";
+    String ATTR_NAME_RANGE_END_LETTER = "nameRangeEndLetter";
 
     /** All known and implemented client group types */
-    public enum ClientGroupType {
+    enum ClientGroupType {
         NONE,
         IP_V4_RANGE,
-        CLIENT_OS
+        CLIENT_OS,
+        NAME_ALPHABETICAL_RANGE
     }
 
     /** All known and implemented SEB OS types */
-    public enum ClientOS {
+    enum ClientOS {
         NONE(null),
         WINDOWS("Windows"),
         MAC_OS("macOS"),
@@ -36,16 +39,15 @@ public interface ClientGroupData extends Entity {
         public final String queryString1;
         public final String queryString2;
 
-        private ClientOS(final String queryString1) {
+        ClientOS(final String queryString1) {
             this.queryString1 = queryString1;
             this.queryString2 = null;
         }
 
-        private ClientOS(final String queryString1, final String queryString2) {
+        ClientOS(final String queryString1, final String queryString2) {
             this.queryString1 = queryString1;
             this.queryString2 = queryString2;
         }
-
     }
 
     Long getId();
@@ -59,7 +61,11 @@ public interface ClientGroupData extends Entity {
     String getIpRangeStart();
 
     String getIpRangeEnd();
-
+    
     ClientOS getClientOS();
 
+    String getNameRangeStartLetter();
+
+    String getNameRangeEndLetter();
+    
 }

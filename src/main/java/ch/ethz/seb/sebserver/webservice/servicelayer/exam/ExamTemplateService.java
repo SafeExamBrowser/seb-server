@@ -58,6 +58,6 @@ public interface ExamTemplateService {
      * @return Result refer to the created exam or to an error when happened */
     Result<Exam> initExamConfiguration(Exam exam);
 
-     Result<Exam> applyScreenProctoringSettingsForExam(Exam exam);
+    Result<Exam> applyScreenProctoringSettingsForExam(Exam exam);
 
 }

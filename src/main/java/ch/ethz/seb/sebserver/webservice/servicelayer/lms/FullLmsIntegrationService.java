@@ -13,6 +13,7 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
@@ -20,6 +21,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -28,9 +30,9 @@ import org.springframework.context.event.EventListener;
 
 public interface FullLmsIntegrationService {
 
-    @EventListener
+    @EventListener(LmsSetupChangeEvent.class)
     void notifyLmsSetupChange(final LmsSetupChangeEvent event);
-    @EventListener
+    @EventListener(ExamTemplateChangeEvent.class)
     void notifyExamTemplateChange(final ExamTemplateChangeEvent event);
     @EventListener(ConnectionConfigurationChangeEvent.class)
     void notifyConnectionConfigurationChange(ConnectionConfigurationChangeEvent event);
@@ -38,6 +40,8 @@ public interface FullLmsIntegrationService {
     void notifyExamDeletion(ExamDeletionEvent event);
     @EventListener(ExamConfigUpdateEvent.class)
     void notifyExamConfigChange(ExamConfigUpdateEvent event);
+    @EventListener(ExamArchivedEvent.class)
+    void notifyExamArchived(ExamArchivedEvent event);
 
     /** Applies the exam data to LMS to inform the LMS that the exam exists on SEB Server site.
      * @param exam The Exam
@@ -45,6 +49,8 @@ public interface FullLmsIntegrationService {
     Result<Exam> applyExamDataToLMS(Exam exam);
 
     Result<IntegrationData> applyFullLmsIntegration(Long lmsSetupId);
+
+    Result<IntegrationData> applyFullLmsIntegration(LmsSetup lmsSetup);
 
     Result<Boolean> deleteFullLmsIntegration(Long lmsSetupId);
 
@@ -61,9 +67,7 @@ public interface FullLmsIntegrationService {
             String lmsUUID,
             String courseId,
             String quizId);
-
-
-
+    
     Result<Void> streamConnectionConfiguration(
             String lmsUUID,
             String courseId,
@@ -75,9 +79,6 @@ public interface FullLmsIntegrationService {
             String courseId,
             String quizId,
             AdHocAccountData adHocAccountData);
-
-
-
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     final class ExamData {

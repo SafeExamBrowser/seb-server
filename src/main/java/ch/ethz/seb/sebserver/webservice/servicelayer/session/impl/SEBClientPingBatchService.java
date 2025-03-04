@@ -8,15 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -41,7 +37,6 @@ public class SEBClientPingBatchService implements SEBClientPingService {
 
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientInstructionService sebClientInstructionService;
-    private final ClientConnectionDAO clientConnectionDAO;
 
     private final Set<String> pingKeys = new HashSet<>();
     private final Map<String, String> pings = new ConcurrentHashMap<>();
@@ -49,12 +44,10 @@ public class SEBClientPingBatchService implements SEBClientPingService {
 
     public SEBClientPingBatchService(
             final ExamSessionCacheService examSessionCacheService,
-            final SEBClientInstructionService sebClientInstructionService,
-            final ClientConnectionDAO clientConnectionDAO) {
+            final SEBClientInstructionService sebClientInstructionService) {
 
         this.examSessionCacheService = examSessionCacheService;
         this.sebClientInstructionService = sebClientInstructionService;
-        this.clientConnectionDAO = clientConnectionDAO;
     }
 
     @Scheduled(fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}")
@@ -121,13 +114,15 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         if (connectionData != null) {
             if (connectionData.clientConnection.status == ClientConnection.ConnectionStatus.DISABLED) {
                 // SEBSERV-440 send quit instruction to SEB
-                sendQuitInstruction(connectionToken, connectionData.clientConnection.examId);
+                this.sebClientInstructionService.sendQuitInstruction(
+                        connectionToken, 
+                        connectionData.clientConnection.examId);
             }
 
             connectionData.notifyPing(timestamp);
         } else {
             log.warn("Failed to get ClientConnectionDataInternal probably due to finished Exam for: {}.", connectionToken);
-            sendQuitInstruction(connectionToken,null);
+            this.sebClientInstructionService.sendQuitInstruction(connectionToken,null);
         }
 
         if (StringUtils.isNotBlank(instructionConfirm)) {
@@ -144,37 +139,5 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         }
     }
 
-    private void sendQuitInstruction(final String connectionToken, final Long examId) {
-
-        Long _examId = examId;
-        if (examId == null) {
-            final Result<ClientConnection> clientConnectionResult = clientConnectionDAO
-                    .byConnectionToken(connectionToken);
-
-            if (clientConnectionResult.hasError()) {
-                log.error(
-                        "Failed to get examId for client connection token: {} error: {}",
-                        connectionToken,
-                        clientConnectionResult.getError().getMessage());
-            }
-
-            _examId = clientConnectionResult.get().examId;
-        }
-
-        if (_examId != null) {
-
-            log.info("Send automated quit instruction to SEB for connection token: {}", connectionToken);
-
-            // TODO add SEB event log that SEB Server has automatically send quit instruction to SEB
-
-            sebClientInstructionService.registerInstruction(
-                    _examId,
-                    ClientInstruction.InstructionType.SEB_QUIT,
-                    Collections.emptyMap(),
-                    connectionToken,
-                    false,
-                    false
-            );
-        }
-    }
+    
 }

@@ -22,6 +22,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
@@ -48,7 +50,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.Proctoring
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -72,7 +73,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetScreenProctoringGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
@@ -104,6 +104,8 @@ public class MonitoringRunningExam implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.action.closeTownhall.confirm");
     private static final LocTextKey CONFIRM_DISABLE_SELECTED =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.disable.selected.confirm");
+    private static final LocTextKey NOT_RUNNING_MESSAGE =
+            new LocTextKey("sebserver.monitoring.exam.notrunning.message");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -174,6 +176,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                 new LocTextKey(
                         "sebserver.monitoring.exam",
                         StringEscapeUtils.escapeXml11(exam.name)));
+        
+        if (exam.status != Exam.ExamStatus.RUNNING && exam.status != Exam.ExamStatus.TEST_RUN) {
+            pageContext.publishInfo(NOT_RUNNING_MESSAGE);
+            return;
+        }
 
         final Composite tablePane = new Composite(content, SWT.NONE);
         tablePane.setLayout(new GridLayout());
@@ -217,18 +224,18 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         actionBuilder
 
-                .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
-                .withEntityKey(entityKey)
-                .withExec(this::openSearchPopup)
-                .noEventPropagation()
-                .publishIf(isExamSupporter)
-
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
                 .withEntityKey(entityKey)
                 .withConfirm(() -> CONFIRM_QUIT_ALL)
                 .withExec(action -> this.quitSEBClients(action, clientTable, true))
                 .noEventPropagation()
                 .publishIf(() -> isExamSupporter.getAsBoolean() && quitEnabled)
+
+                .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
+                .withEntityKey(entityKey)
+                .withExec(this::openSearchPopup)
+                .noEventPropagation()
+                .publishIf(isExamSupporter)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_SELECTED)
                 .withEntityKey(entityKey)
@@ -288,14 +295,17 @@ public class MonitoringRunningExam implements TemplateComposer {
                     isExamSupporter,
                     exam.checkASK,
                     exam.allowedSEBVersions));
-
-
-
+            
             final ProctoringServiceSettings proctoringSettings = new ProctoringServiceSettings(exam);
+            final ScreenProctoringSettings screenProctoringSettings = restService
+                    .getBuilder(GetScreenProctoringSettings.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                    .call()
+                    .getOrThrow();
             guiUpdates.add(createProctoringActions(
                     proctoringSettings,
                     currentUser.isFeatureEnabled(EXAM_SCREEN_PROCTORING)
-                            ? new ScreenProctoringSettings(exam)
+                            ? screenProctoringSettings
                             : null,
                     currentUser.getProctoringGUIService(),
                     pageContext,
@@ -374,17 +384,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         proctoringGUIService.clearActionState();
         final EntityKey entityKey = pageContext.getEntityKey();
-        final Collection<RemoteProctoringRoom> collectingRooms = (proctoringEnabled)
-                ? this.pageService
-                        .getRestService()
-                        .getBuilder(GetCollectingRooms.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                        .call()
-                        .onError(error -> log.error("Failed to get collecting room data:", error))
-                        .getOr(Collections.emptyList())
-                : Collections.emptyList();
-
-        final Collection<ScreenProctoringGroup> screenProctoringGroups = (screenProctoringEnabled)
+        final Collection<ScreenProctoringGroup> screenProctoringGroups = ((screenProctoringEnabled)
                 ? this.pageService
                         .getRestService()
                         .getBuilder(GetScreenProctoringGroups.class)
@@ -392,11 +392,15 @@ public class MonitoringRunningExam implements TemplateComposer {
                         .call()
                         .onError(error -> log.error("\"Failed to get screen proctoring group data:", error))
                         .getOr(Collections.emptyList())
-                : Collections.emptyList();
+                : Collections.emptyList());
+        final List<ProctoringGroupMonitoringData> spMonitoringData = screenProctoringGroups
+                .stream()
+                .map(g -> new ProctoringGroupMonitoringData(g.uuid, g.name, g.size))
+                .toList();
+
 
         this.monitoringProctoringService.updateCollectingRoomActions(
-                collectingRooms,
-                screenProctoringGroups,
+                spMonitoringData,
                 pageContext,
                 proctoringSettings,
                 proctoringGUIService,
@@ -404,7 +408,6 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         return monitoringStatus -> this.monitoringProctoringService
                 .updateCollectingRoomActions(
-                        monitoringStatus.proctoringData(),
                         monitoringStatus.screenProctoringData(),
                         pageContext,
                         proctoringSettings,

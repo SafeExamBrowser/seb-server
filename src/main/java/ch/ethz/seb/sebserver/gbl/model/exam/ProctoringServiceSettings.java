@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.URL;
@@ -31,6 +32,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.ValidProctoringS
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ValidProctoringSettings
 public class ProctoringServiceSettings implements Entity {
+
 
     public enum ProctoringServerType {
         JITSI_MEET,
@@ -64,6 +66,8 @@ public class ProctoringServiceSettings implements Entity {
     public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
     public static final String ATTR_SERVICE_IN_USE = "serviceInUse";
     public static final String ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM = "useZoomAppClientForCollectingRoom";
+    
+    public static final String ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME = "LIVE_PROCTORING_SETTINGS";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;

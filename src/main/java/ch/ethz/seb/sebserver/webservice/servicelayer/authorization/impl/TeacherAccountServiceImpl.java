@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -24,6 +25,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountD
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
 import io.jsonwebtoken.Claims;
@@ -133,6 +136,10 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final AdHocAccountData adHocAccountData,
             final boolean createIfNotExists) {
 
+        if (exam.status == Exam.ExamStatus.FINISHED || exam.status == Exam.ExamStatus.ARCHIVED) {
+            return Result.ofError(new IllegalStateException("Exam is not running"));
+        }
+        
         return this.userDAO
                 .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))
                 .onErrorDo(error -> handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData))
@@ -181,6 +188,72 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
             return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, token);
         });
+    }
+
+    @Override
+    public void deleteAllFromLMS(final Long lmsId) {
+            userDAO
+                    .deleteAdHocAccountsForLMS(AD_HOC_TEACHER_ID_PREFIX, lmsId)
+                    .map(this::deleteAccountsOnSPS)
+                    .onError(error -> log.error("Failed to delete all teacher accounts for LMS with id: {}", lmsId, error));
+    }
+
+    @Override
+    public void notifyExamFinished(final ExamFinishedEvent event) {
+        deleteAllTeacherAccounts(event.exam);
+        
+        // remove all teacher accounts from Exam supporter list
+        final List<String> supporterWithoutTeacherAccounts = event.exam.supporter
+                .stream()
+                .filter(uuid -> uuid != null && !uuid.contains(AD_HOC_TEACHER_ID_PREFIX))
+                .toList();
+        
+        examDAO.updateSupporterAccounts(
+                event.exam.id, 
+                supporterWithoutTeacherAccounts);
+    }
+
+    @Override
+    public void notifyExamDeleted(final ExamDeletionEvent event) {
+        event.ids.forEach(id -> {
+            try {
+                deleteAllTeacherAccounts(examDAO.byPK(id).getOrThrow());                
+            } catch (final Exception e) {
+                log.error("Failed to remove Teacher account for Exam: {} cause: {}", id, e.getMessage());
+            }
+        });
+    }
+    
+    private void deleteAllTeacherAccounts(final Exam exam) {
+        try {
+
+           final Set<EntityKey> keysToDelete = exam.supporter
+                    .stream()
+                    .filter(uuid -> uuid != null && 
+                            uuid.contains(AD_HOC_TEACHER_ID_PREFIX) && 
+                            examDAO.numOfExamsReferencingSupporter(uuid) == 1)
+                    .map(uuid -> new EntityKey(uuid, EntityType.USER))
+                    .collect(Collectors.toSet());
+
+            if (!keysToDelete.isEmpty()) {
+                
+                log.info("Deleting teacher accounts: {} for exam: {}", keysToDelete, exam.name);
+                
+                userDAO.delete(keysToDelete)
+                        .map(this::deleteAccountsOnSPS)
+                        .onError(error -> log.error(
+                                "Failed to delete all teacher accounts for Exam with id: {} cause: {}", 
+                                exam.id, 
+                                error.getMessage()));
+            }
+        } catch (final Exception e) {
+            log.error("Failed to delete Ad-Hoc Teacher Accounts for exam: {} cause: {}", exam, e.getMessage());
+        }
+    }
+
+    private Collection<EntityKey> deleteAccountsOnSPS(final Collection<EntityKey> keys) {
+        keys.forEach(key -> this.screenProctoringService.deleteSPSUser(key.modelId) );
+        return keys;
     }
 
     private UserInfo handleAccountDoesNotExistYet(

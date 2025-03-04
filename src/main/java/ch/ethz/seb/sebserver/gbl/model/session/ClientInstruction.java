@@ -49,57 +49,58 @@ public final class ClientInstruction {
     }
 
     public interface SEB_INSTRUCTION_ATTRIBUTES {
-        public interface SEB_PROCTORING {
-            public static final String SERVICE_TYPE = "service-type";
-            public static final String METHOD = "method";
+        interface SEB_PROCTORING {
+            String SERVICE_TYPE = "service-type";
+            String METHOD = "method";
 
-            public static final String JITSI_URL = "jitsiMeetServerURL";
-            public static final String JITSI_ROOM = "jitsiMeetRoom";
-            public static final String JITSI_ROOM_SUBJECT = "jitsiMeetSubject";
-            public static final String JITSI_TOKEN = "jitsiMeetToken";
-            public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
-            public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
-            public static final String JITSI_ALLOW_CHAT = "jitsiFeatureFlagChat";
+            String JITSI_URL = "jitsiMeetServerURL";
+            String JITSI_ROOM = "jitsiMeetRoom";
+            String JITSI_ROOM_SUBJECT = "jitsiMeetSubject";
+            String JITSI_TOKEN = "jitsiMeetToken";
+            String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
+            String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
+            String JITSI_ALLOW_CHAT = "jitsiFeatureFlagChat";
 
-            public static final String ZOOM_URL = "zoomServerURL";
-            public static final String ZOOM_ROOM = "zoomRoom";
-            public static final String ZOOM_ROOM_SUBJECT = "zoomSubject";
-            public static final String ZOOM_USER_NAME = "zoomUserName";
-            public static final String ZOOM_API_KEY = "zoomAPIKey";
-            public static final String ZOOM_TOKEN = "zoomToken";
-            public static final String ZOOM_SDK_TOKEN = "zoomSDKToken";
-            public static final String ZOOM_MEETING_KEY = "zoomMeetingKey";
-            public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
-            public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
-            public static final String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
+            String ZOOM_URL = "zoomServerURL";
+            String ZOOM_ROOM = "zoomRoom";
+            String ZOOM_ROOM_SUBJECT = "zoomSubject";
+            String ZOOM_USER_NAME = "zoomUserName";
+            String ZOOM_API_KEY = "zoomAPIKey";
+            String ZOOM_TOKEN = "zoomToken";
+            String ZOOM_SDK_TOKEN = "zoomSDKToken";
+            String ZOOM_MEETING_KEY = "zoomMeetingKey";
+            String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
+            String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
+            String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
 
-            public static final String PROCTORING_ROOM_TYPE = "roomType";
+            String PROCTORING_ROOM_TYPE = "roomType";
         }
 
         public interface SEB_RECONFIGURE_SETTINGS {
-            public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
-            public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
-            public static final String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
-            public static final String JITSI_PIN_USER_ID = "jitsiMeetPinUser";
-            public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
-            public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
-            public static final String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
+            String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
+            String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
+            String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
+            String JITSI_PIN_USER_ID = "jitsiMeetPinUser";
+            String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
+            String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
+            String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
         }
 
         public interface SEB_FORCE_LOCK_SCREEN {
-            public static final String MESSAGE = "message";
-            public static final String IMAGE_URL = "imageURL";
+            String MESSAGE = "message";
+            String IMAGE_URL = "imageURL";
         }
 
         public interface SEB_SCREEN_PROCTORING {
-            public static final String METHOD = "method";
-            public static final String SERVICE_TYPE = "service-type";
-            public static final String SERVICE_TYPE_NAME = "SCREEN_PROCTORING";
-            public static final String URL = "screenProctoringServiceURL";
-            public static final String CLIENT_ID = "screenProctoringClientId";
-            public static final String CLIENT_SECRET = "screenProctoringClientSecret";
-            public static final String GROUP_ID = "screenProctoringGroupId";
-            public static final String SESSION_ID = "screenProctoringClientSessionId";
+            String METHOD = "method";
+            String SERVICE_TYPE = "service-type";
+            String SERVICE_TYPE_NAME = "SCREEN_PROCTORING";
+            String URL = "screenProctoringServiceURL";
+            String CLIENT_ID = "screenProctoringClientId";
+            String CLIENT_SECRET = "screenProctoringClientSecret";
+            String GROUP_ID = "screenProctoringGroupId";
+            String SESSION_ID = "screenProctoringClientSessionId";
+            String SESSION_ENCRYPTION_KEY = "screenProctoringEncryptSecret";
         }
 
     }

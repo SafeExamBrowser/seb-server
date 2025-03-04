@@ -17,7 +17,7 @@ and also shows which one is the default for the institution.
 
 .. image:: images/exam_template/list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/list.png
     
 .. note:: 
     The "Default Template" flag indicates the one exam template that is the default template for an institution. This just means that this template
@@ -32,7 +32,7 @@ SEB Server will then present you the exam template creation view on that some in
 
 .. image:: images/exam_template/new.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/new.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/new.png
 
 - **Name** The name of the exam template to identify it in the list/library
 - **Description** A short description ideally describing the purpose of the exam template
@@ -46,17 +46,55 @@ view that looks similar to the exam administration view.
 
 .. image:: images/exam_template/view.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/view.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/view.png
 
 Here you can edit the settings done before by using the "Edit Exam Template" action form the right action pane.
-You can also delete an exam template entirely by using the "Delete Exam Template" action from the right action pane.
-And you are able to add/edit/remove monitoring indicators for the exam template just like you would do for exams in the exam administration view.
+And you can also add some additional settings like in the Exam:
 
-.. image:: images/exam_template/indicator.png
+
+Monitoring Indicators
+-------
+
+For monitoring connected SEB clients, SEB Server supports some indicators that can be defined within an Exam and Exam Template and that are shown and measured during an exam. When you define indicators for a Exam Template, they will be automatically applied to an Exam that is imported with this Exam Template. Configuring Indicators for an Exam Template is quit the same as configuring it on the Exam itself. Therefore please have a look to 
+:ref:`examIndicators-label` for more information on that topic.
+
+SEB Client Groups
+-------
+
+SEB client groups are a new feature since SEB Server 1.5 release and allows you to group SEB client connection to specified groups that are
+graphically tagged in the exam monitoring view and can be shown or hided by usual filter on the exam monitoring view. All SEB Client Groups 
+that are defined for an Exam Template will be applied to an Exam that is imported within this Exam Template. Configuring SEB Client Groups
+for an Exam Template is quit the same as configuring it on the Exam itself. Therefore please have a look to :ref:`examClientgroups-label` for more information on that topic.
+
+
+Screen Proctoring
+-------
+
+SEB Screen Proctoring is an integral component of the SEB Ecosystem, designed to monitor student screens during digital examinations. This tool captures and displays screenshots taken by SEB, ensuring a secure and controlled testing environment.
+
+Configuring Screen Proctoring for an Exam Template is just like configuring it in the Exam itself. By using the Screen Proctoring 
+configuration action in the right action pane will open the Screen Proctoring configuration pop-up where you can enable or disable 
+the Screen Proctoring for Exams that will be imported with this Exam Template
+
+Since SEB Server version 2.1 you are also able to configure Screen Proctoring groups that shall be created for Screen Proctoring on
+Exam import and were connecting SEB clients are scheduled to after they have successfully connected to SEB Server. 
+Currently there are two different types of possible Screen Proctoring group generation. The default "One Group for Exam" where
+you only generate one Screen Proctoring group for the exam and can give them a name:
+
+.. image:: images/exam_template/sps_one_group.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/indicator.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/sps_one_group.png
+
+The other one is to apply the Screen Proctoring groups to existing Client Groups. When you define some Client Groups within the 
+Exam Template and choose "Apply to SEB Client Groups" within the Screen Proctoring configuration pop-up, you are able to select
+the needed SEB Client Groups from the list of available SEB Client Groups and additionally can gave a name für the Fallback Group
+The Fallback Groups is been used to schedule connecting SEB clients to that do not belong to any of the selected SEB Client Groups
+
+.. image:: images/exam_template/sps_seb_groups.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/sps_seb_groups.png
     
-TODO Screen Proctoring Settings
+For more information about Screen Proctoring and how it is used within Exam Monitoring, please go to: :ref:`screenprocotring-label`
 
 
 Import Exam with Template
@@ -67,7 +105,7 @@ use the "Import as Exam" action for a LMS/Assessment Tool exam that you want to 
 
 .. image:: images/exam_template/select1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam_template/select1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam_template/select1.png
     
 Now there is a new selector field named "Exam Template" where you can choose the exam template to use on import. When you select one the template attributes
 like "Exam Type" or "Exam Supporter" are automatically applied from the template settings. You are still able to edit the settings e.g. add more or remove supporter.

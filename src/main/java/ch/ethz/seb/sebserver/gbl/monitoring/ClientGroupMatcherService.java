@@ -30,7 +30,7 @@ public class ClientGroupMatcherService {
         this.matcher = matcher
                 .stream()
                 .collect(Collectors.toMap(
-                        k -> k.matcherType(),
+                        ClientGroupConnectionMatcher::matcherType,
                         Function.identity()));
     }
 

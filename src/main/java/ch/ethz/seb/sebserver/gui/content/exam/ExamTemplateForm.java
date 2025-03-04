@@ -11,14 +11,12 @@ package ch.ethz.seb.sebserver.gui.content.exam;
 import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_SCREEN_PROCTORING;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.*;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigs;
 import org.apache.commons.lang3.StringUtils;
@@ -241,7 +239,9 @@ public class ExamTemplateForm implements TemplateComposer {
                         Domain.EXAM_TEMPLATE.ATTR_SUPPORTER,
                         FORM_SUPPORTER_TEXT_KEY,
                         StringUtils.join(examTemplate.supporter, Constants.LIST_SEPARATOR_CHAR),
-                        this.resourceService::examSupporterResources))
+                        readonly 
+                                ? this.resourceService::examSupporterResources
+                                : this.resourceService::examSupporterResourcesNoTeacher))
 
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamTemplate.class)

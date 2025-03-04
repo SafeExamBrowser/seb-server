@@ -173,7 +173,7 @@ public class PaginationServiceImpl implements PaginationService {
         });
     }
 
-    private String verifySortColumnName(final String sort, final String columnName) {
+    public String verifySortColumnName(final String sort, final String columnName) {
 
         if (StringUtils.isBlank(sort)) {
             return this.defaultSortColumn.get(columnName);

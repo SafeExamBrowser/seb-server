@@ -198,7 +198,9 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             try {
                 final ResponseEntity<String> forEntity =
                         this.restTemplate.getForEntity(this.currentUserURI, String.class);
+                
                 if (forEntity.getStatusCode() != HttpStatus.OK) {
+                    log.warn("Failed to verify user login on webservice: {}", forEntity.getBody());
                     return false;
                 }
             } catch (final Exception e) {
@@ -309,10 +311,10 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                         null,
                         Void.class);
                 if (response.getStatusCode() != HttpStatus.OK) {
-                    log.error("Failed to log logout: {}", response.getStatusCode());
+                    log.warn("Failed to log logout: {}", response.getStatusCode());
                 }
             } catch (final Exception e) {
-                log.error("Failed to log logout: {}", e.getMessage());
+                log.warn("Failed to log logout: {}", e.getMessage());
             }
 
             // set this context invalid to force creation of a new context on next request

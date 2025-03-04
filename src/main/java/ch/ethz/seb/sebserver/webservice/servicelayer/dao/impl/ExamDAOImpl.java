@@ -256,6 +256,18 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public void updateSupporterAccounts(final Long examId, final List<String> supporterUUIDs) {
+        this.examRecordDAO
+                .updateSupporterAccounts(examId, supporterUUIDs)
+                .onError(err -> log.error("Failed to update supporter uuids on exam: {}", examId, err));
+    }
+
+    @Override
+    public int numOfExamsReferencingSupporter(final String uuid) {
+        return this.examRecordDAO.numOfExamsReferencingSupporter(uuid);
+    }
+
+    @Override
     public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return this.examRecordDAO
                 .setSEBRestriction(examId, sebRestriction)
@@ -390,6 +402,21 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
         }).flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Exam>> allForLMSSetup(final Long lmsSetupId) {
+        return Result.tryCatch(() -> this.examRecordMapper.selectByExample()
+                        .where(
+                                ExamRecordDynamicSqlSupport.lmsSetupId,
+                                isNotNull())
+                        .and(
+                                ExamRecordDynamicSqlSupport.status,
+                                isNotEqualTo(ExamStatus.ARCHIVED.name()))
+                        .build()
+                        .execute())
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -563,8 +590,8 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Boolean> upToDate(final Exam exam) {
-        return Result.tryCatch(() -> {
+    public boolean upToDate(final Exam exam) {
+        try {
             if (exam.lastModified == null) {
                 return this.examRecordMapper.countByExample()
                         .where(ExamRecordDynamicSqlSupport.id, isEqualTo(exam.id))
@@ -578,7 +605,10 @@ public class ExamDAOImpl implements ExamDAO {
                         .build()
                         .execute() > 0;
             }
-        });
+        } catch (final Exception e) {
+            log.warn("Failed to verify if exam is up to date: {}", e.getMessage());
+            return true;
+        }
     }
 
     @Override

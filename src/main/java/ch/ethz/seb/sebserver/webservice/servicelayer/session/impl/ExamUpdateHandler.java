@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -53,7 +52,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringSer
 @Lazy
 @Service
 @WebServiceProfile
-class ExamUpdateHandler implements ExamUpdateTask {
+public class ExamUpdateHandler implements ExamUpdateTask {
 
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
 

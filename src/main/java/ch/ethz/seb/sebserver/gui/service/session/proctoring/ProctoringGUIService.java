@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -58,14 +57,14 @@ public class ProctoringGUIService {
     }
 
     public void registerScreeProctoringGroupAction(
-            final ScreenProctoringGroup screenProctoringGroup,
+            final String groupUUID,
             final TreeItem actionItem) {
 
-        this.screenProctoringGroupState.put(screenProctoringGroup.uuid, actionItem);
+        this.screenProctoringGroupState.put(groupUUID, actionItem);
     }
 
-    public TreeItem getScreeProctoringGroupAction(final ScreenProctoringGroup screenProctoringGroup) {
-        return this.screenProctoringGroupState.get(screenProctoringGroup.uuid);
+    public TreeItem getScreeProctoringGroupAction(final String groupUUID) {
+        return this.screenProctoringGroupState.get(groupUUID);
     }
 
     public boolean collectingRoomActionActive(final String name) {

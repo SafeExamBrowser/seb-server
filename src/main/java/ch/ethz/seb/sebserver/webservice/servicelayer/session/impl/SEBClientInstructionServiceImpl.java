@@ -15,6 +15,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -269,6 +271,40 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to cleanup instructions in persistent storage", e);
+        }
+    }
+
+    @Override
+    public void sendQuitInstruction(final String connectionToken, final Long examId) {
+        Long _examId = examId;
+        if (examId == null) {
+            final Result<ClientConnection> clientConnectionResult = clientConnectionDAO
+                    .byConnectionToken(connectionToken);
+
+            if (clientConnectionResult.hasError()) {
+                log.error(
+                        "Failed to get examId for client connection token: {} error: {}",
+                        connectionToken,
+                        clientConnectionResult.getError().getMessage());
+            }
+
+            _examId = clientConnectionResult.get().examId;
+        }
+
+        if (_examId != null) {
+
+            log.info("Send automated quit instruction to SEB for connection token: {}", connectionToken);
+
+            // TODO add SEB event log that SEB Server has automatically send quit instruction to SEB
+
+            this.registerInstruction(
+                    _examId,
+                    ClientInstruction.InstructionType.SEB_QUIT,
+                    Collections.emptyMap(),
+                    connectionToken,
+                    false,
+                    false
+            );
         }
     }
 

@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ClientIndicatorRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ClientIndicatorRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -55,7 +55,7 @@ public interface ClientIndicatorRecordMapper {
     })
     ClientIndicatorRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -65,22 +65,22 @@ public interface ClientIndicatorRecordMapper {
     })
     List<ClientIndicatorRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(clientIndicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientIndicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientIndicatorRecord)
                 .where(id, isEqualTo(id_))
@@ -88,7 +88,7 @@ public interface ClientIndicatorRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default int insert(ClientIndicatorRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientIndicatorRecord)
@@ -99,7 +99,7 @@ public interface ClientIndicatorRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default int insertSelective(ClientIndicatorRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientIndicatorRecord)
@@ -110,19 +110,19 @@ public interface ClientIndicatorRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientIndicatorRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, clientConnectionId, type, value)
                 .from(clientIndicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientIndicatorRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, clientConnectionId, type, value)
                 .from(clientIndicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default ClientIndicatorRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, clientConnectionId, type, value)
                 .from(clientIndicatorRecord)
@@ -131,7 +131,7 @@ public interface ClientIndicatorRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ClientIndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientIndicatorRecord)
                 .set(clientConnectionId).equalTo(record::getClientConnectionId)
@@ -139,7 +139,7 @@ public interface ClientIndicatorRecordMapper {
                 .set(value).equalTo(record::getValue);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ClientIndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientIndicatorRecord)
                 .set(clientConnectionId).equalToWhenPresent(record::getClientConnectionId)
@@ -147,7 +147,7 @@ public interface ClientIndicatorRecordMapper {
                 .set(value).equalToWhenPresent(record::getValue);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default int updateByPrimaryKey(ClientIndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientIndicatorRecord)
                 .set(clientConnectionId).equalTo(record::getClientConnectionId)
@@ -158,7 +158,7 @@ public interface ClientIndicatorRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-04-22T15:58:16.987+02:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_indicator")
     default int updateByPrimaryKeySelective(ClientIndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientIndicatorRecord)
                 .set(clientConnectionId).equalToWhenPresent(record::getClientConnectionId)

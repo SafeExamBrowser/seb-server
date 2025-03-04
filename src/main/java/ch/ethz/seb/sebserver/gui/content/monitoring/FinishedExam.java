@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
-import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_SCREEN_PROCTORING;
 import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.MONITORING_RUNNING_EXAM_SCREEN_PROCTORING;
 
 import java.util.Collection;
@@ -17,9 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetScreenProctoringGroups;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.MonitoringProctoringService;
 import org.apache.commons.lang3.BooleanUtils;
@@ -194,7 +192,7 @@ public class FinishedExam implements TemplateComposer {
                                 pageContext,
                                 ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION));
 
-        indicators.stream().forEach(indicator -> {
+        indicators.forEach(indicator -> {
             if (indicator.type == IndicatorType.LAST_PING || indicator.type == IndicatorType.NONE) {
                 return;
             }
@@ -224,7 +222,11 @@ public class FinishedExam implements TemplateComposer {
                 .publish();
 
         // screen proctoring link
-        final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(exam);
+        final ScreenProctoringSettings screenProctoringSettings = restService
+                .getBuilder(GetScreenProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOrThrow();
         final boolean screenProctoringEnabled =
                 currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_SCREEN_PROCTORING)
                 && BooleanUtils.toBoolean(screenProctoringSettings.enableScreenProctoring);
@@ -242,7 +244,7 @@ public class FinishedExam implements TemplateComposer {
                                 .withEntityKey(exam.getEntityKey())
                                 .withExec(_action -> monitoringProctoringService.openScreenProctoringTab(
                                         screenProctoringSettings,
-                                        group,
+                                        group.uuid,
                                         _action))
                                 .withNameAttributes(group.name, group.size)
                                 .noEventPropagation()

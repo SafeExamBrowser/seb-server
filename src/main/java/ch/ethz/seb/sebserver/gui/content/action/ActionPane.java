@@ -109,6 +109,9 @@ public class ActionPane implements TemplateComposer {
                     if (!event.active) {
                         actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
                     }
+                    if (event.action.definition.title.name.equals("sebserver.monitoring.exam.connection.action.instruction.quit.all")) {
+                        actionItem.setBackground(new Color(parent.getDisplay(), new RGBA(180, 125, 125, 50)));
+                    }
                     actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
                     if (event.actionConsumer != null) {
                         event.actionConsumer.accept(actionItem);

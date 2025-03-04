@@ -224,11 +224,10 @@ public interface ExamSessionService {
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.
      *
-     * @param examId the Exam identifier
-     * @return Result with updated Exam instance or refer to an error if happened */
-    Result<Exam> updateExamCache(Long examId);
+     * @param examId the Exam identifier */
+    void updateExamCache(Long examId);
 
-    /** Flush all the caches for an specified Exam.
+    /** Flush all the caches for a specified Exam.
      *
      * <pre>
      *  - Exam

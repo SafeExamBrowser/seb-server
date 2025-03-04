@@ -226,6 +226,25 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean hasActiveSEBConnections(final Long examId) {
+        try {
+            return this.clientConnectionRecordMapper
+                    .countByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.examId,
+                            SqlBuilder.isEqualTo(examId))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.status,
+                            SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .build()
+                    .execute() > 0;
+        } catch (final Exception e) {
+            return true;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
         return Result.tryCatch(() -> this.clientConnectionMinMapper
                 .selectByExample()
@@ -554,8 +573,6 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate, isNotEqualTo((byte) 0))
                     .and(ClientConnectionRecordDynamicSqlSupport.examId, isIn(examIds))
-                    .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()),
-                            or(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.READY.name())))
                     .build()
                     .execute();
 
@@ -601,17 +618,37 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
-    public Result<Void> markScreenProctoringApplied(final Long connectionId, final String connectionToken) {
-        return Result.tryCatch(() -> {
+    @Transactional
+    public void markScreenProctoringApplied(final Long connectionId, final String connectionToken) {
+        try {
             UpdateDSL.updateWithMapper(
-                    this.clientConnectionRecordMapper::update,
-                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                            this.clientConnectionRecordMapper::update,
+                            ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
                     .build()
                     .execute();
-        })
-                .onError(TransactionHandler::rollback);
+        } catch (final Exception e) {
+            log.error("Failed to unmark SPS for SEB client connection: {}", connectionToken, e);
+            TransactionHandler.rollback(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void markForScreenProctoringUpdate(final Long id) {
+        try {
+            UpdateDSL.updateWithMapper(
+                            this.clientConnectionRecordMapper::update,
+                            ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo( (byte) 1)
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(id))
+                    .build()
+                    .execute();
+        } catch (final Exception e) {
+           log.error("Failed to mark SEB connection for screen proctoring update: {}", id);
+            TransactionHandler.rollback(e);
+        }
     }
 
     @Override

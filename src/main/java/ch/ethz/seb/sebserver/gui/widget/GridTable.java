@@ -51,7 +51,6 @@ public class GridTable extends Composite {
 
     private final WidgetFactory widgetFactory;
     private final List<Column> columns;
-    private final Button addAction;
     private final List<Row> rows;
     private final String locTextKeyPrefix;
     private Listener listener;
@@ -81,19 +80,20 @@ public class GridTable extends Composite {
             final Label label = widgetFactory.labelLocalized(
                     this,
                     new LocTextKey(locTextKeyPrefix + columnDef.name));
-            final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+            final GridData gridData = new GridData(SWT.FILL, SWT.FILL, false, true);
             label.setLayoutData(gridData);
             this.columns.add(new Column(columnDef, gridData));
         }
 
-        this.addAction = widgetFactory.imageButton(
+        final Button addAction = widgetFactory.imageButton(
                 ImageIcon.ADD_BOX,
                 this,
                 new LocTextKey(locTextKeyPrefix + "addAction"),
                 this::addRow);
         final GridData gridData = new GridData(SWT.CENTER, SWT.FILL, true, true);
         gridData.widthHint = ACTION_COLUMN_WIDTH;
-        this.addAction.setLayoutData(gridData);
+        gridData.minimumWidth = ACTION_COLUMN_WIDTH;
+        addAction.setLayoutData(gridData);
 
         this.rows = new ArrayList<>();
         this.addListener(SWT.Resize, this::adaptColumnWidth);
@@ -130,11 +130,11 @@ public class GridTable extends Composite {
 
         final Map<String, String> nameValueMap = new HashMap<>();
         for (final String valueMap : StringUtils.split(values, Constants.EMBEDDED_LIST_SEPARATOR)) {
-            final String[] nameValue = StringUtils.split(valueMap, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
-            if (nameValue.length > 1) {
-                nameValueMap.put(nameValue[0], nameValue[1]);
+            final int i = valueMap.indexOf(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
+            if (i < 0) {
+                nameValueMap.put(valueMap, null);
             } else {
-                nameValueMap.put(nameValue[0], null);
+                nameValueMap.put(valueMap.substring(0, i), valueMap.substring(i + 1));
             }
         }
 

@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 public interface SEBClientPingService {
 
-    static enum PingServiceType {
+    enum PingServiceType {
         BLOCKING,
         BATCH
     }

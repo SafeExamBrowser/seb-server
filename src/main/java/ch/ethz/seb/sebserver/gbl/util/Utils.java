@@ -411,11 +411,7 @@ public final class Utils {
             return value;
         }
 
-        return URLDecoder.decode(
-                (value.indexOf('+') >= 0)
-                        ? value.replaceAll("\\+", "%2b")
-                        : value,
-                StandardCharsets.UTF_8);
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
     public static void clearCharArray(final char[] array) {
@@ -944,5 +940,15 @@ public final class Utils {
                         },
                         StringBuilder::append)
                 .toString();
+    }
+
+    public static List<String> reduceToErrorMessages(final Throwable error) {
+        final List<String> result = new ArrayList<>();
+        Throwable e = error;
+        while (e != null) {
+            result.add(e.getMessage());
+            e = e.getCause();
+        }
+        return result;
     }
 }

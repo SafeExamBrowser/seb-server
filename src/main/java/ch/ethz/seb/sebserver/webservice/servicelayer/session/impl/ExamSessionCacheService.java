@@ -9,7 +9,15 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,10 +29,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 
 /** Handles caching for exam session and defines caching for following object:
@@ -43,6 +47,7 @@ public class ExamSessionCacheService {
     public static final String CACHE_NAME_RUNNING_EXAM = "RUNNING_EXAM";
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
+    public static final String CACHE_NAME_SCREEN_PROCTORING_GROUPS = "SCREEN_PROCTORING_GROUPS";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
@@ -51,6 +56,7 @@ public class ExamSessionCacheService {
     private final ClientConnectionDAO clientConnectionDAO;
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final ExamConfigService sebExamConfigService;
+    private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
@@ -58,13 +64,15 @@ public class ExamSessionCacheService {
             final ClientConnectionDAO clientConnectionDAO,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final ExamConfigService sebExamConfigService,
-            final RemoteProctoringRoomDAO remoteProctoringRoomDAO) {
+            final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
+            final ScreenProctoringGroupDAO screenProctoringGroupDAO) {
 
         this.examDAO = examDAO;
         this.clientGroupDAO = clientGroupDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.sebExamConfigService = sebExamConfigService;
+        this.screenProctoringGroupDAO = screenProctoringGroupDAO;
     }
 
     @Cacheable(
@@ -79,7 +87,7 @@ public class ExamSessionCacheService {
 
         final Result<Exam> byPK = this.examDAO.byPK(examId);
         if (byPK.hasError()) {
-            log.error("Failed to find/load Exam with id {}", examId, byPK.getError());
+            log.error("Failed to find/load Exam with id {} cause: {}", examId, byPK.getError().getMessage());
             return null;
         }
 
@@ -104,19 +112,6 @@ public class ExamSessionCacheService {
         return exam;
     }
 
-    @CacheEvict(
-            cacheNames = CACHE_NAME_RUNNING_EXAM,
-            key = "#examId")
-    public Long evict(final Long examId) {
-
-        if (log.isTraceEnabled()) {
-            log.trace("Conditional eviction of running Exam from cache: {}", examId);
-        }
-
-        this.clientGroupDAO.evictCacheForExam(examId);
-        return examId;
-    }
-
     public boolean isRunning(final Exam exam) {
         if (exam == null || !exam.active) {
             return false;
@@ -137,7 +132,6 @@ public class ExamSessionCacheService {
             }
 
             final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
-            // TODO check running exam within cache instead of DB call
             if (clientConnection == null || (clientConnection.examId != null && !examDAO.isRunning(clientConnection.examId))) {
                 return null;
             } else {
@@ -155,6 +149,41 @@ public class ExamSessionCacheService {
     public void evictClientConnection(final String connectionToken) {
         if (log.isTraceEnabled()) {
             log.trace("Eviction of ClientConnectionData from cache: {}", connectionToken);
+        }
+    }
+    
+// TODO currently caching is not enabled because difficulty with distributed setup and size update task on master
+//    @Cacheable(
+//            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+//            key = "#examId",
+//            unless = "#result == null")
+    public Result<Collection<ProctoringGroupMonitoringData>> getScreenProctoringGroups(final Long examId) {
+
+        // TODO get it directly from new DAO method
+        final Result<Collection<ProctoringGroupMonitoringData>> result = screenProctoringGroupDAO
+                .getCollectingGroups(examId)
+                .map(list -> (Collection<ProctoringGroupMonitoringData>) list
+                        .stream()
+                        .map(g -> new ProctoringGroupMonitoringData(g.uuid, g.name, g.size))
+                        .toList())
+                .onError(error -> log.error(
+                        "Failed to screen proctoring groups for exam: {}, cause: {}",
+                        examId,
+                        error.getMessage()));
+
+        if (result.hasError()) {
+            return null;
+        }
+
+        return result;
+    }
+
+//    @CacheEvict(
+//            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+//            key = "#examId")
+    public void evictScreenProctoringGroups(final Long examId) {
+        if (log.isTraceEnabled()) {
+            log.trace("Eviction of ScreenProctoringGroups from cache for exam: {}", examId);
         }
     }
 
@@ -217,5 +246,5 @@ public class ExamSessionCacheService {
         }
         return result.get();
     }
-
+    
 }

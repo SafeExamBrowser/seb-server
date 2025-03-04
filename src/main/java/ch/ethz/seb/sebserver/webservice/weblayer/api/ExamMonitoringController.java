@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.model.session.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
@@ -53,11 +54,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
-import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
@@ -88,7 +84,6 @@ public class ExamMonitoringController {
     private final AuthorizationService authorization;
     private final PaginationService paginationService;
     private final SEBClientNotificationService sebClientNotificationService;
-    private final RemoteProctoringRoomService examProctoringRoomService;
     private final ExamAdminService examAdminService;
     private final SecurityKeyService securityKeyService;
     private final ScreenProctoringService screenProctoringService;
@@ -102,7 +97,6 @@ public class ExamMonitoringController {
             final AuthorizationService authorization,
             final PaginationService paginationService,
             final SEBClientNotificationService sebClientNotificationService,
-            final RemoteProctoringRoomService examProctoringRoomService,
             final SecurityKeyService securityKeyService,
             final ExamAdminService examAdminService,
             final ScreenProctoringService screenProctoringService,
@@ -116,7 +110,6 @@ public class ExamMonitoringController {
         this.authorization = authorization;
         this.paginationService = paginationService;
         this.sebClientNotificationService = sebClientNotificationService;
-        this.examProctoringRoomService = examProctoringRoomService;
         this.examAdminService = examAdminService;
         this.securityKeyService = securityKeyService;
         this.screenProctoringService = screenProctoringService;
@@ -375,25 +368,15 @@ public class ExamMonitoringController {
 
         final boolean proctoringEnabled = this.examAdminService.isProctoringEnabled(runningExam);
         final boolean screenProctoringEnabled = this.examAdminService.isScreenProctoringEnabled(runningExam);
-
-        final Collection<RemoteProctoringRoom> proctoringData = (proctoringEnabled)
-                ? this.examProctoringRoomService
-                        .getProctoringCollectingRooms(examId)
-                        .onError(error -> log.error("Failed to get RemoteProctoringRoom for exam: {}", examId, error))
-                        .getOr(Collections.emptyList())
-                : Collections.emptyList();
-
-        final Collection<ScreenProctoringGroup> screenProctoringData = (screenProctoringEnabled)
+        final Collection<ProctoringGroupMonitoringData> screenProctoringData = (screenProctoringEnabled)
                 ? this.screenProctoringService
-                        .getCollectingGroups(examId)
-                        .onError(error -> log.error("Failed to get ScreenProctoringGroup for exam: {}", examId, error))
-                        .getOr(Collections.emptyList())
+                    .getCollectingGroupsMonitoringData(examId)
+                    .getOr(Collections.emptyList())
                 : Collections.emptyList();
 
         return new MonitoringFullPageData(
                 examId,
                 monitoringSEBConnectionData,
-                proctoringData,
                 screenProctoringData);
     }
 
@@ -505,8 +488,7 @@ public class ExamMonitoringController {
                     required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
-
-        // TODO do this in async in new thread
+        
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
             // If we have a bunch of client connections to disable, make it asynchronously and respond to the caller immediately
             this.executor.execute(() -> {

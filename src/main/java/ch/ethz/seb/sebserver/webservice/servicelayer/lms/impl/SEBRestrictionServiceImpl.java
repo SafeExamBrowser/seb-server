@@ -94,15 +94,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
         return true;
     }
-
-//    @Override
-//    public Result<Exam> applyQuitPassword(final Exam exam) {
-//        return this.examConfigurationValueService
-//                .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
-//                .map(id -> applyQuitPasswordWithRestrictionIfNeeded(exam))
-//                .onError(t -> log.error("Failed to quit password for Exam: {}", exam, t));
-//    }
-
+    
     @Override
     public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
         final LmsSetup lmsSetup = event.getLmsSetup();
@@ -151,30 +143,6 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             return lmsSetup;
         });
     }
-
-//    private Exam applyQuitPasswordWithRestrictionIfNeeded(final Exam exam) {
-//        if (exam.status != Exam.ExamStatus.RUNNING) {
-//            return exam;
-//        }
-//
-//        final LmsSetup lmsSetup = getLmsAPIService().getLmsSetup(exam.lmsSetupId).getOrThrow();
-//        if (!lmsSetup.lmsType.features.contains(Features.LMS_FULL_INTEGRATION)) {
-//            applySEBRestrictionIfExamRunning(exam);
-//        }
-//
-//        return exam;
-//    }
-
-//    private Exam applySEBRestrictionIfExamRunning(final Exam exam) {
-//        if (exam.status != Exam.ExamStatus.RUNNING) {
-//            return exam;
-//        }
-//
-//        return this.applySEBClientRestriction(exam)
-//                .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
-//                .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t))
-//                .getOrThrow();
-//    }
 
     @Override
     @Transactional
@@ -302,9 +270,9 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         applySEBClientRestriction(event.exam)
                 .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
                 .onError(error -> log.error(
-                        "Failed to apply SEB restrictions for started exam: {}",
+                        "Failed to apply SEB restrictions for started exam: {} error: {}",
                         event.exam,
-                        error));
+                        error.getMessage()));
     }
 
     @EventListener(ExamFinishedEvent.class)
@@ -321,9 +289,9 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
         releaseSEBClientRestriction(event.exam)
                 .onError(error -> log.error(
-                        "Failed to release SEB restrictions for finished exam: {}",
+                        "Failed to release SEB restrictions for finished exam: {} error: {}",
                         event.exam,
-                        error));
+                        error.getMessage()));
     }
 
     @EventListener(ExamDeletionEvent.class)
@@ -343,8 +311,8 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                         exam -> exam.lmsSetupId != null,
                         exam -> releaseSEBClientRestriction(exam).getOrThrow()
                 ).onError(error -> log.error(
-                        "Failed to release SEB restrictions for finished exam: {}",
-                        examId, error));
+                        "Failed to release SEB restrictions for finished exam: {} error: {}",
+                        examId, error.getMessage()));
     }
 
     @Override

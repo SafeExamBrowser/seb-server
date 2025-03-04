@@ -8,7 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import org.apache.commons.lang3.StringUtils;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.*;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -18,15 +21,10 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -37,9 +35,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.NewClientGroup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.SaveClientGroup;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -67,6 +62,10 @@ public class ClientGroupForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.clientgroup.form.ipend");
     private static final LocTextKey FORM_OS_TYPE_KEY =
             new LocTextKey("sebserver.exam.clientgroup.form.ostype");
+    private static final LocTextKey FORM_UNAME_START_KEY =
+            new LocTextKey("sebserver.exam.clientgroup.form.usernamestart");
+    private static final LocTextKey FORM_UNAME_END_KEY =
+            new LocTextKey("sebserver.exam.clientgroup.form.usernameend");
 
     private static final String CLIENT_GROUP_TYPE_DESC_PREFIX =
             "sebserver.exam.clientgroup.type.description.";
@@ -122,12 +121,6 @@ public class ClientGroupForm implements TemplateComposer {
                         .onError(error -> pageContext.notifyLoadError(EntityType.CLIENT_GROUP, error))
                         .getOrThrow();
 
-        final boolean typeSet = clientGroup.type != null;
-        final String typeDescription = (typeSet)
-                ? Utils.formatLineBreaks(
-                        this.i18nSupport.getText(CLIENT_GROUP_TYPE_DESC_PREFIX + clientGroup.type.name()))
-                : Constants.EMPTY_NOTE;
-
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(clientGroup.getEntityKey());
 
@@ -139,84 +132,26 @@ public class ClientGroupForm implements TemplateComposer {
                 formContext.getParent(),
                 titleKey);
 
-        final FormHandle<ClientGroup> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content))
-                .readonly(isReadonly)
-                .putStaticValueIf(() -> !isNew,
-                        Domain.CLIENT_GROUP.ATTR_ID,
-                        clientGroup.getModelId())
-                .putStaticValue(
-                        Domain.EXAM.ATTR_INSTITUTION_ID,
-                        String.valueOf(exam.getInstitutionId()))
-                .putStaticValue(
-                        Domain.CLIENT_GROUP.ATTR_EXAM_ID,
-                        parentEntityKey.getModelId())
-
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_NAME,
-                        FORM_EXAM_TEXT_KEY,
-                        exam.name)
-                        .readonly(true))
-
-                .addField(FormBuilder.text(
-                        Domain.CLIENT_GROUP.ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        clientGroup.name)
-                        .mandatory(!isReadonly))
-
-                .addField(FormBuilder.colorSelection(
-                        Domain.CLIENT_GROUP.ATTR_COLOR,
-                        FORM_COLOR_TEXT_KEY,
-                        clientGroup.color)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.singleSelection(
-                        Domain.CLIENT_GROUP.ATTR_TYPE,
-                        FORM_TYPE_TEXT_KEY,
-                        clientGroup.type.name(),
-                        this.resourceService::clientGroupTypeResources)
-                        .withSelectionListener(form -> updateForm(form, this.i18nSupport))
-                        .mandatory(!isReadonly))
-
-                .addField(FormBuilder.text(
-                        TYPE_DESCRIPTION_FIELD_NAME,
-                        FORM_DESC_TEXT_KEY,
-                        typeDescription)
-                        .asArea()
-                        .readonly(true))
-
-                .addField(FormBuilder.text(
-                        ClientGroup.ATTR_IP_RANGE_START,
-                        FORM_IP_START_KEY,
-                        clientGroup::getIpRangeStart)
-                        .mandatory(!isReadonly)
-                        .visibleIf(clientGroup.type == ClientGroupType.IP_V4_RANGE))
-
-                .addField(FormBuilder.text(
-                        ClientGroup.ATTR_IP_RANGE_END,
-                        FORM_IP_END_KEY,
-                        clientGroup::getIpRangeEnd)
-                        .mandatory(!isReadonly)
-                        .visibleIf(clientGroup.type == ClientGroupType.IP_V4_RANGE))
-
-                .addField(FormBuilder.singleSelection(
-                        ClientGroupTemplate.ATTR_CLIENT_OS,
-                        FORM_OS_TYPE_KEY,
-                        clientGroup.clientOS.name(),
-                        this.resourceService::clientClientOSResources)
-                        .visibleIf(clientGroup.type == ClientGroupType.CLIENT_OS)
-                        .mandatory(!isReadonly))
-
-                .buildFor((isNew)
-                        ? restService.getRestCall(NewClientGroup.class)
-                        : restService.getRestCall(SaveClientGroup.class));
+        final Composite formRoot = widgetFactory.voidComposite(content);
+        final FormHandleAnchor formHandleAnchor = new FormHandleAnchor();
+        formHandleAnchor.formContext = pageContext
+                .copyOf(formRoot)
+                .clearEntityKeys();
+        
+        buildFormAccordingToSelection(
+                clientGroup.type != null ? clientGroup.type.name() : null, 
+                exam,
+                clientGroup, 
+                formHandleAnchor, 
+                pageContext,
+                true);
 
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
                 .newAction(ActionDefinition.EXAM_CLIENT_GROUP_SAVE)
                 .withEntityKey(parentEntityKey)
-                .withExec(formHandle::processFormSave)
+                .withExec(formHandleAnchor::processFormSave)
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly)
 
@@ -226,27 +161,140 @@ public class ClientGroupForm implements TemplateComposer {
                 .publishIf(() -> !isReadonly);
     }
 
-    public static void updateForm(final Form form, final I18nSupport i18nSupport) {
-        final String typeValue = form.getFieldValue(Domain.CLIENT_GROUP.ATTR_TYPE);
-        if (StringUtils.isNotBlank(typeValue)) {
-            final String text = i18nSupport.getText(CLIENT_GROUP_TYPE_DESC_PREFIX + typeValue);
-            form.setFieldValue(
-                    TYPE_DESCRIPTION_FIELD_NAME,
-                    Utils.formatLineBreaks(text));
-            final ClientGroupType type = ClientGroupType.valueOf(typeValue);
-            form.setFieldVisible(false, ClientGroup.ATTR_IP_RANGE_START);
-            form.setFieldVisible(false, ClientGroup.ATTR_IP_RANGE_END);
-            form.setFieldVisible(false, ClientGroupTemplate.ATTR_CLIENT_OS);
-            if (type == ClientGroupType.IP_V4_RANGE) {
-                form.setFieldVisible(true, ClientGroup.ATTR_IP_RANGE_START);
-                form.setFieldVisible(true, ClientGroup.ATTR_IP_RANGE_END);
-            }
-            if (type == ClientGroupType.CLIENT_OS) {
-                form.setFieldVisible(true, ClientGroupTemplate.ATTR_CLIENT_OS);
-            }
+    <T extends Entity> void buildFormAccordingToSelection(
+            final String selection,
+            final Exam exam,
+            final ClientGroup clientGroup,
+            final FormHandleAnchor formHandleAnchor,
+            final PageContext pageContext,
+            final boolean init) {
+        
+        final String name = init 
+                ? clientGroup.getName() 
+                : formHandleAnchor.formHandle.getForm().getFieldValue(Domain.CLIENT_GROUP.ATTR_NAME);
+        final String color = init
+                ? clientGroup.getColor()
+                : formHandleAnchor.formHandle.getForm().getFieldValue(Domain.CLIENT_GROUP.ATTR_COLOR);
+        
+        if (!init) {
+            PageService.clearComposite(formHandleAnchor.formContext.getParent());
+        }
+        
+        final RestService restService = this.resourceService.getRestService();
+        final EntityKey entityKey = pageContext.getEntityKey();
+        final EntityKey parentEntityKey = pageContext.getParentEntityKey();
+        final boolean isNew = entityKey == null;
+        final boolean isReadonly = pageContext.isReadonly();
 
-        } else {
-            form.setFieldValue(TYPE_DESCRIPTION_FIELD_NAME, Constants.EMPTY_NOTE);
+        final ClientGroupType type = selection != null ? ClientGroupType.valueOf(selection) : null;
+        final String typeDescription = (type != null)
+                ? Utils.formatLineBreaks(
+                this.i18nSupport.getText(CLIENT_GROUP_TYPE_DESC_PREFIX + type.name()))
+                : Constants.EMPTY_NOTE;
+
+        formHandleAnchor.formHandle = this.pageService.formBuilder(formHandleAnchor.formContext)
+                .readonly(isReadonly)
+                .putStaticValueIf(() -> !isNew,
+                        Domain.CLIENT_GROUP.ATTR_ID,
+                        clientGroup.getModelId())
+                .putStaticValue(
+                        Domain.EXAM.ATTR_INSTITUTION_ID,
+                        String.valueOf(exam.institutionId))
+                .putStaticValue(
+                        Domain.CLIENT_GROUP.ATTR_EXAM_ID,
+                        parentEntityKey.getModelId())
+
+                .addField(FormBuilder.text(
+                                QuizData.QUIZ_ATTR_NAME,
+                                FORM_EXAM_TEXT_KEY,
+                                exam.name)
+                        .readonly(true))
+
+                .addField(FormBuilder.text(
+                                Domain.CLIENT_GROUP.ATTR_NAME,
+                                FORM_NAME_TEXT_KEY,
+                                name)
+                        .mandatory(!isReadonly))
+
+                .addField(FormBuilder.colorSelection(
+                                Domain.CLIENT_GROUP.ATTR_COLOR,
+                                FORM_COLOR_TEXT_KEY,
+                                color)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.singleSelection(
+                                Domain.CLIENT_GROUP.ATTR_TYPE,
+                                FORM_TYPE_TEXT_KEY,
+                                selection,
+                                this.resourceService::clientGroupTypeResources)
+                        .withSelectionListener(form -> buildFormAccordingToSelection(
+                                form.getFieldValue(Domain.CLIENT_GROUP.ATTR_TYPE),
+                                exam,
+                                clientGroup,
+                                formHandleAnchor,
+                                pageContext,
+                                false))
+                        .mandatory(!isReadonly))
+
+                .addField(FormBuilder.text(
+                                TYPE_DESCRIPTION_FIELD_NAME,
+                                FORM_DESC_TEXT_KEY,
+                                typeDescription)
+                        .asArea()
+                        .readonly(true))
+
+                .addFieldIf(() -> type == ClientGroupType.IP_V4_RANGE,
+                        () -> FormBuilder.text(
+                                ClientGroup.ATTR_IP_RANGE_START,
+                                FORM_IP_START_KEY,
+                                clientGroup::getIpRangeStart)
+                        .mandatory(!isReadonly))
+
+                .addFieldIf(() -> type == ClientGroupType.IP_V4_RANGE,
+                        () -> FormBuilder.text(
+                                ClientGroup.ATTR_IP_RANGE_END,
+                                FORM_IP_END_KEY,
+                                clientGroup::getIpRangeEnd)
+                        .mandatory(!isReadonly))
+
+                .addFieldIf(() -> type == ClientGroupType.CLIENT_OS,
+                        () -> FormBuilder.singleSelection(
+                                ClientGroupTemplate.ATTR_CLIENT_OS,
+                                FORM_OS_TYPE_KEY,
+                                        clientGroup.getClientOS() != null ? clientGroup.getClientOS().name() : null,
+                                this.resourceService::clientClientOSResources)
+                        .mandatory(!isReadonly))
+
+                .addFieldIf(() -> type == ClientGroupType.NAME_ALPHABETICAL_RANGE,
+                        () -> FormBuilder.text(
+                                ClientGroup.ATTR_NAME_RANGE_START_LETTER,
+                                FORM_UNAME_START_KEY,
+                                clientGroup::getNameRangeStartLetter)
+                        .mandatory(!isReadonly))
+
+                .addFieldIf(() -> type == ClientGroupType.NAME_ALPHABETICAL_RANGE,
+                        () -> FormBuilder.text(
+                                ClientGroup.ATTR_NAME_RANGE_END_LETTER,
+                                FORM_UNAME_END_KEY,
+                                clientGroup::getNameRangeEndLetter)
+                        .mandatory(!isReadonly))
+
+                .buildFor((isNew)
+                        ? restService.getRestCall( NewClientGroup.class)
+                        : restService.getRestCall(SaveClientGroup.class));
+
+        formHandleAnchor.formContext.getParent().layout();
+    }
+
+    static final class FormHandleAnchor {
+        FormHandle<ClientGroup> formHandle = null;
+        PageContext formContext = null;
+
+        public PageAction processFormSave(final PageAction action) {
+            if (this.formHandle != null) {
+                return formHandle.processFormSave(action);
+            }
+            return action;
         }
     }
 

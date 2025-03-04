@@ -16,11 +16,11 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -32,17 +32,13 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
-import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -55,19 +51,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventExporter
 public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientEventAdminServiceImpl.class);
-
-    private final PaginationService paginationService;
+    
     private final ClientEventDAO clientEventDAO;
     private final SEBClientEventExportTransactionHandler sebClientEventExportTransactionHandler;
     private final EnumMap<ExportType, SEBClientEventExporter> exporter;
 
     public SEBClientEventAdminServiceImpl(
-            final PaginationService paginationService,
             final ClientEventDAO clientEventDAO,
             final SEBClientEventExportTransactionHandler sebClientEventExportTransactionHandler,
             final Collection<SEBClientEventExporter> exporter) {
-
-        this.paginationService = paginationService;
+        
         this.clientEventDAO = clientEventDAO;
         this.sebClientEventExportTransactionHandler = sebClientEventExportTransactionHandler;
 
@@ -120,22 +113,18 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
                     this.exporter.get(exportType),
                     includeConnectionDetails,
                     includeExamDetails,
-                    new Pager(filterMap, sort),
-                    output)
-                            .run(currentUser);
+                    filterMap, sort,
+                    output).run(currentUser);
+            
         } catch (final Exception e) {
             log.error("Unexpected error during export SEB logs: ", e);
         } finally {
             try {
                 output.flush();
             } catch (final IOException e) {
-                e.printStackTrace();
+                log.error("Failed to flush export data: ", e);
             }
-            try {
-                output.close();
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
+            IOUtils.closeQuietly(output);
         }
 
     }
@@ -145,7 +134,8 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
         private final SEBClientEventExporter exporter;
         private final boolean includeConnectionDetails;
         private final boolean includeExamDetails;
-        private final Iterator<Collection<ClientEventRecord>> pager;
+        private final FilterMap filterMap;
+        private final String sort;
         private final OutputStream output;
 
         private final Map<Long, Exam> examCache;
@@ -155,13 +145,15 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
                 final SEBClientEventExporter exporter,
                 final boolean includeConnectionDetails,
                 final boolean includeExamDetails,
-                final Iterator<Collection<ClientEventRecord>> pager,
+                final FilterMap filterMap,
+                final String sort,
                 final OutputStream output) {
 
             this.exporter = exporter;
             this.includeConnectionDetails = includeConnectionDetails;
             this.includeExamDetails = includeExamDetails;
-            this.pager = pager;
+            this.filterMap = filterMap;
+            this.sort = sort;
             this.output = output;
 
             this.connectionCache = new HashMap<>();
@@ -175,22 +167,36 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
 
             // first stream header line
             this.exporter.streamHeader(this.output, this.includeConnectionDetails, this.includeExamDetails);
+            
+            // get all involved connection ids
+            sebClientEventExportTransactionHandler
+                    .getConnectionIds(filterMap, sort)
+                    .map(cIds -> {
+                        
+                        if (log.isDebugEnabled()) {
+                            log.debug("Export for {} SEB clients connection", cIds.size());
+                        }
 
-            // then batch with the pager and stream line per line
-            while (this.pager.hasNext()) {
-                this.pager.next().forEach(rec -> {
+                        cIds.forEach( cid -> {
 
-                    final Exam exam = getExam(rec.getClientConnectionId());
+                            final ClientConnectionRecord connection = getConnection(cid);
+                            final Collection<ClientEventRecord> records = sebClientEventExportTransactionHandler
+                                    .getEvents(cid, filterMap, sort)
+                                    .onError(error -> log.error("Failed to get SEB Events for connection: {}", connection))
+                                    .getOr(Collections.emptyList());
 
-                    if (!isSupporterOnly || exam.isOwnerOrSupporter(currentUser.uuid())) {
-                        this.exporter.streamData(
+                            records.forEach( rec -> {
+                                this.exporter.streamData(
                                 this.output,
                                 rec,
-                                this.includeConnectionDetails ? getConnection(rec.getClientConnectionId()) : null,
+                                this.includeConnectionDetails ? connection : null,
                                 this.includeExamDetails ? getExam(rec.getClientConnectionId()) : null);
-                    }
-                });
-            }
+                            });
+                        });
+                        
+                        return cIds;
+                    })
+                    .onError(error -> log.error("Failed to export SEB event: ", error));
         }
 
         private ClientConnectionRecord getConnection(final Long connectionId) {
@@ -219,65 +225,6 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
             }
 
             return this.examCache.get(examId);
-        }
-    }
-
-    private class Pager implements Iterator<Collection<ClientEventRecord>> {
-
-        private final FilterMap filterMap;
-        private final String sort;
-
-        private int pageNumber = 1;
-        private final int pageSize = 10000;
-
-        private Collection<ClientEventRecord> nextRecords;
-
-        public Pager(
-                final FilterMap filterMap,
-                final String sort) {
-
-            this.filterMap = filterMap;
-            this.sort = sort;
-
-            fetchNext();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return this.nextRecords != null && !this.nextRecords.isEmpty();
-        }
-
-        @Override
-        public Collection<ClientEventRecord> next() {
-            final Collection<ClientEventRecord> result = this.nextRecords;
-            fetchNext();
-            return result;
-        }
-
-        private void fetchNext() {
-            try {
-
-                final Page<ClientEventRecord> nextPage = SEBClientEventAdminServiceImpl.this.paginationService
-                        .getPageOf(
-                                this.pageNumber,
-                                this.pageSize,
-                                this.sort,
-                                ClientEventRecordDynamicSqlSupport.clientEventRecord.tableNameAtRuntime(),
-                                () -> SEBClientEventAdminServiceImpl.this.sebClientEventExportTransactionHandler
-                                        .allMatching(this.filterMap, Utils.truePredicate()))
-                        .getOrThrow();
-
-                if (nextPage.getPageNumber() == this.pageNumber) {
-                    this.nextRecords = nextPage.content;
-                    this.pageNumber++;
-                } else {
-                    this.nextRecords = null;
-                }
-
-            } catch (final Exception e) {
-                log.error("Failed to fetch next batch: ", e);
-                this.nextRecords = null;
-            }
         }
     }
 

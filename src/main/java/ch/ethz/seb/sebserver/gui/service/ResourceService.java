@@ -8,21 +8,17 @@
 
 package ch.ethz.seb.sebserver.gui.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.user.*;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -37,14 +33,10 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientOS;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.PermissionComponent;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.WhiteListPath;
@@ -85,12 +77,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.MonitoringEntry;
 
+/** Defines functionality to get resources or functions of resources to feed e.g. selection or
+ * combo-box content. */
 @Lazy
 @Service
 @GuiProfile
-/** Defines functionality to get resources or functions of resources to feed e.g. selection or
- * combo-box content.
- */
 public class ResourceService {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceService.class);
@@ -136,6 +127,7 @@ public class ResourceService {
     public static final String EXAM_PROCTORING_TYPE_PREFIX = "sebserver.exam.proctoring.type.servertype.";
     public static final String EXAM_PROCTORING_FEATURES_PREFIX = "sebserver.exam.proctoring.form.features.";
     public static final String VDI_TYPE_PREFIX = "sebserver.clientconfig.form.vditype.";
+    public static final String COLLECTING_STRATEGY_PREFIX = "sebserver.exam.proctoring.collecting.strategy.";
 
     public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
             AttributeType.LABEL,
@@ -528,6 +520,21 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> examSupporterResourcesNoTeacher() {
+        final UserInfo userInfo = this.currentUser.get();
+        final List<EntityName> selection = this.restService.getBuilder(GetUserAccountNames.class)
+                .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.institutionId))
+                .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
+                .withQueryParam(UserInfo.FILTER_ATTR_ROLE, UserRole.EXAM_SUPPORTER.name())
+                .call()
+                .getOr(Collections.emptyList());
+        return selection
+                .stream()
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
     public List<Tuple<String>> examSupporterResources() {
         final UserInfo userInfo = this.currentUser.get();
         final List<EntityName> selection = this.restService.getBuilder(GetUserAccountNames.class)
@@ -617,8 +624,7 @@ public class ResourceService {
     }
 
     public Function<MonitoringEntry, String> localizedClientMonitoringStatusNameFunction() {
-
-        // Memoizing
+        
         final String missingPing = this.i18nSupport.getText(
                 SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
                 MISSING_CLIENT_PING_NAME_KEY);
@@ -630,7 +636,8 @@ public class ResourceService {
                 MISSING_CLIENT_SEC_GRANT_NAME_KEY);
 
         final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
-        Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
+        Arrays.stream(ConnectionStatus.values())
+                .forEach(state -> localizedNames.put(state, this.i18nSupport
                 .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));
 
         return monitoringEntry -> {
@@ -654,11 +661,7 @@ public class ResourceService {
 
     public String localizedClientConnectionStatusName(final ConnectionStatus status) {
         final String name;
-        if (status != null) {
-            name = status.name();
-        } else {
-            name = ConnectionStatus.UNDEFINED.name();
-        }
+        name = Objects.requireNonNullElse(status, ConnectionStatus.UNDEFINED).name();
         return this.i18nSupport
                 .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + name, name);
     }
@@ -952,6 +955,63 @@ public class ResourceService {
 
         return this.getI18nSupport()
                 .getText(ResourceService.EXAM_CLIENT_GROUP_TYPE_PREFIX + clientGroup.getType().name());
+    }
+    
+    public List<Tuple<String>> getCollectingStrategySelection() {
+        return Arrays.stream(CollectingStrategy.values())
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(COLLECTING_STRATEGY_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                COLLECTING_STRATEGY_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+    
+    public String collectingStrategyName(final ScreenProctoringSettings settings) {
+        if (settings.collectingStrategy == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.getI18nSupport()
+                .getText(ResourceService.COLLECTING_STRATEGY_PREFIX + settings.collectingStrategy.name());
+    }
+
+    public List<Tuple<String>> getSEBGroupSelection(final EntityKey entityKey) {
+        if (entityKey.entityType == EntityType.EXAM) {
+            return this.restService.getBuilder(GetClientGroups.class)
+                    .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, entityKey.modelId)
+                    .call()
+                    .onError(error -> log.error("Failed to get SEB client groups for exam: {}, cause {}", entityKey.modelId, error.getMessage()))
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .map(group -> new Tuple3<>(
+                            group.getModelId(),
+                            group.name,
+                            Utils.formatLineBreaks(this.i18nSupport.getText(
+                                    "sebserver.exam.proctoring.collecting.strategy.clientgroup.tooltip",
+                                    group.name))))
+                    .sorted(RESOURCE_COMPARATOR)
+                    .collect(Collectors.toList());
+        } else {
+            return restService
+                    .getBuilder(GetExamTemplate.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .map(t -> t.clientGroupTemplates
+                            .stream()
+                            .map( group -> (Tuple<String>) new Tuple3<>(
+                                    group.getModelId(),
+                                    group.name,
+                                    Utils.formatLineBreaks(i18nSupport.getText(
+                                            "sebserver.exam.proctoring.collecting.strategy.clientgroup.tooltip",
+                                            group.name))))
+                            .toList()
+                    )
+                    .onError(error -> log.error("Failed to get SEB client groups for exam template: {}, cause {}", entityKey.modelId, error.getMessage()))
+                    .getOr(Collections.emptyList());
+        }
     }
 
 }

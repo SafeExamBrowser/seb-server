@@ -12,7 +12,9 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import org.springframework.context.event.EventListener;
 
 /** Service used to maintain Teacher Ad-Hoc Accounts */
 public interface TeacherAccountService {
@@ -72,4 +74,24 @@ public interface TeacherAccountService {
      */
     Result<TokenLoginInfo> verifyOneTimeTokenForTeacherAccount(String token);
 
+    /** Deletes all ad hoc teacher user from a particular LMS.
+     * @param lmsId The LMS identifier
+     */
+    void deleteAllFromLMS(Long lmsId);
+
+    /** Gets notified when exam gets finished or deleted and deletes all Teacher Accounts used by the Exam 
+     * and not used by any other Exam
+     * @param event The exam finished event
+     */
+    @EventListener(ExamFinishedEvent.class)
+    void notifyExamFinished(ExamFinishedEvent event);
+
+    /** Gets notified when exam gets finished or deleted and deletes all Teacher Accounts used by the Exam 
+     * and not used by any other Exam
+     * @param event The exam finished event
+     */
+    @EventListener(ExamDeletionEvent.class)
+    void notifyExamDeleted(ExamDeletionEvent event);
+
+    
 }

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -142,7 +143,7 @@ public final class Result<T> {
             if (this.error instanceof RuntimeException) {
                 throw (RuntimeException) this.error;
             } else {
-                String cause = this.error.getMessage() != null ? this.error.getMessage() : this.error.toString();
+                final String cause = this.error.getMessage() != null ? this.error.getMessage() : this.error.toString();
                 throw new RuntimeException("RuntimeExceptionWrapper cause: " + cause, this.error);
             }
         }
@@ -246,6 +247,25 @@ public final class Result<T> {
         }
     }
 
+    public <U> Result<U> flatMapIgnoreError(final Function<? super T, Result<U>> mapFunction) {
+        try {
+            return mapFunction.apply(this.value);
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
+    }
+
+    public <U> Result<U> flatMapIgnoreErrorButLog(final Function<? super T, Result<U>> mapFunction) {
+        if (this.error != null) {
+            log.error("Step Failed error: ", this.error);
+        }
+        try {
+            return mapFunction.apply(this.value);
+        } catch (final Exception e) {
+            return Result.ofError(e);
+        }
+    }
+
     public Result<T> whenDo(final Predicate<T> predicate, final Function<T, T> handler) {
         if (this.error == null && predicate.test(this.value)) {
             return Result.tryCatch(() -> handler.apply(this.value));
@@ -268,6 +288,13 @@ public final class Result<T> {
     public Result<T> onError(final Consumer<Exception> errorHandler) {
         if (this.error != null) {
             errorHandler.accept(this.error);
+        }
+        return this;
+    }
+
+    public Result<T> onErrorHandle(final Function<Exception, Exception> errorHandler) {
+        if (this.error != null) {
+            return Result.ofError( errorHandler.apply(this.error));
         }
         return this;
     }
@@ -362,20 +389,11 @@ public final class Result<T> {
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final Result<?> other = (Result<?>) obj;
-        if (this.value == null) {
-            if (other.value != null)
-                return false;
-        } else if (!this.value.equals(other.value))
-            return false;
-        return true;
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Result<?> result = (Result<?>) o;
+        return Objects.equals(value, result.value) && Objects.equals(error, result.error);
     }
 
     @Override

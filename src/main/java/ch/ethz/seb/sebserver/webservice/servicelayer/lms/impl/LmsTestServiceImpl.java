@@ -119,14 +119,17 @@ public class LmsTestServiceImpl implements LmsTestService {
             } else {
 
                 final Result<FullLmsIntegrationService.IntegrationData> integrationDataResult = fullLmsIntegrationService
-                        .applyFullLmsIntegration(template.lmsSetup().id);
+                        .applyFullLmsIntegration(template.lmsSetup());
 
                 if (integrationDataResult.hasError()) {
                     Throwable error = integrationDataResult.getError();
+
+                    log.warn("Failed to apply full LMS integration: {}", error.getMessage());
+                    
                     if (error instanceof RuntimeException) {
                         error = error.getCause();
                     }
-                    if (error != null && error instanceof MoodleResponseException) {
+                    if (error instanceof MoodleResponseException) {
                         return LmsSetupTestResult.ofFullIntegrationAPIError(
                                 template.lmsSetup().lmsType,
                                 error.getMessage());
