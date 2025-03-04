@@ -27,7 +27,7 @@ To do so please login to Moodle with an administrator account and go to "Side Ad
 
 .. image:: images/lmssetup/moodle_mobile.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/lmssetup/moodle_mobile.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/lmssetup/moodle_mobile.png
     
 If you have a restrictive Moodle setup and troubles with the Moodle API account to use with SEB Server, please try to import the following 
 Moodle role profile within your Moodle instance. This profile will create a SEB Server role within Moodle that can be used to apply to an 
@@ -93,20 +93,20 @@ Moodle integration:
 
 .. image:: images/moodle_full/exam_template.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/exam_template.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/exam_template.png
 
 On the Moodle site, a Teacher can then create a new quiz within a course:
 
 .. image:: images/moodle_full/moodle_new1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/moodle_new1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/moodle_new1.png
     
 An within the quiz settings a Moodle Teacher should see a new settings sections "SEB Server" among with the already known 
 "Safe Exam Browser" section:
 
 .. image:: images/moodle_full/moodle1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/moodle1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/moodle1.png
     
 If a Moodle Teacher wants to setup an Exam with SEB Server for the quiz, he/she can now activate SEB Server integration 
 for that quiz by selecting "yes" for "Enable SEB Server". The "Safe Exam Browser" section will then automatically switch 
@@ -114,7 +114,7 @@ to the right settings to use with SEB Server.with
 
 .. image:: images/moodle_full/moodle2.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/moodle2.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/moodle2.png
     
 Now the Moodle Teacher can select from the available Exam Templates that has been prepared and marked for Assessment Tool
 use on SEB Server site. The Moodle Teacher can also enable a SEB quit button or quit-link and set a SEB quit password for the Exam.
@@ -126,14 +126,14 @@ as soon as the Exam becomes running.
 
 .. image:: images/moodle_full/imported_exam.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/imported_exam.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/imported_exam.png
 
 After all this has successfully been created and applied, the Moodle Teacher can go to the quit preview and sees the following
 features:
 
 .. image:: images/moodle_full/moodle3.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/moodle3.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/moodle3.png
     
 In the students view, the student will only see the two buttons: 
 
@@ -149,7 +149,7 @@ Moodle site.
 
 .. image:: images/moodle_full/teacher_autologin.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/teacher_autologin.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/teacher_autologin.png
 
 An already imported Exam can also be deleted either from the SEB Server side or from the Moodle side. On the SEB Server
 site, a Exam Administrator can just delete the Exam as usual and SEB Server would reset all the integration settings 
@@ -157,12 +157,12 @@ in Moodle for the respective quiz.
 
 .. image:: images/moodle_full/delete_exam.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/delete_exam.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/delete_exam.png
 
 While on the Moodle side, a Moodle Teacher can disable SEB Server for a particular quiz and Moodle will trigger a deletion
 of the Exam on SEB Server and also reset all SEB Server settings on Moodle side.
 
 .. image:: images/moodle_full/deleted_exam_moodle.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/moodle_full/deleted_exam_moodle.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/moodle_full/deleted_exam_moodle.png
 

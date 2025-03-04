@@ -1,8 +1,7 @@
-Screen Proctoring (New)
-=======================
-
 .. _screenprocotring-label:
 
+Screen Proctoring (New)
+=======================
 
 Overview
 ---------
@@ -12,25 +11,43 @@ This tool captures and displays screenshots taken by SEB, ensuring a secure and 
 
 Enable Screen Proctoring after an exam is created in the exam view.
 
-.. image:: images/screen_proctoring/enable_screen_proctoring.png
+Since SEB Server version 2.1 you are able to configure Screen Proctoring groups that shall be created for Screen Proctoring on
+Exam import and were connecting SEB clients are scheduled to after they have successfully connected to SEB Server. 
+Currently there are two different types of possible Screen Proctoring group generation. The default "One Group for Exam" where
+you only generate one Screen Proctoring group for the exam and can give them a name:
+
+.. image:: images/exam/sps_one_group.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/enable_screen_proctoring.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/sps_one_group.png
+
+The other one is to apply the Screen Proctoring groups to existing Client Groups. When you define some Client Groups within the 
+Exam and choose "Apply to SEB Client Groups" within the Screen Proctoring configuration pop-up, you are able to select
+the needed SEB Client Groups from the list of available SEB Client Groups and additionally can gave a name für the Fallback Group
+The Fallback Groups is been used to schedule connecting SEB clients to that do not belong to any of the selected SEB Client Groups
+
+.. image:: images/exam/sps_seb_groups.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/sps_seb_groups.png
 
 
-SEB Server needs to send an instruction to SEB to capture the screen and send the screenshot back to the server.
-| To do this, enable screen proctoring in the SEB Settings.
+Since SEB Server version 2.1 enabling or disabling Screen Proctoring on Exam also automatically enables or disables Screen Proctoring
+on applied Exam Configuration SEB Settings.
 
 .. image:: images/screen_proctoring/enable_screen_proctoring_seb_settings.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/enable_screen_proctoring_seb_settings.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/enable_screen_proctoring_seb_settings.png
 
+.. note:: 
+    If you enabling or disabling Screen Proctoring in the SEB Settings of a Exam Configurations that is applied to the Exam, this will not automatically apply to the Screen Proctoring settings of the Exam (only the other way around).Configuration
+    
+    Before starting an Exam with Screen Proctoring we recommend to always make sure Screen Proctoring is enabled for the Exam as well as for the SEB Clients within the Exam Configurations SEB Settings of the Exam.
 
 SEB-Server and SEB are now ready to capture and to display screenshots.
 Navigate to exam monitoring and click the button in the Screen Proctoring section. A new tab will be opened.
 
 .. image:: images/screen_proctoring/open_screen_proctoring.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/open_screen_proctoring.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/open_screen_proctoring.png
 
 |
 |
@@ -46,7 +63,7 @@ Gallery View
 
 .. image:: images/screen_proctoring/gallery_view_live_grid_selection.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/gallery_view_live_grid_selection.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/gallery_view_live_grid_selection.png
 
 
 - Use your mouse to hover over a tile or press the tab key. A "selected" tile reveals information and actions for the session.
@@ -58,7 +75,7 @@ Gallery View
 
 .. image:: images/screen_proctoring/gallery_view_settings.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/gallery_view_settings.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/gallery_view_settings.png
 
 - The SEB-Client additionally sends metadata about the screenshot
 - Metadata changes according to the content displayed on the screenshot
@@ -69,7 +86,7 @@ Gallery View
 
 .. image:: images/screen_proctoring/gallery_view_expanded.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/gallery_view_expanded.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/gallery_view_expanded.png
 
 
 - A message box indicates that there are no live sessions available
@@ -89,7 +106,7 @@ To get an overview of all running exams which your user has access to click on t
 
 .. image:: images/screen_proctoring/running_exam_no_selection.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/running_exam_no_selection.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/running_exam_no_selection.png
 
 By clicking on the settings icon in the menu bar two options are displayed.
 
@@ -99,7 +116,7 @@ By clicking on the settings icon in the menu bar two options are displayed.
 
 .. image:: images/screen_proctoring/running_exam_selection.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/running_exam_selection.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/running_exam_selection.png
 
 
 |
@@ -125,7 +142,7 @@ A session can either be live or recorded.
 
 .. image:: images/screen_proctoring/proctoring_overview_live.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/proctoring_overview_live.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/proctoring_overview_live.png
 
 
 - The "Details"-Box on the right side displays information about the session and the current screenshot
@@ -136,7 +153,7 @@ A session can either be live or recorded.
 
 .. image:: images/screen_proctoring/proctoring_overview.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/proctoring_overview.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/proctoring_overview.png
 
 
 - The "Live" button disappears when the sessions disconnects from the server
@@ -166,7 +183,7 @@ Use the form fields and the time / date selection to tailor the search result to
 
 .. image:: images/screen_proctoring/search_form.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/images/screen_proctoring/search_form.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/images/screen_proctoring/search_form.png
 
 
 **Search Results**
@@ -182,7 +199,7 @@ Use the "date" button on the right side to change the sort oder.
 
 .. image:: images/screen_proctoring/search_results_sessions.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/screen_proctoring/search_results_sessions.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/search_results_sessions.png
 
 - By default, the screenshot are sorted by "Capture-Time" in ascending order
 - The screenshots are grouped into the metadata "Application / Website"
@@ -193,8 +210,42 @@ Use the "date" button on the right side to change the sort oder.
       If the session is still live the proctoring view won't open at the given time but instead jumps to the latest image.
 
 
-|
-|
+Applications Search
+---------------
+
+Since SEB Server 2.1 there is a new search in Screen Proctoring, for screenshots that relates to a certain application (Metadata) where you
+can search the screenshots of one ore more exams and get an application grouped search result per user that used the application
+
+This search can be found in den Screen Proctoring under "Applications" within the left menu pane:
+
+.. image:: images/screen_proctoring/app_view_1.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/app_view_1.png
+
+On the first step you can define a date / time frame for which the search shall apply and get a list of Exams that are
+within this time frame, after using the "Search" action. Within the list of exam you can select the Exams you are interested in or
+just select all Exams that has been found.
+
+After using the "Go" action, the search will present the results for each selected exam. For each exam there is a list of 
+Applications that has been used during the exam. If you open one such application tab, the result will display a list of
+all different tabs or windows that has been used within the specific application. The result also displays how many 
+screenshots has been taken for the Application within this Exam in total:
+
+.. image:: images/screen_proctoring/app_view_2.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/app_view_2.png
+
+If you open a specific window / tab result then a list of all users gets displayed that used that Application - Tab/Window during
+the exam. You also can see the total of screenshots made by a specific user for the Application - Tab/Window and within the specific exam.or
+
+.. image:: images/screen_proctoring/app_view_3.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/screen_proctoring/app_view_3.png
+    
+    
+If you use the usual recording action item, the Screen Proctoring will open up a new tab with the whole recording of that user. 
+But if you use the new recording folder action instead, the Screen Proctoring will open up a new tab with a recording that contains just the dedicated screenshots for the selected Application - Tab/Window.
+
 
 Metadata
 ---------

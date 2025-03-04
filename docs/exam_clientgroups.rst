@@ -33,7 +33,7 @@ Client groups are located on an Exam setup page after the indicators at the end 
 
 .. image:: images/exam/examClientgroupAdd.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examClientgroupAdd.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examClientgroupAdd.png
 
 To add a new SEB Client Group use the respective action from the right action pane. You will be presented with the SEB Client Group edit page
 where you are able to give the new SEB Client Group a name and choose a type of the client group that you want to create.
@@ -45,7 +45,7 @@ the group type. With the additional, specific inputs, the SEB Client Group can b
 
 .. image:: images/exam/examClientgroupIP.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examClientgroupIP.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examClientgroupIP.png
     
 For the IP range group type you can give a valid IP range defined with a start IP address and an end IP address. This two inputs are mandatory 
 and must be valid IPv4 addresses. The range must be a valid range and will be inclusive on the IP match (range-start >= IP <= range-end).
@@ -54,7 +54,7 @@ For the SEB OS grouping type you have to choose the OS type from the given types
 
 .. image:: images/exam/examClientgroupWin.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examClientgroupWin.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examClientgroupWin.png
     
 If you have finished up your SEB Client Group definition you can save it with the "Save" action from the right action pane or cancel the modifications and
 go back to the Exam page. You will see your created SEB Client Groups within its respective section on the Exam page and are able to edit them again, or delete
@@ -62,7 +62,7 @@ a certain SEB Client group from the list.
 
 .. image:: images/exam/examClientgroups.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examClientgroups.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examClientgroups.png
     
 Monitoring with SEB Client Groups
 ---------------------------------
@@ -73,7 +73,7 @@ depending on what group(s) a particular SEB applies to.
 
 .. image:: images/exam/examClientgroupMonitoring1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examClientgroupMonitoring1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examClientgroupMonitoring1.png
 
 With the "Client Group Filter" on the right action pane, you are able to show/hide individual groups. With this filtering you can adapt your monitoring view
 for specialized monitoring view, to only see SEB client connection from one particular room for example or of one particular client OS.
@@ -86,4 +86,4 @@ for specialized monitoring view, to only see SEB client connection from one part
 
 .. image:: images/exam/examClientgroupMonitoring2.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/examClientgroupMonitoring2.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/examClientgroupMonitoring2.png

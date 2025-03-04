@@ -11,7 +11,7 @@ In the exam details page you will see two action related to the SEB restriction 
 
 .. image:: images/exam/sebRestriction.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/sebRestriction.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/sebRestriction.png
     
 Use the "Apply SEB Lock" on an exam that has not already locked the course for SEB on the LMS/Assessment Tool to do apply the restriction and lock the course or quiz
 for SEB access only. This will call the SEB course restriction API on the LMS/Assessment Tool and will send all information to lock the course on the LMS/Assessment Tool.
@@ -28,7 +28,7 @@ comma separated list if needed.
 
 .. image:: images/exam/sebRestrictionDetails.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/exam/sebRestrictionDetails.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/exam/sebRestrictionDetails.png
 
 **SEB restriction on Open edX**
 

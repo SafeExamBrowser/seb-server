@@ -34,7 +34,7 @@ Currently an institution has a name, an optional url-suffix and an optional logo
 
 .. image:: images/institution/list.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/institution/list.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/institution/list.png
 
 As an institutional administrator only the institution one belongs to can be seen and be modified by the user.
 The user will see the institution form in view mode by clicking on the "Institution" section on the left hand menu
@@ -44,7 +44,7 @@ therefore a SEB Server administrator role is needed.
 
 .. image:: images/institution/view_institutional.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/institution/view_institutional.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/institution/view_institutional.png
 
 
 
@@ -69,7 +69,7 @@ access the application with a web-browser and have the own logo.
   
 .. image:: images/institution/new.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/institution/new.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/institution/new.png
   
   
 **Change the name/logo of an existing or own Institution**
@@ -94,7 +94,7 @@ access the application with a web-browser and have the own logo.
   
 .. image:: images/institution/view_institutional.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.0/docs/images/institution/view_institutional.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-2.1/docs/images/institution/view_institutional.png
   
   
 **Activate / Deactivate an existing institution**
