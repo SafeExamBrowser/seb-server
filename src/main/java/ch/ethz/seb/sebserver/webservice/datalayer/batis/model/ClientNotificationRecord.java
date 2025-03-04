@@ -3,25 +3,25 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ClientNotificationRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.client_connection_id")
     private Long clientConnectionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.event_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.event_type")
     private Integer eventType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.notification_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.notification_type")
     private Integer notificationType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.value")
     private Long value;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.text")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.text")
     private String text;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source Table: client_notification")
     public ClientNotificationRecord(Long id, Long clientConnectionId, Integer eventType, Integer notificationType, Long value, String text) {
         this.id = id;
         this.clientConnectionId = clientConnectionId;
@@ -31,32 +31,32 @@ public class ClientNotificationRecord {
         this.text = text;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.client_connection_id")
     public Long getClientConnectionId() {
         return clientConnectionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.event_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.event_type")
     public Integer getEventType() {
         return eventType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.notification_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.notification_type")
     public Integer getNotificationType() {
         return notificationType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.value")
     public Long getValue() {
         return value;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2024-11-04T15:08:40.860+01:00", comments="Source field: client_notification.text")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.245+01:00", comments="Source field: client_notification.text")
     public String getText() {
         return text;
     }
@@ -65,7 +65,7 @@ public class ClientNotificationRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_notification
      *
-     * @mbg.generated Mon Nov 04 15:08:40 CET 2024
+     * @mbg.generated Tue Mar 04 15:02:47 CET 2025
      */
     @Override
     public String toString() {
@@ -87,7 +87,7 @@ public class ClientNotificationRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_notification
      *
-     * @mbg.generated Mon Nov 04 15:08:40 CET 2024
+     * @mbg.generated Tue Mar 04 15:02:47 CET 2025
      */
     @Override
     public boolean equals(Object that) {
@@ -113,7 +113,7 @@ public class ClientNotificationRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_notification
      *
-     * @mbg.generated Mon Nov 04 15:08:40 CET 2024
+     * @mbg.generated Tue Mar 04 15:02:47 CET 2025
      */
     @Override
     public int hashCode() {
