@@ -48,52 +48,58 @@ a more automated and secure setup for high-stake exams.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-1.5/docs/images/setup_1.png
     
-SEB Server Version 2.0 is out
+SEB Server Version 2.1 is out
 -------------------------------
 
-With the new SEB Server release, SEB Server makes a major version change from 1.x to 2.x. This is mainly because of the new
-Screen Proctoring feature for SEB integrated into SEB Server and the removal of live proctoring with Zoom and Jitsi Meet
-that is no longer available for SEB Server version 2.x.
+Within this new version 2.1 we implemented mostly new features for Screen Proctoring and make SEB Server and Screen Proctoring 
+more stable. We also stabilized the SEB Server Moodle Plugin integration for SEB Server Moodle Plugin Version 2.
 
 For a migration from a running SEB Server setup with version 1.x to new major version 2.0, please also read the `migration guide <https://seb-server-setup.readthedocs.io/en/latest/major-migration.html>`_.
 
 New Features:
-    - Screen Proctoring with SEB and SEB Server. Can be enabled and configured for an Exam. SEB takes and sends screen shots plus Metadata to SEB Server. With monitoring and search functionality.
-    - Moodle Integration: SEB Server Exam creation from Moodle site with new SEB Server Moodle Plugin 2.0.
-    - Moodle Integration: Auto Login to SEB Server monitoring for Moodle Teacher with dedicated privileges. Comes with Moodle Plugin 2.0
-    - Exam Test Run. There is now the possibility to apply an test run for an Exam that is in coming up status. Exam is then in "Running" like state and SEB clients can connect as well as supporter can monitor the exam.
+    - SEB Server - Screen Proctoring: Client group application for screen proctoring groups. Client groups applied in an exam can now be applied to screen proctoring to have the same groups.
+    - Screen Proctoring: Deletion of screen proctoring sessions for admin users
+    - Screen Proctoring: Application View search   
 
 Improvements:
-    - Improvement of user ID resolution and handshake completion for SEB connecting with SEB-Server. SEB client now sent as much client information as possible and finish up the SEB Server handshake more quickly.
-    - Connection Configuration Improve (or remove) Date Filter.
-    - DB Migration Table charset fix for all tables, set to "utf8mb4_general"
-    - New SEB Settings in SEB Server GUI for version 2.0
-    - Table sort direction selection and table column length selection stick to User Session
+   - SEB Server - SEB Settings: All new SEB Settings from SEB Win, SEB Mac and SEB iOS now in SEB Settings GUI
+   - SEB Server - Screen Proctoring: Apply Screen Proctoring to SEB Settings from Exam. When screen proctoring is enabled/disables on Exam, it is also enabled/disabled in the applied SEB Settings for SEB
+   - SEB Server - Screen Proctoring: Stabilise Screen Proctoring Feature and make SPS API Connection more stable
+   - SEB Server - Setup: Simplify Spring profiles
+   - SEB Server - Moodle Integration: Stabilise Moodle Plugin 2 Integration
+   - SEB Server - Moodle Integration: Make Teacher Accounts not selectable as Exam supporter
+   - SEB Server - Error Handling: Improve error message and logs in SEB Server
+   - SEB Server - ASK: ASK Monitoring: Make clearer note when SEB do not send an ASK 
+   - Screen Proctoring: Update to latest Spring Boot version 3.3.2
+   - Screen Proctoring: Add limit to Screenshot Queue to prevent out of memory
+   - Screen Proctoring: Make sure Exam Admin and Institution Admin see only supported Exams on SPS
 
 Bugfixes:
-    - Missing Pending Notification Page Update in Monitoring Detail view
-    - Importing an exam without template throws error
-    - LMS name resolving sometimes gets "null" values for names
-    - New Ready State is not involved within the Filter numbers
-    - Page of ASK Grants in Exam has table selection action problems
-    - Sorting of start and end-date in Assessment Tool Lookup not working as expected
-    - Running Exam without LMS is greyed out without reason
+   - SEB Server - Moodle Integration: LMS Moodle external_id should not be greater than 255 chars
+   - SEB Server - Moodle Integration: Delete Teacher users when exam is deleted or assessment tool setup is deactivated
+   - SEB Server - Moodle Integration: using twice the same quiz name in a Moodle Course seems not working
+   - SEB Server - Monitoring: Notification symbol does not appear when locking a client from the list view
+   - Screen Proctoring: Prevent queue overflow on metadata store error (due to to long meta data for example)
+   - Screen Proctoring: Fix RDBMS and S3 store strategy to avoid multiple entries in screenshot_data table when retrying to store screenshot
+   - Screen Proctoring: S3 Storage: HTTP Connection leak on abandoned image requests (fast time line shift on recorder for example)
+   - Screen Proctoring: URLEncoded metadata in Header has problem with spaces replaces by '+'
+   - Screen Proctoring: Can't use screen proctoring with OLAT due to OLAT exam identifier
 
 
 SEB - SEB Server Compatibility
 ------------------------------
 
 The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
-SEB Server versions. There is an entry for each platform with a beta or testing release date and an official release date.
+SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
 
-**SEB Server Version 2.0.x**
+**SEB Server Version 2.1.x**
 
 .. csv-table::
    :header: "Platform / OS", "Release Version"
 
-   "SEB Client for iOS", "3.4 (3.3.3 without screen proctoring)"
-   "SEB Client for Mac", "3.4"
-   "SEB Client for Windows", "3.8"
+   "SEB Client for iOS", "3.5"
+   "SEB Client for Mac", "3.5"
+   "SEB Client for Windows", "3.9"
 
 Install SEB Server
 ------------------
