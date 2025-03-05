@@ -120,7 +120,7 @@ public interface LmsAPIService {
 //                final long dayStart = from.withTime(0, 0, 0, 0).getMillis();
 //                final long dayEnd = from.withTime(23, 59, 59, 999).getMillis();
                 final long quizStart = q.startTime.getMillis();
-                startTimeFilter = dayStart < quizStart && dayEnd > quizStart;
+                startTimeFilter = dayStart <= quizStart && dayEnd >= quizStart;
             }
             
             // SEBSERV-632

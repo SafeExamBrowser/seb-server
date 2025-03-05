@@ -193,10 +193,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             int page = 0;
             int failedAttempts = 0;
-            final DateTime quizFromTime = filterMap.getQuizFromTime();
-//            if (quizFromTime == null) {
-//                quizFromTime = DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset);
-//            }
+            DateTime quizFromTime = filterMap.getQuizFromTime();
+            if (quizFromTime == null) {
+                quizFromTime = DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset);
+            }
             final Predicate<QuizData> quizFilter = LmsAPIService.quizFilterPredicate(filterMap);
             final String quizName = filterMap.getQuizName();
 
