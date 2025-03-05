@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
+import org.springframework.util.MultiValueMap;
 
 /** Concrete EntityDAO interface of Exam entities */
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
@@ -273,4 +274,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return number of exams that has a supporter reference for given UUID
      */
     int numOfExamsReferencingSupporter(String uuid);
+
+    Result<String> getImportedQuizUUIDs(Long lmsSetupId);
 }

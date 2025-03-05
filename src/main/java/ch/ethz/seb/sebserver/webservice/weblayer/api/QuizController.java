@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import javax.servlet.http.HttpServletRequest;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -45,17 +46,20 @@ public class QuizController {
 
     private final LmsAPIService lmsAPIService;
     private final AuthorizationService authorization;
+    private final ExamDAO examDAO;
 
     public QuizController(
             @Value("${sebserver.webservice.api.pagination.defaultPageSize:10}") final int defaultPageSize,
             @Value("${sebserver.webservice.api.pagination.maxPageSize:500}") final int maxPageSize,
             final LmsAPIService lmsAPIService,
-            final AuthorizationService authorization) {
+            final AuthorizationService authorization,
+            final ExamDAO examDAO) {
 
         this.defaultPageSize = defaultPageSize;
         this.maxPageSize = maxPageSize;
         this.lmsAPIService = lmsAPIService;
         this.authorization = authorization;
+        this.examDAO = examDAO;
     }
 
     /** This is called by Spring to initialize the WebDataBinder and is used here to
@@ -97,6 +101,12 @@ public class QuizController {
         if (!this.authorization.hasGrant(PrivilegeType.READ, EntityType.EXAM)) {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
+        
+        // add UUIDs of already imported quizzes to filter SEBSERV-632
+        filterMap.putIfAbsent(
+                QuizData.FILTER_ATTR_IMPORTED_EXAMS,
+                examDAO.getImportedQuizUUIDs(filterMap.getLmsSetupId())
+                        .getOr(null));
 
         return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)

@@ -272,6 +272,15 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public Result<String> getImportedQuizUUIDs(final Long lmsSetupId) {
+        return this.examRecordDAO
+                .allExamUUIDs(lmsSetupId)
+                .onError(error -> log.error("Failed to get imported quiz ids: ", error))
+                .map( ids ->
+                        StringUtils.join(ids.stream().map(id -> id.uuid).toList(), Constants.LIST_SEPARATOR));
+    }
+
+    @Override
     public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return this.examRecordDAO
                 .setSEBRestriction(examId, sebRestriction)

@@ -274,20 +274,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     @Autowired
     private Cryptor cryptor;
 
-    @Before
-    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
-    public void init() {
-        // Nothing
-    }
-
-    @After
-    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
-    public void cleanup() {
-        // Nothing
-    }
-
     @Test
     @Order(1)
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     // *************************************
     // Use Case 1: SEB Administrator creates a new institution and activate this new institution
     public void testUsecase01() {
@@ -3213,20 +3202,20 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .findFirst()
                 .map(EntityName::getModelId)
                 .orElse(null);
-        final QuizData quizData = restService
-                .getBuilder(GetQuizPage.class)
-                .call()
-                .get().content
-                        .stream()
-                        .filter(q -> q.name.contains("Demo Quiz 6"))
-                        .findFirst()
-                        .get();
+//        final QuizData quizData = restService
+//                .getBuilder(GetQuizPage.class)
+//                .call()
+//                .get().content
+//                        .stream()
+//                        .filter(q -> q.name.contains("Demo Quiz 6"))
+//                        .findFirst()
+//                        .get();
 
         // import quiz as exam
         final Result<Exam> newExamResult = restService
                 .getBuilder(ImportAsExam.class)
-                .withFormParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, String.valueOf(quizData.lmsSetupId))
-                .withFormParam(QuizData.QUIZ_ATTR_ID, quizData.id)
+                .withFormParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, "1")
+                .withFormParam(QuizData.QUIZ_ATTR_ID, "quiz6")
                 .withFormParam(Domain.EXAM.ATTR_SUPPORTER, userId)
                 .withFormParam(Domain.EXAM.ATTR_EXAM_TEMPLATE_ID, savedTemplate.getModelId())
                 .call();

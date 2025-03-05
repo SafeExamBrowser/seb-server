@@ -176,7 +176,7 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 .stream()
                 .map(this::getExternalAddressAlias)
                 .filter(LmsAPIService.quizFilterPredicate(filterMap))
-                .collect(Collectors.toList());
+                .toList();
 
         for (final QuizData quizData : collect) {
             if (asyncQuizFetchBuffer.canceled) {

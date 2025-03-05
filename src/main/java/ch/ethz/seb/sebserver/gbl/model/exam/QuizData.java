@@ -34,6 +34,8 @@ public final class QuizData implements GrantEntity {
 
     public static final String FILTER_ATTR_QUIZ_NAME = "quiz_name";
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
+    public static final String FILTER_ATTR_IMPORTED_EXAMS = "imported_exam_ids";
+    
     public static final String QUIZ_ATTR_ID = "quiz_id";
     public static final String QUIZ_ATTR_INSTITUTION_ID = Domain.EXAM.ATTR_INSTITUTION_ID;
     public static final String QUIZ_ATTR_LMS_SETUP_ID = "lms_setup_id";

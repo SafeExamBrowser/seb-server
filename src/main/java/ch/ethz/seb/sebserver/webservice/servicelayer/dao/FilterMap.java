@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -116,6 +113,15 @@ public class FilterMap extends POSTMapper {
 
     public DateTime getQuizFromTime() {
         return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
+    }
+
+    public Set<String> getImportedExamIds() {
+        final String uuids = getString(QuizData.FILTER_ATTR_IMPORTED_EXAMS);
+        if (uuids == null) {
+            return null;
+        }
+        
+        return new HashSet<>(Arrays.asList(StringUtils.split(uuids, Constants.LIST_SEPARATOR_CHAR)));
     }
 
     public DateTime getExamFromTime() {
@@ -334,7 +340,6 @@ public class FilterMap extends POSTMapper {
 
         return null;
     }
-
 
     public static final class Builder {
 

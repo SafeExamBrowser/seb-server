@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -97,26 +98,35 @@ public interface LmsAPIService {
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
         final DateTime now = DateTime.now(DateTimeZone.UTC);
+        final Set<String> importedExams = filterMap.getImportedExamIds();
+        
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
-            final boolean startTimeFilter =
-                    from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
-            final DateTime endTime = now.isAfter(from) ? now : from;
-            final boolean fromTimeFilter = (endTime == null || q.endTime == null || endTime.isBefore(q.endTime));
-            return nameFilter && (startTimeFilter || fromTimeFilter);
-        };
-    }
 
-    /** Closure that gives a Function to gets a list of QuizData and used the quizFilterFunction to filter this list
-     * on the criteria given by a FilterMap.
-     *
-     * @param filterMap the FilterMap containing the filter criteria
-     * @return filtered list of QuizData */
-    static Function<List<QuizData>, List<QuizData>> quizzesFilterFunction(final FilterMap filterMap) {
-        return quizzes -> quizzes
-                .stream()
-                .filter(quizFilterPredicate(filterMap))
-                .collect(Collectors.toList());
+            // new quiz start date filter SEBSERV-651
+            boolean startTimeFilter = true;
+            if (from != null) {
+                final long dayStart = from.withTime(0, 0, 0, 0).getMillis();
+                final long dayEnd = from.withTime(23, 59, 59, 999).getMillis();
+                final long quizStart = q.startTime.getMillis();
+                startTimeFilter = dayStart < quizStart && dayEnd > quizStart;
+            }
+            
+            // SEBSERV-632
+            boolean imported = false;
+            if (importedExams != null) {
+                imported = importedExams.contains(q.id);
+            }
+
+            return nameFilter && startTimeFilter && !imported;
+            
+            // old filter wie due date 
+//            final boolean startTimeFilter =
+//                    from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
+//            final DateTime endTime = now.isAfter(from) ? now : from;
+//            final boolean fromTimeFilter = (endTime == null || q.endTime == null || endTime.isBefore(q.endTime));
+//            return nameFilter && (startTimeFilter || fromTimeFilter);
+        };
     }
 
 }

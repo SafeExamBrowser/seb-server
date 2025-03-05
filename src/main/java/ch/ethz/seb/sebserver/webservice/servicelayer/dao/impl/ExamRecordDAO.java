@@ -9,12 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.*;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.lmsSetupId;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ExamUUIDMapper;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -60,15 +62,18 @@ public class ExamRecordDAO {
     private static final Logger log = LoggerFactory.getLogger(ExamRecordDAO.class);
 
     private final ExamRecordMapper examRecordMapper;
+    private final ExamUUIDMapper examUUIDMapper;
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
     private final Cryptor cryptor;
 
     public ExamRecordDAO(
             final ExamRecordMapper examRecordMapper,
+            final ExamUUIDMapper examUUIDMapper,
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final Cryptor cryptor) {
 
         this.examRecordMapper = examRecordMapper;
+        this.examUUIDMapper = examUUIDMapper;
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.cryptor = cryptor;
     }
@@ -645,6 +650,25 @@ public class ExamRecordDAO {
             log.error("Failed to verify number of exams with supporter accounts. cause: {}", e.getMessage());
             return -1;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Result<Collection<ExamUUIDMapper.ExamUUID>> allExamUUIDs(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+
+            if (lmsSetupId == null) {
+                return examUUIDMapper
+                        .selectByExample()
+                        .build()
+                        .execute();
+            } else {
+                return examUUIDMapper
+                        .selectByExample()
+                        .where(ExamRecordDynamicSqlSupport.lmsSetupId, isEqualTo(lmsSetupId))
+                        .build()
+                        .execute();
+            }
+        });
     }
 
     private String getEncryptedQuitPassword(final String pwd) {
