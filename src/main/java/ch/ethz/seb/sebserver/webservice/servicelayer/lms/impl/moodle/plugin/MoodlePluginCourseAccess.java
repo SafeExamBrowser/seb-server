@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -58,7 +57,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRe
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursesPlugin;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 import io.micrometer.core.instrument.util.StringUtils;
@@ -86,7 +84,12 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String SQL_COURSE_NAME = "shortname";
 
     public static final String SQL_CONDITION_TEMPLATE =
-            //"(startdate >= %s or timecreated >=%s) and (enddate is null or enddate = 0 or enddate >= %s)";
+            "(startdate is null OR startdate = 0 OR startdate >= %s) AND (enddate is null or enddate = 0 OR enddate >= %s)";
+
+    public static final String FROM_DATE_CONDITION_TEMPLATE =
+            "(startdate is null OR startdate = 0 OR startdate >= %s) AND (startdate is null OR startdate = 0 OR startdate <= %s)";
+
+    public static final String CUTOFF_DATE_CONDITION_TEMPLATE =
             "(startdate is null OR startdate = 0 OR startdate >= %s) AND (enddate is null or enddate = 0 OR enddate >= %s)";
 
     private final JSONMapper jsonMapper;
@@ -190,10 +193,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             int page = 0;
             int failedAttempts = 0;
-            DateTime quizFromTime = filterMap.getQuizFromTime();
-            if (quizFromTime == null) {
-                quizFromTime = DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset);
-            }
+            final DateTime quizFromTime = filterMap.getQuizFromTime();
+//            if (quizFromTime == null) {
+//                quizFromTime = DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset);
+//            }
             final Predicate<QuizData> quizFilter = LmsAPIService.quizFilterPredicate(filterMap);
             final String quizName = filterMap.getQuizName();
 
@@ -403,7 +406,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                         MoodleUtils.quizDataOf(lmsSetup, c, urlPrefix, this.prependShortCourseName)
                                 .stream()
                                 .filter(quizFilter)
-                                .collect(Collectors.toList())));
+                                .toList()));
 
         // check thresholds
         if (asyncQuizFetchBuffer.buffer.size() > this.maxSize) {
@@ -430,10 +433,19 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final long defaultCutOff = Utils.toUnixTimeInSeconds(
                     DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
             final long cutoffDate = Math.min(filterDate, defaultCutOff);
-            String sqlCondition = String.format(
-                    SQL_CONDITION_TEMPLATE,
-                    String.valueOf(cutoffDate),
-                    String.valueOf(filterDate));
+            String sqlCondition = String.format(SQL_CONDITION_TEMPLATE, cutoffDate, filterDate);
+            
+//            String sqlCondition = null;
+//            if (quizFromTime != null) {
+//                final long dayStart = Utils.toUnixTimeInSeconds(quizFromTime.withTime(0, 0, 0, 0));
+//                final long dayEnd = Utils.toUnixTimeInSeconds(quizFromTime.withTime(23, 59, 59, 999));
+//                 sqlCondition = String.format(FROM_DATE_CONDITION_TEMPLATE, dayStart, dayEnd);
+//            } else {
+//                final DateTime now = DateTime.now(DateTimeZone.UTC);
+//                final long defaultCutOff = Utils.toUnixTimeInSeconds(now.minusYears(this.cutoffTimeOffset));
+//                final long new_sec = Utils.toUnixTimeInSeconds(now );
+//                sqlCondition = String.format(CUTOFF_DATE_CONDITION_TEMPLATE, defaultCutOff, new_sec);
+//            }
             final String fromElement = String.valueOf(page * size);
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
 

@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -24,6 +25,8 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Defines the LMS API access service interface with all functionality needed to access
  * a LMS API within a given LmsSetup configuration.
@@ -34,6 +37,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
  * as there is no change in the underling LmsSetup configuration. If the LmsSetup configuration
  * changes this service will be notifies about the change and release the related LmsAPITemplate from cache. */
 public interface LmsAPIService {
+
+    Logger log = LoggerFactory.getLogger(LmsAPIService.class);
 
     /** Reset and cleanup the caches if there are some */
     void cleanup();
@@ -99,15 +104,21 @@ public interface LmsAPIService {
         final DateTime from = filterMap.getQuizFromTime();
         final DateTime now = DateTime.now(DateTimeZone.UTC);
         final Set<String> importedExams = filterMap.getImportedExamIds();
+        final Long dayStart = (from != null) ? from.withTime(0, 0, 0, 0).getMillis() : null;
+        final Long dayEnd = (from != null) ? from.withTime(23, 59, 59, 999).getMillis() : null;
+
+        log.debug("***************** fromTime: " +  from);
+        log.debug("***************** filter timestamps: dayStart: " +  dayStart + " dayEnd: " + dayEnd);
+        log.debug("***************** filter dates UTC: dayStart: " + Utils.toDateTimeUTC( dayStart) + " dayEnd: " + Utils.toDateTimeUTC(dayEnd));
         
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
 
             // new quiz start date filter SEBSERV-651
             boolean startTimeFilter = true;
-            if (from != null) {
-                final long dayStart = from.withTime(0, 0, 0, 0).getMillis();
-                final long dayEnd = from.withTime(23, 59, 59, 999).getMillis();
+            if (dayStart != null) {
+//                final long dayStart = from.withTime(0, 0, 0, 0).getMillis();
+//                final long dayEnd = from.withTime(23, 59, 59, 999).getMillis();
                 final long quizStart = q.startTime.getMillis();
                 startTimeFilter = dayStart < quizStart && dayEnd > quizStart;
             }
