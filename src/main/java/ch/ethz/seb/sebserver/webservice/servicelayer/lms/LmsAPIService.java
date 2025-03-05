@@ -105,7 +105,8 @@ public interface LmsAPIService {
         final DateTime now = DateTime.now(DateTimeZone.UTC);
         final Set<String> importedExams = filterMap.getImportedExamIds();
         final Long dayStart = (from != null) ? from.withTime(0, 0, 0, 0).getMillis() : null;
-        final Long dayEnd = (from != null) ? from.withTime(23, 59, 59, 999).getMillis() : null;
+        final Long dayEnd = (from != null) ? from.withTime(23, 59, 59, 0).getMillis() : null;
+        
 
         log.info("***************** fromTime: " +  from);
         log.info("***************** filter timestamps: dayStart: " +  dayStart + " dayEnd: " + dayEnd);
@@ -115,11 +116,15 @@ public interface LmsAPIService {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
 
             // new quiz start date filter SEBSERV-651
+            if (from != null) {
+                log.info("*%%%%%%%%%%%%%%%% dayStart: " +  dayStart + " startDay_Quiz: " + q.startTime.withTime(0, 0, 0, 0).getMillis());
+            }
             boolean startTimeFilter = true;
             if (dayStart != null) {
 //                final long dayStart = from.withTime(0, 0, 0, 0).getMillis();
 //                final long dayEnd = from.withTime(23, 59, 59, 999).getMillis();
                 final long quizStart = q.startTime.getMillis();
+                log.info("***************** quizStart: " +  quizStart);
                 startTimeFilter = dayStart <= quizStart && dayEnd >= quizStart;
             }
             
