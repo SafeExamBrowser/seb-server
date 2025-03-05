@@ -107,9 +107,9 @@ public interface LmsAPIService {
         final Long dayStart = (from != null) ? from.withTime(0, 0, 0, 0).getMillis() : null;
         final Long dayEnd = (from != null) ? from.withTime(23, 59, 59, 999).getMillis() : null;
 
-        log.debug("***************** fromTime: " +  from);
-        log.debug("***************** filter timestamps: dayStart: " +  dayStart + " dayEnd: " + dayEnd);
-        log.debug("***************** filter dates UTC: dayStart: " + Utils.toDateTimeUTC( dayStart) + " dayEnd: " + Utils.toDateTimeUTC(dayEnd));
+        log.info("***************** fromTime: " +  from);
+        log.info("***************** filter timestamps: dayStart: " +  dayStart + " dayEnd: " + dayEnd);
+        log.info("***************** filter dates UTC: dayStart: " + Utils.toDateTimeUTC( dayStart) + " dayEnd: " + Utils.toDateTimeUTC(dayEnd));
         
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
