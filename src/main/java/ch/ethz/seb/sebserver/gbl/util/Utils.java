@@ -340,7 +340,6 @@ public final class Utils {
     }
 
     public static DateTime toDateTimeUTCUnix(final long timestamp) {
-        System.out.println("-----------> timestamp from Moodle: " + timestamp + " --------> date: " + new DateTime(timestamp * 1000, DateTimeZone.UTC));
         return new DateTime(timestamp * 1000, DateTimeZone.UTC);
     }
 
