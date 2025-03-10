@@ -709,6 +709,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // check quizzes are available now
         quizPageCall = restService
                 .getBuilder(GetQuizPage.class)
+                //.withQueryParam(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .call();
         assertNotNull(quizPageCall);
         assertFalse(quizPageCall.hasError());
@@ -717,6 +718,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             // get again to complete
             quizPageCall = restService
                     .getBuilder(GetQuizPage.class)
+                    //.withQueryParam(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                     .call();
             assertNotNull(quizPageCall);
             assertFalse(quizPageCall.hasError());
@@ -754,6 +756,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // check quizzes are still available
         quizPageCall = restService
                 .getBuilder(GetQuizPage.class)
+                .withQueryParam(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .call();
         assertNotNull(quizPageCall);
         assertFalse(quizPageCall.hasError());
@@ -784,6 +787,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // check quizzes are not available anymore
         quizPageCall = restService
                 .getBuilder(GetQuizPage.class)
+                .withQueryParam(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .call();
         assertNotNull(quizPageCall);
         assertFalse(quizPageCall.hasError());
@@ -850,6 +854,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // check quizzes are defines
         final Result<Page<QuizData>> quizPageCall = restService
                 .getBuilder(GetQuizPage.class)
+                .withQueryParam(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .call();
 
         assertNotNull(quizPageCall);

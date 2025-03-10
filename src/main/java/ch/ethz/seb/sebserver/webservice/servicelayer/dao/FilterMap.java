@@ -12,6 +12,7 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -113,6 +114,24 @@ public class FilterMap extends POSTMapper {
 
     public DateTime getQuizFromTime() {
         return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
+    }
+    
+    public Long getQuizFromTimeMillis() {
+        final Long millis = getLong(QuizData.FILTER_ATTR_START_TIME_MILLIS);
+        if (millis != null) {
+            return millis;
+        }
+
+        final DateTime quizFromTime = getQuizFromTime();
+        if (quizFromTime != null) {
+            return quizFromTime.getMillis();
+        }
+        
+        return null;
+    }
+
+    public DateTimeZone getQuizFromUserTimeZone() {
+        return getDateTimeZone(QuizData.FILTER_ATTR_START_TIME_USER_TIME_ZONE);
     }
 
     public Set<String> getImportedExamIds() {

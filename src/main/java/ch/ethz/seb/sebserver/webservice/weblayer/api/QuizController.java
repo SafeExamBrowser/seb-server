@@ -102,6 +102,11 @@ public class QuizController {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
         
+        // add users time zone for quiz start time search
+        filterMap.putIfAbsent(
+                QuizData.FILTER_ATTR_START_TIME_USER_TIME_ZONE, 
+                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
+        
         // add UUIDs of already imported quizzes to filter SEBSERV-632
         filterMap.putIfAbsent(
                 QuizData.FILTER_ATTR_IMPORTED_EXAMS,

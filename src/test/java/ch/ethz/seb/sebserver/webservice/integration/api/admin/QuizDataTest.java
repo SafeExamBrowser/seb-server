@@ -10,6 +10,9 @@ package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.junit.Assert.*;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -54,6 +57,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         Page<QuizData> quizzes = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
+                .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<QuizData>>() {
                 });
@@ -65,6 +69,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         quizzes = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution2Access())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
+                .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<QuizData>>() {
                 });
@@ -85,6 +90,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         quizzes = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
+                .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<QuizData>>() {
                 });
@@ -104,6 +110,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         quizzes = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
+                .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<QuizData>>() {
                 });
@@ -115,6 +122,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         quizzes = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution2Access())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
+                .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Page<QuizData>>() {
                 });
@@ -137,6 +145,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
                 .withPath("quiz1")
                 .withAttribute(QuizData.QUIZ_ATTR_LMS_SETUP_ID, lmsSetup.getModelId())
+                .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withMethod(HttpMethod.GET)
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<QuizData>() {

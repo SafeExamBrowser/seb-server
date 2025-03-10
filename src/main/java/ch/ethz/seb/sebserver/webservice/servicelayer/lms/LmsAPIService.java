@@ -8,11 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +19,6 @@ import org.joda.time.DateTimeZone;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import org.slf4j.Logger;
@@ -100,41 +96,61 @@ public interface LmsAPIService {
         if (filterMap == null) {
             return q -> true;
         }
+
+        final Set<String> importedExams = filterMap.getImportedExamIds();
+        final DateTime now = DateTime.now(DateTimeZone.UTC);
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
-        final DateTime now = DateTime.now(DateTimeZone.UTC);
-        final Set<String> importedExams = filterMap.getImportedExamIds();
-        final Long dayStart = (from != null) ? from.withTime(0, 0, 0, 0).getMillis() : null;
-        final Long dayEnd = (from != null) ? from.withTime(23, 59, 59, 0).getMillis() : null;
         
+        if (from != null) {
+            // this is the old way to search with due date 
+            return q -> {
+                final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
+                final boolean startTimeFilter = q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from));
+                final DateTime endTime = now.isAfter(from) ? now : from;
+                final boolean fromTimeFilter = q.endTime == null || endTime.isBefore(q.endTime);
 
-        log.info("***************** fromTime: " +  from);
-        log.info("***************** filter timestamps: dayStart: " +  dayStart + " dayEnd: " + dayEnd);
-        log.info("***************** filter dates UTC: dayStart: " + Utils.toDateTimeUTC( dayStart) + " dayEnd: " + Utils.toDateTimeUTC(dayEnd));
-       
-        return q -> {
-            final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
-            boolean startTimeFilter = true;
-            if (dayStart != null) {
+                // SEBSERV-632
+                boolean imported = false;
+                if (importedExams != null) {
+                    imported = importedExams.contains(q.id);
+                }
+                
+                return nameFilter && (startTimeFilter || fromTimeFilter) && !imported;
+            };
+        } else {
+            // this is the new way with the filter date timestamp from the user input. 
+            // Unix timestamp from user selected date plus now time within the users day (users timezone) 
+            // this is tricky since we want to fins all in users day, that depends on users time-zone so we have to
+            // convert the timestamp to a user timezone related date and then get the start and end of this user related date
+            // and convert this back to UTC timestamp for from and to... so let's go:
+            final Long quizFromTimeMillis = filterMap.getQuizFromTimeMillis();
+            final DateTimeZone userTimeZone = filterMap.getQuizFromUserTimeZone();
+            final DateTime dateTimeUTC = quizFromTimeMillis != null ? Utils.toDateTimeUTC(quizFromTimeMillis) : null;
+            // this is the users date with now time within the users time zone.
+            final DateTime userDate = (userTimeZone != null && dateTimeUTC != null) ? dateTimeUTC.withZone(userTimeZone) : dateTimeUTC;
+            // now we use stat and end of the users date and time perspective and map it to UTC time stamps
+            final Long dayStart = userDate != null ? userDate.withTime(0, 0, 0, 0).getMillis() : null;
+            final Long dayEnd = userDate != null ? userDate.withTime(23, 59, 59, 0).getMillis(): null;
+
+            log.info("***************** fromTime: " +  from);
+            log.info("***************** filter timestamps: dayStart: " +  dayStart + " dayEnd: " + dayEnd);
+            log.info("***************** filter dates UTC: dayStart: " + Utils.toDateTimeUTC( dayStart) + " dayEnd: " + Utils.toDateTimeUTC(dayEnd));
+
+            return q -> {
+                final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
                 final long quizStart = q.startTime.getMillis();
-                startTimeFilter = dayStart <= quizStart && dayEnd >= quizStart;
-            }
-            
-            // SEBSERV-632
-            boolean imported = false;
-            if (importedExams != null) {
-                imported = importedExams.contains(q.id);
-            }
+                final boolean startTimeFilter = dayStart == null || dayStart <= quizStart && dayEnd >= quizStart;
 
-            return nameFilter && startTimeFilter && !imported;
-            
-            // old filter wie due date 
-//            final boolean startTimeFilter =
-//                    from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
-//            final DateTime endTime = now.isAfter(from) ? now : from;
-//            final boolean fromTimeFilter = (endTime == null || q.endTime == null || endTime.isBefore(q.endTime));
-//            return nameFilter && (startTimeFilter || fromTimeFilter);
-        };
+                // SEBSERV-632
+                boolean imported = false;
+                if (importedExams != null) {
+                    imported = importedExams.contains(q.id);
+                }
+
+                return nameFilter && startTimeFilter && !imported;
+            };
+        }
     }
 
 }
