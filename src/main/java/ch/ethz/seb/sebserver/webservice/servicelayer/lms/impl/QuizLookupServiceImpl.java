@@ -251,6 +251,7 @@ public class QuizLookupServiceImpl implements QuizLookupService {
         public final Long lmsId;
         public final String name;
         public final DateTime startTime;
+        public final Long startTimeMillis;
 
         public LookupFilterCriteria(final FilterMap filterMap) {
 
@@ -258,11 +259,13 @@ public class QuizLookupServiceImpl implements QuizLookupService {
             this.lmsId = filterMap.getLmsSetupId();
             this.name = filterMap.getQuizName();
             this.startTime = filterMap.getQuizFromTime();
+            this.startTimeMillis = filterMap.getQuizFromTimeMillis();
         }
 
         boolean equals(final FilterMap filterMap) {
             return Utils.isEqualsWithEmptyCheck(filterMap.getQuizName(), this.name) &&
                     Objects.equals(filterMap.getQuizFromTime(), this.startTime) &&
+                    Objects.equals(filterMap.getQuizFromTimeMillis(), this.startTimeMillis) &&
                     Objects.equals(filterMap.getLmsSetupId(), this.lmsId) &&
                     Objects.equals(filterMap.getInstitutionId(), this.institutionId);
         }
@@ -278,6 +281,8 @@ public class QuizLookupServiceImpl implements QuizLookupService {
             builder.append(this.name);
             builder.append(", startTime=");
             builder.append(this.startTime);
+            builder.append(", startTimeMillis=");
+            builder.append(this.startTimeMillis);
             builder.append("]");
             return builder.toString();
         }
