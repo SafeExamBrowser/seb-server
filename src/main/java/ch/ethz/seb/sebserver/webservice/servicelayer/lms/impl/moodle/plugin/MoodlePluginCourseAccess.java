@@ -439,9 +439,12 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
 
             final String courseKeyPageJSON = this.protectedMoodlePageCall
-                    .protectedRun(() -> restTemplate.callMoodleAPIFunction(
-                            COURSES_API_FUNCTION_NAME,
-                            attributes))
+                    .protectedRun(() -> getCoursePageFromMoodle(
+                            restTemplate,
+                            attributes,
+                            cutoffDate,
+                            filterDate
+                    ))
                     .getOrThrow();
 
             MoodleUtils.checkJSONFormat(courseKeyPageJSON);
