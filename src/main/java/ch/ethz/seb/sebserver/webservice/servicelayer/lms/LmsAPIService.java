@@ -94,10 +94,11 @@ public interface LmsAPIService {
         if (filterMap == null) {
             return q -> true;
         }
+        
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
         final DateTime now = DateTime.now(DateTimeZone.UTC);
-        System.out.println("************ name filter: " + name);
+
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
             final boolean startTimeFilter = from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));

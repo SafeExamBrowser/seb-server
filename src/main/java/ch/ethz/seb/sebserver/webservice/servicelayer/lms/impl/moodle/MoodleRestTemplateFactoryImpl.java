@@ -478,16 +478,20 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 final UriComponentsBuilder queryParam,
                 final boolean usePOST,
                 final HttpEntity<?> functionReqEntity) {
-
-            log.info("*** Call Moodle: {} BODY: {}", queryParam, functionReqEntity.getBody());
+            
+            if (log.isDebugEnabled()) {
+                log.debug("*** Call Moodle: {} BODY: {}", queryParam.toUriString(), functionReqEntity.getBody());
+            }
 
             final ResponseEntity<String> response = super.exchange(
                     queryParam.toUriString(),
                     usePOST ? HttpMethod.POST : HttpMethod.GET,
                     functionReqEntity,
                     String.class);
-            
-            log.info("*** Moodle Response: {}", response);
+
+            if (log.isDebugEnabled()) {
+                log.debug("*** Moodle Response: {}", response);
+            }
 
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             if (response.getStatusCode() != HttpStatus.OK) {

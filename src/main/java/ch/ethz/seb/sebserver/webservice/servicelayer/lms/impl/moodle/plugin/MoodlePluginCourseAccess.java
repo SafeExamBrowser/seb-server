@@ -509,6 +509,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         
         // SEBSERV-652 mitigation (can be removed when Moodle bug is fixed
         if (responseBody == null) {
+            
+            log.warn("*** Moodle respond with empty body on request with attributes: {}", attributes);
+            log.info("*** Apply SEBSERV-652 mitigation...");
+            
             attributes.remove(PARAM_SQL_CONDITIONS);
             attributes.add(PARAM_SQL_CONDITIONS, getSQLCondition(null, cutoffDate, filterDate));
             responseBody = restTemplate.callMoodleAPIFunction(COURSES_API_FUNCTION_NAME, attributes);
