@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
-import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ScreenProctoringGroopRecordDynamicSqlSupport.sebGroupId;
 import static ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.SPS_API.*;
 
 import java.util.*;
@@ -914,7 +913,7 @@ public class ScreenProctoringAPIBinding {
         params.add(SESSION.ATTR_CLIENT_MACHINE_NAME, clientConnection.getClientMachineName());
         params.add(SESSION.ATTR_CLIENT_OS_NAME, clientConnection.getClientOsName());
         params.add(SESSION.ATTR_CLIENT_VERSION, clientConnection.getClientVersion());
-        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
+        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
 
         final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
         if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -1193,7 +1192,7 @@ public class ScreenProctoringAPIBinding {
         params.add(GROUP.ATTR_NAME, name);
         params.add(GROUP.ATTR_DESCRIPTION, "Created by SEB Server");
         params.add(GROUP.ATTR_EXAM_ID, spsExamUUID);
-        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
+        final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
 
         final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
         if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -1236,7 +1235,7 @@ public class ScreenProctoringAPIBinding {
                     uuid,
             /*settings.deletionTime */ null,
             supporterIds);
-            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
+            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
             if (exchange.getStatusCode() != HttpStatus.OK) {
@@ -1358,7 +1357,7 @@ public class ScreenProctoringAPIBinding {
             final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add(SEB_ACCESS.ATTR_NAME, name);
             params.add(SEB_ACCESS.ATTR_DESCRIPTION, description);
-            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBodyForSPService(params);
+            final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
             if (exchange.getStatusCode() != HttpStatus.OK) {
