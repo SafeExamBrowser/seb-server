@@ -505,9 +505,15 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final long cutoffDate,
             final long filterDate) {
 
-        String responseBody = restTemplate.callMoodleAPIFunction(COURSES_API_FUNCTION_NAME, attributes);
-        
+        String responseBody = null;
+
         // SEBSERV-652 mitigation (can be removed when Moodle bug is fixed
+        try {
+            responseBody = restTemplate.callMoodleAPIFunction(COURSES_API_FUNCTION_NAME, attributes);
+        } catch (final Exception e) {
+            responseBody = null;
+        }
+        
         if (responseBody == null) {
             
             log.warn("*** Moodle respond with empty body on request with attributes: {}", attributes);
