@@ -152,15 +152,18 @@ public class QuizLookupServiceImpl implements QuizLookupService {
             final FilterMap filterMap,
             final Function<String, Result<LmsAPITemplate>> lmsAPITemplateSupplier) {
 
+        // check if there is already a lookup for the user in the cache, if not create one
         if (!this.lookups.containsKey(userId)) {
             this.createNewAsyncLookup(userId, filterMap, lmsAPITemplateSupplier);
         }
-
+        
+        // get the users lookup from the cache
         final AsyncLookup asyncLookup = this.lookups.get(userId);
         if (asyncLookup == null) {
             return null;
         }
 
+        // if the lookup still valid use it otherwise, create new empty one and use this
         if (!asyncLookup.isValid(filterMap)) {
             final AsyncLookup removed = this.lookups.remove(userId);
             if (removed != null) {
@@ -333,7 +336,9 @@ public class QuizLookupServiceImpl implements QuizLookupService {
                 return false;
             }
 
-            return this.lookupFilterCriteria.equals(filterMap);
+            boolean valid = this.lookupFilterCriteria.equals(filterMap);
+            System.out.println("******************** valid: " + valid + "    filterMap: " + filterMap);
+            return valid;
         }
 
         boolean isRunning() {
@@ -342,9 +347,7 @@ public class QuizLookupServiceImpl implements QuizLookupService {
             }
             final boolean running = this.asyncBuffers
                     .stream()
-                    .filter(b -> !b.finished)
-                    .findFirst()
-                    .isPresent();
+                    .anyMatch(b -> !b.finished);
             if (!running) {
                 this.timeCompleted = Utils.getMillisecondsNow();
             }
@@ -352,7 +355,7 @@ public class QuizLookupServiceImpl implements QuizLookupService {
         }
 
         void cancel() {
-            this.asyncBuffers.stream().forEach(AsyncQuizFetchBuffer::cancel);
+            this.asyncBuffers.forEach(AsyncQuizFetchBuffer::cancel);
         }
     }
 
