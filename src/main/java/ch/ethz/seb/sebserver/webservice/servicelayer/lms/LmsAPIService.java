@@ -94,14 +94,13 @@ public interface LmsAPIService {
         if (filterMap == null) {
             return q -> true;
         }
-        
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
         final DateTime now = DateTime.now(DateTimeZone.UTC);
-
         return q -> {
             final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
-            final boolean startTimeFilter = from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
+            final boolean startTimeFilter =
+                    from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
             final DateTime endTime = now.isAfter(from) ? now : from;
             final boolean fromTimeFilter = (endTime == null || q.endTime == null || endTime.isBefore(q.endTime));
             return nameFilter && (startTimeFilter || fromTimeFilter);
