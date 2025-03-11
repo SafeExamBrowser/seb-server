@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -58,7 +57,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRe
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursesPlugin;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 import io.micrometer.core.instrument.util.StringUtils;
@@ -427,28 +425,13 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         try {
             // get course ids per page
             final long filterDate = Utils.toUnixTimeInSeconds(quizFromTime);
-            final long defaultCutOff = Utils.toUnixTimeInSeconds(
-                    DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
+            final long defaultCutOff = Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
             final long cutoffDate = Math.min(filterDate, defaultCutOff);
-            String sqlCondition = String.format(
-                    SQL_CONDITION_TEMPLATE,
-                    String.valueOf(cutoffDate),
-                    String.valueOf(filterDate));
+
+            final String sqlCondition = getSQLCondition(nameCondition, cutoffDate, filterDate);
             final String fromElement = String.valueOf(page * size);
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-
-            if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
-                sqlCondition = sqlCondition + " AND (" +
-                        SQL_QUIZ_NAME +
-                        " LIKE '" +
-                        Utils.toSQLWildcard(nameCondition) +
-                        "' OR " +
-                        SQL_COURSE_NAME +
-                        " LIKE '" +
-                        Utils.toSQLWildcard(nameCondition) +
-                        "')";
-            }
-
+            
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
             attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
@@ -511,6 +494,34 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             log.error("LMS Setup: {} Unexpected error while trying to get courses page: ", lmsName, e);
             return Collections.emptyList();
         }
+    }
+    
+    private String getCoursePageFromMoodle(
+            final MoodleAPIRestTemplate restTemplate, 
+            final LinkedMultiValueMap<String, String> attributes,
+            final long cutoffDate,
+            final long filterDate) {
+
+        String responseBody = restTemplate.callMoodleAPIFunction(COURSES_API_FUNCTION_NAME, attributes);
+        
+        // SEBSERV-652 mitigation (can be removed when Moodle bug is fixed
+        if (responseBody == null) {
+            attributes.add(PARAM_SQL_CONDITIONS, getSQLCondition(null, cutoffDate, filterDate));
+            responseBody = restTemplate.callMoodleAPIFunction(COURSES_API_FUNCTION_NAME, attributes);
+        }
+        
+        return responseBody;
+    }
+
+    private String getSQLCondition(final String nameCondition, final long cutoffDate, final long filterDate) {
+        String sqlCondition = String.format(SQL_CONDITION_TEMPLATE, cutoffDate, filterDate);
+        
+        if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
+            final String nc = Utils.toSQLWildcard(nameCondition);
+            sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + nc + "' OR " + SQL_COURSE_NAME + " LIKE '" + nc + "')";
+        }
+        
+        return sqlCondition;
     }
 
     private List<QuizData> getQuizzesForIds(
