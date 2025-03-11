@@ -479,11 +479,15 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 final boolean usePOST,
                 final HttpEntity<?> functionReqEntity) {
 
+            log.info("*** Call Moodle: {} BODY: {}", queryParam, functionReqEntity.getBody());
+
             final ResponseEntity<String> response = super.exchange(
                     queryParam.toUriString(),
                     usePOST ? HttpMethod.POST : HttpMethod.GET,
                     functionReqEntity,
                     String.class);
+            
+            log.info("*** Moodle Response: {}", response);
 
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             if (response.getStatusCode() != HttpStatus.OK) {
