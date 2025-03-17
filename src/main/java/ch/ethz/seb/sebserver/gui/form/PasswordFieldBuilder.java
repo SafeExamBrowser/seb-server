@@ -41,8 +41,8 @@ public class PasswordFieldBuilder extends FieldBuilder<CharSequence> {
 
         input.setEditable(!readonly);
         input.setValue((StringUtils.isNotBlank(this.value))
-                ? builder.cryptor.decrypt(this.value)
-                        .onError(error -> log.error("Failed to internally decrypt password: {}", error.getMessage()))
+                ? builder.cryptor
+                        .decrypt(this.value)
                         .getOr(this.value)
                 : this.value);
 

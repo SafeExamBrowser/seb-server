@@ -486,7 +486,7 @@ public final class ClientConnection implements GrantEntity {
     }
 
     private String getOSInfo(final String seb_os_name) {
-        if (seb_os_name != null) {
+        if (StringUtils.isNotBlank(seb_os_name)) {
             final String[] split = StringUtils.split(seb_os_name, Constants.LIST_SEPARATOR);
             return " OS:" + split[0];
         }

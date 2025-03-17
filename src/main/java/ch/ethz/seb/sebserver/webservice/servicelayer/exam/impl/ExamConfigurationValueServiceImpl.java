@@ -101,16 +101,12 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                     CONFIG_ATTR_NAME_QUIT_SECRET);
 
             if (StringUtils.isNotEmpty(quitSecretEncrypted)) {
-                try {
-
-                    return this.cryptor
-                            .decrypt(quitSecretEncrypted)
-                            .getOrThrow()
-                            .toString();
-
-                } catch (final Exception e) {
-                    log.error("Failed to decrypt quitSecret: ", e);
-                }
+             
+                return this.cryptor
+                        .decrypt(quitSecretEncrypted)
+                        .getOr(quitSecretEncrypted)
+                        .toString();
+                
             }
         } catch (final Exception e) {
             log.error("Failed to get SEB restriction with quit secret: ", e);
@@ -142,21 +138,16 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
         return Result.tryCatch(() -> {
 
             final String oldQuitPassword = this.getQuitPassword(examId);
-            final String newQuitPassword = StringUtils.isNotBlank(quitSecret)
-                    ? this.cryptor
-                        .decrypt(quitSecret)
-                        .getOr(quitSecret)
-                        .toString()
-                    : StringUtils.EMPTY;
-
-            if (Objects.equals(oldQuitPassword, newQuitPassword)) {
+            if (Objects.equals(oldQuitPassword, quitSecret)) {
                 return examId;
             }
-
+            
             return saveSEBAttributeValueToConfig(
                     examId, 
                     CONFIG_ATTR_NAME_QUIT_SECRET, 
-                    StringUtils.isBlank(quitSecret) ? StringUtils.EMPTY : quitSecret);
+                    StringUtils.isBlank(quitSecret) 
+                                ? StringUtils.EMPTY 
+                                : this.cryptor.encrypt(quitSecret).getOr(quitSecret).toString());
         });
     }
 
