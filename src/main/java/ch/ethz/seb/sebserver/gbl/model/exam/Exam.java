@@ -44,6 +44,7 @@ public final class Exam implements GrantEntity {
     public static final String FILTER_ATTR_STATUS = "status";
     public static final String FILTER_CACHED_QUIZZES = "cached-quizzes";
     public static final String FILTER_ATTR_HIDE_MISSING = "show-missing";
+    public static final String FILTER_ATTR_START_TIME_MILLIS = "start_timestamp_millis";
 
     /** This attribute name is used to store the number of quiz recover attempts done by exam update process */
     public static final String ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS = "QUIZ_RECOVER_ATTEMPTS";

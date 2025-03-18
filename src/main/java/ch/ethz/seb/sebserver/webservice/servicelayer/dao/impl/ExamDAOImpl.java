@@ -147,17 +147,13 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     public Result<Collection<Exam>> allMatching(final FilterMap filterMap, final Predicate<Exam> predicate) {
-
-        return Result.tryCatch(() -> {
-
-            return this.examRecordDAO
-                    .allMatching(filterMap, null)
-                    .flatMap(this::toDomainModel)
-                    .getOrThrow()
-                    .stream()
-                    .filter(predicate)
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> this.examRecordDAO
+                .allMatching(filterMap, null)
+                .flatMap(this::toDomainModel)
+                .getOrThrow()
+                .stream()
+                .filter(predicate)
+                .collect(Collectors.toList()));
     }
 
     @Override

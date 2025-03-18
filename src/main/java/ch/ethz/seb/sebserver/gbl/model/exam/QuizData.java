@@ -35,7 +35,6 @@ public final class QuizData implements GrantEntity {
     public static final String FILTER_ATTR_QUIZ_NAME = "quiz_name";
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
     public static final String FILTER_ATTR_START_TIME_MILLIS = "start_timestamp_millis";
-    public static final String FILTER_ATTR_START_TIME_USER_TIME_ZONE = "start_timestamp_uz";
     public static final String FILTER_ATTR_IMPORTED_EXAMS = "imported_exam_ids";
     
     public static final String QUIZ_ATTR_ID = "quiz_id";

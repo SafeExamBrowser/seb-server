@@ -363,6 +363,30 @@ public final class Utils {
         return Objects.requireNonNull(toDateTimeUTC(dateString)).getMillis();
     }
 
+    /** This gets timestamps (UTC) of a day range on the given user time zone by a given point in time (timestamp UTC)
+     *  The given timePointUTC timestamp will be transformed to user date in user time zone. Then the users start of day and
+     *  end of day times will be extracted and transformed back to timestamps (UTC) for start and end of user time zone.
+     *  
+     * @param timePointUTC The given point in time (UTC timestamp) that will be used to get the users day range
+     * @param userTimeZone The actual users time zone
+     * @return Pair containing start timestamp in milliseconds (UTC) and end timestamp in milliseconds (UTC) of the users day span.
+     */
+    public static Pair<Long, Long> getUserDaySpanMillis(final Long timePointUTC, final DateTimeZone userTimeZone) {
+        if (timePointUTC == null || userTimeZone == null) {
+            return null;
+        }
+        
+        // get DateTime in UTC space
+        final DateTime dateTimeUTC = Utils.toDateTimeUTC(timePointUTC);
+        // this is the users date with now time within the users time zone.
+        final DateTime userDate = dateTimeUTC.withZone(userTimeZone);
+        // now we use stat and end of the users date and time perspective and map it to UTC time stamps
+        final Long dayStart =  userDate.withTime(0, 0, 0, 0).getMillis();
+        final Long dayEnd = userDate.withTime(23, 59, 59, 0).getMillis();
+        
+        return new Pair<>(dayStart, dayEnd);
+    }
+
     public static String toJsonArray(final String string) {
         if (string == null) {
             return null;

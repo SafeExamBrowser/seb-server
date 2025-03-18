@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ExamUUIDMapper;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -236,7 +237,23 @@ public class ExamRecordDAO {
                                 isNotEqualTo(ExamStatus.ARCHIVED.name()));
             }
 
-            if (filterMap.getExamFromTime() != null) {
+            final Long startTime = filterMap.getLong(Exam.FILTER_ATTR_START_TIME_MILLIS);
+            
+            // if start timestamp is available use user day span search for quiz start time
+            if (startTime != null) {
+                final DateTimeZone userTimeZone = filterMap.getUserTimeZone();
+                final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(startTime, userTimeZone);
+                if (userDaySpanMillis != null) {
+                    whereClause = whereClause
+                            .and(
+                                    quizStartTime,
+                                    isGreaterThanOrEqualTo( Utils.toDateTimeUTC(userDaySpanMillis.a)),
+                                    and(
+                                            quizStartTime, 
+                                            isLessThanOrEqualTo(Utils.toDateTimeUTC(userDaySpanMillis.b))));
+                }
+            // if old exam from time filter is available apply old search
+            } else if (filterMap.getExamFromTime() != null) {
                 whereClause = whereClause
                         .and(
                                 ExamRecordDynamicSqlSupport.quizEndTime,

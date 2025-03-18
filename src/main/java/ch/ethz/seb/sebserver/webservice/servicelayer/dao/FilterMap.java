@@ -50,7 +50,7 @@ public class FilterMap extends POSTMapper {
 
     public static final String ATTR_ADD_INSITUTION_JOIN = "ADD_INSITUTION_JOIN";
     public static final String ATTR_ADD_LMS_SETUP_JOIN = "ADD_LMS_SETUP_JOIN";
-
+    public static final String ATTR_USER_TIME_ZONE = "user_time_zone";
     public static final String ATTR_SUPPORTER_USER_ID = "SUPPORTER_USER_UUID";
 
     public FilterMap() {
@@ -130,8 +130,8 @@ public class FilterMap extends POSTMapper {
         return null;
     }
 
-    public DateTimeZone getQuizFromUserTimeZone() {
-        return getDateTimeZone(QuizData.FILTER_ATTR_START_TIME_USER_TIME_ZONE);
+    public DateTimeZone getUserTimeZone() {
+        return getDateTimeZone(ATTR_USER_TIME_ZONE);
     }
 
     public Set<String> getImportedExamIds() {

@@ -136,6 +136,12 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         if (StringUtils.isNotBlank(supporterId)) {
             filterMap.putIfAbsent(FilterMap.ATTR_SUPPORTER_USER_ID, supporterId);
         }
+
+        // add users time zone for Exam start time search
+        filterMap.putIfAbsent(
+                FilterMap.ATTR_USER_TIME_ZONE,
+                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
+        
         return this.entityDAO.allMatching(
                 filterMap,
                 this::hasReadAccess);

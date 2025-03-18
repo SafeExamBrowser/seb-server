@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -119,28 +120,17 @@ public interface LmsAPIService {
                 return nameFilter && (startTimeFilter || fromTimeFilter) && !imported;
             };
         } else {
+            
             // this is the new way with the filter date timestamp from the user input. 
-            // Unix timestamp from user selected date plus now time within the users day (users timezone) 
-            // this is tricky since we want to fins all in users day, that depends on users time-zone so we have to
-            // convert the timestamp to a user timezone related date and then get the start and end of this user related date
-            // and convert this back to UTC timestamp for from and to... so let's go:
+            // Unix timestamp from user selected date plus now time within the users day (users timezone)
             final Long quizFromTimeMillis = filterMap.getQuizFromTimeMillis();
-            final DateTimeZone userTimeZone = filterMap.getQuizFromUserTimeZone();
-            final DateTime dateTimeUTC = quizFromTimeMillis != null ? Utils.toDateTimeUTC(quizFromTimeMillis) : null;
-            // this is the users date with now time within the users time zone.
-            final DateTime userDate = (userTimeZone != null && dateTimeUTC != null) ? dateTimeUTC.withZone(userTimeZone) : dateTimeUTC;
-            // now we use stat and end of the users date and time perspective and map it to UTC time stamps
-            final Long dayStart = userDate != null ? userDate.withTime(0, 0, 0, 0).getMillis() : null;
-            final Long dayEnd = userDate != null ? userDate.withTime(23, 59, 59, 0).getMillis(): null;
-
-            log.info("***************** fromTime: " +  from);
-            log.info("***************** filter timestamps: dayStart: " +  dayStart + " dayEnd: " + dayEnd);
-            log.info("***************** filter dates UTC: dayStart: " + Utils.toDateTimeUTC( dayStart) + " dayEnd: " + Utils.toDateTimeUTC(dayEnd));
+            final DateTimeZone userTimeZone = filterMap.getUserTimeZone();
+            final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(quizFromTimeMillis, userTimeZone);
 
             return q -> {
                 final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
                 final long quizStart = q.startTime.getMillis();
-                final boolean startTimeFilter = dayStart == null || dayStart <= quizStart && dayEnd >= quizStart;
+                final boolean startTimeFilter = userDaySpanMillis == null || userDaySpanMillis.a <= quizStart && userDaySpanMillis.b >= quizStart;
 
                 // SEBSERV-632
                 boolean imported = false;
