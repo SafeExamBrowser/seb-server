@@ -515,35 +515,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_PROCTORING_RESET_PATH_SEGMENT,
-//            method = RequestMethod.POST,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Exam resetProctoringRooms(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
-//
-//        checkModifyPrivilege(institutionId);
-//
-//        return this.entityDAO
-//                .byPK(examId)
-//                .flatMap(this.remoteProctoringRoomService::cleanupAllRooms)
-//                .map(exam -> {
-//                    this.examAdminService.getExamProctoringService(exam.id)
-//                            .onSuccess(service -> service.clearRestTemplateCache(exam.id))
-//                            .onError(error -> log.warn(
-//                                    "Failed to clear proctoring rest template cache for exam: {}",
-//                                    error.getMessage()));
-//                    return exam;
-//                })
-//                .getOrThrow();
-//    }
-
     // **** Proctoring
     // ****************************************************************************
 

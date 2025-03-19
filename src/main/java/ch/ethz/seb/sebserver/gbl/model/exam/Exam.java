@@ -238,11 +238,18 @@ public final class Exam implements GrantEntity {
             additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, postMap.getString(QuizData.QUIZ_ATTR_DESCRIPTION));
         }
         additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, postMap.getString(QuizData.QUIZ_ATTR_START_URL));
+        if (postMap.contains(API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS)) {
+            additionalAttributes.put(
+                    API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS, 
+                    postMap.getString(API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS));
+        }
         this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
 
         this.checkASK = BooleanUtils
                 .toBoolean(this.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         this.allowedSEBVersions = initAllowedSEBVersions();
+        
+        
     }
 
     public Exam(final QuizData quizData) {

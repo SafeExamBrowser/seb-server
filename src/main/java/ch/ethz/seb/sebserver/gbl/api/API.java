@@ -204,7 +204,8 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_PROCTORING_RESET_PATH_SEGMENT = "reset";
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT = "/grant";
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT = "/sebkeyinfo";
-
+    public static final String EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS = "clientGroupIds";
+    
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
     public static final String EXAM_CLIENT_GROUP_ENDPOINT = "/client-group";
 

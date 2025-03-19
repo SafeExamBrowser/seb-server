@@ -12,6 +12,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
@@ -139,11 +140,21 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                                 error.getMessage()))
                         .getOr(null);
 
+                
                 if (examTemplate == null) {
                     return exam;
                 }
 
+                
+                final String idsString = exam.getAdditionalAttribute(API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS);
+                final Set<Long> selectedClientGroupIds = (idsString != null)
+                        ? Arrays.stream(idsString.split(Constants.LIST_SEPARATOR))
+                                .map(Long::parseLong)
+                                .collect(Collectors.toSet())
+                        : null;
                 examTemplate.clientGroupTemplates
+                        .stream()
+                        .filter( it -> selectedClientGroupIds == null || selectedClientGroupIds.contains(it.id))
                         .forEach(it -> createClientGroupFromTemplate(it, exam));
             }
 
