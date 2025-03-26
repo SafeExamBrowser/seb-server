@@ -14,6 +14,7 @@ import javax.validation.constraints.NotNull;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -155,6 +156,7 @@ public final class Exam implements GrantEntity {
     public final Long followUpId;
 
     @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
+    @JsonSerialize(using = ExamAdditionalAttributeSerializer.class)
     public final Map<String, String> additionalAttributes;
 
     @JsonIgnore
