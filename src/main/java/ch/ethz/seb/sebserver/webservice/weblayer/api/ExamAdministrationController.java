@@ -624,70 +624,74 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_ACTIVATION,
-//            method = RequestMethod.POST,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Exam screenProctoringActivation(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-//            @RequestParam(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING) final boolean enableSP) {
-//
-//        checkModifyPrivilege(institutionId);
-//        return this.entityDAO
-//                .byPK(examId)
-//                .flatMap(this.authorization::checkModify)
-//                .map(exam -> {
-//                    
-//                    // TODO if enableSP true; 
-//                    //      check if there are already valid ScreenProctoringSettings and a default room
-//                    //      if now default room, create one with the exam name save and apply settings
-//                    
-//                    return exam;
-//                }  )
-//            .flatMap(this.examAdminService::applySPSEnabled)
-//            .flatMap(this.userActivityLogDAO::logModify)
-//            .getOrThrow();
-//    }
-//
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_APPLY_GROUPS,
-//            method = RequestMethod.POST,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Exam screenProctoringGroupApply(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-//            @RequestParam(ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION) final String groupIds) {
-//
-//        checkModifyPrivilege(institutionId);
-//        return this.entityDAO
-//                .byPK(examId)
-//                .flatMap(this.authorization::checkModify)
-//                .map(exam -> {
-//                    
-//                    // groupIds is comma separated String of client group ids
-//
-//                    // TODO if sps is not enabled yet: enable it, 
-//                    //      create default group from Exam name if not already exists
-//                    //      apply and update groups ---> delete old if not selected anymore, create new and update names
-//
-//                    return exam;
-//                }  )
-//                .flatMap(this.examAdminService::applySPSEnabled)
-//                .flatMap(this.userActivityLogDAO::logModify)
-//                .getOrThrow();
-//    }
-//    
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_ACTIVATION,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public void screenProctoringActivation(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @RequestParam(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING) final boolean enableSP) {
+
+        checkModifyPrivilege(institutionId);
+        this.entityDAO
+                .byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .map(exam -> {
+
+                    // TODO if enableSP true; 
+                    //      check if there are already valid ScreenProctoringSettings and a default room
+                    //      if now default room, create one with the exam name save and apply settings
+
+                    return exam;
+                }  )
+            .flatMap(this.examAdminService::applySPSEnabled)
+            .flatMap(this.userActivityLogDAO::logModify)
+            .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_APPLY_GROUPS,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public void screenProctoringGroupApply(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @RequestParam(value = ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
+
+        checkModifyPrivilege(institutionId);
+        this.entityDAO
+                .byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .map(exam -> {
+
+                    // groupIds is comma separated String of client group ids
+                    
+                    // TODO if groupIds is null or empty
+                    //      if SPS is not enabled and there is no default group, enable it and create default group from exam name
+                    //      if SPS is enabled and remove all client groups (only default groups shall remain)
+
+                    // TODO if sps is not enabled yet: enable it, 
+                    //      create default group from Exam name if not already exists
+                    //      apply and update groups ---> delete old if not selected anymore, create new and update names
+
+                    return exam;
+                }  )
+                .flatMap(this.examAdminService::applySPSEnabled)
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
+
     // **** Screen Proctoring
     // ****************************************************************************
 

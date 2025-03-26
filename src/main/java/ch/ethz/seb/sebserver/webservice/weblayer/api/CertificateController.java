@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.MediaType;
@@ -58,7 +59,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CERTIFICATE_ENDPOINT)
-@SecurityRequirement(name = "oauth2")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class CertificateController {
 
     private final AuthorizationService authorization;

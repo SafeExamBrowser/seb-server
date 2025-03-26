@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.session.*;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
@@ -73,7 +74,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_MONITORING_ENDPOINT)
-@SecurityRequirement(name = "oauth2")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class ExamMonitoringController {
 
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringController.class);

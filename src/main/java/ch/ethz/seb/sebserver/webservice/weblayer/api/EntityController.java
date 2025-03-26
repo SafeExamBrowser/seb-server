@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
  *
  * @param <T> The concrete Entity domain-model type used on all GET, PUT
  * @param <M> The concrete Entity domain-model type used for POST methods (new) */
-@SecurityRequirement(name = "oauth2")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public abstract class EntityController<T extends Entity, M extends Entity> {
 
     private static final Logger log = LoggerFactory.getLogger(EntityController.class);

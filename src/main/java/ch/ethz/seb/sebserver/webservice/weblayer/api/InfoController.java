@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +30,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.INFO_ENDPOINT)
-@SecurityRequirement(name = "oauth2")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class InfoController {
 
     private final InstitutionDAO institutionDAO;

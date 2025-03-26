@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import javax.servlet.http.HttpServletRequest;
 
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -38,7 +39,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.QUIZ_DISCOVERY_ENDPOINT)
-@SecurityRequirement(name = "oauth2")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class QuizController {
 
     private final int defaultPageSize;

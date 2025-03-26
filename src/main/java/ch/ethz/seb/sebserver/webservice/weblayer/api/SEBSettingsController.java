@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.MediaType;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_SETTINGS_ENDPOINT)
-@SecurityRequirement(name = "oauth2")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class SEBSettingsController {
     
     private final ConfigurationDAO configurationDAO;
