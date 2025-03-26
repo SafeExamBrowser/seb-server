@@ -62,6 +62,8 @@ public class WebClientDetailsService implements ClientDetailsService {
         if (clientId == null) {
             throw new ClientRegistrationException("clientId is null");
         }
+        
+        System.out.println("******************* clientId:" + clientId);
 
         if (clientId.equals(this.adminClientDetails.getClientId())) {
             return this.adminClientDetails;

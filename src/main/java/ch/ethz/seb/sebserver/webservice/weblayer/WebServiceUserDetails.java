@@ -34,6 +34,7 @@ public class WebServiceUserDetails
 
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
+        System.out.println("******************* username:" + username);
         return this.userDAO.sebServerUserByUsername(username)
                 .get(error -> {
                     throw new UsernameNotFoundException("No User with name: " + username + " found", error);

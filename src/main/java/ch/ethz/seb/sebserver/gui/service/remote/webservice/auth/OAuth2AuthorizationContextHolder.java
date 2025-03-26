@@ -181,8 +181,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             this.loginLogURI = webserviceURIService.getLoginLogPostURI();
             this.logoutLogURI = webserviceURIService.getLogoutLogPostURI();
             this.jwtTokenVerificationURI = webserviceURIService.getJWTTokenVerificationURI();
-            
-            System.out.println("**************************** guiClientId: " + guiClientId + " guiClientSecret" + guiClientSecret);
         }
 
         @Override
