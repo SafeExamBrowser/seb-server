@@ -630,7 +630,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_ACTIVATION,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public void screenProctoringActivation(
+    public Exam screenProctoringActivation(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -639,7 +639,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @RequestParam(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING) final boolean enableSP) {
 
         checkModifyPrivilege(institutionId);
-        this.entityDAO
+        return this.entityDAO
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
@@ -648,7 +648,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     //      check if there are already valid ScreenProctoringSettings and a default room
                     //      if now default room, create one with the exam name save and apply settings
 
-                    return exam;
+                    return examDAO.byPK(examId).getOr(exam);
                 }  )
             .flatMap(this.examAdminService::applySPSEnabled)
             .flatMap(this.userActivityLogDAO::logModify)
@@ -661,7 +661,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_APPLY_GROUPS,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public void screenProctoringGroupApply(
+    public Exam screenProctoringGroupApply(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -670,7 +670,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @RequestParam(value = ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
 
         checkModifyPrivilege(institutionId);
-        this.entityDAO
+        return this.entityDAO
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
@@ -685,7 +685,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     //      create default group from Exam name if not already exists
                     //      apply and update groups ---> delete old if not selected anymore, create new and update names
 
-                    return exam;
+                    return examDAO.byPK(examId).getOr(exam);
                 }  )
                 .flatMap(this.examAdminService::applySPSEnabled)
                 .flatMap(this.userActivityLogDAO::logModify)
