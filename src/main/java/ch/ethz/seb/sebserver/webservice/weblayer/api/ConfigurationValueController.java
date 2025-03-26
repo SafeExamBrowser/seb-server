@@ -161,7 +161,6 @@ public class ConfigurationValueController extends EntityController<Configuration
             if (!idSet && !idsSet) {
                 throw new APIConstraintViolationException(
                         "Missing some mandatory attributes. Either id must be set or all of configurationId, attributeId and listIndex");
-
             }
 
             // apply field type validation

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import static ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType.MOODLE_PLUGIN;
 import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.*;
 
 import java.util.*;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ToggleTestRun;
@@ -99,6 +101,7 @@ public class ExamForm implements TemplateComposer {
     private static final LocTextKey FORM_QUIZ_ID_TEXT_KEY = new LocTextKey("sebserver.exam.form.quizid");
     private static final LocTextKey FORM_QUIZ_URL_TEXT_KEY = new LocTextKey("sebserver.exam.form.quizurl");
     private static final LocTextKey FORM_LMSSETUP_TEXT_KEY = new LocTextKey("sebserver.exam.form.lmssetup");
+    private static final LocTextKey FORM_FOLLOWUP_EXAM_TEXT_KEY = new LocTextKey("sebserver.exam.form.followup-exam");
     private final static LocTextKey ACTION_MESSAGE_SEB_RESTRICTION_RELEASE = new LocTextKey("sebserver.exam.action.sebrestriction.release.confirm");
     private static final LocTextKey FORM_EXAM_TEMPLATE_TEXT_KEY = new LocTextKey("sebserver.exam.form.examTemplate");
     private static final LocTextKey FORM_EXAM_TEMPLATE_ERROR = new LocTextKey("sebserver.exam.form.examTemplate.error");
@@ -411,13 +414,20 @@ public class ExamForm implements TemplateComposer {
                             .withAttribute(ATTR_EXAM_STATUS, exam.status.name()));
         }
     }
-
-
-
+    
     private FormHandle<Exam> createReadOnlyForm(
             final PageContext formContext,
             final Composite content,
             final Exam exam) {
+        
+        final String followupExam = (exam.followUpId != null) 
+                ? this.restService.getBuilder(GetExam.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.followUpId))
+                    .call()
+                    .map( Exam::getName)
+                    .getOr(null)
+                : null;
+
 
         final I18nSupport i18nSupport = formContext.getI18nSupport();
         return this.pageService.formBuilder(
@@ -495,6 +505,13 @@ public class ExamForm implements TemplateComposer {
                                 FORM_QUIT_PWD_TEXT_KEY,
                                 exam.quitPassword)
                         .withEmptyCellSeparation(false))
+                
+                .addFieldIf(() -> followupExam != null,
+                        () -> FormBuilder.text(
+                                Domain.EXAM.ATTR_FOLLOWUP_ID,
+                                FORM_FOLLOWUP_EXAM_TEXT_KEY,
+                                followupExam
+                        ))
 
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM.ATTR_SUPPORTER,
@@ -517,6 +534,7 @@ public class ExamForm implements TemplateComposer {
         final boolean hasLMS = exam.lmsSetupId != null;
         final boolean importFromLMS = newExam && hasLMS;
         final LocTextKey statusTitle = new LocTextKey("sebserver.exam.status." + exam.status.name());
+        final List<Tuple<String>> followupSelection = resourceService.getExamFollowupSelection(exam.id);
 
         return this.pageService.formBuilder(formContext.copyOf(content))
                 .putStaticValueIf(() -> !newExam,
@@ -612,6 +630,15 @@ public class ExamForm implements TemplateComposer {
                         Domain.EXAM.ATTR_QUIT_PASSWORD,
                         FORM_QUIT_PWD_TEXT_KEY,
                         exam.quitPassword))
+                
+                .addFieldIf(
+                        () -> !newExam && followupSelection != null && !followupSelection.isEmpty(), 
+                        () -> FormBuilder.singleSelection(
+                                        Domain.EXAM.ATTR_FOLLOWUP_ID,
+                                        FORM_FOLLOWUP_EXAM_TEXT_KEY,
+                                exam.followUpId != null ? String.valueOf(exam.followUpId) : null,
+                                        () -> this.resourceService.getExamFollowupSelection(exam.id)
+                                ))
 
                 .addField(FormBuilder.multiComboSelection(
                                 Domain.EXAM.ATTR_SUPPORTER,
@@ -648,6 +675,7 @@ public class ExamForm implements TemplateComposer {
             false,
             null,
             true,
+            null,
             null,
             null,
             null,

@@ -1014,4 +1014,7 @@ public class ResourceService {
         }
     }
 
+    public List<Tuple<String>> getExamFollowupSelection(final Long examId) {
+        return null;
+    }
 }

@@ -99,7 +99,7 @@ public class OlatLmsAPITemplateTest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 null,
-                null);
+                null, null);
 
         final SEBRestriction sebRestriction = new SEBRestriction(
                 2L,

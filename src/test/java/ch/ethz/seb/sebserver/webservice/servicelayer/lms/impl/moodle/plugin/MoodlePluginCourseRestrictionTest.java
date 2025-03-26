@@ -53,7 +53,7 @@ public class MoodlePluginCourseRestrictionTest {
         final MoodlePluginCourseRestriction candidate = crateMockup();
         final Exam exam = new Exam(1L, 1L, 1L, "101:1:c1:i1",
                 null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
 
         final Result<SEBRestriction> sebClientRestriction = candidate.getSEBClientRestriction(exam);
 
@@ -69,7 +69,7 @@ public class MoodlePluginCourseRestrictionTest {
         final MoodlePluginCourseRestriction candidate = crateMockup();
         final Exam exam = new Exam(1L, 1L, 1L, "101:1:c1:i1",
                 null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
 
         final SEBRestriction restriction = new SEBRestriction(
                 exam.id,

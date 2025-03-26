@@ -123,7 +123,7 @@ public class SEBClientEventCSVExporterTest {
                 new DateTime(1L),
                 Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING,
                 null, false, "bek", true,
-                "lastUpdate", 4L, null, attrs);
+                "lastUpdate", 4L, null, null, attrs);
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         final BufferedOutputStream output = new BufferedOutputStream(stream);
 
@@ -153,7 +153,7 @@ public class SEBClientEventCSVExporterTest {
                 new DateTime(1L),
                 Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING,
                 null, false, "bek", true,
-                "lastUpdate", 4L, null, attrs);
+                "lastUpdate", 4L, null, null, attrs);
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         final BufferedOutputStream output = new BufferedOutputStream(stream);
 

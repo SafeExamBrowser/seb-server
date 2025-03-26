@@ -685,21 +685,12 @@ public class ExamDAOImpl implements ExamDAO {
         }
 
         // define the select function in case of source type
-        final Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
-        switch (bulkAction.sourceType) {
-            case INSTITUTION:
-                selectionFunction = this::allIdsOfInstitution;
-                break;
-            case LMS_SETUP:
-                selectionFunction = this::allIdsOfLmsSetup;
-                break;
-            case USER:
-                selectionFunction = this::allIdsOfUser;
-                break;
-            default:
-                selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
-                break;
-        }
+        final Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction = switch (bulkAction.sourceType) {
+            case INSTITUTION -> this::allIdsOfInstitution;
+            case LMS_SETUP -> this::allIdsOfLmsSetup;
+            case USER -> this::allIdsOfUser;
+            default -> key -> Result.of(Collections.emptyList()); //empty select function
+        };
 
         return getDependencies(bulkAction, selectionFunction);
     }
@@ -765,7 +756,8 @@ public class ExamDAOImpl implements ExamDAO {
                             rec.getQuizName(),
                             rec.getQuizStartTime(),
                             rec.getQuizEndTime(),
-                            rec.getLmsAvailable()));
+                            rec.getLmsAvailable(),
+                            rec.getFollowupId()));
 
                     result.add(new EntityKey(rec.getId(), EntityType.EXAM));
                 } catch (final Exception e) {
@@ -932,6 +924,7 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getLastupdate(),
                     record.getExamTemplateId(),
                     record.getLastModified(),
+                    record.getFollowupId(),
                     additionalAttributes);
         });
     }

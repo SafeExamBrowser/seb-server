@@ -156,6 +156,30 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
         });
     }
 
+    @Override
+    public Result<Collection<ConfigurationValue>> getConfigAttributeValues(final Long configId, final Set<Long> attrIds) {
+        return Result.tryCatch(() -> {
+            if (attrIds == null || attrIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            
+            return this.configurationValueRecordMapper
+                    .selectByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            SqlBuilder.isEqualTo(configId))
+                    .and(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                            SqlBuilder.isIn(attrIds))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ConfigurationValueDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .toList();
+        });
+    }
+
 
     private static final String KEY_SEB_SERVICE_POLICY = "sebServicePolicy";
     private static final String KEY_ATTR_1 = "enableWindowsUpdate";

@@ -205,6 +205,7 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT = "/grant";
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT = "/sebkeyinfo";
     public static final String EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS = "clientGroupIds";
+    public static final String EXAM_ADMINISTRATION_FOLLOWUP_PATH_SEGMENT = "/followup";
     
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
     public static final String EXAM_CLIENT_GROUP_ENDPOINT = "/client-group";
@@ -233,6 +234,11 @@ public final class API {
     public static final String QUIT_PASSWORD_ATTR_NAME = "quitPassword";
     public static final String IMPORT_FILE_ATTR_NAME = "importFile";
     public static final String CONFIGURATION_SET_QUIT_PWD_PATH_SEGMENT = "/quitpwd";
+
+    public static final String SEB_SETTINGS_ENDPOINT = "/seb-settings";
+    public static final String SEB_SETTINGS_EXAM_PATH_SEGMENT = "/exam";
+    public static final String SEB_SETTINGS_VIEW_TYPE = "viewtype";
+    public static final String SEB_SETTINGS_VIEW_TYPE_VAR_PATH_SEGMENT = "/{" + SEB_SETTINGS_VIEW_TYPE + "}";
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
     public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";

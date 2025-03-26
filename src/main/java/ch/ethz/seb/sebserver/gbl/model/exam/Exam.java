@@ -38,7 +38,7 @@ public final class Exam implements GrantEntity {
             -1L, -1L, -1L, Constants.EMPTY_NOTE, false, Constants.EMPTY_NOTE,
             null, null, ExamType.UNDEFINED, null, null, ExamStatus.FINISHED,
             null, Boolean.FALSE, null, Boolean.FALSE, null,
-            null, null, null);
+            null, null, null, null);
 
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
@@ -61,7 +61,7 @@ public final class Exam implements GrantEntity {
 
     public static final String ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION = "DEFAULT_CONNECTION_CONFIGURATION";
     public static final String ADDITIONAL_ATTR_QUIZ_ATTRIBUTES = "ADDITIONAL_QUIZ_ATTRIBUTES";
-
+            
     public enum ExamStatus {
         UP_COMING,
         TEST_RUN,
@@ -151,6 +151,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_LAST_MODIFIED)
     public final Long lastModified;
 
+    @JsonProperty(EXAM.ATTR_FOLLOWUP_ID)
+    public final Long followUpId;
+
     @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
     public final Map<String, String> additionalAttributes;
 
@@ -180,6 +183,7 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate,
             @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
             @JsonProperty(EXAM.ATTR_LAST_MODIFIED) final Long lastModified,
+            @JsonProperty(EXAM.ATTR_FOLLOWUP_ID) final Long followUpId,
             @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
@@ -200,6 +204,7 @@ public final class Exam implements GrantEntity {
         this.lastUpdate = lastUpdate;
         this.examTemplateId = examTemplateId;
         this.lastModified = lastModified;
+        this.followUpId = followUpId;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
@@ -232,6 +237,7 @@ public final class Exam implements GrantEntity {
         this.lastUpdate = null;
         this.examTemplateId = postMap.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
         this.lastModified = null;
+        this.followUpId = postMap.getLong(EXAM.ATTR_FOLLOWUP_ID);
 
         final Map<String, String> additionalAttributes = new HashMap<>();
         if (postMap.contains(QuizData.QUIZ_ATTR_DESCRIPTION)) {
@@ -291,6 +297,7 @@ public final class Exam implements GrantEntity {
         this.lastUpdate = null;
         this.examTemplateId = mapper.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
         this.lastModified = null;
+        this.followUpId =  mapper.getLong(EXAM.ATTR_FOLLOWUP_ID);
         this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
 
         this.checkASK = BooleanUtils
@@ -431,6 +438,10 @@ public final class Exam implements GrantEntity {
         return this.lastModified;
     }
 
+    public Long getFollowUpId() {
+        return followUpId;
+    }
+
     public boolean additionalAttributesIncluded() {
         return this.additionalAttributes != null && !this.additionalAttributes.isEmpty();
     }
@@ -465,6 +476,7 @@ public final class Exam implements GrantEntity {
         lastUpdate,
         examTemplateId,
         lastModified,
+        followUpId,
         Collections.emptyMap());
     }
 

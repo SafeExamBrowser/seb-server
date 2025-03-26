@@ -66,7 +66,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         false,
                         null,
                         true,
-                        null, null, null, null))
+                        null, null, null, null, null))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Exam>() {
                 });
@@ -96,7 +96,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         false,
                         null,
                         true,
-                        null, null, null, null))
+                        null, null, null, null, null))
                 .withExpectedStatus(HttpStatus.BAD_REQUEST)
                 .getAsObject(new TypeReference<List<APIMessage>>() {
                 });

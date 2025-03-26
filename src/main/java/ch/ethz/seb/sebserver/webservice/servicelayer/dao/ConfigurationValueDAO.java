@@ -78,6 +78,8 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
      * @return the String value of the SEB setting attribute */
     Result<String> getConfigAttributeValue(Long configId, Long attrId);
 
+    Result<Collection<ConfigurationValue>> getConfigAttributeValues(Long configId, Set<Long> attrIds);
+
     /** This applies the ignore SEB Service policy as described in Issue SEBWIN-464 on the given configuration
      *
      * @param configurationId The configuration identifier*/

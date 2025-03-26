@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
@@ -22,6 +23,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +42,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -464,6 +463,60 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     // ****************************************************************************
 
     // ****************************************************************************
+    // **** Followup Exam 
+
+    /** Gets all EntityName of exams that are able to use as followup exam for a given exam
+     * 
+     * @param institutionId The institutional identifier (extracted from the user if not provided
+     * @param examId The exam identifier of the exam to get all possible followup exams for
+     * @return List if EntityName of all possible followup exams for the given exam
+     */
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_FOLLOWUP_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<EntityName> getExamKeysForFollowup(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
+
+        checkReadPrivilege(institutionId);
+        
+        
+        final Exam exam = examDAO.byPK(examId).getOrThrow();
+        if (exam.lmsSetupId == null) {
+            return Collections.emptyList();
+        }
+        final LmsSetup lmsSetup = lmsAPIService.getLmsSetup(exam.lmsSetupId).getOr(null);
+        if (lmsSetup == null || lmsSetup.lmsType != LmsSetup.LmsType.MOODLE_PLUGIN) {
+            return Collections.emptyList();
+        }
+
+        final FilterMap filterMap = new FilterMap();
+        final DateTimeZone timeZone = authorization.getUserService().getCurrentUser().getUserInfo().getTimeZone();
+        final DateTime startTime = exam.getStartTime();
+        final DateTime dateTime = startTime.toDateTime(timeZone);
+
+        // add users time zone for Exam start time search
+        filterMap.putIfAbsent(Exam.FILTER_ATTR_START_TIME_MILLIS, String.valueOf(dateTime.getMillis()));
+        filterMap.putIfAbsent(FilterMap.ATTR_USER_TIME_ZONE, timeZone.getID());
+        filterMap.putIfAbsent(LmsSetup.FILTER_ATTR_LMS_SETUP, String.valueOf(exam.lmsSetupId));
+
+        return this.entityDAO
+                .allMatching(filterMap, this::hasReadAccess)
+                .map( l -> l.stream()
+                        .map(e -> new EntityName(e.getEntityKey(), e.name))
+                        .collect(Collectors.toList()))
+                .getOrThrow();
+    }
+    
+    // **** Followup Exam
+    // ****************************************************************************
+    
+    // ****************************************************************************
     // **** Proctoring
 
     @RequestMapping(
@@ -661,6 +714,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                             exam.lastUpdate,
                             exam.examTemplateId,
                             exam.lastModified,
+                            exam.followUpId,
                             exam.additionalAttributes);
                 }
             }

@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `quiz_start_time` DATETIME NULL,
   `quiz_end_time` DATETIME NULL,
   `lms_available` INT(1) NULL,
+  `followup_id` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
   INDEX `institution_key_idx` (`institution_id` ASC),

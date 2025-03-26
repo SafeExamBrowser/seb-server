@@ -166,6 +166,10 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
     @Override
     protected Result<LmsSetup> notifySaved(final LmsSetup entity, final Activatable.ActivationAction activation) {
+        // TODO this triggers a whole bunch of updates when LMS Setup is been activated/deactivated that
+        //      currently leads to GUI timeout when there are a lot of exams
+        //      Solution, run this in a background task (and store errors when possible)
+        //      involved: SEB Restriction, LmsAPI Service, FullLMSIntegration, Screen Proctoring, Proctoring, 
         this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
         return super.notifySaved(entity, activation);
     }

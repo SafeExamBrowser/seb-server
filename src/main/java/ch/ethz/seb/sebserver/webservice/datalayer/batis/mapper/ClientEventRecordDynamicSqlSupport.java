@@ -7,31 +7,31 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ClientEventRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source Table: client_event")
     public static final ClientEventRecord clientEventRecord = new ClientEventRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source field: client_event.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source field: client_event.id")
     public static final SqlColumn<Long> id = clientEventRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source field: client_event.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source field: client_event.client_connection_id")
     public static final SqlColumn<Long> clientConnectionId = clientEventRecord.clientConnectionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source field: client_event.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source field: client_event.type")
     public static final SqlColumn<Integer> type = clientEventRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source field: client_event.client_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source field: client_event.client_time")
     public static final SqlColumn<Long> clientTime = clientEventRecord.clientTime;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source field: client_event.server_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source field: client_event.server_time")
     public static final SqlColumn<Long> serverTime = clientEventRecord.serverTime;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source field: client_event.numeric_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source field: client_event.numeric_value")
     public static final SqlColumn<BigDecimal> numericValue = clientEventRecord.numericValue;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source field: client_event.text")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source field: client_event.text")
     public static final SqlColumn<String> text = clientEventRecord.text;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-04T15:02:47.226+01:00", comments="Source Table: client_event")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.876+01:00", comments="Source Table: client_event")
     public static final class ClientEventRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
