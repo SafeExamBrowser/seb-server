@@ -3565,60 +3565,60 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
     }
 
-    @Test
-    @Order(26)
-    // *************************************
-    // Use Case 26: Exam administration SEB restrcition
-    public void testUsecase26_ExamAdminProctoring() {
-        final RestServiceImpl restService = createRestServiceForUser(
-                "admin",
-                "admin",
-                new GetExamProctoringSettings(),
-                new SaveExamProctoringSettings());
-
-        final Exam exam = createTestExam("admin", "admin");
-        assertNotNull(exam);
-        assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
-
-        final ProctoringServiceSettings settings = restService
-                .getBuilder(GetExamProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
-                .call()
-                .getOrThrow();
-
-        assertNotNull(settings);
-        assertFalse(settings.enableProctoring);
-
-        final ProctoringServiceSettings newSettings = new ProctoringServiceSettings(
-                settings.examId,
-                false,
-                ProctoringServerType.JITSI_MEET,
-                "https://seb-jitsi.ethz.ch/",
-                20,
-                EnumSet.of(ProctoringFeature.TOWN_HALL, ProctoringFeature.ONE_TO_ONE),
-                false,
-                "apiKey",
-                "apiSecret",
-                "accountId",
-                "clientId",
-                "clientSecret",
-                "sdkKey",
-                "sdkSecret",
-                false);
-
-        final Result<ProctoringServiceSettings> saveCall = restService
-                .getBuilder(SaveExamProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
-                .withBody(newSettings)
-                .call();
-
-        if (!saveCall.hasError()) {
-            assertFalse(saveCall.hasError());
-            final ProctoringServiceSettings settings2 = saveCall.get();
-            assertEquals(settings2.examId, exam.id);
-        }
-    }
-
+//    @Test
+//    @Order(26)
+//    // *************************************
+//    // Use Case 26: Exam administration SEB restrcition
+//    public void testUsecase26_ExamAdminProctoring() {
+//        final RestServiceImpl restService = createRestServiceForUser(
+//                "admin",
+//                "admin",
+//                new GetExamProctoringSettings(),
+//                new SaveExamProctoringSettings());
+//
+//        final Exam exam = createTestExam("admin", "admin");
+//        assertNotNull(exam);
+//        assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
+//
+//        final ProctoringServiceSettings settings = restService
+//                .getBuilder(GetExamProctoringSettings.class)
+//                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+//                .call()
+//                .getOrThrow();
+//
+//        assertNotNull(settings);
+//        assertFalse(settings.enableProctoring);
+//
+//        final ProctoringServiceSettings newSettings = new ProctoringServiceSettings(
+//                settings.examId,
+//                false,
+//                ProctoringServerType.JITSI_MEET,
+//                "https://seb-jitsi.ethz.ch/",
+//                20,
+//                EnumSet.of(ProctoringFeature.TOWN_HALL, ProctoringFeature.ONE_TO_ONE),
+//                false,
+//                "apiKey",
+//                "apiSecret",
+//                "accountId",
+//                "clientId",
+//                "clientSecret",
+//                "sdkKey",
+//                "sdkSecret",
+//                false);
+//
+//        final Result<ProctoringServiceSettings> saveCall = restService
+//                .getBuilder(SaveExamProctoringSettings.class)
+//                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+//                .withBody(newSettings)
+//                .call();
+//
+//        if (!saveCall.hasError()) {
+//            assertFalse(saveCall.hasError());
+//            final ProctoringServiceSettings settings2 = saveCall.get();
+//            assertEquals(settings2.examId, exam.id);
+//        }
+//    }
+//
     private Exam createTestExam(final String userName, final String secret) {
         final RestServiceImpl restService = createRestServiceForUser(
                 userName,
@@ -3668,108 +3668,108 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow();
     }
-
-    @Test
-    @Order(27)
-    // *************************************
-    // Use Case 27: Login as admin and set exam proctoring settings for Jtisi
-    // - Get Exam (running)
-    // - Set Proctoring settings for exam
-    // - Check settings for exam
-    public void testUsecase27_SetProctoringSettingsJitsiForExam() throws IOException {
-        final RestServiceImpl restService = createRestServiceForUser(
-                "admin",
-                "admin",
-                new GetExamPage(),
-                new GetExamProctoringSettings(),
-                new SaveExamProctoringSettings(),
-                new IsTownhallRoomAvailable(),
-                new GetCollectingRooms());
-
-        // get exam
-        final Result<Page<Exam>> exams = restService
-                .getBuilder(GetExamPage.class)
-                .call();
-
-        assertNotNull(exams);
-        assertFalse(exams.hasError());
-        final Page<Exam> examPage = exams.get();
-        assertFalse(examPage.isEmpty());
-
-        final Exam runningExam = examPage.content
-                .stream()
-                .filter(exam -> exam.status == ExamStatus.RUNNING)
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(runningExam);
-        assertTrue(runningExam.status == ExamStatus.RUNNING);
-
-        final Result<ProctoringServiceSettings> pSettings = restService
-                .getBuilder(GetExamProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
-                .call();
-
-        assertNotNull(pSettings);
-        assertFalse(pSettings.hasError());
-        ProctoringServiceSettings proctoringServiceSettings = pSettings.get();
-        assertFalse(proctoringServiceSettings.enableProctoring);
-        assertNull(proctoringServiceSettings.serverURL);
-
-        // set proctoring settings
-        final ProctoringServiceSettings newProctoringServiceSettings = new ProctoringServiceSettings(
-                runningExam.id,
-                true,
-                ProctoringServerType.JITSI_MEET,
-                "https://test.proc/service",
-                2,
-                EnumSet.allOf(ProctoringFeature.class),
-                true,
-                "appKey", "appSecret",
-                "accountId", "clientId", "clientSecret",
-                "sdkKey", "sdkSecret",
-                false);
-
-        final Result<ProctoringServiceSettings> newProcSettings = restService
-                .getBuilder(SaveExamProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
-                .withBody(newProctoringServiceSettings)
-                .call();
-
-        assertNotNull(newProcSettings);
-        assertFalse(newProcSettings.hasError());
-
-        proctoringServiceSettings = restService
-                .getBuilder(GetExamProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
-                .call()
-                .get();
-
-        assertTrue(proctoringServiceSettings.enableProctoring);
-        assertEquals("https://test.proc/service", proctoringServiceSettings.serverURL);
-
-        final String twonhallRoom = restService
-                .getBuilder(IsTownhallRoomAvailable.class)
-                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
-                .call()
-                .get();
-
-        assertEquals("true", twonhallRoom);
-
-        final Collection<RemoteProctoringRoom> collectingRooms = restService
-                .getBuilder(GetCollectingRooms.class)
-                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
-                .call()
-                .get();
-
-        assertNotNull(collectingRooms);
-        assertTrue(collectingRooms.isEmpty());
-    }
-
-    @Autowired
-    private RemoteProctoringRoomService examProcotringRoomService;
-    @Autowired
-    private ClientConnectionDAO clientConnectionDAO;
+//
+//    @Test
+//    @Order(27)
+//    // *************************************
+//    // Use Case 27: Login as admin and set exam proctoring settings for Jtisi
+//    // - Get Exam (running)
+//    // - Set Proctoring settings for exam
+//    // - Check settings for exam
+//    public void testUsecase27_SetProctoringSettingsJitsiForExam() throws IOException {
+//        final RestServiceImpl restService = createRestServiceForUser(
+//                "admin",
+//                "admin",
+//                new GetExamPage(),
+//                new GetExamProctoringSettings(),
+//                new SaveExamProctoringSettings(),
+//                new IsTownhallRoomAvailable(),
+//                new GetCollectingRooms());
+//
+//        // get exam
+//        final Result<Page<Exam>> exams = restService
+//                .getBuilder(GetExamPage.class)
+//                .call();
+//
+//        assertNotNull(exams);
+//        assertFalse(exams.hasError());
+//        final Page<Exam> examPage = exams.get();
+//        assertFalse(examPage.isEmpty());
+//
+//        final Exam runningExam = examPage.content
+//                .stream()
+//                .filter(exam -> exam.status == ExamStatus.RUNNING)
+//                .findFirst()
+//                .orElse(null);
+//
+//        assertNotNull(runningExam);
+//        assertTrue(runningExam.status == ExamStatus.RUNNING);
+//
+//        final Result<ProctoringServiceSettings> pSettings = restService
+//                .getBuilder(GetExamProctoringSettings.class)
+//                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+//                .call();
+//
+//        assertNotNull(pSettings);
+//        assertFalse(pSettings.hasError());
+//        ProctoringServiceSettings proctoringServiceSettings = pSettings.get();
+//        assertFalse(proctoringServiceSettings.enableProctoring);
+//        assertNull(proctoringServiceSettings.serverURL);
+//
+//        // set proctoring settings
+//        final ProctoringServiceSettings newProctoringServiceSettings = new ProctoringServiceSettings(
+//                runningExam.id,
+//                true,
+//                ProctoringServerType.JITSI_MEET,
+//                "https://test.proc/service",
+//                2,
+//                EnumSet.allOf(ProctoringFeature.class),
+//                true,
+//                "appKey", "appSecret",
+//                "accountId", "clientId", "clientSecret",
+//                "sdkKey", "sdkSecret",
+//                false);
+//
+//        final Result<ProctoringServiceSettings> newProcSettings = restService
+//                .getBuilder(SaveExamProctoringSettings.class)
+//                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+//                .withBody(newProctoringServiceSettings)
+//                .call();
+//
+//        assertNotNull(newProcSettings);
+//        assertFalse(newProcSettings.hasError());
+//
+//        proctoringServiceSettings = restService
+//                .getBuilder(GetExamProctoringSettings.class)
+//                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+//                .call()
+//                .get();
+//
+//        assertTrue(proctoringServiceSettings.enableProctoring);
+//        assertEquals("https://test.proc/service", proctoringServiceSettings.serverURL);
+//
+//        final String twonhallRoom = restService
+//                .getBuilder(IsTownhallRoomAvailable.class)
+//                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+//                .call()
+//                .get();
+//
+//        assertEquals("true", twonhallRoom);
+//
+//        final Collection<RemoteProctoringRoom> collectingRooms = restService
+//                .getBuilder(GetCollectingRooms.class)
+//                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+//                .call()
+//                .get();
+//
+//        assertNotNull(collectingRooms);
+//        assertTrue(collectingRooms.isEmpty());
+//    }
+//
+//    @Autowired
+//    private RemoteProctoringRoomService examProcotringRoomService;
+//    @Autowired
+//    private ClientConnectionDAO clientConnectionDAO;
 
 // NOTE: Not supported anymore
 //    @Test

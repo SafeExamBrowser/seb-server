@@ -519,54 +519,54 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     // ****************************************************************************
     // **** Proctoring
 
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ProctoringServiceSettings getProctoringServiceSettings(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
-
-        checkReadPrivilege(institutionId);
-        return this.examAdminService
-                .getProctoringAdminService()
-                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM))
-                .getOrThrow();
-    }
-
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Exam saveProctoringServiceSettings(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
-
-        checkModifyPrivilege(institutionId);
-        return this.entityDAO
-                .byPK(examId)
-                .flatMap(this.authorization::checkModify)
-                .map(exam -> {
-                    this.examAdminService
-                            .getProctoringAdminService()
-                            .saveProctoringServiceSettings(
-                                    new EntityKey(examId, EntityType.EXAM),
-                                    proctoringServiceSettings)
-                            .getOrThrow();
-                    return exam;
-                })
-                .flatMap(this.userActivityLogDAO::logModify)
-                .getOrThrow();
-    }
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+//            method = RequestMethod.GET,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ProctoringServiceSettings getProctoringServiceSettings(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @PathVariable final Long modelId) {
+//
+//        checkReadPrivilege(institutionId);
+//        return this.examAdminService
+//                .getProctoringAdminService()
+//                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM))
+//                .getOrThrow();
+//    }
+//
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+//            method = RequestMethod.POST,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Exam saveProctoringServiceSettings(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+//            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
+//
+//        checkModifyPrivilege(institutionId);
+//        return this.entityDAO
+//                .byPK(examId)
+//                .flatMap(this.authorization::checkModify)
+//                .map(exam -> {
+//                    this.examAdminService
+//                            .getProctoringAdminService()
+//                            .saveProctoringServiceSettings(
+//                                    new EntityKey(examId, EntityType.EXAM),
+//                                    proctoringServiceSettings)
+//                            .getOrThrow();
+//                    return exam;
+//                })
+//                .flatMap(this.userActivityLogDAO::logModify)
+//                .getOrThrow();
+//    }
 
     // **** Proctoring
     // ****************************************************************************
@@ -623,7 +623,71 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
-    
+
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_ACTIVATION,
+//            method = RequestMethod.POST,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Exam screenProctoringActivation(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+//            @RequestParam(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING) final boolean enableSP) {
+//
+//        checkModifyPrivilege(institutionId);
+//        return this.entityDAO
+//                .byPK(examId)
+//                .flatMap(this.authorization::checkModify)
+//                .map(exam -> {
+//                    
+//                    // TODO if enableSP true; 
+//                    //      check if there are already valid ScreenProctoringSettings and a default room
+//                    //      if now default room, create one with the exam name save and apply settings
+//                    
+//                    return exam;
+//                }  )
+//            .flatMap(this.examAdminService::applySPSEnabled)
+//            .flatMap(this.userActivityLogDAO::logModify)
+//            .getOrThrow();
+//    }
+//
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_APPLY_GROUPS,
+//            method = RequestMethod.POST,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Exam screenProctoringGroupApply(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+//            @RequestParam(ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION) final String groupIds) {
+//
+//        checkModifyPrivilege(institutionId);
+//        return this.entityDAO
+//                .byPK(examId)
+//                .flatMap(this.authorization::checkModify)
+//                .map(exam -> {
+//                    
+//                    // groupIds is comma separated String of client group ids
+//
+//                    // TODO if sps is not enabled yet: enable it, 
+//                    //      create default group from Exam name if not already exists
+//                    //      apply and update groups ---> delete old if not selected anymore, create new and update names
+//
+//                    return exam;
+//                }  )
+//                .flatMap(this.examAdminService::applySPSEnabled)
+//                .flatMap(this.userActivityLogDAO::logModify)
+//                .getOrThrow();
+//    }
+//    
     // **** Screen Proctoring
     // ****************************************************************************
 

@@ -206,6 +206,8 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT = "/sebkeyinfo";
     public static final String EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS = "clientGroupIds";
     public static final String EXAM_ADMINISTRATION_FOLLOWUP_PATH_SEGMENT = "/followup";
+    public static final String EXAM_ADMINISTRATION_SCREEN_PROCTORING_ACTIVATION = "/activation";
+    public static final String EXAM_ADMINISTRATION_SCREEN_PROCTORING_APPLY_GROUPS = "/apply-groups";
     
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
     public static final String EXAM_CLIENT_GROUP_ENDPOINT = "/client-group";
