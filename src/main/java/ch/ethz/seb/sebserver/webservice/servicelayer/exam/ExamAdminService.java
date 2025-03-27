@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
+import java.util.Set;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
 
@@ -91,6 +93,16 @@ public interface ExamAdminService {
 
         return isScreenProctoringEnabled(exam.id).getOr(false);
     }
+
+    /** check if there are already valid ScreenProctoringSettings and a default room 
+     * if no default room, create one with the exam name save and apply settings
+     * 
+     * @param exam the exam instance
+     * @return Result refer to the updated exam or to an error when happened
+     */
+    Result<Exam> enableScreenProctoringForExam(Exam exam, boolean enableSP);
+    
+    Result<Exam> applyClientGroupsToScreenProctoring(Exam exam, String groupIds);
 
     /** Updates needed additional attributes from assigned exam configuration for the exam
      *

@@ -15,10 +15,12 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
@@ -43,13 +45,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
-import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
-import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
@@ -642,17 +638,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
-                .map(exam -> {
-
-                    // TODO if enableSP true; 
-                    //      check if there are already valid ScreenProctoringSettings and a default room
-                    //      if now default room, create one with the exam name save and apply settings
-
-                    return examDAO.byPK(examId).getOr(exam);
-                }  )
-            .flatMap(this.examAdminService::applySPSEnabled)
-            .flatMap(this.userActivityLogDAO::logModify)
-            .getOrThrow();
+                .flatMap( e -> examAdminService.enableScreenProctoringForExam(e, enableSP))
+                .flatMap(examSessionService::flushCache)
+                .flatMap(this.examAdminService::applySPSEnabled)
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
     }
 
     @RequestMapping(
@@ -673,20 +663,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
-                .map(exam -> {
-
-                    // groupIds is comma separated String of client group ids
-                    
-                    // TODO if groupIds is null or empty
-                    //      if SPS is not enabled and there is no default group, enable it and create default group from exam name
-                    //      if SPS is enabled and remove all client groups (only default groups shall remain)
-
-                    // TODO if sps is not enabled yet: enable it, 
-                    //      create default group from Exam name if not already exists
-                    //      apply and update groups ---> delete old if not selected anymore, create new and update names
-
-                    return examDAO.byPK(examId).getOr(exam);
-                }  )
+                .flatMap(e -> examAdminService.applyClientGroupsToScreenProctoring(e, groupIds))
+                .flatMap(examSessionService::flushCache)
                 .flatMap(this.examAdminService::applySPSEnabled)
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();

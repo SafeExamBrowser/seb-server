@@ -174,22 +174,83 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
+    public Result<Exam> enableScreenProctoringForExam(final Exam exam, final boolean enableSP) {
+        return Result.tryCatch(() -> {
+            final ProctoringAdminService proctoringAdminService = getProctoringAdminService();
+            final ScreenProctoringSettings settings = proctoringAdminService
+                    .getScreenProctoringSettings(exam.getEntityKey())
+                    .getOrThrow();
+            
+            final String defaultGroupName = (StringUtils.isBlank(settings.collectingGroupName))
+                    ? exam.name
+                    : settings.collectingGroupName;
+
+            proctoringAdminService.saveScreenProctoringSettings(
+                    exam.getEntityKey(),
+                    new ScreenProctoringSettings(
+                            settings.examId,
+                            enableSP,
+                            settings.spsServiceURL,
+                            settings.spsAPIKey,
+                            settings.spsAPISecret,
+                            settings.spsAccountId,
+                            settings.spsAccountPassword,
+                            settings.collectingStrategy,
+                            defaultGroupName,
+                            settings.collectingGroupSize,
+                            settings.sebGroupsSelection,
+                            true));
+            return exam;
+        })
+                .flatMap(e -> examDAO.byPK(e.id));
+    }
+
+    @Override
+    public Result<Exam> applyClientGroupsToScreenProctoring(final Exam exam, final String groupIds) {
+        return Result.tryCatch(() -> {
+            // groupIds is comma separated String of client group ids
+            final ProctoringAdminService proctoringAdminService = getProctoringAdminService();
+            final ScreenProctoringSettings settings = proctoringAdminService
+                    .getScreenProctoringSettings(exam.getEntityKey())
+                    .getOrThrow();
+
+            final String defaultGroupName = (StringUtils.isBlank(settings.collectingGroupName))
+                    ? exam.name
+                    : settings.collectingGroupName;
+            
+            final String clientGroupSelection = StringUtils.isNotBlank(groupIds)
+                    ? groupIds
+                    : null;
+            
+            final CollectingStrategy strategy = (clientGroupSelection == null) 
+                    ? settings.collectingStrategy 
+                    : CollectingStrategy.APPLY_SEB_GROUPS;
+
+            proctoringAdminService.saveScreenProctoringSettings(
+                    exam.getEntityKey(),
+                    new ScreenProctoringSettings(
+                            settings.examId,
+                            true,
+                            settings.spsServiceURL,
+                            settings.spsAPIKey,
+                            settings.spsAPISecret,
+                            settings.spsAccountId,
+                            settings.spsAccountPassword,
+                            strategy,
+                            defaultGroupName,
+                            settings.collectingGroupSize,
+                            clientGroupSelection,
+                            true));
+            
+                    return exam;
+        })
+                .flatMap(e -> examDAO.byPK(e.id));
+    }
+
+    @Override
     public Result<Boolean> isProctoringEnabled(final Long examId) {
         // Live Proctoring is disabled
         return Result.of(false);
-//        return this.additionalAttributesDAO.getAdditionalAttribute(
-//                EntityType.EXAM,
-//                examId,
-//                ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)
-//                .map(rec -> BooleanUtils.toBoolean(rec.getValue()))
-//                .onErrorDo(error -> {
-//                    if (log.isDebugEnabled()) {
-//                        log.warn("Failed to verify proctoring enabled for exam: {}, {}",
-//                                examId,
-//                                error.getMessage());
-//                    }
-//                    return false;
-//                });
     }
 
     @Override
