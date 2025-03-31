@@ -35,6 +35,10 @@ public class SEBSettingsController {
     private final ConfigurationValueDAO configurationValueDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     
+    
+    /** Mapping of all SEB Settings/ConfigurationAttributes for different SEB Settings view.
+     *  These are mostly specialised SEB Settings views with fewer Settings than the original view.
+      */
     private final EnumMap<SEBSettingsView.ViewType, Set<Long>> viewAttributeMapping = 
             new EnumMap<>(SEBSettingsView.ViewType.class);
 
@@ -49,6 +53,7 @@ public class SEBSettingsController {
         this.configurationValueDAO = configurationValueDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
 
+        /* Ids of all SEB Setting/Configuration Attributes for the Application view */
         viewAttributeMapping.put(
                 SEBSettingsView.ViewType.APPLICATION,
                 new HashSet<>(Arrays.asList( 
@@ -57,6 +62,8 @@ public class SEBSettingsController {
                         96L, 97L, 98L, 99L, 100L, 1200L, 1577L, 1630L, 
                         1631L, 1632L, 1633L, 1634L))
         );
+        
+        /* Ids id all SEB Settings/ConfigurationAttributes for the Network vew */
         viewAttributeMapping.put(
                 SEBSettingsView.ViewType.NETWORK,
                 new HashSet<>(Arrays.asList(
@@ -82,6 +89,7 @@ public class SEBSettingsController {
             @PathVariable(name = API.SEB_SETTINGS_VIEW_TYPE) final SEBSettingsView.ViewType viewType) {
 
         // TODO check user read access on exam
+        
         
         // Get mapped configurationNodeId last (open) configurationId
         final Long configurationNodeId = examConfigurationMapDAO

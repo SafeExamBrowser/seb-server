@@ -19,6 +19,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ScreenProctoringGroopRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -32,16 +35,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientGroupRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientGroupRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientGroupRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
@@ -49,9 +44,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class ClientGroupDAOImpl implements ClientGroupDAO {
 
     private final ClientGroupRecordMapper clientGroupRecordMapper;
+    private final ScreenProctoringGroopRecordMapper screenProctoringGroopRecordMapper;
 
-    public ClientGroupDAOImpl(final ClientGroupRecordMapper clientGroupRecordMapper) {
+    public ClientGroupDAOImpl(
+            final ClientGroupRecordMapper clientGroupRecordMapper,
+            final ScreenProctoringGroopRecordMapper screenProctoringGroopRecordMapper) {
+        
         this.clientGroupRecordMapper = clientGroupRecordMapper;
+        this.screenProctoringGroopRecordMapper = screenProctoringGroopRecordMapper;
     }
 
     @Override
@@ -349,6 +349,23 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
 
     private Result<ClientGroup> toDomainModel(final ClientGroupRecord record) {
         return Result.tryCatch(() -> {
+
+            final List<ScreenProctoringGroopRecord> spsGroups = screenProctoringGroopRecordMapper.selectByExample()
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.examId, isEqualTo(record.getExamId()))
+                    .build()
+                    .execute();
+            
+            boolean isSPSGroup = false;
+            if (spsGroups != null && !spsGroups.isEmpty()) {
+                for (final ScreenProctoringGroopRecord spsGroup : spsGroups) {
+                    final Long clientGroupId = spsGroup.getSebGroupId();
+                    if (clientGroupId != null && clientGroupId.intValue() == record.getId().intValue()) {
+                        isSPSGroup = true;
+                        break;
+                    }
+                }
+            }
+            
             return new ClientGroup(
                     record.getId(),
                     record.getExamId(),
@@ -356,7 +373,8 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
                     ClientGroupType.valueOf(record.getType()),
                     record.getColor(),
                     record.getIcon(),
-                    record.getData());
+                    record.getData(),
+                    isSPSGroup);
         });
     }
 

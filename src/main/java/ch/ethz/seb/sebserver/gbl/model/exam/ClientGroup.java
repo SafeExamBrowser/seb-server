@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
 
+    public static final String ATTR_SCREEN_PROCTORING_GROUP = "isSPSGroup";
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     @JsonProperty(CLIENT_GROUP.ATTR_ID)
@@ -68,6 +69,9 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
 
     @JsonProperty(ATTR_NAME_RANGE_END_LETTER)
     public final String nameRangeEndLetter;
+    
+    @JsonProperty(ATTR_SCREEN_PROCTORING_GROUP)
+    public final Boolean isSPSGroup;
 
     @JsonCreator
     public ClientGroup(
@@ -81,7 +85,8 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
             @JsonProperty(ATTR_IP_RANGE_END) final String ipRangeEnd,
             @JsonProperty(ATTR_CLIENT_OS) final ClientOS clientOS,
             @JsonProperty(ATTR_NAME_RANGE_START_LETTER) final String nameRangeStartLetter,
-            @JsonProperty(ATTR_NAME_RANGE_END_LETTER) final String nameRangeEndLetter) {
+            @JsonProperty(ATTR_NAME_RANGE_END_LETTER) final String nameRangeEndLetter,
+            @JsonProperty(ATTR_SCREEN_PROCTORING_GROUP) final Boolean isSPSGroup) {
 
         super();
         this.id = id;
@@ -95,6 +100,7 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         this.clientOS = clientOS == null ? ClientOS.NONE : clientOS;
         this.nameRangeStartLetter = nameRangeStartLetter;
         this.nameRangeEndLetter = nameRangeEndLetter;
+        this.isSPSGroup = isSPSGroup;
     }
 
     public ClientGroup(
@@ -104,7 +110,8 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
             final ClientGroupType type,
             final String color,
             final String icon,
-            final String data) {
+            final String data,
+            final Boolean isSPSGroup) {
 
         super();
         this.id = id;
@@ -113,6 +120,7 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         this.type = type == null ? ClientGroupType.NONE : type;
         this.color = color;
         this.icon = icon;
+        this.isSPSGroup = isSPSGroup;
 
         switch (this.type) {
             case IP_V4_RANGE: {
@@ -174,10 +182,11 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         this.clientOS = postParams.getEnum(ATTR_CLIENT_OS, ClientOS.class);
         this.nameRangeStartLetter = postParams.getString(ATTR_NAME_RANGE_START_LETTER);
         this.nameRangeEndLetter = postParams.getString(ATTR_NAME_RANGE_END_LETTER);
+        this.isSPSGroup = postParams.getBooleanObject(ATTR_SCREEN_PROCTORING_GROUP);
     }
 
     public static ClientGroup createNew(final String examId) {
-        return new ClientGroup(null, Long.parseLong(examId), null, null, null, null, null, null, null, null, null);
+        return new ClientGroup(null, Long.parseLong(examId), null, null, null, null, null, null, null, null, null, false);
     }
 
     @Override
@@ -258,6 +267,10 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
     @Override
     public String getNameRangeEndLetter() {
         return this.nameRangeEndLetter;
+    }
+
+    public Boolean getSPSGroup() {
+        return isSPSGroup;
     }
 
     @JsonIgnore

@@ -199,7 +199,9 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             defaultGroupName,
                             settings.collectingGroupSize,
                             settings.sebGroupsSelection,
-                            true));
+                            true))
+                    .getOrThrow();
+            
             return exam;
         })
                 .flatMap(e -> examDAO.byPK(e.id));

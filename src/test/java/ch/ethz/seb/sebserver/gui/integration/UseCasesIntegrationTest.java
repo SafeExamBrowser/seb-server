@@ -1096,7 +1096,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 newClientGroup.ipRangeEnd,
                 newClientGroup.clientOS,
                 newClientGroup.nameRangeStartLetter,
-                newClientGroup.nameRangeEndLetter);
+                newClientGroup.nameRangeEndLetter,
+                false);
 
         final Result<ClientGroup> savedClientGroupResult = restService
                 .getBuilder(SaveClientGroup.class)
