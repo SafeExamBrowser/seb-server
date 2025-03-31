@@ -350,21 +350,12 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
     private Result<ClientGroup> toDomainModel(final ClientGroupRecord record) {
         return Result.tryCatch(() -> {
 
-            final List<ScreenProctoringGroopRecord> spsGroups = screenProctoringGroopRecordMapper.selectByExample()
+            // Check if the client group is also used as screen proctoring group
+            final boolean isSPSGroup = screenProctoringGroopRecordMapper.countByExample()
                     .where(ScreenProctoringGroopRecordDynamicSqlSupport.examId, isEqualTo(record.getExamId()))
+                    .and(ScreenProctoringGroopRecordDynamicSqlSupport.sebGroupId, isEqualTo(record.getId()))
                     .build()
-                    .execute();
-            
-            boolean isSPSGroup = false;
-            if (spsGroups != null && !spsGroups.isEmpty()) {
-                for (final ScreenProctoringGroopRecord spsGroup : spsGroups) {
-                    final Long clientGroupId = spsGroup.getSebGroupId();
-                    if (clientGroupId != null && clientGroupId.intValue() == record.getId().intValue()) {
-                        isSPSGroup = true;
-                        break;
-                    }
-                }
-            }
+                    .execute() > 0;
             
             return new ClientGroup(
                     record.getId(),
