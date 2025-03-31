@@ -260,9 +260,9 @@ public final class Exam implements GrantEntity {
         
     }
 
-    public Exam(final QuizData quizData) {
-        this(null, quizData, POSTMapper.EMPTY_MAP);
-    }
+//    public Exam(final QuizData quizData) {
+//        this(null, quizData, POSTMapper.EMPTY_MAP);
+//    }
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
 
         String additionalQuizData = null;
@@ -276,6 +276,11 @@ public final class Exam implements GrantEntity {
         }
         additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, quizData.description);
         additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
+        if (mapper.contains(API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS)) {
+            additionalAttributes.put(
+                    API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS,
+                    mapper.getString(API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS));
+        }
 
         this.id = (modelId != null) ? Long.parseLong(modelId) : null;
         this.institutionId = quizData.institutionId;
