@@ -26,7 +26,7 @@ public interface ClientInstructionDAO {
      * @param attributes attributes in a JSON array
      * @param connectionToken the connection token of the SEB Client connection
      * @param needsConfirmation indicates whether this instruction needs confirmation or not
-     * @return */
+     * @return Result refer to the ClientInstructionRecord or to an error when happened*/
     Result<ClientInstructionRecord> insert(
             Long examId,
             InstructionType type,

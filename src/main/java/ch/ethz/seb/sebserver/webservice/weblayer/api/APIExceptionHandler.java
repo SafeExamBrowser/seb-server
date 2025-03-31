@@ -244,10 +244,11 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final APIMessageException ex,
             final WebRequest request) {
 
+        final HttpStatus httpStatus = ex.getHttpStatus();
         return new ResponseEntity<>(
                 ex.getAPIMessages(),
                 Utils.createJsonContentHeader(),
-                HttpStatus.BAD_REQUEST);
+                httpStatus != null ? httpStatus : HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(FieldValidationException.class)

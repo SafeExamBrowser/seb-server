@@ -259,10 +259,7 @@ public final class Exam implements GrantEntity {
         
         
     }
-
-//    public Exam(final QuizData quizData) {
-//        this(null, quizData, POSTMapper.EMPTY_MAP);
-//    }
+    
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
 
         String additionalQuizData = null;

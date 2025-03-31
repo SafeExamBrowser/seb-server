@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> extends EntityDAO<T, M> {
 
     /** Load all active entities of concrete type for the given institution and of given activity
-     *
+     * <p>
      * NOTE: institutionId may be null. In that case this method uses a query to get all active entities of
      * concrete type from all institutions. Anyways, to not pollute the memory it is recommended to set a limit by
      * using the <code>PaginationService</code> before calling this method

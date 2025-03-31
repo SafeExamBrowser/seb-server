@@ -9,10 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.api;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -302,6 +299,21 @@ public class APIMessage implements Serializable {
         @Override
         public Collection<APIMessage> getAPIMessages() {
             return this.apiMessages;
+        }
+        
+        public HttpStatus getHttpStatus() {
+            if (this.apiMessages != null && !this.apiMessages.isEmpty()) {
+                final APIMessage msg = apiMessages.iterator().next();
+                final ErrorMessage errorMessage = Arrays.stream(ErrorMessage.values())
+                        .filter(err -> Objects.equals(msg.messageCode, err.messageCode))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (errorMessage != null) {
+                    return errorMessage.httpStatus;
+                }
+            }
+            return null;
         }
     }
 

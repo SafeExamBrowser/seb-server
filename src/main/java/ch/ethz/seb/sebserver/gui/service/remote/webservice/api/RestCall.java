@@ -184,9 +184,9 @@ public abstract class RestCall<T> {
         }
     }
 
-    private Result<T> handleRestCallPartialResponse(final ResponseEntity<String> responseEntity) {
-        // TODO Auto-generated method stub
-        return null;
+    private Result<T> handleRestCallPartialResponse(final ResponseEntity<String> responseEntity) throws IOException {
+        // TODO do spacial handling here!?
+        return handleRestCallError(responseEntity);
     }
 
     public RestCallBuilder newBuilder() {
