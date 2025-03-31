@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport.*;
-import static java.lang.reflect.Array.set;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
@@ -409,7 +408,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                     .execute()
                     .stream()
                     .sorted((r1, r2) -> r1.getName().compareToIgnoreCase(r2.getName()))
-                    .collect(Collectors.toList());
+                    .toList();
 
             final Map<Integer, Map<Long, ConfigurationValue>> indexMapping = new HashMap<>();
             this.configurationValueRecordMapper
@@ -478,9 +477,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                     final Set<EntityKey> tableValues = new HashSet<>();
                     if (attributeMapping != null && !attributeMapping.isEmpty()) {
-                        final List<Long> attrs = (attributeMapping != null && !attributeMapping.isEmpty())
-                                ? new ArrayList<>(attributeMapping.keySet())
-                                : Collections.emptyList();
+                        final List<Long> attrs = new ArrayList<>(attributeMapping.keySet());
                         tableValues.addAll(this.configurationValueRecordMapper.selectByExample()
                                 .where(
                                         ConfigurationValueRecordDynamicSqlSupport.institutionId,
@@ -498,7 +495,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                                 .collect(Collectors.toSet()));
 
                         // if there are table values, delete them first and init defaults
-                        if (tableValues != null && !tableValues.isEmpty()) {
+                        if (!tableValues.isEmpty()) {
                             this.delete(tableValues)
                                     .getOrThrow();
 

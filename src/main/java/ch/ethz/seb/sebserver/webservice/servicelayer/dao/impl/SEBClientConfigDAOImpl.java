@@ -229,7 +229,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             }
 
             // clear caches and revoke tokens first
-            ids.stream().forEach(this::disposeSEBClientConfig);
+            ids.forEach(this::disposeSEBClientConfig);
 
             final SebClientConfigRecord record = new SebClientConfigRecord(
                     null, null, null, null, null, null, null,
@@ -324,7 +324,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             }
 
             // clear caches and revoke tokens first
-            ids.stream().forEach(this::disposeSEBClientConfig);
+            ids.forEach(this::disposeSEBClientConfig);
 
             this.sebClientConfigRecordMapper.deleteByExample()
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))

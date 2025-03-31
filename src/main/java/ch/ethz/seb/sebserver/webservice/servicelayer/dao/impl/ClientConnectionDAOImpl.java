@@ -447,10 +447,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.toByte(data.clientVersionGranted));
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
-            final ClientConnectionRecord selectByPrimaryKey =
-                    this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
-
-            return selectByPrimaryKey;
+            return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(ClientConnectionDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -569,14 +566,12 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 return Collections.emptyList();
             }
 
-            final List<ClientConnectionRecord> execute = this.clientConnectionRecordMapper
+            return this.clientConnectionRecordMapper
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate, isNotEqualTo((byte) 0))
                     .and(ClientConnectionRecordDynamicSqlSupport.examId, isIn(examIds))
                     .build()
                     .execute();
-
-            return execute;
         });
     }
 
@@ -584,7 +579,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional(readOnly = true)
     public Result<Collection<ClientConnection>> getScreenProctoringGroupConnections(final Long groupId) {
         return Result.tryCatch(() -> {
-            final Collection<ClientConnection> collect = this.clientConnectionRecordMapper
+            return this.clientConnectionRecordMapper
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId, isEqualTo(groupId))
                     .build()
@@ -593,7 +588,6 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .map(ClientConnectionDAOImpl::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
-            return collect;
         });
     }
 
@@ -664,24 +658,13 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
-        switch (bulkAction.sourceType) {
-            case INSTITUTION:
-                selectionFunction = this::allIdsOfInstitution;
-                break;
-            case LMS_SETUP:
-                selectionFunction = this::allIdsOfLmsSetup;
-                break;
-            case USER:
-                selectionFunction = this::allIdsOfUser;
-                break;
-            case EXAM:
-                selectionFunction = this::allIdsOfExam;
-                break;
-            default:
-                selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
-                break;
-        }
+        final Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction = switch (bulkAction.sourceType) {
+            case INSTITUTION -> this::allIdsOfInstitution;
+            case LMS_SETUP -> this::allIdsOfLmsSetup;
+            case USER -> this::allIdsOfUser;
+            case EXAM -> this::allIdsOfExam;
+            default -> key -> Result.of(Collections.emptyList()); //empty select function
+        };
 
         return getDependencies(bulkAction, selectionFunction);
     }
@@ -696,8 +679,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 return Collections.emptyList();
             }
 
-            ids.stream().forEach(this::clearConnecionTokenCache);
-
+            ids.forEach(this::clearConnecionTokenCache);
             deleteAllRelations(ids);
 
             this.clientConnectionRecordMapper.deleteByExample()
@@ -791,7 +773,6 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                             SqlBuilder.isEqualTo(examId))
                     .build()
                     .execute()
-                    .stream()
                     .forEach(cc -> {
                         if (!timestamps.contains(cc.getUpdateTime())) {
                             result.add(cc.getConnectionToken());
@@ -851,7 +832,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .build()
                     .execute();
 
-            if (records == null || records.isEmpty() || records.size() > 1) {
+            if (records == null || records.size() != 1) {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, clientName);
             }
 
@@ -1184,7 +1165,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(r -> r.getConnectionToken())
+                .map(ClientConnectionRecord::getConnectionToken)
                 .collect(Collectors.toList());
 
         if (connectionTokens != null && !connectionTokens.isEmpty()) {
@@ -1201,7 +1182,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     private void markProctoringRoomUpdated(final Collection<ClientConnectionRecord> records) {
         final List<Long> ids = records
                 .stream()
-                .map(rec -> rec.getId())
+                .map(ClientConnectionRecord::getId)
                 .collect(Collectors.toList());
 
         UpdateDSL.updateWithMapper(

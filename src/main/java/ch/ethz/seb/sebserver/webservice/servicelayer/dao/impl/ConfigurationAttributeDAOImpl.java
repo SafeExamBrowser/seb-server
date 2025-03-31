@@ -251,7 +251,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
 
             result.addAll(ids.stream()
                     .map(id -> new EntityKey(id, EntityType.CONFIGURATION_ATTRIBUTE))
-                    .collect(Collectors.toList()));
+                    .toList());
 
             return result;
         });

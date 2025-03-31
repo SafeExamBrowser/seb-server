@@ -347,7 +347,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
             }
 
             // try delete all additional attributes first
-            ids.stream().forEach(id -> {
+            ids.forEach(id -> {
                 try {
                     this.additionalAttributesDAO.deleteAll(EntityType.BATCH_ACTION, id);
                 } catch (final Exception e) {

@@ -176,14 +176,12 @@ public class CertificateDAOImpl implements CertificateDAO {
         return Result.tryCatch(() -> {
             final X509Certificate certificate = (X509Certificate) certificates.keyStore.engineGetCertificate(alias);
             if (certificate != null) {
-
-                final X509Certificate cert = certificate;
-
+                
                 return new CertificateInfo(
-                        StringUtils.isNotBlank(alias) ? alias : extractAlias(cert),
-                        new DateTime(cert.getNotBefore()),
-                        new DateTime(cert.getNotAfter()),
-                        getTypes(certificates, cert));
+                        StringUtils.isNotBlank(alias) ? alias : extractAlias(certificate),
+                        new DateTime(certificate.getNotBefore()),
+                        new DateTime(certificate.getNotAfter()),
+                        getTypes(certificates, certificate));
 
             } else {
                 throw new NoSuchElementException("X509Certificate with alias: " + alias);
@@ -375,7 +373,6 @@ public class CertificateDAOImpl implements CertificateDAO {
         }
 
         Collections.list(store.engineAliases())
-                .stream()
                 .forEach(key -> {
                     try {
                         final Certificate cert = store.engineGetCertificate(String.valueOf(key));
@@ -455,7 +452,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                     .build()
                     .execute();
 
-            if (result != null && result.size() > 0) {
+            if (result != null && !result.isEmpty()) {
                 return result.get(0);
             } else {
                 throw new ResourceNotFoundException(EntityType.CERTIFICATE, String.valueOf(institutionId));
@@ -473,7 +470,7 @@ public class CertificateDAOImpl implements CertificateDAO {
 
     private Result<PKCS12KeyStoreSpi> loadCertificateStore(final byte[] certStore) {
         return Result.tryCatch(() -> new ByteArrayInputStream(certStore))
-                .flatMap(input -> this.cryptor.loadKeyStore(input));
+                .flatMap(this.cryptor::loadKeyStore);
     }
 
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {

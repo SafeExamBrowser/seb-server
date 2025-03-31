@@ -87,10 +87,10 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
             if (masters != null && !masters.isEmpty()) {
                 if (masters.size() > 1) {
 
-                    log.error("There are more then one master registered: ", masters);
+                    log.error("There are more then one master registered: {}", masters);
                     log.info("Reset masters and set this webservice as new master");
 
-                    masters.stream().forEach(masterRec -> this.webserviceServerInfoRecordMapper
+                    masters.forEach(masterRec -> this.webserviceServerInfoRecordMapper
                             .updateByPrimaryKeySelective(
                                     new WebserviceServerInfoRecord(
                                             masterRec.getId(),
@@ -166,7 +166,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                 .where(WebserviceServerInfoRecordDynamicSqlSupport.uuid, SqlBuilder.isEqualTo(uuid))
                 .build()
                 .execute();
-        if (execute == null || execute.intValue() <= 0) {
+        if (execute == null || execute <= 0) {
             log.error("Failed to update webservice with uuid: {} to become master", uuid);
             return false;
         }

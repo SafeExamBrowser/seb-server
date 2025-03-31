@@ -289,7 +289,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(rec -> rec.getConfigurationNodeId())
+                    .map(ExamConfigurationMapRecord::getConfigurationNodeId)
                     .collect(Collectors.toList());
 
             this.examConfigurationMapRecordMapper.deleteByExample()
@@ -319,27 +319,14 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
-        switch (bulkAction.sourceType) {
-            case INSTITUTION:
-                selectionFunction = this::allIdsOfInstitution;
-                break;
-            case USER:
-                selectionFunction = this::allIdsOfUser;
-                break;
-            case LMS_SETUP:
-                selectionFunction = this::allIdsOfLmsSetup;
-                break;
-            case EXAM:
-                selectionFunction = this::allIdsOfExam;
-                break;
-            case CONFIGURATION_NODE:
-                selectionFunction = this::allIdsOfConfig;
-                break;
-            default:
-                selectionFunction = key -> Result.of(Collections.emptyList()); //empty select function
-                break;
-        }
+        final Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction = switch (bulkAction.sourceType) {
+            case INSTITUTION -> this::allIdsOfInstitution;
+            case USER -> this::allIdsOfUser;
+            case LMS_SETUP -> this::allIdsOfLmsSetup;
+            case EXAM -> this::allIdsOfExam;
+            case CONFIGURATION_NODE -> this::allIdsOfConfig;
+            default -> key -> Result.of(Collections.emptyList()); //empty select function
+        };
 
         return getDependencies(bulkAction, selectionFunction);
     }
@@ -380,16 +367,14 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Boolean> checkNoActiveExamReferences(final Long configurationNodeId) {
-        return Result.tryCatch(() -> !this.examConfigurationMapRecordMapper.selectByExample()
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectByExample()
                 .where(
                         ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
                         isEqualTo(configurationNodeId))
                 .build()
                 .execute()
                 .stream()
-                .filter(rec -> isExamActive(rec.getExamId()))
-                .findFirst()
-                .isPresent());
+                .noneMatch(rec -> isExamActive(rec.getExamId())));
     }
 
     @Override
@@ -412,7 +397,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(rec -> rec.getConfigurationNodeId())
+                    .map(ExamConfigurationMapRecord::getConfigurationNodeId)
                     .collect(Collectors.toList());
 
             this.examConfigurationMapRecordMapper.deleteByExample()
@@ -432,12 +417,11 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     private boolean isExamActive(final Long examId) {
         try {
-            final boolean active = this.examRecordMapper.countByExample()
+            return this.examRecordMapper.countByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isEqualTo(examId))
                     .and(ExamRecordDynamicSqlSupport.status, isIn(Exam.ACTIVE_STATE_NAMES))
                     .build()
                     .execute() >= 1;
-            return active;
         } catch (final Exception e) {
             log.warn("Failed to check exam status for exam: {}", examId, e);
             return false;

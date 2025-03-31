@@ -68,7 +68,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitSer
 @Component
 @WebServiceProfile
 @DependsOn("batisConfig")
-class ConfigurationDAOBatchService {
+public class ConfigurationDAOBatchService {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationDAOBatchService.class);
 

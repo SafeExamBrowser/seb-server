@@ -201,7 +201,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                             .build()
                             .execute();
 
-                    if (execute != null && execute.longValue() > 0) {
+                    if (execute != null && execute > 0) {
                         return rec;
                     }
 
@@ -236,7 +236,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                             .build()
                             .execute();
 
-                    if (execute != null && execute.longValue() > 0) {
+                    if (execute != null && execute > 0) {
                         return rec;
                     }
 
@@ -297,7 +297,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                         .stream()
                         .map(this::toDomainModelStream)
                         .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                        .collect(Collectors.toList());
+                        .toList();
 
                 final ArrayList<SecurityKey> result = new ArrayList<>(resultGlobal);
                 result.addAll(ResultsForExam);

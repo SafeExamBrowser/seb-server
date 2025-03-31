@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -127,7 +128,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     public Result<String> getRoomName(final Long roomId) {
         return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
                 .selectByPrimaryKey(roomId))
-                .map(record -> record.getName());
+                .map(RemoteProctoringRoomRecord::getName);
     }
 
     @Override
@@ -270,12 +271,9 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     .execute();
 
             return ids.stream()
-                    .map(roomId -> {
-                        this.additionalAttributesDAO.deleteAll(
-                                EntityType.REMOTE_PROCTORING_ROOM,
-                                roomId);
-                        return roomId;
-                    })
+                    .peek(roomId -> this.additionalAttributesDAO.deleteAll(
+                            EntityType.REMOTE_PROCTORING_ROOM,
+                            roomId))
                     .map(roomId -> new EntityKey(
                             String.valueOf(roomId),
                             EntityType.REMOTE_PROCTORING_ROOM))
@@ -362,11 +360,10 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 .build()
                 .execute()
                 .stream()
-                .flatMap(room -> Arrays.asList(
+                .flatMap(room -> Arrays.stream(
                         StringUtils.split(
                                 room.getBreakOutConnections(),
-                                Constants.LIST_SEPARATOR_CHAR))
-                        .stream())
+                                Constants.LIST_SEPARATOR_CHAR)))
                 .collect(Collectors.toList()));
     }
 
@@ -438,7 +435,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                             EntityType.REMOTE_PROCTORING_ROOM,
                             record.getId(),
                             RemoteProctoringRoom.ATTR_IS_OPEN)
-                    .map(rec -> rec.getValue())
+                    .map(AdditionalAttributeRecord::getValue)
                     .getOrElse(() -> Constants.FALSE_STRING));
         }
     }

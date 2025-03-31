@@ -201,30 +201,22 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
         try {
 
-            UserLogActivityType activityType = null;
-            switch (bulkActionReport.bulkActionType) {
-                case ACTIVATE:
-                    activityType = UserLogActivityType.ACTIVATE;
-                    break;
-                case DEACTIVATE:
-                    activityType = UserLogActivityType.DEACTIVATE;
-                    break;
-                case HARD_DELETE:
-                    activityType = UserLogActivityType.DELETE;
-                    break;
-            }
+            final UserLogActivityType activityType = switch (bulkActionReport.bulkActionType) {
+                case ACTIVATE -> UserLogActivityType.ACTIVATE;
+                case DEACTIVATE -> UserLogActivityType.DEACTIVATE;
+                case HARD_DELETE -> UserLogActivityType.DELETE;
+            };
 
             final String message = bulkActionReport.results
                     .stream()
                     .map(EntityKey::toString)
                     .collect(Collectors.joining(Constants.LIST_SEPARATOR));
-            final UserLogActivityType _activityType = activityType;
-            bulkActionReport.source.stream()
-                    .forEach(entityKey -> log(
-                            _activityType,
-                            entityKey.entityType,
-                            entityKey.modelId,
-                            message));
+          
+            bulkActionReport.source.forEach(entityKey -> log(
+                    activityType,
+                    entityKey.entityType,
+                    entityKey.modelId,
+                    message));
 
             return Result.of(bulkActionReport);
         } catch (final Exception e) {
@@ -599,10 +591,8 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                 .stream()
                 .map(record -> new UserActivityLog(
                         record.getId(),
-                        record.getUserUuid(),
-                        (userMapping.containsKey(record.getUserUuid()))
-                                ? userMapping.get(record.getUserUuid())
-                                : "--",
+                        record.getUserUuid(), 
+                        userMapping.getOrDefault(record.getUserUuid(), Constants.EMPTY_NOTE),
                         record.getTimestamp(),
                         UserLogActivityType.valueOf(record.getActivityType()),
                         EntityType.valueOf(record.getEntityType()),

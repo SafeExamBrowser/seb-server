@@ -20,7 +20,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ScreenProctoringGroopRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;

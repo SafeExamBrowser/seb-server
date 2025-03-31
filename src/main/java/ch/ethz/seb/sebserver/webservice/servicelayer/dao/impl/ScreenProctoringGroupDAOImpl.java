@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -127,7 +128,6 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
             if (room.isPresent()) {
                 return room.get();
-                //return updateCollectingGroup(room.get());
             } else {
                 throw new AllGroupsFullException();
             }
@@ -337,6 +337,7 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
     }
     
     public static final class AllGroupsFullException extends RuntimeException {
+        @Serial
         private static final long serialVersionUID = 3283129187819160485L;
     }
 

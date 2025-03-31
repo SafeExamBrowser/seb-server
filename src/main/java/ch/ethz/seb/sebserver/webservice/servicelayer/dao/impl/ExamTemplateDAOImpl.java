@@ -275,13 +275,11 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 .execute();
 
             if (!data.examAttributes.isEmpty()) {
-                data.examAttributes
-                        .entrySet()
-                        .forEach(entry -> this.additionalAttributesDAO.saveAdditionalAttribute(
-                                EntityType.EXAM_TEMPLATE,
-                                data.id,
-                                entry.getKey(),
-                                entry.getValue()));
+                data.examAttributes.forEach((key, value) -> this.additionalAttributesDAO.saveAdditionalAttribute(
+                        EntityType.EXAM_TEMPLATE,
+                        data.id,
+                        key,
+                        value));
             }
 
             return this.examTemplateRecordMapper.selectByPrimaryKey(data.id);
