@@ -683,6 +683,17 @@ public class ExamDAOImpl implements ExamDAO {
 
             // delete all additional attributes
             ids.forEach(id -> this.additionalAttributesDAO.deleteAll(EntityType.EXAM, id));
+            
+            // update Exams that refer one of the deleted exams as consecutive Exam (followup) SEBSERV-225
+            try {
+                UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                        .set(followupId).equalToNull()
+                        .where(followupId, isIn(ids))
+                        .build()
+                        .execute();
+            } catch (final Exception e) {
+                log.error("Failed to update consecutive Exam references for deleted exams: ", e);
+            }
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.EXAM))

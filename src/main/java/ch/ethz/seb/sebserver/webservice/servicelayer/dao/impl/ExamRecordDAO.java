@@ -722,21 +722,29 @@ public class ExamRecordDAO {
     public Result<Collection<ExamRecord>> possibleConsecutiveExams(final Exam exam, final DateTimeZone timeZone) {
         return Result.tryCatch(() -> {
 
-            final List<Long> exclude = Stream.concat(
-                    Stream.of(exam.id), 
+            final Set<Long> exclude = new HashSet<>(
                     this.examRecordMapper.selectByExample()
                             .where(followupId, isNotNull())
                             .build()
                             .execute()
                             .stream()
                             .map(ExamRecord::getFollowupId)
-                    ).toList();
+                    .toList());
+            exclude.add(exam.id);
+            ExamRecord exclAlso = this.examRecordMapper.selectByExample()
+                    .where(followupId, isEqualTo(exam.id))
+                    .build()
+                    .execute()
+                    .stream().findFirst().orElse(null);
+            if (exclAlso != null) {
+                exclude.add(exclAlso.getId());
+            }
 
             final DateTime startTime = exam.getStartTime();
             final DateTime dateTime = startTime.toDateTime(timeZone);
             final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(dateTime.getMillis(), timeZone);
 
-            return this.examRecordMapper
+            List<ExamRecord> execute = this.examRecordMapper
                     .selectByExample()
                     .where(institutionId, isEqualToWhenPresent(exam.institutionId))
                     .and(active, isNotEqualTo(0))
@@ -750,6 +758,8 @@ public class ExamRecordDAO {
                     .or(id, isEqualToWhenPresent(exam.followUpId))
                     .build()
                     .execute();
+            
+            return execute;
         });
     }
 

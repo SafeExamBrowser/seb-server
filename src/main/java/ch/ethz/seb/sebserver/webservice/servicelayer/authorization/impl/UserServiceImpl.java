@@ -23,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.WebDataBinder;
@@ -141,12 +142,12 @@ public class UserServiceImpl implements UserService {
                     // check if lms integration client
                     return isLMSIntegrationClient(principal);
                 }
-                if (userAuthentication instanceof UsernamePasswordAuthenticationToken) {
+                //if (userAuthentication instanceof UsernamePasswordAuthenticationToken) {
                     final Object userPrincipal = userAuthentication.getPrincipal();
                     if (userPrincipal instanceof SEBServerUser) {
                         return (SEBServerUser) userPrincipal;
                     }
-                }
+                //}
             }
 
             return null;

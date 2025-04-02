@@ -721,16 +721,21 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     
     private Exam checkConsecutiveExam(final Exam exam) {
         if (exam.followUpId != null) {
-            final Exam otherExam = examDAO.byPK(exam.followUpId).getOrThrow();
-            if (!Objects.equals(exam.lmsSetupId, otherExam.lmsSetupId)) {
-                APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam LMS Setup mismatch");
-            }
-            if (exam.status == Exam.ExamStatus.ARCHIVED || exam.status == Exam.ExamStatus.FINISHED || 
-                    otherExam.status == Exam.ExamStatus.ARCHIVED || otherExam.status == Exam.ExamStatus.FINISHED) {
-                APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam Status mismatch");
-            }
-            if (examDAO.getConsecutiveExamIds(exam.followUpId) != null) {
-                APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam has already a previous exam");
+            final Exam otherExam = examDAO.
+                    byPK(exam.followUpId)
+                    .getOr(null);
+            
+            if (otherExam != null) {
+                if (!Objects.equals(exam.lmsSetupId, otherExam.lmsSetupId)) {
+                    APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam LMS Setup mismatch");
+                }
+                if (exam.status == Exam.ExamStatus.ARCHIVED || exam.status == Exam.ExamStatus.FINISHED ||
+                        otherExam.status == Exam.ExamStatus.ARCHIVED || otherExam.status == Exam.ExamStatus.FINISHED) {
+                    APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam Status mismatch");
+                }
+                if (examDAO.getConsecutiveExamIds(exam.followUpId) != null) {
+                    APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam has already a previous exam");
+                }
             }
         }
         
