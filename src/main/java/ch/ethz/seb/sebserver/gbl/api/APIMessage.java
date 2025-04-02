@@ -35,6 +35,7 @@ public class APIMessage implements Serializable {
     public enum ErrorMessage {
         /** For every unknown or unspecific internal error */
         GENERIC("0", HttpStatus.INTERNAL_SERVER_ERROR, "Generic error message"),
+        BAD_REQUEST( "1", HttpStatus.BAD_REQUEST, "Bad Request"),
         UNAUTHORIZED("1000", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED"),
         FORBIDDEN("1001", HttpStatus.FORBIDDEN, "FORBIDDEN"),
         RESOURCE_NOT_FOUND("1002", HttpStatus.NOT_FOUND, "resource not found"),

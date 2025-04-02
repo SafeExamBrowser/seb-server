@@ -14,6 +14,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
@@ -358,7 +359,8 @@ public class ExamRecordDAO {
                     .set(lastModified).equalTo(Utils.getMillisecondsNow())
                     .set(quizName).equalToWhenPresent(exam.lmsSetupId == null ? exam.name : null)
                     .set(quizStartTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.startTime : null)
-                    .set(quizEndTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.endTime : null);
+                    .set(quizEndTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.endTime : null)
+                    .set(followupId).equalTo(exam.followUpId);
 
             if (StringUtils.isBlank(exam.quitPassword)) {
                 clause.set(quitPassword).equalToNull();
@@ -564,9 +566,10 @@ public class ExamRecordDAO {
             final SqlCriterion<String> finished = or(
                     ExamRecordDynamicSqlSupport.status,
                     isEqualTo(ExamStatus.FINISHED.name()),
-                    and(
-                            ExamRecordDynamicSqlSupport.quizEndTime,
-                            SqlBuilder.isGreaterThanOrEqualToWhenPresent(now.plus(leadTime))));
+                    and(ExamRecordDynamicSqlSupport.quizEndTime, isNull(),
+                            or(
+                                    ExamRecordDynamicSqlSupport.quizEndTime, 
+                                    SqlBuilder.isGreaterThanOrEqualTo(now.plus(leadTime)))));
 
             // if up-coming but running or finished
             final SqlCriterion<String> upcoming = or(
@@ -593,9 +596,10 @@ public class ExamRecordDAO {
                     .and( // within time frame
                             ExamRecordDynamicSqlSupport.quizStartTime,
                             SqlBuilder.isLessThanWhenPresent(now.plus(leadTime)),
-                            and(
-                                    ExamRecordDynamicSqlSupport.quizEndTime,
-                                    SqlBuilder.isGreaterThanOrEqualToWhenPresent(now.minus(followupTime))),
+                            and(ExamRecordDynamicSqlSupport.quizEndTime, isNull(), 
+                                    or(
+                                            ExamRecordDynamicSqlSupport.quizEndTime, 
+                                            SqlBuilder.isGreaterThanOrEqualTo(now.minus(followupTime)))),
                             upcoming)
                     .build()
                     .execute();
@@ -686,6 +690,66 @@ public class ExamRecordDAO {
                         .build()
                         .execute();
             }
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public Pair<Long, Long> getConsecutiveStartExamId(final Long examId) {
+        try {
+
+            final List<ExamRecord> records = examRecordMapper.selectByExample()
+                    .where(followupId, isEqualTo(examId))
+                    .build()
+                    .execute();
+
+            if (records == null || records.isEmpty()) {
+                return null;
+            }
+
+            final ExamRecord examRecord = records.get(0);
+            if (examRecord.getFollowupId() == null) {
+                return null;
+            }
+            return new Pair<>(examRecord.getId(), examRecord.getFollowupId());
+
+        } catch (final Exception e) {
+            log.error("Failed to verify and get Consecutive Start Exam Id. Cause: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Transactional(readOnly = true)
+    public Result<Collection<ExamRecord>> possibleConsecutiveExams(final Exam exam, final DateTimeZone timeZone) {
+        return Result.tryCatch(() -> {
+
+            final List<Long> exclude = Stream.concat(
+                    Stream.of(exam.id), 
+                    this.examRecordMapper.selectByExample()
+                            .where(followupId, isNotNull())
+                            .build()
+                            .execute()
+                            .stream()
+                            .map(ExamRecord::getFollowupId)
+                    ).toList();
+
+            final DateTime startTime = exam.getStartTime();
+            final DateTime dateTime = startTime.toDateTime(timeZone);
+            final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(dateTime.getMillis(), timeZone);
+
+            return this.examRecordMapper
+                    .selectByExample()
+                    .where(institutionId, isEqualToWhenPresent(exam.institutionId))
+                    .and(active, isNotEqualTo(0))
+                    .and(id, isNotInWhenPresent(exclude.isEmpty() ? null : exclude))
+                    .and(status, isNotIn(ExamStatus.ARCHIVED.name(), ExamStatus.FINISHED.name()))
+                    .and(quizStartTime,
+                            isGreaterThanOrEqualTo(Utils.toDateTimeUTC(userDaySpanMillis.a)),
+                            and(
+                                    quizStartTime,
+                                    isLessThanOrEqualTo(Utils.toDateTimeUTC(userDaySpanMillis.b))))
+                    .or(id, isEqualToWhenPresent(exam.followUpId))
+                    .build()
+                    .execute();
         });
     }
 

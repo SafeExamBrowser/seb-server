@@ -218,7 +218,7 @@ public abstract class RestCall<T> {
             }
         } catch (final Exception e) {
             final String body = responseEntity.getBody();
-            log.error("Failed to parse rest response error message: {}", body);
+            log.error("Failed to parse rest response error message: {}, error: {}", body, e.getMessage());
             throw e;
         }
 

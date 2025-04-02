@@ -14,7 +14,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -188,7 +187,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
                     // if the exam is not currently running just apply the action
                     if (exam.status != ExamStatus.RUNNING) {
-                        T result = changeAction
+                        final T result = changeAction
                                 .apply(mapping)
                                 .getOrThrow();
 
@@ -233,6 +232,11 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                         // copy quit password from exam to config
                         examConfigurationValueService.applyQuitPasswordToConfigs(exam.id, exam.quitPassword);
                     }
+                    
+                    // update consecutive Exam settings if needed SEBSERV-225
+                    examConfigurationValueService
+                            .applyConsecutiveExamSettings(exam)
+                            .onError(error -> log.error("Failed to apply consecutive quiz Exam settings: {}", error.getMessage()));
                     
                     // apply SPS enabled setting from exam to config
                     examAdminService
@@ -326,7 +330,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         // check if the configuration is attached to a running exams with active client connections
         final long activeConnections = involvedExams
                 .stream()
-                .filter(examId -> this.examSessionService.hasActiveSEBClientConnections(examId))
+                .filter(this.examSessionService::hasActiveSEBClientConnections)
                 .count();
 
         // if we have active SEB client connection on one or more running exam that

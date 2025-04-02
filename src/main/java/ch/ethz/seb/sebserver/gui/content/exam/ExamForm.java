@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import static ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType.MOODLE_PLUGIN;
 import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.*;
 
 import java.util.*;
@@ -188,6 +187,7 @@ public class ExamForm implements TemplateComposer {
                 pageContext.getAttribute(AttributeKeys.NEW_EXAM_NO_LMS));
         final boolean importFromQuizData = BooleanUtils.toBoolean(
                 pageContext.getAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
+        final boolean importing = newExamNoLMS || importFromQuizData;
 
         // get or create model data
         final Exam exam = newExamNoLMS
@@ -257,7 +257,7 @@ public class ExamForm implements TemplateComposer {
         // The Exam form
         final FormHandle<Exam> formHandle = readonly
                 ? createReadOnlyForm(formContext, content, exam)
-                : createEditForm(formContext, content, exam);
+                : createEditForm(importing, formContext, content, exam);
 
         if (importFromQuizData) {
             this.processTemplateSelection(formHandle.getForm(), formContext);
@@ -523,6 +523,7 @@ public class ExamForm implements TemplateComposer {
     }
 
     private FormHandle<Exam> createEditForm(
+            final boolean importing,
             final PageContext formContext,
             final Composite content,
             final Exam exam) {
@@ -534,7 +535,9 @@ public class ExamForm implements TemplateComposer {
         final boolean hasLMS = exam.lmsSetupId != null;
         final boolean importFromLMS = newExam && hasLMS;
         final LocTextKey statusTitle = new LocTextKey("sebserver.exam.status." + exam.status.name());
-        final List<Tuple<String>> followupSelection = resourceService.getExamFollowupSelection(exam.id);
+        final List<Tuple<String>> followupSelection = importing 
+                ? null 
+                : resourceService.getExamFollowupSelection(exam.id);
 
         return this.pageService.formBuilder(formContext.copyOf(content))
                 .putStaticValueIf(() -> !newExam,
@@ -637,7 +640,7 @@ public class ExamForm implements TemplateComposer {
                                         Domain.EXAM.ATTR_FOLLOWUP_ID,
                                         FORM_FOLLOWUP_EXAM_TEXT_KEY,
                                 exam.followUpId != null ? String.valueOf(exam.followUpId) : null,
-                                        () -> this.resourceService.getExamFollowupSelection(exam.id)
+                                        () -> followupSelection
                                 ))
 
                 .addField(FormBuilder.multiComboSelection(

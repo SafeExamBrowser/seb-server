@@ -10,9 +10,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import java.util.Objects;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -22,10 +26,6 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 
 @Lazy
@@ -40,19 +40,25 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
     private final Cryptor cryptor;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ExamDAO examDAO;
 
     public ExamConfigurationValueServiceImpl(
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ConfigurationDAO configurationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ConfigurationValueDAO configurationValueDAO,
-            final Cryptor cryptor) {
+            final Cryptor cryptor,
+            final AdditionalAttributesDAO additionalAttributesDAO, 
+            final ExamDAO examDAO) {
 
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.cryptor = cryptor;
+        this.additionalAttributesDAO = additionalAttributesDAO;
+        this.examDAO = examDAO;
     }
 
     @Override
@@ -180,6 +186,46 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
             }
 
             return saveSEBAttributeValueToConfig(examId, CONFIG_ATTR_NAME_QUIT_LINK, quitLink);
+        });
+    }
+
+    @Override
+    public Result<Exam> applyConsecutiveExamSettings(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            Long examId = null;
+            Long consecutiveExamId = null;
+            String downloadURL = null;
+            if (exam.followUpId == null) {
+                final Pair<Long, Long> consecutiveStartExamIds = examDAO.getConsecutiveExamIds(exam.id);
+                if (consecutiveStartExamIds == null) {
+                    // this is not an Exam that has any consecutive quiz settings
+                    return exam;
+                }
+                examId = consecutiveStartExamIds.a;
+                consecutiveExamId = consecutiveStartExamIds.b;
+            } else {
+                examId = exam.id;
+                consecutiveExamId = exam.followUpId;
+            }
+            downloadURL = additionalAttributesDAO
+                    .getAdditionalAttribute(EntityType.EXAM, examId, Exam.ADDITIONAL_ATTR_CONSECUTIVE_QUIZ_DOWNLOAD_LINK)
+                    .getOrThrow()
+                    .getValue();
+            
+            // For first exam set
+            //    examSessionReconfigureAllow = true
+            //    examSessionReconfigureConfigURL = "The download URL from Moodle"
+            //    examSessionClearCookiesOnEnd = false
+            saveSEBAttributeValueToConfig(examId, CONFIG_ATTR_NAME_EXAM_SESSION_RE_CONFIG_ALLOW, "true");
+            saveSEBAttributeValueToConfig(examId, CONFIG_ATTR_NAME_EXAM_SESSION_RE_CONFIG_URL, downloadURL);
+            saveSEBAttributeValueToConfig(examId, CONFIG_ATTR_NAME_EXAM_SESSION_CLEAR_COOKIES_ON_END, "false");
+            
+            // for consecutive exam set
+            //    examSessionClearCookiesOnStart = false
+            saveSEBAttributeValueToConfig(consecutiveExamId, CONFIG_ATTR_NAME_EXAM_SESSION_CLEAR_COOKIES_ON_START, "false");
+            
+            return exam;
         });
     }
 

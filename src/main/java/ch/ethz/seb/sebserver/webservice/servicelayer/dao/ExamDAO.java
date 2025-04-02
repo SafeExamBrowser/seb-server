@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.util.Pair;
+import org.joda.time.DateTimeZone;
 import org.springframework.cache.annotation.CacheEvict;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -275,4 +277,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     int numOfExamsReferencingSupporter(String uuid);
 
     Result<String> getImportedQuizUUIDs(Long lmsSetupId);
+
+    Pair<Long, Long> getConsecutiveExamIds(Long id);
+
+    Result<Collection<Exam>> possibleConsecutiveExams(Exam exam, DateTimeZone timeZone);
 }

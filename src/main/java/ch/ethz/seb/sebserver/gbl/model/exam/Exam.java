@@ -62,6 +62,8 @@ public final class Exam implements GrantEntity {
 
     public static final String ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION = "DEFAULT_CONNECTION_CONFIGURATION";
     public static final String ADDITIONAL_ATTR_QUIZ_ATTRIBUTES = "ADDITIONAL_QUIZ_ATTRIBUTES";
+    /** The full LMS integration download link for the next quit if consecutive quiz is used */
+    public static final String ADDITIONAL_ATTR_CONSECUTIVE_QUIZ_DOWNLOAD_LINK = "NEXT_QUIZ_DOWNLOAD_LINK";
             
     public enum ExamStatus {
         UP_COMING,

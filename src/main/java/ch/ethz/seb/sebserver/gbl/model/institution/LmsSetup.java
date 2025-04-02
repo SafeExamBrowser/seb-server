@@ -62,7 +62,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
      * Also defines the supports feature(s) for each type of LMS binding. */
     public enum LmsType {
         /** Mockup LMS type used to create test setups */
-        MOCKUP(Features.COURSE_API, Features.SEB_RESTRICTION),
+        MOCKUP(Features.COURSE_API, Features.SEB_RESTRICTION, Features.LMS_FULL_INTEGRATION),
         /** The Open edX LMS binding features both APIs, course access as well as SEB restriction */
         OPEN_EDX(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The Moodle binding features only the course access API so far */
@@ -302,39 +302,22 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("LmsSetup [id=");
-        builder.append(this.id);
-        builder.append(", institutionId=");
-        builder.append(this.institutionId);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", lmsType=");
-        builder.append(this.lmsType);
-        builder.append(", lmsAuthName=");
-        builder.append(this.lmsAuthName);
-        builder.append(", lmsAuthSecret=");
-        builder.append(this.lmsAuthSecret);
-        builder.append(", lmsApiUrl=");
-        builder.append(this.lmsApiUrl);
-        builder.append(", lmsRestApiToken=");
-        builder.append(this.lmsRestApiToken);
-        builder.append(", proxyHost=");
-        builder.append(this.proxyHost);
-        builder.append(", proxyPort=");
-        builder.append(this.proxyPort);
-        builder.append(", proxyAuthUsername=");
-        builder.append(this.proxyAuthUsername);
-        builder.append(", proxyAuthSecret=");
-        builder.append(this.proxyAuthSecret);
-        builder.append(", active=");
-        builder.append(this.active);
-        builder.append(", connectionId=");
-        builder.append(this.connectionId);
-        builder.append(", integrationActive=");
-        builder.append(this.integrationActive);
-        builder.append("]");
-        return builder.toString();
+        return "LmsSetup [id=" + this.id +
+                ", institutionId=" + this.institutionId +
+                ", name=" + this.name +
+                ", lmsType=" + this.lmsType +
+                ", lmsAuthName=" + this.lmsAuthName +
+                ", lmsAuthSecret=" + this.lmsAuthSecret +
+                ", lmsApiUrl=" + this.lmsApiUrl +
+                ", lmsRestApiToken=" + this.lmsRestApiToken +
+                ", proxyHost=" + this.proxyHost +
+                ", proxyPort=" + this.proxyPort +
+                ", proxyAuthUsername=" + this.proxyAuthUsername +
+                ", proxyAuthSecret=" + this.proxyAuthSecret +
+                ", active=" + this.active +
+                ", connectionId=" + this.connectionId +
+                ", integrationActive=" + this.integrationActive +
+                "]";
     }
 
     public static EntityName toName(final LmsSetup lmsSetup) {
@@ -346,16 +329,9 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     public static LmsSetup createNew(final Long institutionId) {
         return new LmsSetup(
-                null, institutionId,
-                null, null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
+                null, 
+                institutionId,
+                null, null, null, null, null, null, null, null, null, null,
                 false,
                 null,
                 UUID.randomUUID().toString(),

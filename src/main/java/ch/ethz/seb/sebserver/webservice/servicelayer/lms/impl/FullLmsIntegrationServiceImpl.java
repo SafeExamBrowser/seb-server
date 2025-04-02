@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -88,6 +89,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private final ClientCredentialsResourceDetails resource;
     private final SEBRestrictionService sebRestrictionService;
     private final OAuth2RestTemplate restTemplate;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
 
     public FullLmsIntegrationServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
@@ -108,6 +110,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final TeacherAccountService teacherAccountService,
             final LmsAPITemplateCacheService lmsAPITemplateCacheService,
             final SEBRestrictionService sebRestrictionService,
+            final AdditionalAttributesDAO additionalAttributesDAO,
             @Value("${sebserver.webservice.lms.api.endpoint}") final String lmsAPIEndpoint,
             @Value("${sebserver.webservice.lms.api.clientId}") final String clientId,
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret) {
@@ -128,6 +131,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.examImportService = examImportService;
         this.clientConnectionDAO = clientConnectionDAO;
         this.sebRestrictionService = sebRestrictionService;
+        this.additionalAttributesDAO = additionalAttributesDAO;
 
         resource = new ClientCredentialsResourceDetails();
         resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
@@ -633,6 +637,16 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quitLink = deletion
                     ? null
                     : examConfigurationValueService.getQuitLink(exam.id);
+            
+            String nextCourseId = null;
+            String nextQuizId = null;
+            if (exam.followUpId != null) {
+                final Exam followupExam = examDAO.byPK(exam.followUpId).getOr(null);
+                if (followupExam != null) {
+                    nextCourseId = lmsAPITemplate.getCourseIdFromExam(followupExam);
+                    nextQuizId = lmsAPITemplate.getQuizIdFromExam(followupExam);
+                }
+            }
 
             final ExamData examData = new ExamData(
                     lmsUUID,
@@ -641,9 +655,45 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     !deletion,
                     templateId,
                     quitLink,
-                    quitPassword);
+                    quitPassword,
+                    nextCourseId,
+                    nextQuizId);
 
-            lmsAPITemplate.applyExamData(examData).getOrThrow();
+            final String response = lmsAPITemplate.applyExamData(examData).getOrThrow();
+            if (exam.followUpId != null) {
+                // response contains the quiz context id which is used to create the download link for next Connection Config
+                // URL/pluginfile.php/XYZ/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb
+                try {
+                    final int quizContextId = Integer.parseInt(response);
+                    final String lmsApiUrl = lmsAPITemplate.lmsSetup().lmsApiUrl;
+                    String downloadLink = lmsApiUrl.endsWith(Constants.SLASH.toString()) ? lmsApiUrl : lmsApiUrl + Constants.SLASH;
+                    downloadLink = downloadLink +
+                            "pluginfile.php/" + 
+                            quizContextId + 
+                            "/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb";
+                    
+                    
+                    if (log.isDebugEnabled()) {
+                        log.debug("Apply next quit download link: {}", downloadLink);
+                    }
+                    
+                    // save link in additional attributes for later apply if needed
+                    additionalAttributesDAO
+                            .saveAdditionalAttribute(EntityType.EXAM, exam.id, Exam.ADDITIONAL_ATTR_CONSECUTIVE_QUIZ_DOWNLOAD_LINK, downloadLink)
+                            .onError(error -> log.error("Failed to save download link for next exam in additional attributes: {}", error.getMessage()));
+
+                    // apply to SEB Settings of current Exam Config if available on Exam
+                    return examConfigurationValueService
+                            .applyConsecutiveExamSettings(exam)
+                            .onError( error -> log.error(
+                                    "Failed to automatically set SEB Settings for consecutive quizzes for Exam: {} cause: {}", 
+                                    exam, 
+                                    error.getMessage()))
+                            .getOr(exam);
+                } catch (final Exception e) {
+                    log.warn("Failed to create download link for next exam: {}", e.getMessage());
+                }
+            }
 
         } catch (final Exception e) {
             log.warn("Failed to apply exam data to LMS for exam: {} error: {}", exam, e.getMessage());

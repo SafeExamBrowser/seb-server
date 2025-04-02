@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
-import java.util.Set;
-
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
 
@@ -148,5 +146,5 @@ public interface ExamAdminService {
     Result<Exam> applyQuitPassword(Exam exam);
     
     Result<Exam> applySPSEnabled(Exam exam);
-
+    
 }

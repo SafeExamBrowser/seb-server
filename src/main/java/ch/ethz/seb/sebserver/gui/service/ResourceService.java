@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.user.*;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetFollowupSelection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
 import org.apache.commons.lang3.StringUtils;
@@ -1015,6 +1016,23 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> getExamFollowupSelection(final Long examId) {
-        return null;
+        try {
+
+            return Stream.concat(
+                        Stream.of(new EntityName(StringUtils.EMPTY, EntityType.EXAM, this.i18nSupport.getText(NO_SELECTION))),
+                        this.restService
+                                .getBuilder(GetFollowupSelection.class)
+                                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examId))
+                                .call()
+                                .onError(error -> log.warn("Failed to get followup Exam selection : {}, cause {}", examId, error.getMessage()))
+                                .getOr(Collections.emptyList())
+                                .stream())
+                .map(examName -> new Tuple<>(examName.modelId, examName.name))
+                .collect(Collectors.toList());
+            
+        } catch (final Exception e) {
+            log.error("Failed to get followup Exam selection: {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 }

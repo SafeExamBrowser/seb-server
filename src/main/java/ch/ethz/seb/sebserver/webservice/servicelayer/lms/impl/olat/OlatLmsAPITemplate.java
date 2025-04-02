@@ -427,7 +427,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     @Override
-    public Result<FullLmsIntegrationService.ExamData> applyExamData(final FullLmsIntegrationService.ExamData examData) {
+    public Result<String> applyExamData(final FullLmsIntegrationService.ExamData examData) {
         return Result.ofRuntimeError("Not Supported");
     }
 

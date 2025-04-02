@@ -186,7 +186,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
     }
 
     @Override
-    public Result<ExamData> applyExamData(final ExamData examData) {
+    public Result<String> applyExamData(final ExamData examData) {
         return Result.tryCatch(() -> {
             // validation
             if (StringUtils.isBlank( examData.id)) {
@@ -219,6 +219,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 data_mapping.put("showquitlink", StringUtils.isNotBlank(examData.quit_link) ? "1" : "0");
                 data_mapping.put("quitlink", examData.quit_link);
                 data_mapping.put("quitsecret", examData.quit_password);
+                data_mapping.put("nextcourseid", examData.next_course_id);
             } else {
                 data_mapping.put("addordelete", "0");
             }
@@ -236,7 +237,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 log.info("Moodle warnings in response: {}", response);
             }
 
-            return examData;
+            return response;
         });
     }
 

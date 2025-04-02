@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamConfigurationValueService {
@@ -16,7 +17,12 @@ public interface ExamConfigurationValueService {
     String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
     String CONFIG_ATTR_NAME_ALLOWED_SEB_VERSION = "sebAllowedVersions";
     String CONFIG_ATTR_NAME_ENABLE_SCREEN_PROCTORING = "enableScreenProctoring";
-
+    
+    String CONFIG_ATTR_NAME_EXAM_SESSION_RE_CONFIG_ALLOW = "examSessionReconfigureAllow";
+    String CONFIG_ATTR_NAME_EXAM_SESSION_RE_CONFIG_URL = "examSessionReconfigureConfigURL";
+    String CONFIG_ATTR_NAME_EXAM_SESSION_CLEAR_COOKIES_ON_END = "examSessionClearCookiesOnEnd";
+    String CONFIG_ATTR_NAME_EXAM_SESSION_CLEAR_COOKIES_ON_START = "examSessionClearCookiesOnStart";
+    
     /** Get the actual SEB settings attribute value for the exam configuration mapped as default configuration
      * to the given exam
      *
@@ -71,6 +77,22 @@ public interface ExamConfigurationValueService {
      */
     Result<Long> applyQuitURLToConfigs(Long examId, String quitLink);
 
+    /** Used to apply the consecutive quiz download link to SEB Settings and also set all needed SEB Settings
+     * for consecutive quizzes for both exam, first and following:
+     * <p> 
+     * For the first quiz, set the following SEB Settings if it has a consecutive quiz:
+     * examSessionReconfigureAllow = true
+     * examSessionReconfigureConfigURL = "The download URL from Moodle"
+     * examSessionClearCookiesOnEnd = false
+     * <p>
+     * And for the consecutive Exam set the following SEB Settings
+     * examSessionClearCookiesOnStart = false
+     *
+     * @param exam The first exam that contains the followup exam identifier of the consecutive quiz
+     * @return Result to the given exam id or to an error when happened
+     */
+    Result<Exam> applyConsecutiveExamSettings(Exam exam);
+
     /** Get the quitLink SEB Setting from the Exam Configuration that is applied to the given exam.
      *
      * @param examId Exam identifier
@@ -83,4 +105,5 @@ public interface ExamConfigurationValueService {
      * @return the value of the allowedSEBVersions SEB Setting */
     String getAllowedSEBVersion(Long examId);
 
+    
 }

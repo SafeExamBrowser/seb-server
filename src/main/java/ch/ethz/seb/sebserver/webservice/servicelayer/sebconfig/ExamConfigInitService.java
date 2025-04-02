@@ -17,7 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 /** Service to support and maintain initial default values for SEB exam configurations */
 public interface ExamConfigInitService {
 
-    /** Use this to get all additinal initial default values for a newly created SEB exam configuration
+    /** Use this to get all additional initial default values for a newly created SEB exam configuration
      * that are configured with the SEB Server configuration on SEB Server setup.
      *
      * @param institutionId The institution identifier

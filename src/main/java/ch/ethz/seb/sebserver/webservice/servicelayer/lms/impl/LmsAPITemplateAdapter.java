@@ -60,7 +60,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     private final CircuitBreaker<SEBRestriction> restrictionRequest;
     private final CircuitBreaker<Exam> examRequest;
     private final CircuitBreaker<IntegrationData> lmsAccessRequest;
-    private final CircuitBreaker<ExamData> applyExamDataRequest;
+    private final CircuitBreaker<String> applyExamDataRequest;
     private final CircuitBreaker<String> deleteLmsAccessRequest;
 
     public LmsAPITemplateAdapter(
@@ -532,7 +532,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
-    public Result<ExamData> applyExamData(final ExamData examData) {
+    public Result<String> applyExamData(final ExamData examData) {
         if (this.lmsIntegrationAPI == null) {
             return Result.ofError(
                     new UnsupportedOperationException("LMS Integration API Not Supported For: " + getType().name()));

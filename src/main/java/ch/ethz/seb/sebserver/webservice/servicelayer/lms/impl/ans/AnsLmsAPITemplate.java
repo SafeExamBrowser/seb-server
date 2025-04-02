@@ -440,7 +440,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     }
 
     @Override
-    public Result<FullLmsIntegrationService.ExamData> applyExamData(final FullLmsIntegrationService.ExamData examData) {
+    public Result<String> applyExamData(final FullLmsIntegrationService.ExamData examData) {
         return Result.ofRuntimeError("Not Supported");
     }
 

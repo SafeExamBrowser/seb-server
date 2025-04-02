@@ -26,9 +26,11 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
@@ -274,6 +276,18 @@ public class ExamDAOImpl implements ExamDAO {
                 .onError(error -> log.error("Failed to get imported quiz ids: ", error))
                 .map( ids ->
                         StringUtils.join(ids.stream().map(id -> id.uuid).toList(), Constants.LIST_SEPARATOR));
+    }
+
+    @Override
+    public Pair<Long, Long> getConsecutiveExamIds(final Long examId) {
+        return this.examRecordDAO.getConsecutiveStartExamId(examId);
+    }
+
+    @Override
+    public Result<Collection<Exam>> possibleConsecutiveExams(final Exam exam, final DateTimeZone timeZone) {
+        return this.examRecordDAO
+                .possibleConsecutiveExams(exam, timeZone)
+                .flatMap(this::toDomainModel);
     }
 
     @Override

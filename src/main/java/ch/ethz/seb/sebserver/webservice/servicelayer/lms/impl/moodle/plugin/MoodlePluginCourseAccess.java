@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -58,7 +57,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRe
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursesPlugin;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 import io.micrometer.core.instrument.util.StringUtils;
@@ -403,7 +401,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                         MoodleUtils.quizDataOf(lmsSetup, c, urlPrefix, this.prependShortCourseName)
                                 .stream()
                                 .filter(quizFilter)
-                                .collect(Collectors.toList())));
+                                .toList()));
 
         // check thresholds
         if (asyncQuizFetchBuffer.buffer.size() > this.maxSize) {
@@ -574,7 +572,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             if (courses.results == null || courses.results.isEmpty()) {
                 log.warn("No courses found for ids: {} on LMS: {}", courseIds, lmsSetup.name);
 
-                if (courses != null && courses.warnings != null && !courses.warnings.isEmpty()) {
+                if (courses.warnings != null && !courses.warnings.isEmpty()) {
                     MoodleUtils.logMoodleWarning(courses.warnings, lmsSetup.name, COURSES_API_FUNCTION_NAME);
                 }
                 return Collections.emptyList();
@@ -597,17 +595,15 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     }
 
     protected String toTestString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("MoodlePluginCourseAccess [pageSize=");
-        builder.append(this.pageSize);
-        builder.append(", maxSize=");
-        builder.append(this.maxSize);
-        builder.append(", cutoffTimeOffset=");
-        builder.append(this.cutoffTimeOffset);
-        builder.append(", restTemplate=");
-        builder.append(this.getRestTemplate().getOr(null));
-        builder.append("]");
-        return builder.toString();
+        return "MoodlePluginCourseAccess [pageSize=" +
+                this.pageSize +
+                ", maxSize=" +
+                this.maxSize +
+                ", cutoffTimeOffset=" +
+                this.cutoffTimeOffset +
+                ", restTemplate=" +
+                this.getRestTemplate().getOr(null) +
+                "]";
     }
 
 }

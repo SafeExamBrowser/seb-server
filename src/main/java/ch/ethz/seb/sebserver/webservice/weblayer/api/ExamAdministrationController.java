@@ -20,7 +20,6 @@ import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
@@ -481,28 +480,18 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         checkReadPrivilege(institutionId);
         
-        
         final Exam exam = examDAO.byPK(examId).getOrThrow();
         if (exam.lmsSetupId == null) {
             return Collections.emptyList();
         }
         final LmsSetup lmsSetup = lmsAPIService.getLmsSetup(exam.lmsSetupId).getOr(null);
-        if (lmsSetup == null || lmsSetup.lmsType != LmsSetup.LmsType.MOODLE_PLUGIN) {
+        if (lmsSetup == null || !lmsSetup.lmsType.features.contains(Features.LMS_FULL_INTEGRATION)) {
             return Collections.emptyList();
         }
-
-        final FilterMap filterMap = new FilterMap();
-        final DateTimeZone timeZone = authorization.getUserService().getCurrentUser().getUserInfo().getTimeZone();
-        final DateTime startTime = exam.getStartTime();
-        final DateTime dateTime = startTime.toDateTime(timeZone);
-
-        // add users time zone for Exam start time search
-        filterMap.putIfAbsent(Exam.FILTER_ATTR_START_TIME_MILLIS, String.valueOf(dateTime.getMillis()));
-        filterMap.putIfAbsent(FilterMap.ATTR_USER_TIME_ZONE, timeZone.getID());
-        filterMap.putIfAbsent(LmsSetup.FILTER_ATTR_LMS_SETUP, String.valueOf(exam.lmsSetupId));
-
-        return this.entityDAO
-                .allMatching(filterMap, this::hasReadAccess)
+        
+        final DateTimeZone userTimeZone = authorization.getUserService().getCurrentUser().getUserInfo().getTimeZone();
+        return this.examDAO
+                .possibleConsecutiveExams(exam, userTimeZone)
                 .map( l -> l.stream()
                         .map(e -> new EntityName(e.getEntityKey(), e.name))
                         .collect(Collectors.toList()))
@@ -515,54 +504,54 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     // ****************************************************************************
     // **** Proctoring
 
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-//            method = RequestMethod.GET,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ProctoringServiceSettings getProctoringServiceSettings(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable final Long modelId) {
-//
-//        checkReadPrivilege(institutionId);
-//        return this.examAdminService
-//                .getProctoringAdminService()
-//                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM))
-//                .getOrThrow();
-//    }
-//
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-//            method = RequestMethod.POST,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Exam saveProctoringServiceSettings(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-//            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
-//
-//        checkModifyPrivilege(institutionId);
-//        return this.entityDAO
-//                .byPK(examId)
-//                .flatMap(this.authorization::checkModify)
-//                .map(exam -> {
-//                    this.examAdminService
-//                            .getProctoringAdminService()
-//                            .saveProctoringServiceSettings(
-//                                    new EntityKey(examId, EntityType.EXAM),
-//                                    proctoringServiceSettings)
-//                            .getOrThrow();
-//                    return exam;
-//                })
-//                .flatMap(this.userActivityLogDAO::logModify)
-//                .getOrThrow();
-//    }
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ProctoringServiceSettings getProctoringServiceSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
+
+        checkReadPrivilege(institutionId);
+        return this.examAdminService
+                .getProctoringAdminService()
+                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Exam saveProctoringServiceSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
+
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO
+                .byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .map(exam -> {
+                    this.examAdminService
+                            .getProctoringAdminService()
+                            .saveProctoringServiceSettings(
+                                    new EntityKey(examId, EntityType.EXAM),
+                                    proctoringServiceSettings)
+                            .getOrThrow();
+                    return exam;
+                })
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
 
     // **** Proctoring
     // ****************************************************************************
@@ -724,9 +713,28 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> validForSave(final Exam entity) {
         return super.validForSave(entity)
                 .map(this::checkExamSupporterRole)
+                .map(this::checkConsecutiveExam)
                 .map(ExamUtils::noLMSFieldValidation)
                 .map(this::checkQuitPasswordChange)
                 .map(this::mergeTeacherAccounts);
+    }
+    
+    private Exam checkConsecutiveExam(final Exam exam) {
+        if (exam.followUpId != null) {
+            final Exam otherExam = examDAO.byPK(exam.followUpId).getOrThrow();
+            if (!Objects.equals(exam.lmsSetupId, otherExam.lmsSetupId)) {
+                APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam LMS Setup mismatch");
+            }
+            if (exam.status == Exam.ExamStatus.ARCHIVED || exam.status == Exam.ExamStatus.FINISHED || 
+                    otherExam.status == Exam.ExamStatus.ARCHIVED || otherExam.status == Exam.ExamStatus.FINISHED) {
+                APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam Status mismatch");
+            }
+            if (examDAO.getConsecutiveExamIds(exam.followUpId) != null) {
+                APIMessage.ErrorMessage.BAD_REQUEST.of("Consecutive Exam has already a previous exam");
+            }
+        }
+        
+        return exam;
     }
 
     private Exam mergeTeacherAccounts(final Exam exam) {

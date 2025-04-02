@@ -96,6 +96,10 @@ public interface FullLmsIntegrationService {
         public final String quit_link;
         @JsonProperty("quit_password")
         public final String quit_password;
+        @JsonProperty("next_course_id")
+        public final String next_course_id;
+        @JsonProperty("next_quiz_id")
+        public final String next_quiz_id;
 
         public ExamData(
                 final String id,
@@ -104,7 +108,9 @@ public interface FullLmsIntegrationService {
                 final Boolean exam_created,
                 final String template_id,
                 final String quit_link,
-                final String quit_password) {
+                final String quit_password,
+                final String next_course_id,
+                final String next_quiz_id) {
 
             this.id = id;
             this.course_id = course_id;
@@ -113,6 +119,23 @@ public interface FullLmsIntegrationService {
             this.template_id = template_id;
             this.quit_link = quit_link;
             this.quit_password = quit_password;
+            this.next_course_id = next_course_id;
+            this.next_quiz_id = next_quiz_id;
+        }
+
+        @Override
+        public String toString() {
+            return "ExamData{" +
+                    "id='" + id + '\'' +
+                    ", course_id='" + course_id + '\'' +
+                    ", quiz_id='" + quiz_id + '\'' +
+                    ", exam_created=" + exam_created +
+                    ", template_id='" + template_id + '\'' +
+                    ", quit_link='" + quit_link + '\'' +
+                    ", quit_password='" + quit_password + '\'' +
+                    ", next_course_id='" + next_course_id + '\'' +
+                    ", next_quiz_id='" + next_quiz_id + '\'' +
+                    '}';
         }
     }
 
@@ -142,6 +165,17 @@ public interface FullLmsIntegrationService {
             this.url = url;
             this.access_token = access_token;
             this.exam_templates = Utils.immutableCollectionOf(exam_templates);
+        }
+
+        @Override
+        public String toString() {
+            return "IntegrationData{" +
+                    "id='" + id + '\'' +
+                    ", name='" + name + '\'' +
+                    ", url='" + url + '\'' +
+                    ", access_token='" + access_token + '\'' +
+                    ", exam_templates=" + exam_templates +
+                    '}';
         }
     }
 
