@@ -731,20 +731,18 @@ public class ExamRecordDAO {
                             .map(ExamRecord::getFollowupId)
                     .toList());
             exclude.add(exam.id);
-            ExamRecord exclAlso = this.examRecordMapper.selectByExample()
+            this.examRecordMapper.selectByExample()
                     .where(followupId, isEqualTo(exam.id))
-                    .build()
-                    .execute()
-                    .stream().findFirst().orElse(null);
-            if (exclAlso != null) {
-                exclude.add(exclAlso.getId());
-            }
+                    .build().execute()
+                    .stream()
+                    .findFirst()
+                    .ifPresent(exclAlso -> exclude.add(exclAlso.getId()));
 
             final DateTime startTime = exam.getStartTime();
             final DateTime dateTime = startTime.toDateTime(timeZone);
             final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(dateTime.getMillis(), timeZone);
 
-            List<ExamRecord> execute = this.examRecordMapper
+            return this.examRecordMapper
                     .selectByExample()
                     .where(institutionId, isEqualToWhenPresent(exam.institutionId))
                     .and(active, isNotEqualTo(0))
@@ -758,8 +756,6 @@ public class ExamRecordDAO {
                     .or(id, isEqualToWhenPresent(exam.followUpId))
                     .build()
                     .execute();
-            
-            return execute;
         });
     }
 
@@ -772,8 +768,6 @@ public class ExamRecordDAO {
                 .toString()
                 : null;
     }
-
-
     
 }
 
