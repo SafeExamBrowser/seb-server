@@ -133,10 +133,25 @@ public class ExamUpdateHandler implements ExamUpdateTask {
 
             // test overall LMS access
             try {
-                this.lmsAPIService
-                        .getLmsAPITemplate(lmsSetupId)
-                        .getOrThrow()
-                        .checkCourseAPIAccess();
+                
+                try {
+                    
+                    this.lmsAPIService
+                            .getLmsAPITemplate(lmsSetupId)
+                            .getOrThrow()
+                            .checkCourseAPIAccess();
+                    
+                } catch (final Exception te) {
+                    log.warn("Failed to test LMSSetup {} cause: {}. Clear cache and try again...", 
+                            lmsSetupId,
+                            te.getMessage());
+
+                    lmsAPIService.cleanup();
+                    this.lmsAPIService
+                            .getLmsAPITemplate(lmsSetupId)
+                            .getOrThrow()
+                            .checkCourseAPIAccess();
+                }
             } catch (final Exception e) {
                 log.warn("No LMS access, mark all exams of the LMS as not connected to LMS");
                 if (!failedOrMissing.isEmpty()) {

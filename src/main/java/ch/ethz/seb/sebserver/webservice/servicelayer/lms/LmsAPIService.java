@@ -37,6 +37,9 @@ public interface LmsAPIService {
     /** Reset and cleanup the caches if there are some */
     void cleanup();
 
+    /** Reset and cleanup the caches for specified LMSSetup */
+    void cleanupSetup(Long id);
+
     /** Get the specified LmsSetup model by primary key
      *
      * @param id The identifier (PK) of the LmsSetup model

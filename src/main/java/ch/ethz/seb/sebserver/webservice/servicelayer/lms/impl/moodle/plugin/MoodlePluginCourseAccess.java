@@ -431,22 +431,13 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                     DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
             final long cutoffDate = Math.min(filterDate, defaultCutOff);
             String sqlCondition = String.format(
-                    SQL_CONDITION_TEMPLATE,
-                    String.valueOf(cutoffDate),
-                    String.valueOf(filterDate));
+                    SQL_CONDITION_TEMPLATE, cutoffDate, filterDate);
             final String fromElement = String.valueOf(page * size);
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
 
             if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
-                sqlCondition = sqlCondition + " AND (" +
-                        SQL_QUIZ_NAME +
-                        " LIKE '" +
-                        Utils.toSQLWildcard(nameCondition) +
-                        "' OR " +
-                        SQL_COURSE_NAME +
-                        " LIKE '" +
-                        Utils.toSQLWildcard(nameCondition) +
-                        "')";
+                final String n = Utils.toSQLWildcard(nameCondition);
+                sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
             }
 
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter

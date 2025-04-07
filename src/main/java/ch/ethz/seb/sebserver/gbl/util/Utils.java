@@ -629,11 +629,13 @@ public final class Utils {
     }
 
     public static String toAppFormUrlEncodedBody(final MultiValueMap<String, String> attributes) {
-        if (attributes == null) {
-            return StringUtils.EMPTY;
-        }
-
-        return reduceFormUrlAttributes(attributes);
+        return toAppFormUrlEncodedBodyForSPService(attributes);
+        // TODO do it all the same with toAppFormUrlEncodedBody
+//        if (attributes == null) {
+//            return StringUtils.EMPTY;
+//        }
+//
+//        return reduceFormUrlAttributes(attributes);
     }
 
     public static String toAppFormUrlEncodedBodyForSPService(final MultiValueMap<String, String> attributes) {

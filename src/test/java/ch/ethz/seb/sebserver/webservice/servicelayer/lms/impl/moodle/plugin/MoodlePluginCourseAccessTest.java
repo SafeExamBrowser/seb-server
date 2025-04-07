@@ -80,14 +80,7 @@ public class MoodlePluginCourseAccessTest {
         assertNull(asyncQuizFetchBuffer.error);
 
         assertEquals(
-                "MoodlePluginCourseAccess [pageSize=500, maxSize=10000, cutoffTimeOffset=3, "
-                        + "restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, "
-                        + "testLog=["
-                        + "callMoodleAPIFunction: quizaccess_sebserver_get_exams, "
-                        + "callMoodleAPIFunction: quizaccess_sebserver_get_exams], "
-                        + "callLog=["
-                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=0&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=500&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                "MoodlePluginCourseAccess [pageSize=500, maxSize=10000, cutoffTimeOffset=3, restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams], callLog=[<courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=0&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=500&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
 
         final List<String> ids =
@@ -145,20 +138,7 @@ public class MoodlePluginCourseAccessTest {
         assertNull(asyncQuizFetchBuffer.error);
 
         assertEquals(
-                "MoodlePluginCourseAccess [pageSize=5, maxSize=10000, cutoffTimeOffset=3, "
-                        + "restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, "
-                        + "testLog=["
-                        + "callMoodleAPIFunction: quizaccess_sebserver_get_exams, "
-                        + "callMoodleAPIFunction: quizaccess_sebserver_get_exams, "
-                        + "callMoodleAPIFunction: quizaccess_sebserver_get_exams, "
-                        + "callMoodleAPIFunction: quizaccess_sebserver_get_exams, "
-                        + "callMoodleAPIFunction: quizaccess_sebserver_get_exams], "
-                        + "callLog=["
-                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=0&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=5&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=10&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=15&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=20&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                "MoodlePluginCourseAccess [pageSize=5, maxSize=10000, cutoffTimeOffset=3, restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams], callLog=[<courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=0&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=5&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=10&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=15&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=20&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
 
         final List<String> ids =

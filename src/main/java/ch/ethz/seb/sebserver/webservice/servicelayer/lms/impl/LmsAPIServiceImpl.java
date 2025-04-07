@@ -72,6 +72,15 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     }
 
     @Override
+    public void cleanupSetup(final Long id) {
+        if (id == null) {
+            cleanup();
+            return;
+        }
+        lmsAPITemplateCacheService.clearCache(String.valueOf(id));
+    }
+
+    @Override
     public Result<LmsSetup> getLmsSetup(final Long id) {
         return this.lmsSetupDAO.byPK(id);
     }
@@ -95,9 +104,4 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     public Result<LmsAPITemplate> getLmsAPITemplate(final String lmsSetupId) {
         return lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId);
     }
-
-
-
-
-
 }
