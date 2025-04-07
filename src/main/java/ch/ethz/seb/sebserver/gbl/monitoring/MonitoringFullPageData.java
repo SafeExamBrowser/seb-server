@@ -29,8 +29,6 @@ public class MonitoringFullPageData {
     public final Long examId;
     @JsonProperty(ATTR_CONNECTIONS_DATA)
     public final MonitoringSEBConnectionData monitoringConnectionData;
-//    @JsonProperty(ATTR_PROCTORING_DATA)
-//    public final Collection<RemoteProctoringRoom> proctoringData;
     @JsonProperty(ATTR_SCREEN_PROCTORING_DATA)
     final Collection<ProctoringGroupMonitoringData> screenProctoringData;
 
@@ -42,7 +40,6 @@ public class MonitoringFullPageData {
 
         this.examId = examId;
         this.monitoringConnectionData = monitoringConnectionData;
-     //   this.proctoringData = proctoringData;
         this.screenProctoringData = screenProctoringData;
     }
 
@@ -53,10 +50,6 @@ public class MonitoringFullPageData {
     public MonitoringSEBConnectionData getMonitoringConnectionData() {
         return this.monitoringConnectionData;
     }
-
-//    public Collection<RemoteProctoringRoom> getProctoringData() {
-//        return this.proctoringData;
-//    }
 
     public Collection<ProctoringGroupMonitoringData> getScreenProctoringData() {
         return this.screenProctoringData;

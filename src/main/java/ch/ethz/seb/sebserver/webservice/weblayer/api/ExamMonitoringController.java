@@ -289,6 +289,16 @@ public class ExamMonitoringController {
                 .getOrThrow();
     }
 
+    /** This is the older exam monitoring data endpoint where all Client Connection data for an exam can be requested 
+     *  in a list. This results in a list with full ClientConnectionData for every request and is therefore not performant
+     *  when a lot of client connection must be displayed and updated.
+     * @param institutionId the institution identifier from the user. If absent the system will get the one from logged in user
+     * @param examId The exam identifier
+     * @param hiddenStates Comma separated list of exam state names that are hidden from the filter and shall not be included
+     * @param hiddenClientGroups Comma separated list of client group ids of client groups that are hidden from the filter and shall not be included
+     * @param hiddenIssues Comma separated list of ConnectionIssueStatus names that are hidden from the filter and shall not be included
+     * @return Filtered Collection of ClientConnectionData for exam monitoring display and update
+     */
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -312,6 +322,21 @@ public class ExamMonitoringController {
                 .getOrThrow();
     }
 
+    /** Get the static client connection monitoring data for a given exam.
+     * <p> 
+     * Note: To get better performance the above endpoint and result that contains the all monitoring client data, has been 
+     * split up into static and non-static data. Static date usually is only changing once or twice per SEB connection or only 
+     * within a SEB connection state change where none-static data can change anytime and needs to be constantly updated.
+     * <p> 
+     * This gets the static data for specific requested SEB connections for update. A GUI client can use this to get the static data
+     * for all SEB connections that has changed it state since the last update for example and do not need to call this every 
+     * one or two seconds.
+     * 
+     * @param institutionId the institution identifier from the user. If absent the system will get the one from logged in user
+     * @param examId The exam identifier
+     * @param clientConnectionIds Comma separated list of ClientConnection ids (PKs not connectionTokens)
+     * @return The MonitoringStaticClientData containing all static data of requested SEB Client connections
+     */
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_STATIC_CLIENT_DATA,
@@ -337,7 +362,7 @@ public class ExamMonitoringController {
                 .getMonitoringSEBConnectionStaticData(runningExam.id, ids)
                 .getOrThrow();
     }
-
+    
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_FULLPAGE,
