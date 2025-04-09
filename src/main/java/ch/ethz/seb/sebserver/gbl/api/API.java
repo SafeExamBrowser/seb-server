@@ -238,9 +238,11 @@ public final class API {
     public static final String CONFIGURATION_SET_QUIT_PWD_PATH_SEGMENT = "/quitpwd";
 
     public static final String SEB_SETTINGS_ENDPOINT = "/seb-settings";
-    public static final String SEB_SETTINGS_EXAM_PATH_SEGMENT = "/exam";
-    public static final String SEB_SETTINGS_VIEW_TYPE = "viewtype";
-    public static final String SEB_SETTINGS_VIEW_TYPE_VAR_PATH_SEGMENT = "/{" + SEB_SETTINGS_VIEW_TYPE + "}";
+    //public static final String SEB_SETTINGS_EXAM_PATH_SEGMENT = "/exam";
+    public static final String SEB_SETTINGS_TABLE_PATH_SEGMENT = "/table";
+    public static final String SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT = "/row";
+    //public static final String SEB_SETTINGS_VIEW_TYPE = "viewtype";
+//    public static final String SEB_SETTINGS_VIEW_TYPE_VAR_PATH_SEGMENT = "/{" + SEB_SETTINGS_VIEW_TYPE + "}";
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
     public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";

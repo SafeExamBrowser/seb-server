@@ -13,16 +13,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @WebServiceProfile
 @RestController
@@ -34,6 +37,8 @@ public class SEBSettingsController {
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
+    private final AuthorizationService authorizationService;
+    private final ExamDAO examDAO;
     
     
     /** Mapping of all SEB Settings/ConfigurationAttributes for different SEB Settings view.
@@ -46,12 +51,16 @@ public class SEBSettingsController {
             final ConfigurationDAO configurationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ConfigurationValueDAO configurationValueDAO,
-            final ExamConfigurationMapDAO examConfigurationMapDAO) {
+            final ExamConfigurationMapDAO examConfigurationMapDAO,
+            final AuthorizationService authorizationService,
+            final ExamDAO examDAO) {
         
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
+        this.authorizationService = authorizationService;
+        this.examDAO = examDAO;
 
         /* Ids of all SEB Setting/Configuration Attributes for the Application view */
         viewAttributeMapping.put(
@@ -77,19 +86,15 @@ public class SEBSettingsController {
         );
     }
 
-
     @RequestMapping(
-            path = API.SEB_SETTINGS_EXAM_PATH_SEGMENT + 
-                    API.MODEL_ID_VAR_PATH_SEGMENT + 
-                    API.SEB_SETTINGS_VIEW_TYPE_VAR_PATH_SEGMENT,
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBSettingsView getSEBSettingsForExam(
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId, 
-            @PathVariable(name = API.SEB_SETTINGS_VIEW_TYPE) final SEBSettingsView.ViewType viewType) {
-
-        // TODO check user read access on exam
+            @RequestParam(name = SEBSettingsView.ATTR_VIEW_TYPE) final SEBSettingsView.ViewType viewType) {
         
+        authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
         
         // Get mapped configurationNodeId last (open) configurationId
         final Long configurationNodeId = examConfigurationMapDAO
@@ -104,20 +109,7 @@ public class SEBSettingsController {
         final Map<Long, ConfigurationAttribute> attrIdMapping = attributes.values().stream()
                 .collect(Collectors.toMap(attr -> attr.id, Function.identity()));
         final Map<String, SEBSettingsView.Value>  singleValues = getSingleValues(followUpConfig.id, attributes);
-        final Map<String, List<List<ConfigurationValue>>> tableVals = getTableValues(followUpConfig.institutionId, followUpConfig.id, attributes);
-        final Map<String, List<Map<String, SEBSettingsView.Value>>> tableValues = new HashMap<>();
-
-        tableVals.forEach((key, value) -> {
-            final List<Map<String, SEBSettingsView.Value>> rows = value.stream()
-                    .map(val -> val.stream()
-                            .filter(Objects::nonNull).
-                            collect(Collectors.toMap(
-                    v -> attrIdMapping.get(v.attributeId).name,
-                    v -> new SEBSettingsView.Value(v.id, v.value)))
-            ).toList();
-
-            tableValues.put(key, rows);
-        });
+        final Map<String, List<SEBSettingsView.TableRowValues>> tableValues = getTableRowMapping(followUpConfig, attributes, attrIdMapping);
 
         return new SEBSettingsView(
                 viewType, 
@@ -126,6 +118,135 @@ public class SEBSettingsController {
                 attributes,
                 singleValues,
                 tableValues);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<SEBSettingsView.TableRowValues> getTableValues(
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @RequestParam(name = Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String attributeName) {
+
+        authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
+
+        // Get mapped configurationNodeId last (open) configurationId
+        final Long configurationNodeId = examConfigurationMapDAO
+                .getDefaultConfigurationNode(examId)
+                .getOrThrow();
+        final Configuration followUpConfig = configurationDAO.
+                getFollowupConfiguration(configurationNodeId)
+                .getOrThrow();
+
+        final ConfigurationAttribute tableAttribute = configurationAttributeDAO
+                .getAttributeIdByName(attributeName)
+                .flatMap(configurationAttributeDAO::byPK)
+                .getOrThrow();
+        
+        if (tableAttribute.type != AttributeType.TABLE && tableAttribute.type != AttributeType.COMPOSITE_TABLE) {
+            throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of());
+        }
+
+        return getTableRowMapping(followUpConfig, tableAttribute)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SEBSettingsView.TableRowValues addNewTableRow(
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @RequestParam(name = Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String attributeName) {
+
+        authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
+
+        final ConfigurationAttribute tableAttribute = configurationAttributeDAO
+                .getAttributeIdByName(attributeName)
+                .flatMap(configurationAttributeDAO::byPK)
+                .getOrThrow();
+
+        if (tableAttribute.type != AttributeType.TABLE) {
+            throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of());
+        }
+
+        final Long configurationNodeId = examConfigurationMapDAO
+                .getDefaultConfigurationNode(examId)
+                .getOrThrow();
+        final Configuration followUpConfig = configurationDAO.
+                getFollowupConfiguration(configurationNodeId)
+                .getOrThrow();
+
+        final Collection<ConfigurationAttribute> columns = configurationAttributeDAO
+                .allChildAttributes(tableAttribute.id)
+                .getOrThrow();
+
+        final List<List<ConfigurationValue>> tableValues = configurationValueDAO
+                .getOrderedTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id)
+                .getOrThrow();
+        
+        final int index = tableValues.size();
+        final Map<String, SEBSettingsView.Value> rowValues = new HashMap<>();
+
+        columns.forEach( column -> {
+
+            // TODO try to batch create
+            final ConfigurationValue newValue = configurationValueDAO.createNew(new ConfigurationValue(
+                            null,
+                            followUpConfig.institutionId,
+                            followUpConfig.id,
+                            column.id,
+                            index,
+                            column.defaultValue))
+                    .getOrThrow();
+
+            rowValues.put(column.name, new SEBSettingsView.Value(newValue.id, newValue.value));
+        });
+        
+        return new SEBSettingsView.TableRowValues(tableAttribute.name, index, rowValues);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
+            method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<SEBSettingsView.TableRowValues> deleteNewTableRow(
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @RequestParam(name = Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String attributeName,
+            @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX) final int index) {
+        
+        if (index < 0) {
+            throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("Negative row index not allowed"));
+        }
+
+        authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
+
+        final ConfigurationAttribute tableAttribute = configurationAttributeDAO
+                .getAttributeIdByName(attributeName)
+                .flatMap(configurationAttributeDAO::byPK)
+                .getOrThrow();
+
+        if (tableAttribute.type != AttributeType.TABLE) {
+            throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("Attribute is not of type TABLE"));
+        }
+
+        final Long configurationNodeId = examConfigurationMapDAO
+                .getDefaultConfigurationNode(examId)
+                .getOrThrow();
+        final Configuration followUpConfig = configurationDAO.
+                getFollowupConfiguration(configurationNodeId)
+                .getOrThrow();
+        final List<List<ConfigurationValue>> tableValues = configurationValueDAO
+                .getOrderedTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id)
+                .getOrThrow();
+        
+        if (index >= tableValues.size()) {
+            throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("No table row index: " + index));
+        }
+        final Set<EntityKey> toDelete = tableValues.get(index).stream().map(Entity::getEntityKey).collect(Collectors.toSet());
+        final Collection<EntityKey> deleted = configurationValueDAO.delete(toDelete).getOrThrow();
+        
+        return getTableValues(examId, attributeName);
     }
 
     private Map<String, ConfigurationAttribute> getAttributesForView(final SEBSettingsView.ViewType viewType) {
@@ -158,6 +279,62 @@ public class SEBSettingsController {
                                 val -> attrIdsMap.get(val.attributeId).name, 
                                 val -> new SEBSettingsView.Value(val.id, val.value) )))
                 .getOrThrow();
+    }
+
+    private Result<List<SEBSettingsView.TableRowValues>> getTableRowMapping(
+            final Configuration followUpConfig,
+            final ConfigurationAttribute attribute) {
+
+        final Map<Long, String> mapping = configurationAttributeDAO
+                .allChildAttributes(attribute.id)
+                .getOrThrow()
+                .stream()
+                .collect(Collectors.toMap(a -> a.id, a -> a.name));
+        
+        return configurationValueDAO.getOrderedTableValues(
+                followUpConfig.institutionId,
+                followUpConfig.getId(),
+                attribute.id)
+                .map(val -> {
+                    final List<SEBSettingsView.TableRowValues> res = new ArrayList<>();
+                    int i = 0;
+                    for (final List<ConfigurationValue> row : val) {
+                        final SEBSettingsView.TableRowValues tableRowValues = new SEBSettingsView.TableRowValues(attribute.name, i, row.stream()
+                                .filter(Objects::nonNull).
+                                collect(Collectors.toMap(
+                                        v -> mapping.get(v.attributeId),
+                                        v -> new SEBSettingsView.Value(v.id, v.value))));
+                        res.add(tableRowValues);
+                        i++;
+                    }
+                    return res;
+                } 
+        );
+    }
+
+    private Map<String, List<SEBSettingsView.TableRowValues>> getTableRowMapping(
+            final Configuration followUpConfig,
+            final Map<String, ConfigurationAttribute> attributes,
+            final Map<Long, ConfigurationAttribute> attrIdMapping) {
+
+        final Map<String, List<List<ConfigurationValue>>> tableVals = getTableValues(followUpConfig.institutionId, followUpConfig.id, attributes);
+        final Map<String, List<SEBSettingsView.TableRowValues>> tableValues = new HashMap<>();
+
+        tableVals.forEach((key, attrValues) -> {
+            final List<SEBSettingsView.TableRowValues> rows = new ArrayList<>();
+            int i = 0;
+            for (final List<ConfigurationValue> row : attrValues) {
+                final SEBSettingsView.TableRowValues tableRowValues = new SEBSettingsView.TableRowValues(key, i, row.stream()
+                        .filter(Objects::nonNull).
+                        collect(Collectors.toMap(
+                                v -> attrIdMapping.get(v.attributeId).name,
+                                v -> new SEBSettingsView.Value(v.id, v.value))));
+                rows.add(tableRowValues);
+                i++;
+            }
+            tableValues.put(key, rows);
+        });
+        return tableValues;
     }
     
     private Map<String, List<List<ConfigurationValue>>> getTableValues(

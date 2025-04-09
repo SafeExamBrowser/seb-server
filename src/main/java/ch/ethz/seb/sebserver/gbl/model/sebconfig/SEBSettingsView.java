@@ -22,16 +22,22 @@ public record SEBSettingsView(
         @JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ID) Long configurationId,
         @JsonProperty(ATTR_ATTRIBUTES) Map<String, ConfigurationAttribute> attributes,
         @JsonProperty(ATTR_SINGLE_VALUES) Map<String, Value> singleValues,
-        @JsonProperty(ATTR_TABLE_VALUES) Map<String, List<Map<String, Value>>> tableValues) {
+        @JsonProperty(ATTR_TABLE_VALUES) Map<String, List<TableRowValues>> tableValues) {
 
     public final static String ATTR_ATTRIBUTES = "attributes";
     public final static String ATTR_VIEW_TYPE = "viewType";
     public final static String ATTR_SINGLE_VALUES = "singleValues";
     public final static String ATTR_TABLE_VALUES = "tableValues";
+    public final static String ATTR_TABLE_ROW_VALUES = "rowValues";
 
     public enum ViewType {
         APPLICATION,
         NETWORK
+    }
+    
+    public record TableRowValues(@JsonProperty(Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) String attributeName,
+                                 @JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX) int index,
+                                 @JsonProperty(ATTR_TABLE_ROW_VALUES) Map<String, Value> rowValues) {
     }
     
     @JsonIgnoreProperties(ignoreUnknown = true)

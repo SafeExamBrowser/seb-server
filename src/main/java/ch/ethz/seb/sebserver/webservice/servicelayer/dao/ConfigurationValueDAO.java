@@ -15,6 +15,7 @@ import java.util.Set;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, ConfigurationValue> {
@@ -93,4 +94,6 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
     Result<Void> saveQuitPassword(Long configurationId, String pwd);
 
     Result<ConfigurationValue> saveForce(ConfigurationValue configurationValue);
+    
+    //Result<Collection<ConfigurationValue>> saveAllValues(Collection<ConfigurationValue> values);
 }
