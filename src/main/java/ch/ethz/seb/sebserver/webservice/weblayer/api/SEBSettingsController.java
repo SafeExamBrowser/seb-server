@@ -152,8 +152,33 @@ public class SEBSettingsController {
     }
 
     @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SEBSettingsView.Value saveValue(
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_ID) final Long valueId,
+            @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_VALUE) final String value) {
+
+        authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
+        
+        final ConfigurationValue cValue = configurationValueDAO.byPK(valueId).getOrThrow();
+        final ConfigurationValue newCValue = configurationValueDAO.save(new ConfigurationValue(
+                cValue.id,
+                cValue.institutionId,
+                cValue.configurationId,
+                cValue.attributeId,
+                cValue.listIndex,
+                value)).getOrThrow();
+
+        return new SEBSettingsView.Value(cValue.id, newCValue.value);
+    }
+
+    @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
             method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBSettingsView.TableRowValues addNewTableRow(
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
@@ -207,7 +232,9 @@ public class SEBSettingsController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + 
+                    API.SEB_SETTINGS_TABLE_PATH_SEGMENT + 
+                    API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SEBSettingsView.TableRowValues> deleteNewTableRow(
