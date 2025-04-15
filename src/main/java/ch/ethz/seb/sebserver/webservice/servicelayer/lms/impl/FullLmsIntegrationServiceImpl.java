@@ -18,10 +18,7 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.*;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -661,26 +658,28 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
             final String response = lmsAPITemplate.applyExamData(examData).getOrThrow();
             if (exam.followUpId != null) {
-                // response contains the quiz context id which is used to create the download link for next Connection Config
-                // URL/pluginfile.php/XYZ/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb
                 try {
-                    final int quizContextId = Integer.parseInt(response);
-                    final String lmsApiUrl = lmsAPITemplate.lmsSetup().lmsApiUrl;
-                    String downloadLink = lmsApiUrl.endsWith(Constants.SLASH.toString()) ? lmsApiUrl : lmsApiUrl + Constants.SLASH;
-                    downloadLink = downloadLink +
-                            "pluginfile.php/" + 
-                            quizContextId + 
-                            "/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb";
-                    
-                    
+
+
+                    final String reconfigurationLink = extractReconfigurationLinkFromLMSResponse(lmsAPITemplate, response);
+                    if (reconfigurationLink == null) {
+                        log.error("Failed to parse reconfiguration link from LMS response: {}", response);
+                        throw new RuntimeException("Failed to parse reconfiguration link");
+                    }
                     if (log.isDebugEnabled()) {
-                        log.debug("Apply next quit download link: {}", downloadLink);
+                        log.debug("Apply next quit download link as reconfiguration link: {}", reconfigurationLink);
                     }
                     
                     // save link in additional attributes for later apply if needed
                     additionalAttributesDAO
-                            .saveAdditionalAttribute(EntityType.EXAM, exam.id, Exam.ADDITIONAL_ATTR_CONSECUTIVE_QUIZ_DOWNLOAD_LINK, downloadLink)
-                            .onError(error -> log.error("Failed to save download link for next exam in additional attributes: {}", error.getMessage()));
+                            .saveAdditionalAttribute(
+                                    EntityType.EXAM, 
+                                    exam.id, 
+                                    Exam.ADDITIONAL_ATTR_CONSECUTIVE_QUIZ_DOWNLOAD_LINK, 
+                                    reconfigurationLink)
+                            .onError(error -> log.error(
+                                    "Failed to save download link for next exam in additional attributes: {}", 
+                                    error.getMessage()));
 
                     // apply to SEB Settings of current Exam Config if available on Exam
                     return examConfigurationValueService
@@ -699,6 +698,41 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             log.warn("Failed to apply exam data to LMS for exam: {} error: {}", exam, e.getMessage());
         }
         return exam;
+    }
+
+    private String extractReconfigurationLinkFromLMSResponse(
+            final LmsAPITemplate lmsAPITemplate, 
+            final String response) {
+        
+        // response contains the quiz context id which is used to create the download link for next Connection Config
+        // URL/pluginfile.php/XYZ/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb
+        Integer quizContextId = null;
+        
+        if (lmsAPITemplate.lmsSetup().lmsType == LmsSetup.LmsType.MOODLE_PLUGIN) {
+            try {
+                // response is {"success":true,"context":489,....
+                final JSONMapper jsonMapper = new JSONMapper();
+                final MoodleUtils.ExamDataApplyResponse examDataApplyResponse = jsonMapper.readValue(
+                        response,
+                        MoodleUtils.ExamDataApplyResponse.class);
+
+                quizContextId = examDataApplyResponse.context;
+            } catch (final Exception e) {
+                log.error("Failed to parse context id from Moodle response: {}, cause: {}", response, e.getMessage());
+                return null;
+            }
+        } else if (lmsAPITemplate.lmsSetup().lmsType == LmsSetup.LmsType.MOCKUP) {
+            quizContextId = Integer.valueOf(response);
+        }
+        
+        final String lmsApiUrl = lmsAPITemplate.lmsSetup().lmsApiUrl;
+        final String downloadLink = lmsApiUrl.endsWith(Constants.SLASH.toString()) 
+                ? lmsApiUrl 
+                : lmsApiUrl + Constants.SLASH;
+        return downloadLink +
+                "pluginfile.php/" +
+                quizContextId +
+                "/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb";
     }
 
     private Exam applyQuitLinkToSEBConfig(final Exam exam, final boolean showQuitLink) {

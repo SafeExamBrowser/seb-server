@@ -672,4 +672,25 @@ public abstract class MoodleUtils {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class ExamDataApplyResponse {
+        @JsonProperty("success")
+        public final boolean success;
+        @JsonProperty("context")
+        public final Integer context;
+        @JsonProperty("warnings")
+        public final Collection<Warning> warnings;
+
+        @JsonCreator
+        public ExamDataApplyResponse(
+                @JsonProperty("success") final boolean success,
+                @JsonProperty("context") final Integer context,
+                @JsonProperty("warnings") final Collection<Warning> warnings) {
+
+            this.success = success;
+            this.context = context;
+            this.warnings = warnings;
+        }
+    }
+
 }
