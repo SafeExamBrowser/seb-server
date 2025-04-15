@@ -67,6 +67,8 @@ import org.springframework.stereotype.Service;
 public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService {
 
     private static final Logger log = LoggerFactory.getLogger(FullLmsIntegrationServiceImpl.class);
+    
+    public static final String DEFAULT_SEB_QUIT_URL = "http://quit_seb";
 
     private final LmsSetupDAO lmsSetupDAO;
     private final UserActivityLogDAO userActivityLogDAO;
@@ -729,10 +731,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         final String downloadLink = lmsApiUrl.endsWith(Constants.SLASH.toString()) 
                 ? lmsApiUrl 
                 : lmsApiUrl + Constants.SLASH;
-        return downloadLink +
-                "pluginfile.php/" +
-                quizContextId +
-                "/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb";
+        return downloadLink + MoodleUtils.SEB_RECONFIGURATION_LINK_TEMPLATE.formatted(quizContextId);
     }
 
     private Exam applyQuitLinkToSEBConfig(final Exam exam, final boolean showQuitLink) {
@@ -750,7 +749,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     return exam;
                 }
 
-                quitLink = "http://quit_seb";
+                quitLink = DEFAULT_SEB_QUIT_URL;
 
                 examConfigurationValueService
                         .applyQuitURLToConfigs(exam.id, quitLink)

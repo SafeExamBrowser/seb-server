@@ -671,6 +671,8 @@ public abstract class MoodleUtils {
             this.warnings = warnings;
         }
     }
+    
+    public static final String SEB_RECONFIGURATION_LINK_TEMPLATE = "pluginfile.php/%s/quizaccess_sebserver/filemanager_sebserverconfigfile/0/SEBServerSettings.seb";
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class ExamDataApplyResponse {
@@ -692,5 +694,6 @@ public abstract class MoodleUtils {
             this.warnings = warnings;
         }
     }
+    
 
 }
