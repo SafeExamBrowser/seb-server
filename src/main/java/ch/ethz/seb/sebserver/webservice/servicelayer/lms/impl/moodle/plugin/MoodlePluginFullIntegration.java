@@ -216,18 +216,27 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             if (BooleanUtils.isTrue(examData.exam_created)) {
                 data_mapping.put("addordelete", "1");
                 data_mapping.put("templateid", examData.template_id);
-                data_mapping.put("showquitlink", StringUtils.isNotBlank(examData.quit_link) ? "1" : "0");
-                data_mapping.put("quitlink", examData.quit_link);
-                data_mapping.put("quitsecret", examData.quit_password);
-                data_mapping.put("nextcourseid", examData.next_course_id);
+                
+                if (examData.next_quiz_id != null) {
+                    data_mapping.put("nextcourseid", examData.next_course_id);
+                    data_mapping.put("nextquizid", examData.next_quiz_id);
+                } else {
+                    data_mapping.put("showquitlink", StringUtils.isNotBlank(examData.quit_link) ? "1" : "0");
+                    data_mapping.put("quitlink", examData.quit_link);
+                    data_mapping.put("quitsecret", examData.quit_password);
+                }
             } else {
                 data_mapping.put("addordelete", "0");
             }
+            
+            log.info("********** Apply exam attributes to LMS: {}", attributes);
 
             final String response = rest.postToMoodleAPIFunction(
                     FUNCTION_NAME_SET_EXAM_DATA,
                     null,
                     attributes);
+            
+            log.info("*********** Apply exam attributes to LMS Response: {}", response);
 
             if (response != null && (response.startsWith("{\"exception\":") || response.startsWith("0"))) {
                 log.warn("Failed to apply Exam data to moodle: {}", examData);

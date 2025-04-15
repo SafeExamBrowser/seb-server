@@ -237,7 +237,7 @@ public final class API {
     public static final String IMPORT_FILE_ATTR_NAME = "importFile";
     public static final String CONFIGURATION_SET_QUIT_PWD_PATH_SEGMENT = "/quitpwd";
 
-    public static final String SEB_SETTINGS_ENDPOINT = "/seb-settings";
+    public static final String SEB_SETTINGS_ENDPOINT = EXAM_ADMINISTRATION_ENDPOINT + "/seb-settings";
     public static final String SEB_SETTINGS_TABLE_PATH_SEGMENT = "/table";
     public static final String SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT = "/row";
 
