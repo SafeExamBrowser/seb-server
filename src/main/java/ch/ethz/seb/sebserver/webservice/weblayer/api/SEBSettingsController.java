@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -24,6 +25,8 @@ import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +35,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_SETTINGS_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class SEBSettingsController {
+
+    private static final Logger log = LoggerFactory.getLogger(SEBSettingsController.class);
     
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
@@ -156,7 +161,7 @@ public class SEBSettingsController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public SEBSettingsView.Value saveValue(
+    public SEBSettingsView.Value saveSingleValue(
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_ID) final Long valueId,
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_VALUE) final String value) {
@@ -173,6 +178,58 @@ public class SEBSettingsController {
                 value)).getOrThrow();
 
         return new SEBSettingsView.Value(cValue.id, newCValue.value);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
+            method = RequestMethod.PUT,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SEBSettingsView.TableRowValues saveTableRowValues(
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @RequestBody final SEBSettingsView.TableRowValues values) {
+
+        final Exam exam = examDAO.byPK(examId).getOrThrow();
+        authorizationService.hasModifyGrant(exam);
+
+        values.rowValues().forEach((key, value) -> {
+            try {
+                final Long vid = value.valueId();
+                if (vid == null || vid < 0) {
+                    final Long configurationNodeId = examConfigurationMapDAO
+                            .getDefaultConfigurationNode(examId)
+                            .getOrThrow();
+                    final Configuration followUpConfig = configurationDAO.
+                            getFollowupConfiguration(configurationNodeId)
+                            .getOrThrow();
+                    final Long attrId = configurationAttributeDAO
+                            .getAttributeIdByName(key)
+                            .getOrThrow();
+                    final ConfigurationValue newCValue = configurationValueDAO.save(new ConfigurationValue(
+                                    null,
+                                    exam.institutionId,
+                                    followUpConfig.id,
+                                    attrId,
+                                    values.index(),
+                                    value.value()))
+                            .getOrThrow();
+                } else {
+                    final ConfigurationValue cValue = configurationValueDAO.byPK(vid).getOrThrow();
+                    configurationValueDAO.save(new ConfigurationValue(
+                                    cValue.id,
+                                    cValue.institutionId,
+                                    cValue.configurationId,
+                                    cValue.attributeId,
+                                    cValue.listIndex,
+                                    value.value()))
+                            .getOrThrow();
+                }
+            } catch (final Exception e) {
+                log.warn("Failed to save SEB Settings table row value: {}, {} cause: {}", key, value, e.getMessage());
+            }
+        });
+        
+        return values;
     }
 
     @RequestMapping(
@@ -231,13 +288,15 @@ public class SEBSettingsController {
         return new SEBSettingsView.TableRowValues(tableAttribute.name, index, rowValues);
     }
 
+    
+
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + 
                     API.SEB_SETTINGS_TABLE_PATH_SEGMENT + 
                     API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<SEBSettingsView.TableRowValues> deleteNewTableRow(
+    public List<SEBSettingsView.TableRowValues> deleteTableRow(
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
             @RequestParam(name = Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String attributeName,
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX) final int index) {
@@ -270,7 +329,13 @@ public class SEBSettingsController {
         if (index >= tableValues.size()) {
             throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("No table row index: " + index));
         }
-        final Set<EntityKey> toDelete = tableValues.get(index).stream().map(Entity::getEntityKey).collect(Collectors.toSet());
+        
+        final List<ConfigurationValue> configurationValues = tableValues.get(index);
+        final Set<EntityKey> toDelete = configurationValues
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Entity::getEntityKey)
+                .collect(Collectors.toSet());
         final Collection<EntityKey> deleted = configurationValueDAO.delete(toDelete).getOrThrow();
         
         return getTableValues(examId, attributeName);

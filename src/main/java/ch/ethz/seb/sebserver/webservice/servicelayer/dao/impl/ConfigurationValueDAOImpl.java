@@ -391,7 +391,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Result<List<List<ConfigurationValue>>> getOrderedTableValues(
             final Long institutionId,
             final Long configurationId,
@@ -447,13 +447,28 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 final Map<Long, ConfigurationValue> rowValuesMapping = indexMapping.get(i);
                 final List<ConfigurationValue> rowValues = attributes
                         .stream()
-                        .map(attr -> rowValuesMapping.get(attr.getId()))
+                        .map(attr -> {
+                            final ConfigurationValue configurationValue = rowValuesMapping.get(attr.getId());
+                            if (configurationValue == null) {
+                                return missingValue(attr, institutionId, configurationId);
+                            }
+                            return configurationValue;
+                        })
                         .collect(Collectors.toList());
                 result.add(rowValues);
             });
 
             return result;
         });
+    }
+    
+    private ConfigurationValue missingValue(
+            final ConfigurationAttributeRecord attr,
+            final Long institutionId,
+            final Long configurationId) {
+        
+        log.info("***************** missingValue: {}", attr);
+        return null;
     }
 
     @Override

@@ -44,6 +44,10 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
 
     /** Use this to get an ordered list of all ConfigurationValue of a table attribute on a specified configuration.
      * The list is ordered within the row/list index
+     * <p> 
+     * NOTE: The inner list (List<ConfigurationValue>) that contains the values of a row, can contain null values
+     *       when the attribute values for the specific column in the row doesn't exist due to new invented 
+     *       attributes for example.
      *
      * @param institutionId the institution identifier
      * @param configurationId the configuration identifier
