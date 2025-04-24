@@ -8,15 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +36,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
     // TODO why list for type? Is it possible to restrict to one per type?
     final EnumMap<EventType, Collection<ClientIndicator>> indicatorMapping;
+    final EnumMap<Indicator.IndicatorType, ClientIndicator> indicatorTypeMapping;
 
     PingIntervalClientIndicator pingIndicator = null;
     private final PendingNotificationIndication pendingNotificationIndication;
@@ -58,7 +54,9 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         this.pendingNotificationIndication = pendingNotificationIndication;
 
         this.indicatorMapping = new EnumMap<>(EventType.class);
+        this.indicatorTypeMapping = new EnumMap<>(Indicator.IndicatorType.class);
         for (final ClientIndicator clientIndicator : clientIndicators) {
+            indicatorTypeMapping.put(clientIndicator.getType(), clientIndicator);
             if (clientIndicator instanceof PingIntervalClientIndicator) {
                 if (this.pingIndicator != null) {
                     log.error("Currently only one ping indicator is allowed: {}", clientIndicator);
@@ -114,6 +112,12 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     @JsonIgnore
     public final boolean hasAnyIncident() {
         return getMissingPing() || pendingNotification() || hasIncident();
+    }
+
+    @JsonIgnore
+    public final boolean hasIncident(final Indicator.IndicatorType type) {
+        final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
+        return clientIndicator != null && clientIndicator.hasIncident();
     }
 
     private boolean hasIncident() {

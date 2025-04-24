@@ -189,6 +189,15 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         return new ClientGroup(null, Long.parseLong(examId), null, null, null, null, null, null, null, null, null, false);
     }
 
+    public String displayValue() {
+        return switch (this.type) {
+            case NAME_ALPHABETICAL_RANGE ->  this.nameRangeStartLetter + " - " + this.nameRangeEndLetter;
+            case CLIENT_OS -> this.clientOS.name();
+            case IP_V4_RANGE -> this.ipRangeStart + " - " + this.ipRangeEnd;
+            default -> "";
+        };
+    }
+
     @Override
     public String getModelId() {
         return (this.id == null) ? null : String.valueOf(this.id);
@@ -313,4 +322,5 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
         return o == null ? -1 : this.id.compareTo(o.id);
     }
 
+    
 }

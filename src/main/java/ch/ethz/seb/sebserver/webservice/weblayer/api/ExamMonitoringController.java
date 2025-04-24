@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -75,6 +74,7 @@ public class ExamMonitoringController {
 
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringController.class);
 
+    private final ExamMonitoringV3Service examMonitoringV3Service;
     private final SEBClientConnectionService sebClientConnectionService;
     private final ExamSessionService examSessionService;
     private final SEBClientInstructionService sebClientInstructionService;
@@ -89,6 +89,7 @@ public class ExamMonitoringController {
     private final Executor executor;
 
     public ExamMonitoringController(
+            final ExamMonitoringV3Service examMonitoringV3Service,
             final SEBClientConnectionService sebClientConnectionService,
             final SEBClientInstructionService sebClientInstructionService,
             final AuthorizationService authorization,
@@ -100,6 +101,7 @@ public class ExamMonitoringController {
             final ApplicationEventPublisher applicationEventPublisher,
             final ExamDAO examDAO,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
+        this.examMonitoringV3Service = examMonitoringV3Service;
 
         this.sebClientConnectionService = sebClientConnectionService;
         this.examSessionService = sebClientConnectionService.getExamSessionService();
@@ -290,46 +292,47 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ExamMonitoringOverviewData getOverviewData(
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId){
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
 
-        // TODO this just generates random fake data use ExamMonitoringV3Service later on
-        final Random random = new Random();
-        final ExamMonitoringOverviewData.ClientStatesData clientStates = new ExamMonitoringOverviewData.ClientStatesData();
-        clientStates.CONNECTION_REQUESTED = random.nextInt(50);
-        clientStates.READY = random.nextInt(50);
-        clientStates.ACTIVE = random.nextInt(50);
-        clientStates.CLOSED = random.nextInt(50);
-        clientStates.DISABLED = random.nextInt(50);
-        clientStates.MISSING = random.nextInt(50);
-        clientStates.calcTotal();
+        final Exam exam = checkPrivileges(institutionId, examId);
+        return examMonitoringV3Service.getExamMonitoringOverviewData(exam);
         
-        Collection<ExamMonitoringOverviewData.ClientGroup> groups = new ArrayList<>();
-        for (int i = 1; i < 4; i++) {
-            groups.add(new ExamMonitoringOverviewData.ClientGroup(
-                    (long) i, 
-                    "Group_" + i, 
-                    random.nextInt(50), 
-                    null, 
-                    "Testgroup"  + i, 
-                    "V1 - V4" ));
-        }
-        groups.add(new ExamMonitoringOverviewData.ClientGroup(
-                -1L,
-                "Fallback Group",
-                random.nextInt(10),
-                "xyz",
-                "Fallback Group",
-                "" ));
-        
-        final Map<String, Integer> indicators = new HashMap<>();
-        indicators.put(Indicator.IndicatorType.BATTERY_STATUS.name(), random.nextInt(10));
-        indicators.put(Indicator.IndicatorType.WLAN_STATUS.name(), random.nextInt(10));
-        
-        final Map<String, Integer> notifications = new HashMap<>();
-        notifications.put(ClientNotification.NotificationType.LOCK_SCREEN.name(), random.nextInt(10));
-        notifications.put(ClientNotification.NotificationType.RAISE_HAND.name(), random.nextInt(10));
-        
-        return new ExamMonitoringOverviewData(clientStates, groups, indicators, notifications);
+//        // TODO this just generates random fake data use ExamMonitoringV3Service later on
+//        final Random random = new Random();
+//        final ClientStatesData clientStates = new ClientStatesData();
+//        clientStates.CONNECTION_REQUESTED = random.nextInt(50);
+//        clientStates.READY = random.nextInt(50);
+//        clientStates.ACTIVE = random.nextInt(50);
+//        clientStates.CLOSED = random.nextInt(50);
+//        clientStates.DISABLED = random.nextInt(50);
+//        clientStates.MISSING = random.nextInt(50);
+//        clientStates.calcTotal();
+//        
+//        final Collection<ClientGroup> groups = new ArrayList<>();
+//        for (int i = 1; i < 4; i++) {
+//            final ClientGroup clientGroup = 
+//                    new ClientGroup((long) i, "Group_" + i, null, "Testgroup" + i, "V1 - V4");
+//            clientGroup.clientAmount = random.nextInt(50);
+//            groups.add(clientGroup);
+//        }
+//        final ClientGroup clientGroup = 
+//                new ClientGroup(-1L, "Fallback Group", "xyz", "Fallback Group", "");
+//        clientGroup.clientAmount = random.nextInt(10);
+//        groups.add(clientGroup);
+//        
+//        final IndicatorData indicators = new IndicatorData();
+//        indicators.BATTERY_STATUS = random.nextInt(10);
+//        indicators.WLAN_STATUS = random.nextInt(10);
+//        
+//        final NotificationData notifications = new NotificationData();
+//        notifications.LOCK_SCREEN = random.nextInt(10);
+//        notifications.RAISE_HAND = random.nextInt(10);
+//        
+//        return new ExamMonitoringOverviewData(clientStates, groups, indicators, notifications);
     }
 
     @RequestMapping(

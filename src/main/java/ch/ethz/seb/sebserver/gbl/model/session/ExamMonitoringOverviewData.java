@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl.model.session;
 
 import java.util.Collection;
-import java.util.Map;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record ExamMonitoringOverviewData(
         @JsonProperty("clientStates") ClientStatesData clientStates,
         @JsonProperty("clientGroups") Collection<ClientGroup> clientGroups,
-        @JsonProperty("indicators") Map<String, Integer> indicators,
-        @JsonProperty("notifications") Map<String, Integer> notifications
+        @JsonProperty("indicators") IndicatorData indicators,
+        @JsonProperty("notifications") NotificationData notifications
 ) {
 
     public enum ClientStates {
@@ -41,13 +40,42 @@ public record ExamMonitoringOverviewData(
             total = CONNECTION_REQUESTED + READY + ACTIVE + CLOSED + DISABLED + MISSING;
         }
     }
-    
-    public record ClientGroup(
-            @JsonProperty(Domain.CLIENT_GROUP.ATTR_ID) Long id,
-            @JsonProperty(Domain.CLIENT_GROUP.ATTR_NAME) String name,
-            @JsonProperty("clientAmount") Integer clientAmount,
-            @JsonProperty("spsGroupUUID") String spsGroupUUID,
-            @JsonProperty("type") String type,
-            @JsonProperty("typeValue") String typeValue) {
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class IndicatorData {
+        @JsonProperty("WLAN_STATUS") public int WLAN_STATUS = 0;
+        @JsonProperty("BATTERY_STATUS") public int BATTERY_STATUS = 0;
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class NotificationData {
+        @JsonProperty("LOCK_SCREEN") public int LOCK_SCREEN = 0;
+        @JsonProperty("RAISE_HAND") public int RAISE_HAND = 0;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class ClientGroup {
+        @JsonProperty(Domain.CLIENT_GROUP.ATTR_ID) public final Long id;
+        @JsonProperty(Domain.CLIENT_GROUP.ATTR_NAME) public final String name;
+        @JsonProperty("clientAmount") public int clientAmount;
+        @JsonProperty("spsGroupUUID") public final String spsGroupUUID;
+        @JsonProperty("type") public final String type;
+        @JsonProperty("typeValue") public final String typeValue;
+
+        public ClientGroup(
+                @JsonProperty(Domain.CLIENT_GROUP.ATTR_ID) final Long id,
+                @JsonProperty(Domain.CLIENT_GROUP.ATTR_NAME) final String name,
+                @JsonProperty("spsGroupUUID") final String spsGroupUUID,
+                @JsonProperty("type") final String type,
+                @JsonProperty("typeValue") final String typeValue) {
+            
+            this.id = id;
+            this.name = name;
+            this.spsGroupUUID = spsGroupUUID;
+            this.type = type;
+            this.typeValue = typeValue;
+            this.clientAmount = 0;
+        }
+    }
+    
 }
