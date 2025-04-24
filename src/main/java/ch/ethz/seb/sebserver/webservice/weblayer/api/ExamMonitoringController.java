@@ -294,10 +294,14 @@ public class ExamMonitoringController {
 
         // TODO this just generates random fake data use ExamMonitoringV3Service later on
         final Random random = new Random();
-        final Map<String, Integer> clientStates = new HashMap<>();
-        Arrays.stream(ExamMonitoringOverviewData.ClientStates.values()).forEach(status -> {
-            clientStates.put(status.name(), random.nextInt(50));
-        });
+        final ExamMonitoringOverviewData.ClientStatesData clientStates = new ExamMonitoringOverviewData.ClientStatesData();
+        clientStates.CONNECTION_REQUESTED = random.nextInt(50);
+        clientStates.READY = random.nextInt(50);
+        clientStates.ACTIVE = random.nextInt(50);
+        clientStates.CLOSED = random.nextInt(50);
+        clientStates.DISABLED = random.nextInt(50);
+        clientStates.MISSING = random.nextInt(50);
+        clientStates.calcTotal();
         
         Collection<ExamMonitoringOverviewData.ClientGroup> groups = new ArrayList<>();
         for (int i = 1; i < 4; i++) {

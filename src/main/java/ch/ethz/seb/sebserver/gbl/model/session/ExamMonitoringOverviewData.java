@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ExamMonitoringOverviewData(
-        @JsonProperty("clientStates") Map<String, Integer> clientStates,
+        @JsonProperty("clientStates") ClientStatesData clientStates,
         @JsonProperty("clientGroups") Collection<ClientGroup> clientGroups,
         @JsonProperty("indicators") Map<String, Integer> indicators,
         @JsonProperty("notifications") Map<String, Integer> notifications
@@ -25,6 +25,21 @@ public record ExamMonitoringOverviewData(
 
     public enum ClientStates {
         CONNECTION_REQUESTED, READY, ACTIVE, CLOSED, DISABLED, MISSING
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class ClientStatesData {
+        @JsonProperty("total") public int total = 0;
+        @JsonProperty("CONNECTION_REQUESTED") public int CONNECTION_REQUESTED = 0;
+        @JsonProperty("READY") public int READY = 0;
+        @JsonProperty("ACTIVE") public int ACTIVE = 0;
+        @JsonProperty("CLOSED") public int CLOSED = 0;
+        @JsonProperty("DISABLED") public int DISABLED = 0;
+        @JsonProperty("MISSING") public int MISSING = 0;
+
+        public void calcTotal() {
+            total = CONNECTION_REQUESTED + READY + ACTIVE + CLOSED + DISABLED + MISSING;
+        }
     }
     
     public record ClientGroup(
