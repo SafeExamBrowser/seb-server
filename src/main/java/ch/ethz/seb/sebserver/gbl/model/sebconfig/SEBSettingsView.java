@@ -35,13 +35,15 @@ public record SEBSettingsView(
         NETWORK
     }
     
-    public record TableRowValues(@JsonProperty(Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) String attributeName,
-                                 @JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX) int index,
-                                 @JsonProperty(ATTR_TABLE_ROW_VALUES) Map<String, Value> rowValues) {
+    public record TableRowValues(
+            @JsonProperty(Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) String attributeName,
+            @JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX) int index,
+            @JsonProperty(ATTR_TABLE_ROW_VALUES) Map<String, Value> rowValues) {
     }
     
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Value(@JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_ID) Long valueId,
-                        @JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_VALUE) String value) {
+    public record Value(
+            @JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_ID) Long valueId,
+            @JsonProperty(Domain.CONFIGURATION_VALUE.ATTR_VALUE) String value) {
     }
 }

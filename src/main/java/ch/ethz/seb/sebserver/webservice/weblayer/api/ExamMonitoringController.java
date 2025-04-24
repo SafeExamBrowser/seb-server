@@ -8,12 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -22,6 +17,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -287,6 +283,68 @@ public class ExamMonitoringController {
                     return exam;
                 })
                 .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.EXAM_MONITORING_OVERVIEW_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamMonitoringOverviewData getOverviewData(
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId){
+
+        // TODO this just generates random fake data use ExamMonitoringV3Service later on
+        final Random random = new Random();
+        final Map<String, Integer> clientStates = new HashMap<>();
+        Arrays.stream(ExamMonitoringOverviewData.ClientStates.values()).forEach(status -> {
+            clientStates.put(status.name(), random.nextInt(50));
+        });
+        
+        Collection<ExamMonitoringOverviewData.ClientGroup> groups = new ArrayList<>();
+        for (int i = 1; i < 4; i++) {
+            groups.add(new ExamMonitoringOverviewData.ClientGroup(
+                    (long) i, 
+                    "Group_" + i, 
+                    random.nextInt(50), 
+                    null, 
+                    "Testgroup"  + i, 
+                    "V1 - V4" ));
+        }
+        groups.add(new ExamMonitoringOverviewData.ClientGroup(
+                -1L,
+                "Fallback Group",
+                random.nextInt(10),
+                "xyz",
+                "Fallback Group",
+                "" ));
+        
+        final Map<String, Integer> indicators = new HashMap<>();
+        indicators.put(Indicator.IndicatorType.BATTERY_STATUS.name(), random.nextInt(10));
+        indicators.put(Indicator.IndicatorType.WLAN_STATUS.name(), random.nextInt(10));
+        
+        final Map<String, Integer> notifications = new HashMap<>();
+        notifications.put(ClientNotification.NotificationType.LOCK_SCREEN.name(), random.nextInt(10));
+        notifications.put(ClientNotification.NotificationType.RAISE_HAND.name(), random.nextInt(10));
+        
+        return new ExamMonitoringOverviewData(clientStates, groups, indicators, notifications);
+    }
+
+    @RequestMapping(
+            path = API.EXAM_MONITORING_CONNECTIONS + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public MonitoringFullPageData getMonitoringExamListData(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @RequestHeader(name = API.EXAM_MONITORING_LIST_SHOW_ALL, required = false) final Boolean showAll,
+            @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_STATE, required = false) final String showStates,
+            @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_GROUPS, required = false) final String showGroups,
+            @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_INCIDENTS, required = false) final String showIncidences,
+            @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_NOTIFICATIONS, required = false) final String showNotifications){
+        
+        return getFullMonitoringPageData(institutionId, examId, null, null, null);
     }
 
     /** This is the older exam monitoring data endpoint where all Client Connection data for an exam can be requested 

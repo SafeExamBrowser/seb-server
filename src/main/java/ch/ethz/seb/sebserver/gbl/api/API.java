@@ -254,7 +254,9 @@ public final class API {
     public static final String USER_ACTIVITY_LOG_ENDPOINT = "/useractivity";
 
     public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
+    public static final String EXAM_MONITORING_OVERVIEW_ENDPOINT = "/overview";
     public static final String EXAM_MONITORING_FULLPAGE = "/fullpage";
+    public static final String EXAM_MONITORING_CONNECTIONS = "/connections";
     public static final String EXAM_MONITORING_STATIC_CLIENT_DATA = "/static-client-data";
     public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
     public static final String EXAM_MONITORING_NOTIFICATION_ENDPOINT = "/notification";
@@ -267,6 +269,12 @@ public final class API {
     public static final String EXAM_MONITORING_FINISHED_ENDPOINT = "/finishedexams";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
+
+    public static final String EXAM_MONITORING_LIST_SHOW_ALL = "show-all";
+    public static final String EXAM_MONITORING_LIST_FILTER_SHOW_STATE = "show-states";
+    public static final String EXAM_MONITORING_LIST_FILTER_SHOW_GROUPS = "show-client-groups";
+    public static final String EXAM_MONITORING_LIST_FILTER_SHOW_INCIDENTS = "show-indicators";
+    public static final String EXAM_MONITORING_LIST_FILTER_SHOW_NOTIFICATIONS = "show-notifications";
 
     public static final String EXAM_PROCTORING_ENDPOINT = EXAM_MONITORING_ENDPOINT + "/proctoring";
     public static final String EXAM_PROCTORING_COLLECTING_ROOMS_SEGMENT = "/collecting-rooms";
