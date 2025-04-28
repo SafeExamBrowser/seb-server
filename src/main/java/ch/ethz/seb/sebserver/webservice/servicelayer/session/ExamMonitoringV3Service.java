@@ -19,9 +19,9 @@ public interface ExamMonitoringV3Service {
     
     ExamMonitoringOverviewData getExamMonitoringOverviewData(Exam runningExam);
 
+    // TODO maybe we can reduce the MonitoringFullPageData model to just raw monitoring data
     MonitoringFullPageData getFullMonitoringPageData(
             Exam runningExam,
-            boolean showAll,
             Predicate<ClientConnectionData> filter);
 
     Predicate<ClientConnectionData> createMonitoringFilter(

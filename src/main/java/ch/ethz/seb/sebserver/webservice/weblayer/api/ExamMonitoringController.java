@@ -300,39 +300,6 @@ public class ExamMonitoringController {
 
         final Exam exam = checkPrivileges(institutionId, examId);
         return examMonitoringV3Service.getExamMonitoringOverviewData(exam);
-        
-//        // TODO this just generates random fake data use ExamMonitoringV3Service later on
-//        final Random random = new Random();
-//        final ClientStatesData clientStates = new ClientStatesData();
-//        clientStates.CONNECTION_REQUESTED = random.nextInt(50);
-//        clientStates.READY = random.nextInt(50);
-//        clientStates.ACTIVE = random.nextInt(50);
-//        clientStates.CLOSED = random.nextInt(50);
-//        clientStates.DISABLED = random.nextInt(50);
-//        clientStates.MISSING = random.nextInt(50);
-//        clientStates.calcTotal();
-//        
-//        final Collection<ClientGroup> groups = new ArrayList<>();
-//        for (int i = 1; i < 4; i++) {
-//            final ClientGroup clientGroup = 
-//                    new ClientGroup((long) i, "Group_" + i, null, "Testgroup" + i, "V1 - V4");
-//            clientGroup.clientAmount = random.nextInt(50);
-//            groups.add(clientGroup);
-//        }
-//        final ClientGroup clientGroup = 
-//                new ClientGroup(-1L, "Fallback Group", "xyz", "Fallback Group", "");
-//        clientGroup.clientAmount = random.nextInt(10);
-//        groups.add(clientGroup);
-//        
-//        final IndicatorData indicators = new IndicatorData();
-//        indicators.BATTERY_STATUS = random.nextInt(10);
-//        indicators.WLAN_STATUS = random.nextInt(10);
-//        
-//        final NotificationData notifications = new NotificationData();
-//        notifications.LOCK_SCREEN = random.nextInt(10);
-//        notifications.RAISE_HAND = random.nextInt(10);
-//        
-//        return new ExamMonitoringOverviewData(clientStates, groups, indicators, notifications);
     }
 
     @RequestMapping(
@@ -350,8 +317,20 @@ public class ExamMonitoringController {
             @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_GROUPS, required = false) final String showGroups,
             @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_INCIDENTS, required = false) final String showIncidences,
             @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_NOTIFICATIONS, required = false) final String showNotifications){
+
+        final Exam runningExam = checkPrivileges(institutionId, examId);
         
-        return getFullMonitoringPageData(institutionId, examId, null, null, null);
+        if (BooleanUtils.isTrue(showAll)) {
+            return examMonitoringV3Service.getFullMonitoringPageData(runningExam, Utils.truePredicate());
+        } else {
+            return examMonitoringV3Service.getFullMonitoringPageData(
+                    runningExam, 
+                    examMonitoringV3Service.createMonitoringFilter(
+                            showStates, 
+                            showGroups
+                            , showIncidences,
+                            showNotifications));
+        }
     }
 
     /** This is the older exam monitoring data endpoint where all Client Connection data for an exam can be requested 
@@ -444,20 +423,12 @@ public class ExamMonitoringController {
             @RequestHeader(name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER, required = false) final String hiddenClientGroups,
             @RequestHeader(name = API.EXAM_MONITORING_ISSUE_FILTER, required = false) final String hiddenIssues){
 
-
-        // TODO respond this within another Thread-pool (Executor)
-        // TODO try to cache some MonitoringSEBConnectionData throughout multiple requests (for about 2 sec.)
-        //      problem: different filter settings, maybe cache unfiltered data and then just filter cached data per request
-
         final Exam runningExam = checkPrivileges(institutionId, examId);
 
         final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
-                .getMonitoringSEBConnectionsData(
-                        examId,
-                        createMonitoringFilter(hiddenStates, hiddenClientGroups, hiddenIssues))
+                .getMonitoringSEBConnectionsData(examId, createMonitoringFilter(hiddenStates, hiddenClientGroups, hiddenIssues))
                 .getOrThrow();
-
-        final boolean proctoringEnabled = this.examAdminService.isProctoringEnabled(runningExam);
+        
         final boolean screenProctoringEnabled = this.examAdminService.isScreenProctoringEnabled(runningExam);
         final Collection<ProctoringGroupMonitoringData> screenProctoringData = (screenProctoringEnabled)
                 ? this.screenProctoringService

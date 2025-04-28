@@ -43,14 +43,24 @@ public record ExamMonitoringOverviewData(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class IndicatorData {
+        @JsonProperty("total") public int total = 0;
         @JsonProperty("WLAN_STATUS") public int WLAN_STATUS = 0;
         @JsonProperty("BATTERY_STATUS") public int BATTERY_STATUS = 0;
+
+        public void calcTotal() {
+            total = WLAN_STATUS + BATTERY_STATUS;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class NotificationData {
+        @JsonProperty("total") public int total = 0;
         @JsonProperty("LOCK_SCREEN") public int LOCK_SCREEN = 0;
         @JsonProperty("RAISE_HAND") public int RAISE_HAND = 0;
+        
+        public void calcTotal() {
+            total = LOCK_SCREEN + RAISE_HAND;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

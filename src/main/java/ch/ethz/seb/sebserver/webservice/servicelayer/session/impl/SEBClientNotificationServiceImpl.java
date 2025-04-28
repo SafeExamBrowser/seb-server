@@ -78,6 +78,16 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     }
 
     @Override
+    public boolean hasNotification(
+            final Long connectionId, 
+            final ClientNotification.NotificationType notificationType) {
+
+        // TODO this needs to be fixed and a dedicated check needs to be applied
+        //      also do some appropriate caching according to the already implemented caching here.
+        return this.pendingNotifications.contains(connectionId);
+    }
+
+    @Override
     public Result<List<ClientNotification>> getPendingNotifications(final Long clientConnectionId) {
         return this.clientEventDAO.getPendingNotifications(clientConnectionId);
     }
@@ -174,7 +184,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
         return notification;
     }
 
-    private final void updateCache(final Long examId) {
+    private void updateCache(final Long examId) {
         if (System.currentTimeMillis() - this.lastUpdate > this.updateInterval) {
             this.examUpdate.clear();
             this.pendingNotifications.clear();

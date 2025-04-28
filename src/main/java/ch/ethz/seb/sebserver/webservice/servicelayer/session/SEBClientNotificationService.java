@@ -13,6 +13,7 @@ import java.util.List;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** Service to maintain SEB Client notifications. */
@@ -24,10 +25,12 @@ public interface SEBClientNotificationService {
      * pending notification or not. Pending means a non-confirmed notification
      * This will only check client connections in ACTIVE state.
      *
-     * @param clientConnectionId the client connection identifier
+     * @param clientConnection the client connection 
      * @return true if there is any pending notification for the specified client connection */
-    Boolean hasAnyPendingNotification(final ClientConnection clientConnection);
+    Boolean hasAnyPendingNotification(ClientConnection clientConnection);
 
+    boolean hasNotification(Long connectionId, NotificationType notificationType);
+    
     /** This gets a list of all pending notification for a given client connection independently
      * of it current status.
      *
@@ -57,6 +60,5 @@ public interface SEBClientNotificationService {
             Long examId,
             String connectionToken);
 
-    //void notifyNewNotification(final Long clientConnectionId);
-
+   
 }

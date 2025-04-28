@@ -14,17 +14,20 @@ import java.util.stream.Collectors;
 
 import static ch.ethz.seb.sebserver.gbl.model.session.ExamMonitoringOverviewData.*;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ExamMonitoringOverviewData;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.session.*;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -39,14 +42,16 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     private final ExamAdminService examAdminService;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientGroupDAO clientGroupDAO;
+    private final ExamSessionService examSessionService;
 
     public ExamMonitoringV3ServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
             final SEBClientNotificationService sebClientNotificationService,
             final ScreenProctoringService screenProctoringService,
             final ExamAdminService examAdminService,
-            final ClientConnectionDAO clientConnectionDAO, 
-            final ClientGroupDAO clientGroupDAO) {
+            final ClientConnectionDAO clientConnectionDAO,
+            final ClientGroupDAO clientGroupDAO, 
+            final ExamSessionService examSessionService) {
         
         this.examSessionCacheService = examSessionCacheService;
         this.sebClientNotificationService = sebClientNotificationService;
@@ -54,6 +59,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         this.examAdminService = examAdminService;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientGroupDAO = clientGroupDAO;
+        this.examSessionService = examSessionService;
     }
 
     @Override
@@ -90,7 +96,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             groups.put(-1L, new ClientGroup(1L, spsFallbackGroup.name,
                     spsFallbackGroup.uuid,
                     "SP_FALLBACK_GROUP",
-                    ""));
+                    StringUtils.EMPTY));
         }
         
         final ClientStatesData clientStates = new ClientStatesData();
@@ -118,14 +124,16 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                             default -> {}
                         }
                     }
+                    clientStates.calcTotal();
                     
                     // incidences on indicators
-                    if (cc.hasIncident(Indicator.IndicatorType.BATTERY_STATUS)) {
+                    if (cc.hasIncident(IndicatorType.BATTERY_STATUS)) {
                         indicators.BATTERY_STATUS++;
                     }
-                    if (cc.hasIncident(Indicator.IndicatorType.WLAN_STATUS)) {
+                    if (cc.hasIncident(IndicatorType.WLAN_STATUS)) {
                         indicators.WLAN_STATUS++;
                     }
+                    indicators.calcTotal();;
                     
                     // notifications
                     if (cc.pendingNotification != null && cc.pendingNotification) {
@@ -140,6 +148,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                                     }
                                 });
                     }
+                    notifications.calcTotal();
                     
                     // groups
                     if (cc.groups != null) {
@@ -166,11 +175,17 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
     @Override
     public MonitoringFullPageData getFullMonitoringPageData(
-            final Exam runningExam, 
-            final boolean showAll, 
+            final Exam runningExam,
             final Predicate<ClientConnectionData> filter) {
         
-        return null;
+        final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
+                .getMonitoringSEBConnectionsData(runningExam.id, filter)
+                .getOrThrow();
+
+        return new MonitoringFullPageData(
+                runningExam.id,
+                monitoringSEBConnectionData,
+                null); // NOTE: we need no screen proctoring data here anymore!?
     }
 
     @Override
@@ -179,7 +194,67 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             final String showClientGroups, 
             final String showIndicators, 
             final String showNotifications) {
+
+        final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);
+        if (StringUtils.isNotBlank(showStates)) {
+            for (final String s : StringUtils.split(showStates, Constants.LIST_SEPARATOR)) {
+                states.add(ConnectionStatus.valueOf(s));
+            }
+        }
+        final Set<Long> showInClientGroups = showClientGroups != null 
+                ? Arrays.stream(StringUtils.split(showClientGroups, Constants.LIST_SEPARATOR))
+                    .map(Long::parseLong)
+                    .collect(Collectors.toSet())
+                : null;
+        final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(-1L);
         
-        return null;
+        final boolean showWLANIncident = showIndicators != null && showIndicators.contains(IndicatorType.WLAN_STATUS.name);
+        final boolean showBatteryIncident = showIndicators != null && showIndicators.contains(IndicatorType.BATTERY_STATUS.name);
+        final boolean showLockScreenNotifications = showNotifications != null && showNotifications.contains(NotificationType.LOCK_SCREEN.name());
+        final boolean showRaiseHandNotifications = showNotifications != null && showNotifications.contains(NotificationType.RAISE_HAND.name());
+
+        return cc -> {
+            // states
+            if (states.contains(cc.clientConnection.status)) {
+                return true;
+            }
+            
+            // groups
+            if (showInClientGroups != null) {
+                if (cc.groups != null && !cc.groups.isEmpty()) {
+                    for (final Long gId : cc.groups) {
+                        if (showInClientGroups.contains(gId)) {
+                            return true;
+                        }
+                    }
+                } else {
+                    if (showFallbackGroup) {
+                        return true;
+                    }
+                }
+            }
+            
+            // indicators
+            if (showWLANIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.WLAN_STATUS)) {
+                return true;
+            }
+            if (showBatteryIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.BATTERY_STATUS)) {
+                return true;
+            }
+            
+            //notifications
+            if (cc.pendingNotification != null && cc.pendingNotification) {
+                if (showLockScreenNotifications && sebClientNotificationService
+                        .hasNotification(cc.clientConnection.id, NotificationType.LOCK_SCREEN )) {
+                    return true;
+                }
+                if (showRaiseHandNotifications && sebClientNotificationService
+                        .hasNotification(cc.clientConnection.id, NotificationType.RAISE_HAND )) {
+                    return true;
+                }
+            }
+            
+            return false;
+        };
     }
 }

@@ -124,9 +124,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         return this.indicatorMapping.values()
                 .stream()
                 .flatMap(Collection::stream)
-                .filter(ClientIndicator::hasIncident)
-                .findFirst()
-                .isPresent();
+                .anyMatch(ClientIndicator::hasIncident);
     }
 
     /** This is a wrapper for the live monitoring data view of this client connection data */
@@ -148,8 +146,8 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
             return ClientConnectionDataInternal.this.indicatorValues
                     .stream()
                     .collect(Collectors.toMap(
-                            iv -> iv.getIndicatorId(),
-                            iv -> IndicatorValue.getDisplayValue(iv)));
+                            IndicatorValue::getIndicatorId,
+                            IndicatorValue::getDisplayValue));
         }
 
         @Override

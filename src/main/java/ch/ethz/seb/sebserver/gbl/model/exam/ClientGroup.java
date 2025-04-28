@@ -284,20 +284,12 @@ public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
 
     @JsonIgnore
     public String getData() {
-        switch (this.type) {
-            case IP_V4_RANGE: {
-                return this.ipRangeStart + Constants.EMBEDDED_LIST_SEPARATOR + this.ipRangeEnd;
-            }
-            case CLIENT_OS: {
-                return this.clientOS.name();
-            }
-            case NAME_ALPHABETICAL_RANGE: {
-                return this.nameRangeStartLetter + Constants.EMBEDDED_LIST_SEPARATOR + this.nameRangeEndLetter;
-            }
-            default: {
-                return StringUtils.EMPTY;
-            }
-        }
+        return switch (this.type) {
+            case IP_V4_RANGE -> this.ipRangeStart + Constants.EMBEDDED_LIST_SEPARATOR + this.ipRangeEnd;
+            case CLIENT_OS -> this.clientOS.name();
+            case NAME_ALPHABETICAL_RANGE -> this.nameRangeStartLetter + Constants.EMBEDDED_LIST_SEPARATOR + this.nameRangeEndLetter;
+            default -> StringUtils.EMPTY;
+        };
     }
     
     @Override
