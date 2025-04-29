@@ -291,7 +291,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         isEqualToWhenPresent(examId))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.status,
-                        isIn(ConnectionStatus.ACTIVE.name(), ConnectionStatus.CONNECTION_REQUESTED.name()))
+                        isIn(ConnectionStatus.ACTIVE.name(), ConnectionStatus.READY.name(), ConnectionStatus.CONNECTION_REQUESTED.name()))
                 .and(
                         ClientNotificationRecordDynamicSqlSupport.eventType,
                         isEqualTo(EventType.NOTIFICATION.id))

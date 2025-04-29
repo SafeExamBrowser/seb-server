@@ -8,14 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -51,9 +48,12 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     private final ClientEventDAO clientEventDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final SEBClientInstructionService sebClientInstructionService;
-    private final Set<Long> pendingNotifications = new HashSet<>();
-    private final Set<Long> examUpdate = new HashSet<>();
-
+    
+    // caching
+    private final Set<Long> pendingNotifications = ConcurrentHashMap.newKeySet();
+    private final Set<Long> examUpdate = ConcurrentHashMap.newKeySet();
+    private final Set<NotificationTypeKey> pendingNotificationTypeMapping = ConcurrentHashMap.newKeySet();
+    
     private long lastUpdate = 0;
     private long updateInterval = 5 * Constants.SECOND_IN_MILLIS;
 
@@ -72,19 +72,32 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     }
 
     @Override
-    public Boolean hasAnyPendingNotification(final ClientConnection clientConnection) {
+    public boolean hasAnyPendingNotification(final ClientConnection clientConnection) {
         updateCache(clientConnection.examId);
         return this.pendingNotifications.contains(clientConnection.id);
     }
 
     @Override
-    public boolean hasNotification(
-            final Long connectionId, 
+    public boolean hasPendingNotification(
+            final ClientConnection clientConnection, 
             final ClientNotification.NotificationType notificationType) {
 
-        // TODO this needs to be fixed and a dedicated check needs to be applied
-        //      also do some appropriate caching according to the already implemented caching here.
-        return this.pendingNotifications.contains(connectionId);
+        updateCache(clientConnection.examId);
+        if (this.pendingNotifications.contains(clientConnection.id)) {
+            final NotificationTypeKey notificationTypeKey = new NotificationTypeKey(clientConnection.id, notificationType);
+            if (pendingNotificationTypeMapping.contains(notificationTypeKey)) {
+                return true;
+            } else {
+                if (getPendingNotifications(clientConnection.id)
+                        .getOr(Collections.emptyList())
+                        .stream().anyMatch(cn -> cn.notificationType == notificationType)) {
+                    pendingNotificationTypeMapping.add(notificationTypeKey);
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
 
     @Override
@@ -134,7 +147,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     @Override
     public void newNotification(final ClientNotification notification) {
         this.clientEventDAO.createNewNotification(notification)
-                .map(this::notifyNewNotifiaction)
+                .map(this::notifyNewNotification)
                 .onError(error -> log.error("Failed to store new client notification: {}", notification, error));
     }
 
@@ -150,7 +163,24 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
                 .onError(error -> log.error("Failed to delete client notifications for exam: {}", id, error)));
     }
 
-    private ClientNotification notifyNewNotifiaction(final ClientNotification notification) {
+    @EventListener(ExamFinishedEvent.class)
+    public void notifyExamFinishedEvent(final ExamFinishedEvent event) {
+        // clear caches 
+        this.examUpdate.clear();
+        this.pendingNotifications.clear();
+        this.pendingNotificationTypeMapping.clear();
+        // delete all notifications for given exam
+        this.clientEventDAO
+                .getNotificationIdsForExam(event.exam.id)
+                .flatMap(this.clientEventDAO::deleteClientNotification)
+                .map(deleted -> {
+                    log.debug("Deleted client notifications during exam deletion: {}", deleted);
+                    return deleted;
+                })
+                .onError(error -> log.error("Failed to delete client notifications for exam: {}", event.exam, error));
+    }
+
+    private ClientNotification notifyNewNotification(final ClientNotification notification) {
         if (notification.eventType == EventType.NOTIFICATION) {
             this.pendingNotifications.add(notification.getConnectionId());
         }
@@ -188,6 +218,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
         if (System.currentTimeMillis() - this.lastUpdate > this.updateInterval) {
             this.examUpdate.clear();
             this.pendingNotifications.clear();
+            this.pendingNotificationTypeMapping.clear();
             this.lastUpdate = System.currentTimeMillis();
         }
 
@@ -197,6 +228,34 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
                             .getClientConnectionIdsWithPendingNotification(examId)
                             .getOr(Collections.emptySet()));
             this.examUpdate.add(examId);
+        }
+    }
+    
+    private static final class NotificationTypeKey {
+        final Long connectionId;
+        final ClientNotification.NotificationType notificationType;
+        final int hashCode;
+
+        private NotificationTypeKey(
+                final Long connectionId, 
+                final ClientNotification.NotificationType notificationType) {
+            
+            this.connectionId = connectionId;
+            this.notificationType = notificationType;
+            this.hashCode = Objects.hash(connectionId, notificationType);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final NotificationTypeKey that = (NotificationTypeKey) o;
+            return Objects.equals(connectionId, that.connectionId) && notificationType == that.notificationType;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
         }
     }
 

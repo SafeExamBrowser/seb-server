@@ -23,13 +23,22 @@ public interface SEBClientNotificationService {
 
     /** Indicates whether the client connection with the specified identifier has any
      * pending notification or not. Pending means a non-confirmed notification
-     * This will only check client connections in ACTIVE state.
+     * This will only check client connections in CONNECTION_REQUESTING, READY and ACTIVE state.
      *
      * @param clientConnection the client connection 
      * @return true if there is any pending notification for the specified client connection */
-    Boolean hasAnyPendingNotification(ClientConnection clientConnection);
+    boolean hasAnyPendingNotification(ClientConnection clientConnection);
 
-    boolean hasNotification(Long connectionId, NotificationType notificationType);
+    /** Indicates whether the client connection has a specific notification pending notification or not
+     * .Pending means a non-confirmed notification
+     *  This will only check client connections in CONNECTION_REQUESTING, READY and ACTIVE state.
+     *
+     * @param clientConnection the client connection 
+     * @param notificationType the type of Notification
+     * @return true if there is any pending notification for the specified client connection */
+    boolean hasPendingNotification(
+            ClientConnection clientConnection, 
+            NotificationType notificationType);
     
     /** This gets a list of all pending notification for a given client connection independently
      * of it current status.

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValueHolder;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -147,7 +148,7 @@ public class ClientConnectionData implements GrantEntity {
                 .stream()
                 .filter(indicatorValue -> indicatorValue.getIndicatorId().equals(indicatorId))
                 .findFirst()
-                .map(iv -> iv.getValue())
+                .map(IndicatorValueHolder::getValue)
                 .orElse(Double.NaN);
     }
 
@@ -201,13 +202,11 @@ public class ClientConnectionData implements GrantEntity {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ClientConnectionData [clientConnection=");
-        builder.append(this.clientConnection);
-        builder.append(", indicatorValues=");
-        builder.append(this.indicatorValues);
-        builder.append("]");
-        return builder.toString();
+        return "ClientConnectionData [clientConnection=" +
+                this.clientConnection +
+                ", indicatorValues=" +
+                this.indicatorValues +
+                "]";
     }
 
 }

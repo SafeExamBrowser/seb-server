@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -178,13 +179,23 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             final Exam runningExam,
             final Predicate<ClientConnectionData> filter) {
         
-        final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
-                .getMonitoringSEBConnectionsData(runningExam.id, filter)
-                .getOrThrow();
+        final List<? extends ClientMonitoringDataView> filteredConnections = this.clientConnectionDAO
+                .getConnectionTokens(runningExam.id)
+                .getOrThrow()
+                .stream()
+                .map(this.examSessionService::getConnectionDataInternal)
+                .filter(Objects::nonNull)
+                .filter(filter)
+                .map(ccd -> ccd.monitoringDataView)
+                .toList();
 
-        return new MonitoringFullPageData(
+                return new MonitoringFullPageData(
                 runningExam.id,
-                monitoringSEBConnectionData,
+                new MonitoringSEBConnectionData(
+                        null,
+                        null,
+                        null,
+                        filteredConnections),
                 null); // NOTE: we need no screen proctoring data here anymore!?
     }
 
@@ -206,55 +217,59 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     .map(Long::parseLong)
                     .collect(Collectors.toSet())
                 : null;
-        final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(-1L);
         
+        final boolean checkStates = !states.isEmpty();
+        final boolean checkGroups = showInClientGroups != null && !showInClientGroups.isEmpty();
+        final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(-1L);
         final boolean showWLANIncident = showIndicators != null && showIndicators.contains(IndicatorType.WLAN_STATUS.name);
         final boolean showBatteryIncident = showIndicators != null && showIndicators.contains(IndicatorType.BATTERY_STATUS.name);
         final boolean showLockScreenNotifications = showNotifications != null && showNotifications.contains(NotificationType.LOCK_SCREEN.name());
         final boolean showRaiseHandNotifications = showNotifications != null && showNotifications.contains(NotificationType.RAISE_HAND.name());
 
         return cc -> {
-            // states
-            if (states.contains(cc.clientConnection.status)) {
-                return true;
-            }
             
-            // groups
-            if (showInClientGroups != null) {
+            // state filter
+            if (checkStates && !states.contains(cc.clientConnection.status)) {
+                return false;
+            }
+
+            // groups filter
+            if (checkGroups) {
                 if (cc.groups != null && !cc.groups.isEmpty()) {
                     for (final Long gId : cc.groups) {
-                        if (showInClientGroups.contains(gId)) {
-                            return true;
+                        if (!showInClientGroups.contains(gId)) {
+                            return false;
                         }
                     }
                 } else {
-                    if (showFallbackGroup) {
-                        return true;
+                    if (!showFallbackGroup) {
+                        return false;
                     }
                 }
             }
-            
-            // indicators
-            if (showWLANIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.WLAN_STATUS)) {
-                return true;
-            }
-            if (showBatteryIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.BATTERY_STATUS)) {
-                return true;
-            }
-            
-            //notifications
-            if (cc.pendingNotification != null && cc.pendingNotification) {
-                if (showLockScreenNotifications && sebClientNotificationService
-                        .hasNotification(cc.clientConnection.id, NotificationType.LOCK_SCREEN )) {
-                    return true;
-                }
-                if (showRaiseHandNotifications && sebClientNotificationService
-                        .hasNotification(cc.clientConnection.id, NotificationType.RAISE_HAND )) {
-                    return true;
+
+            // indicators filter
+            if (showWLANIncident || showBatteryIncident) {
+                final boolean wlan = showWLANIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.WLAN_STATUS);
+                final boolean battery = showBatteryIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.BATTERY_STATUS);
+                if (!(wlan || battery)) {
+                    return false;
                 }
             }
             
-            return false;
+            // notifications filter
+            if (BooleanUtils.isTrue(cc.pendingNotification) && (showLockScreenNotifications || showRaiseHandNotifications)) {
+                final boolean lock = showLockScreenNotifications && sebClientNotificationService
+                        .hasPendingNotification(cc.clientConnection, NotificationType.LOCK_SCREEN );
+                final boolean raise =  showRaiseHandNotifications && sebClientNotificationService
+                        .hasPendingNotification(cc.clientConnection, NotificationType.RAISE_HAND );
+                if (!(lock || raise)) {
+                    return false;
+                }
+            }
+            
+            // pass
+            return true;
         };
     }
 }
