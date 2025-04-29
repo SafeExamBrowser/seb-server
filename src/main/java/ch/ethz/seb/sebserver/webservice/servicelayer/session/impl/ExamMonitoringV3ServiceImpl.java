@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
@@ -205,6 +206,14 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             final String showClientGroups, 
             final String showIndicators, 
             final String showNotifications) {
+        
+        if (StringUtils.isBlank(showStates) && 
+                StringUtils.isBlank(showClientGroups) && 
+                StringUtils.isBlank(showIndicators) && 
+                StringUtils.isBlank(showNotifications) ) {
+            
+            return Utils.falsePredicate();
+        }
 
         final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);
         if (StringUtils.isNotBlank(showStates)) {
