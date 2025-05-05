@@ -135,16 +135,11 @@ public final class CircuitBreaker<T> {
                     this.failingCount);
         }
 
-        switch (this.state) {
-            case CLOSED:
-                return handleClosed(currentTime, supplier);
-            case HALF_OPEN:
-                return handleHalfOpen(currentTime, supplier);
-            case OPEN:
-                return handelOpen(currentTime, supplier);
-            default:
-                return Result.ofError(new IllegalStateException());
-        }
+        return switch (this.state) {
+            case CLOSED -> handleClosed(currentTime, supplier);
+            case HALF_OPEN -> handleHalfOpen(currentTime, supplier);
+            case OPEN -> handelOpen(currentTime, supplier);
+        };
     }
 
     public State getState() {

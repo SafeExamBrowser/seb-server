@@ -156,19 +156,17 @@ public final class ClientInstruction {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ClientInstruction [id=");
-        builder.append(this.id);
-        builder.append(", examId=");
-        builder.append(this.examId);
-        builder.append(", connectionToken=");
-        builder.append(this.connectionToken);
-        builder.append(", type=");
-        builder.append(this.type);
-        builder.append(", attributes=");
-        builder.append(this.attributes);
-        builder.append("]");
-        return builder.toString();
+        return "ClientInstruction [id=" +
+                this.id +
+                ", examId=" +
+                this.examId +
+                ", connectionToken=" +
+                this.connectionToken +
+                ", type=" +
+                this.type +
+                ", attributes=" +
+                this.attributes +
+                "]";
     }
 
 }

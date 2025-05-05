@@ -210,7 +210,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         if (StringUtils.isBlank(showStates) && 
                 StringUtils.isBlank(showClientGroups) && 
                 StringUtils.isBlank(showIndicators) && 
-                StringUtils.isBlank(showNotifications) ) {
+                StringUtils.isBlank(showNotifications)) {
             
             return Utils.falsePredicate();
         }

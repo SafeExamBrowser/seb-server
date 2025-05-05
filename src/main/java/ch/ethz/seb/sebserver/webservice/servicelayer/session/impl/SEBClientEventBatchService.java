@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
 
@@ -160,11 +159,11 @@ public class SEBClientEventBatchService {
                     .filter(Objects::nonNull)
                     .map(this::toEventRecord)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
 
             this.transactionTemplate
                     .execute(status -> {
-                        records.stream().forEach(this.clientEventMapper::insert);
+                        records.forEach(this.clientEventMapper::insert);
                         return null;
                     });
 
