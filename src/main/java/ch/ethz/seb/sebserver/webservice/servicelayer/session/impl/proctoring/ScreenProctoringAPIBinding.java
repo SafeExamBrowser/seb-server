@@ -669,6 +669,10 @@ public class ScreenProctoringAPIBinding {
             final Exam exam,
             final ScreenProctoringSettings settings) {
         
+        if (StringUtils.isBlank(settings.sebGroupsSelection)) {
+            return Collections.emptyList();
+        }
+        
         final List<String> selectedSEBGroups = Arrays.asList(StringUtils.split(
                 settings.sebGroupsSelection, 
                 Constants.LIST_SEPARATOR_CHAR));

@@ -225,7 +225,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     : null;
             
             final CollectingStrategy strategy = (clientGroupSelection == null) 
-                    ? settings.collectingStrategy 
+                    ? CollectingStrategy.EXAM
                     : CollectingStrategy.APPLY_SEB_GROUPS;
 
             proctoringAdminService.saveScreenProctoringSettings(

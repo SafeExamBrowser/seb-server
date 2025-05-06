@@ -219,7 +219,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                                 .getOrThrow();
 
                         this.examDAO.markUpdate(exam.id);
-
                     } else if (!isEnabling && isSPSActive) {
                         // if screen proctoring has been disabled...
                         this.screenProctoringAPIBinding
@@ -231,6 +230,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     } else if (isEnabling) {
                         this.screenProctoringAPIBinding.updateExam(exam).getOrThrow();
                         this.screenProctoringAPIBinding.synchronizeGroups(exam);
+                        this.examDAO.markUpdate(exam.id);
                     }
                     
                     return exam;
