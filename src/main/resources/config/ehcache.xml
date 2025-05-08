@@ -42,7 +42,7 @@
         <key-type>java.lang.Long</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.util.Result</value-type>
         <expiry>
-            <ttl unit="hours">24</ttl>
+            <ttl unit="seconds">3</ttl>
         </expiry>
         <resources>
             <heap unit="entries">10</heap>

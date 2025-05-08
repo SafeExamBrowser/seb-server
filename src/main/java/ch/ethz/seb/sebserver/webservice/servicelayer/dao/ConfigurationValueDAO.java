@@ -99,5 +99,4 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
 
     Result<ConfigurationValue> saveForce(ConfigurationValue configurationValue);
     
-    //Result<Collection<ConfigurationValue>> saveAllValues(Collection<ConfigurationValue> values);
 }

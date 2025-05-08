@@ -188,6 +188,7 @@ public final class API {
     public static final String LMS_FULL_INTEGRATION_TIME_ZONE = "account_time_zone";
 
     public static final String USER_ACCOUNT_ENDPOINT = "/useraccount";
+    public static final String USER_ACCOUNT_ENDPOINT_SUPPORTER = "/supporter";
 
     public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";
 

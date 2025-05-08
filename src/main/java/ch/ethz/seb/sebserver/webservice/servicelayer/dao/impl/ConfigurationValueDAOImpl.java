@@ -28,6 +28,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -295,9 +296,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
-
-
-
+    
     @Override
     public Result<ConfigurationValue> saveForce(final ConfigurationValue data) {
         return checkInstitutionalIntegrity(data)
@@ -450,7 +449,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                         .map(attr -> {
                             final ConfigurationValue configurationValue = rowValuesMapping.get(attr.getId());
                             if (configurationValue == null) {
-                                return missingValue(attr, institutionId, configurationId);
+                                return handleMissingValue(attr, institutionId, configurationId, i);
                             }
                             return configurationValue;
                         })
@@ -460,15 +459,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
             return result;
         });
-    }
-    
-    private ConfigurationValue missingValue(
-            final ConfigurationAttributeRecord attr,
-            final Long institutionId,
-            final Long configurationId) {
-        
-        log.info("***************** missingValue: {}", attr);
-        return null;
     }
 
     @Override
@@ -752,6 +742,25 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
         this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
         return this.configurationValueRecordMapper.selectByPrimaryKey(id);
+    }
+
+    private ConfigurationValue handleMissingValue(
+            final ConfigurationAttributeRecord attr,
+            final Long institutionId,
+            final Long configurationId,
+            final int index) {
+
+        log.info("Missing SEB Setting value detected for attribute: {} try to create one", attr);
+
+        return createNew(new ConfigurationValue(
+                null,
+                institutionId,
+                configurationId,
+                attr.getId(),
+                index,
+                attr.getDefaultValue()))
+                .onError(error -> log.error("Failed to create missing SEB Setting value: {}", error.getMessage()))
+                .getOr(null);
     }
 
 }

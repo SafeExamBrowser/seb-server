@@ -15,10 +15,9 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
@@ -152,7 +151,7 @@ public class SEBSettingsController {
             throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of());
         }
 
-        return getTableRowMapping(followUpConfig, tableAttribute)
+        return getTableValues(followUpConfig, tableAttribute)
                 .getOrThrow();
     }
 
@@ -233,7 +232,9 @@ public class SEBSettingsController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + 
+                    API.SEB_SETTINGS_TABLE_PATH_SEGMENT + 
+                    API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -263,15 +264,13 @@ public class SEBSettingsController {
                 .allChildAttributes(tableAttribute.id)
                 .getOrThrow();
 
-        final List<List<ConfigurationValue>> tableValues = configurationValueDAO
+        // TODO get last index in a better way
+        final int index = configurationValueDAO
                 .getOrderedTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id)
-                .getOrThrow();
+                .getOrThrow()
+                .size();
         
-        final int index = tableValues.size();
-        final Map<String, SEBSettingsView.Value> rowValues = new HashMap<>();
-
         columns.forEach( column -> {
-
             // TODO try to batch create
             final ConfigurationValue newValue = configurationValueDAO.createNew(new ConfigurationValue(
                             null,
@@ -281,14 +280,12 @@ public class SEBSettingsController {
                             index,
                             column.defaultValue))
                     .getOrThrow();
-
-            rowValues.put(column.name, new SEBSettingsView.Value(newValue.id, newValue.value));
         });
-        
-        return new SEBSettingsView.TableRowValues(tableAttribute.name, index, rowValues);
-    }
 
-    
+        return getTableValues(followUpConfig, tableAttribute)
+                .map(table -> table.get(index))
+                .getOrThrow();
+    }
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + 
@@ -322,23 +319,36 @@ public class SEBSettingsController {
         final Configuration followUpConfig = configurationDAO.
                 getFollowupConfiguration(configurationNodeId)
                 .getOrThrow();
-        final List<List<ConfigurationValue>> tableValues = configurationValueDAO
-                .getOrderedTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id)
+
+        return configurationValueDAO
+                .getTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id)
+                .map( v -> deleteRow(v, index))
+                .flatMap( configurationValueDAO::saveTableValues)
+                .map( v -> getTableValues(examId, attributeName))
                 .getOrThrow();
+    }
+
+    private ConfigurationTableValues deleteRow(
+            final ConfigurationTableValues values, 
+            final int index) {
         
-        if (index >= tableValues.size()) {
-            throw new APIMessage.APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("No table row index: " + index));
-        }
+        // delete the selected row and update indices
+        final List<TableValue> list = new ArrayList<>();
+        values.values.forEach(v -> {
+            if (v.listIndex != index) {
+                if (v.listIndex > index) {
+                    list.add(new TableValue(v.attributeId, v.listIndex - 1, v.value));
+                } else {
+                    list.add(new TableValue(v.attributeId, v.listIndex, v.value));
+                }
+            }
+        });
         
-        final List<ConfigurationValue> configurationValues = tableValues.get(index);
-        final Set<EntityKey> toDelete = configurationValues
-                .stream()
-                .filter(Objects::nonNull)
-                .map(Entity::getEntityKey)
-                .collect(Collectors.toSet());
-        final Collection<EntityKey> deleted = configurationValueDAO.delete(toDelete).getOrThrow();
-        
-        return getTableValues(examId, attributeName);
+        return new ConfigurationTableValues(
+                values.institutionId, 
+                values.configurationId, 
+                values.attributeId, 
+                list);
     }
 
     private Map<String, ConfigurationAttribute> getAttributesForView(final SEBSettingsView.ViewType viewType) {
@@ -373,7 +383,7 @@ public class SEBSettingsController {
                 .getOrThrow();
     }
 
-    private Result<List<SEBSettingsView.TableRowValues>> getTableRowMapping(
+    private Result<List<SEBSettingsView.TableRowValues>> getTableValues(
             final Configuration followUpConfig,
             final ConfigurationAttribute attribute) {
 
@@ -417,8 +427,8 @@ public class SEBSettingsController {
             int i = 0;
             for (final List<ConfigurationValue> row : attrValues) {
                 final SEBSettingsView.TableRowValues tableRowValues = new SEBSettingsView.TableRowValues(key, i, row.stream()
-                        .filter(Objects::nonNull).
-                        collect(Collectors.toMap(
+                        .filter(v -> v != null &&  attrIdMapping.get(v.attributeId) != null)
+                        .collect(Collectors.toMap(
                                 v -> attrIdMapping.get(v.attributeId).name,
                                 v -> new SEBSettingsView.Value(v.id, v.value))));
                 rows.add(tableRowValues);
@@ -446,4 +456,5 @@ public class SEBSettingsController {
         });
         return listValues;
     }
+    
 }

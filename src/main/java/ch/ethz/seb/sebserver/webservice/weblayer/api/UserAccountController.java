@@ -16,10 +16,8 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.model.Activatable;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
@@ -35,9 +33,11 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamic
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
@@ -52,17 +52,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 @WebServiceProfile
 @RestController
@@ -194,6 +190,33 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         final Result<Pair<UserInfo, EntityProcessingReport>> result = super.notifyDeleted(pair);
         this.screenProctoringService.deleteSPSUser(pair.a.uuid);
         return result;
+    }
+
+    @RequestMapping(
+            path = API.USER_ACCOUNT_ENDPOINT_SUPPORTER,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<EntityName> getNames(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+        
+        authorization.check(PrivilegeType.READ, EntityType.USER);
+
+        final FilterMap filterMap = new FilterMap();
+        filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        
+        return super.getAll(filterMap)
+                .map(all -> all.stream()
+                        .filter(u -> Objects.equals(u.institutionId, institutionId) && 
+                                u.hasAnyRole(
+                                UserRole.EXAM_SUPPORTER,
+                                UserRole.EXAM_ADMIN, 
+                                UserRole.TEACHER))
+                        .map(u -> new EntityName(u.getEntityKey(), u.name))
+                        .toList())
+                .getOrThrow();
     }
 
     @RequestMapping(

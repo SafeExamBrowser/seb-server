@@ -10,13 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,14 +147,14 @@ public class ExamSessionCacheService {
         }
     }
     
-// TODO currently caching is not enabled because difficulty with distributed setup and size update task on master
-//    @Cacheable(
-//            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
-//            key = "#examId",
-//            unless = "#result == null")
+    // NOTE currently caching has a time to live of 3 seconds this is due to support distributed setups.
+    //      So updating the size of a group can be delayed for 3 to 5 seconds.
+    @Cacheable(
+            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+            key = "#examId",
+            unless = "#result == null")
     public Result<Collection<ProctoringGroupMonitoringData>> getScreenProctoringGroups(final Long examId) {
-
-        // TODO get it directly from new DAO method
+        
         final Result<Collection<ProctoringGroupMonitoringData>> result = screenProctoringGroupDAO
                 .getCollectingGroups(examId)
                 .map(list -> (Collection<ProctoringGroupMonitoringData>) list
@@ -178,9 +173,9 @@ public class ExamSessionCacheService {
         return result;
     }
 
-//    @CacheEvict(
-//            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
-//            key = "#examId")
+    @CacheEvict(
+            cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
+            key = "#examId")
     public void evictScreenProctoringGroups(final Long examId) {
         if (log.isTraceEnabled()) {
             log.trace("Eviction of ScreenProctoringGroups from cache for exam: {}", examId);
