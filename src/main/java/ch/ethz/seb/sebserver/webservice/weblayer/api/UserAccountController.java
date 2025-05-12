@@ -213,7 +213,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                                 u.hasAnyRole(
                                 UserRole.EXAM_SUPPORTER,
                                 UserRole.EXAM_ADMIN, 
-                                UserRole.TEACHER))
+                                UserRole.TEACHER) && u.isActive())
                         .map(u -> new EntityName(u.getEntityKey(), u.name))
                         .toList())
                 .getOrThrow();
