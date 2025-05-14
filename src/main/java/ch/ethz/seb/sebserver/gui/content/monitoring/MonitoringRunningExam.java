@@ -155,7 +155,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         final boolean detailEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_DETAIL_VIEW);
         final boolean quitEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_QUIT);
-        final boolean lockscreenEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_QUIT);
+        final boolean lockscreenEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_LOCKSCREEN);
         final boolean cancelEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_CANCEL_CON);
         final boolean supporting = user.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.TEACHER) &&
                 exam.supporter.contains(user.uuid);

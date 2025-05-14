@@ -82,6 +82,7 @@ public class SEBSendLockPopup {
             final PageContext pageContext = action.pageContext();
             final Set<String> selection = selectionFunction.apply(ClientMonitoringDataView.getStatusPredicate(
                     ConnectionStatus.CONNECTION_REQUESTED,
+                    ConnectionStatus.READY,
                     ConnectionStatus.ACTIVE));
 
             if (selection == null || selection.isEmpty()) {
