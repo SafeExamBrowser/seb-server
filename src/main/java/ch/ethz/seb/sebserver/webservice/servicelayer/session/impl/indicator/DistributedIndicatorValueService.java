@@ -137,7 +137,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
      *
      * @param connectionId the client connection identifier
      * @param type the indicator type
-     * @param value the initialization value
+     * @param initValue the initialization value
      * @return the PK of the created or existing distributed indicator value cache record or null when a unexpected
      *         error happened */
     @Transactional

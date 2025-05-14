@@ -82,7 +82,7 @@ public interface ClientIndicatorValueMapper {
 
     default Long indicatorRecordIdByConnectionId(final Long connectionId, final IndicatorType indicatorType) {
         return SelectDSL.selectDistinctWithMapper(
-                        this::select,
+                        this::selectPK,
                         id.as("id"))
                 .from(clientIndicatorRecord)
                 .where(clientConnectionId, isEqualTo(connectionId))
