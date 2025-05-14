@@ -68,10 +68,22 @@ public interface ClientIndicatorValueMapper {
                 .execute();
     }
 
-    default Long indicatorRecordIdByConnectionId(final Long connectionId, final IndicatorType indicatorType) {
+    default Long indicatorRecordIdByConnectionIdLimit(final Long connectionId, final IndicatorType indicatorType) {
         return SelectDSL.selectDistinctWithMapper(
                 this::selectPK,
                 id.as("id"))
+                .from(clientIndicatorRecord)
+                .where(clientConnectionId, isEqualTo(connectionId))
+                .and(type, isEqualTo(indicatorType.id))
+                .limit(1)
+                .build()
+                .execute();
+    }
+
+    default Long indicatorRecordIdByConnectionId(final Long connectionId, final IndicatorType indicatorType) {
+        return SelectDSL.selectDistinctWithMapper(
+                        this::select,
+                        id.as("id"))
                 .from(clientIndicatorRecord)
                 .where(clientConnectionId, isEqualTo(connectionId))
                 .and(type, isEqualTo(indicatorType.id))

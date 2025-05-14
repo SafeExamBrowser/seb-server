@@ -19,6 +19,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
+import org.apache.ibatis.exceptions.TooManyResultsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -152,10 +153,18 @@ public class DistributedIndicatorValueService implements DisposableBean {
 
         try {
 
+            Long recId = null;
             // first check if the record already exists
-            final Long recId = this.clientIndicatorValueMapper.indicatorRecordIdByConnectionId(
-                    connectionId,
-                    type);
+            try {
+                recId = this.clientIndicatorValueMapper.indicatorRecordIdByConnectionId(
+                        connectionId,
+                        type);
+            } catch (final TooManyResultsException e) {
+                // There are already to many yet, select with limit to get first one and use this
+                recId = this.clientIndicatorValueMapper.indicatorRecordIdByConnectionIdLimit(
+                        connectionId,
+                        type);
+            }
 
             if (recId != null) {
                 if (log.isTraceEnabled()) {
@@ -191,8 +200,8 @@ public class DistributedIndicatorValueService implements DisposableBean {
             }
         } catch (final Exception e) {
             log.error(
-                    "Failed to initialize distributed indicator value cache in persistent store. connectionId: {} type: {}",
-                    connectionId, type, e);
+                    "Failed to initialize distributed indicator value cache in persistent store. connectionId: {} type: {} cause: {}",
+                    connectionId, type, e.getMessage());
 
             return null;
         }

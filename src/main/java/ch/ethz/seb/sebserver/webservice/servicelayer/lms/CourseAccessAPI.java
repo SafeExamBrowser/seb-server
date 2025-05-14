@@ -94,7 +94,7 @@ public interface CourseAccessAPI {
 
     /** Used to convert an anonymous or temporary examineeUserId, sent by the SEB Client on LMS login,
      * to a readable LMS examinee account name by requesting this on the LMS API with the given examineeUserId.
-     *
+     * <p>
      * If the underling concrete template implementation does not support this user name conversion,
      * the given examineeSessionId shall be returned.
      *
@@ -104,7 +104,7 @@ public interface CourseAccessAPI {
 
     /** Used to get a list of chapters (display name and chapter-identifier) that can be used to
      * apply chapter-based SEB restriction for a specified course.
-     *
+     * <p>
      * The availability of this depends on the type of LMS and on installed plugins that supports this feature.
      * If this is not supported by the underling LMS a UnsupportedOperationException will be presented
      * within the Result.
@@ -116,9 +116,9 @@ public interface CourseAccessAPI {
     /** This is used to buffer fetch results of asynchronous LMS quiz data fetch processes.
      * An asynchronous LMS quiz data fetch processes will buffer its fetch results within this buffer
      * during processing and a request can get already buffered results on a none-blocking manner.
-     *
+     * <p>
      * Use it like a Future but with the ability to get already fetched data. */
-    static class AsyncQuizFetchBuffer {
+    class AsyncQuizFetchBuffer {
 
         /** The buffer set where already fetched data is stored and can be get */
         public Set<QuizData> buffer = new HashSet<>();
