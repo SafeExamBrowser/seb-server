@@ -220,6 +220,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 if (examData.next_quiz_id != null) {
                     data_mapping.put("nextcourseid", examData.next_course_id);
                     data_mapping.put("nextquizid", examData.next_quiz_id);
+                    data_mapping.put("quitsecret", examData.quit_password);
                 } else {
                     data_mapping.put("showquitlink", StringUtils.isNotBlank(examData.quit_link) ? "1" : "0");
                     data_mapping.put("quitlink", examData.quit_link);
@@ -229,7 +230,7 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
                 data_mapping.put("addordelete", "0");
             }
             
-            log.info("********** Apply exam attributes to LMS: {}", attributes);
+            log.info("********** Apply exam attributes to LMS: {}, data: {}", attributes, data_mapping);
 
             final String response = rest.postToMoodleAPIFunction(
                     FUNCTION_NAME_SET_EXAM_DATA,
