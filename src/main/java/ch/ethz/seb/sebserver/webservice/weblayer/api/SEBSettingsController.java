@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -122,6 +123,20 @@ public class SEBSettingsController {
                 attributes,
                 singleValues,
                 tableValues);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_EXAM_CONFIG_MAPPING,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<ExamConfigurationMap> getExamConfigMappingsForExam(
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
+
+        authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
+
+        return examConfigurationMapDAO
+                .allOfExam(examId)
+                .getOrThrow();
     }
 
     @RequestMapping(

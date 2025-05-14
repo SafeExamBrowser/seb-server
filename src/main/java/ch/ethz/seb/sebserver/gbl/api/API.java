@@ -241,6 +241,7 @@ public final class API {
     public static final String SEB_SETTINGS_ENDPOINT = EXAM_ADMINISTRATION_ENDPOINT + "/seb-settings";
     public static final String SEB_SETTINGS_TABLE_PATH_SEGMENT = "/table";
     public static final String SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT = "/row";
+    public static final String SEB_SETTINGS_EXAM_CONFIG_MAPPING = "/examConfigMapping";
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
     public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";

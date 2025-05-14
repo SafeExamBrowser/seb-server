@@ -80,7 +80,9 @@ public interface ExamConfigurationMapDAO extends
     /** Delete all configuration mappings for a particular exam.
      *
      * @param examId the exam identifier
-     * @return Result refer to the list of deleted configuration mappings or to an error when happened */
+     * @return Result 
+     * refer to the list of deleted configuration mappings or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
+    Result<Collection<ExamConfigurationMap>> allOfExam(Long examId);
 }

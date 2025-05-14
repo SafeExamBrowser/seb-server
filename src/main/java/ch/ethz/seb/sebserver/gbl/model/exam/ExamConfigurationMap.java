@@ -40,54 +40,6 @@ public final class ExamConfigurationMap implements GrantEntity {
     public static final String FILTER_ATTR_EXAM_ID = "examId";
     public static final String FILTER_ATTR_CONFIG_ID = "configurationNodeId";
 
-    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ID)
-    public final Long id;
-
-    @NotNull
-    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID)
-    public final Long institutionId;
-
-    @NotNull(message = "examConfigurationMap:examId:notNull")
-    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID)
-    public final Long examId;
-
-    @JsonProperty(QuizData.QUIZ_ATTR_NAME)
-    public final String examName;
-
-    @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION)
-    public final String examDescription;
-
-    @JsonProperty(QuizData.QUIZ_ATTR_START_TIME)
-    public final DateTime examStartTime;
-
-    @JsonProperty(EXAM.ATTR_TYPE)
-    public final ExamType examType;
-
-    @JsonProperty(ARR_EXAM_STATUS)
-    public final ExamStatus examStatus;
-
-    @NotNull(message = "examConfigurationMap:configurationNodeId:notNull")
-    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID)
-    public final Long configurationNodeId;
-
-    @JsonProperty(CONFIGURATION_NODE.ATTR_NAME)
-    public final String configName;
-
-    @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION)
-    public final String configDescription;
-
-    @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS)
-    public final ConfigurationStatus configStatus;
-
-    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CLIENT_GROUP_ID)
-    public final Long clientGroupId;
-
-    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ENCRYPT_SECRET)
-    public final CharSequence encryptSecret;
-
-    @JsonProperty(ATTR_CONFIRM_ENCRYPT_SECRET)
-    public final CharSequence confirmEncryptSecret;
-
     @JsonCreator
     public ExamConfigurationMap(
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ID) final Long id,
@@ -144,6 +96,54 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.configDescription = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION);
         this.configStatus = postParams.getEnum(Domain.CONFIGURATION_NODE.ATTR_STATUS, ConfigurationStatus.class);
     }
+
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ID)
+    public final Long id;
+
+    @NotNull
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_INSTITUTION_ID)
+    public final Long institutionId;
+
+    @NotNull(message = "examConfigurationMap:examId:notNull")
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_EXAM_ID)
+    public final Long examId;
+
+    @JsonProperty(QuizData.QUIZ_ATTR_NAME)
+    public final String examName;
+
+    @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION)
+    public final String examDescription;
+
+    @JsonProperty(QuizData.QUIZ_ATTR_START_TIME)
+    public final DateTime examStartTime;
+
+    @JsonProperty(EXAM.ATTR_TYPE)
+    public final ExamType examType;
+
+    @JsonProperty(ARR_EXAM_STATUS)
+    public final ExamStatus examStatus;
+
+    @NotNull(message = "examConfigurationMap:configurationNodeId:notNull")
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID)
+    public final Long configurationNodeId;
+
+    @JsonProperty(CONFIGURATION_NODE.ATTR_NAME)
+    public final String configName;
+
+    @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION)
+    public final String configDescription;
+
+    @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS)
+    public final ConfigurationStatus configStatus;
+
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CLIENT_GROUP_ID)
+    public final Long clientGroupId;
+
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ENCRYPT_SECRET)
+    public final CharSequence encryptSecret;
+
+    @JsonProperty(ATTR_CONFIRM_ENCRYPT_SECRET)
+    public final CharSequence confirmEncryptSecret;
 
     public ExamConfigurationMap(
             final Long institutionId,

@@ -415,6 +415,19 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .onError(TransactionHandler::rollback);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ExamConfigurationMap>> allOfExam(final Long examId) {
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
+                .selectByExample()
+                .where(
+                        ExamConfigurationMapRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .build()
+                .execute())
+                .flatMap(this::toDomainModel);
+    }
+
     private boolean isExamActive(final Long examId) {
         try {
             return this.examRecordMapper.countByExample()
