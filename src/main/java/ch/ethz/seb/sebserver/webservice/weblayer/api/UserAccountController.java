@@ -196,7 +196,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             path = API.USER_ACCOUNT_ENDPOINT_SUPPORTER,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<EntityName> getNames(
+    public Collection<EntityName> getSupporterNames(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -212,8 +212,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                         .filter(u -> Objects.equals(u.institutionId, institutionId) && 
                                 u.hasAnyRole(
                                 UserRole.EXAM_SUPPORTER,
-                                UserRole.EXAM_ADMIN, 
-                                UserRole.TEACHER) && u.isActive())
+                                UserRole.EXAM_ADMIN) && u.isActive())
                         .map(u -> new EntityName(u.getEntityKey(), u.name))
                         .toList())
                 .getOrThrow();
