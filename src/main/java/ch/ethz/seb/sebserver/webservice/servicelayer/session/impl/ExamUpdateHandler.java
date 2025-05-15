@@ -477,6 +477,8 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                     Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS)
                     .map(AdditionalAttributeRecord::getValue)
                     .getOr("0"));
+            
+            log.info("*************** attempts: {} recoverAttempts: {}", attempts, this.recoverAttempts);
 
             if (attempts >= this.recoverAttempts) {
                 if (log.isTraceEnabled()) {
