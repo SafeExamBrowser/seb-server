@@ -284,7 +284,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String condition = SQL_COURSE_NAME + " LIKE '" + Utils.toSQLWildcard(shortname) + "'";
             log.info("**************** moodle request condition: {}", condition);
 
-            attributes.add("filtercourses ", "1");
+            attributes.add("filtercourses", "1");
             attributes.add(PARAM_SQL_CONDITIONS, condition);
             attributes.add(PARAM_PAGE_START, "0");
             attributes.add(PARAM_PAGE_SIZE, "1");
