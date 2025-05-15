@@ -479,7 +479,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                     .getOr("0"));
 
             if (attempts >= this.recoverAttempts) {
-                if (log.isDebugEnabled()) {
+                if (log.isTraceEnabled()) {
                     log.debug("Skip recovering quiz due to too many attempts for exam: {}", exam.getModelId());
                     throw new RuntimeException("Recover attempts reached");
                 }
@@ -494,13 +494,22 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                     .getLmsAPITemplate(lmsSetupId)
                     .flatMap(template -> template.tryRecoverQuizForExam(exam))
                     .onSuccess(recoveredQuizData -> recoverSuccess(updateId, exam, recoveredQuizData))
-                    .onError(error -> recoverError(quizId, updateId, exam, attempts))
+                    .onError(error -> recoverError(error, quizId, updateId, exam, attempts))
                     .getOrThrowRuntime("Not Available");
         });
     }
 
-    private void recoverError(final String quizId, final String updateId, final Exam exam, final int attempts) {
-
+    private void recoverError(
+            final Exception error,
+            final String quizId, 
+            final String updateId, 
+            final Exam exam, 
+            final int attempts) {
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Failed to recover exam from LMS quiz due to: {} attempts: {}", error.getMessage(), attempts);
+        }
+        
         // increment attempts
         this.additionalAttributesDAO.saveAdditionalAttribute(
                 EntityType.EXAM,

@@ -279,11 +279,14 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String shortname = MoodleUtils.getShortname(exam.externalId);
 
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
-            attributes.add(ATTR_VALUE, shortname);
+//            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
+//            attributes.add(ATTR_VALUE, shortname);
+            attributes.add(PARAM_SQL_CONDITIONS, SQL_COURSE_NAME + " LIKE '" + shortname);
             final String courseJSON = restTemplate.callMoodleAPIFunction(
                     COURSES_API_FUNCTION_NAME,
                     attributes);
+            
+            log.debug("**************** moodle response: {}", courseJSON);
 
             MoodleUtils.checkJSONFormat(courseJSON);
 
