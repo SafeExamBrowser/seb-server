@@ -64,9 +64,9 @@ public class SEBClientEventBatchService {
 
         this.sebClientNotificationService = sebClientNotificationService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
-        // TODO go to none transaction for this
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+        this.transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
+        //this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.examSessionCacheService = examSessionCacheService;
         this.jsonMapper = jsonMapper;
 

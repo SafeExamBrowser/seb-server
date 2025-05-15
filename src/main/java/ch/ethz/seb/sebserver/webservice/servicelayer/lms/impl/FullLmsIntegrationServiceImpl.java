@@ -137,7 +137,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         resource.setClientId(clientId);
         resource.setClientSecret(clientSecret);
         resource.setGrantType(API.GRANT_TYPE_CLIENT);
-        resource.setScope(API.RW_SCOPES);
+        //resource.setScope(API.RW_SCOPES);
 
         this.restTemplate = new OAuth2RestTemplate(resource);
         clientHttpRequestFactoryService
@@ -295,9 +295,19 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             }
 
             // reset old token to get actual one
-            resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
-            restTemplate.getOAuth2ClientContext().setAccessToken(null);
-            final String accessToken = restTemplate.getAccessToken().getValue();
+            String accessToken = null;
+            try {
+                resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
+                restTemplate.getOAuth2ClientContext().setAccessToken(null);
+                accessToken = restTemplate.getAccessToken().getValue();
+            } catch (final Exception e) {
+                log.error("Failed to get SEB webservice access token for Moodle on: {} client: {} scope: {} for LMSSetup: {}",
+                        restTemplate.getResource().getAccessTokenUri(),
+                        restTemplate.getResource().getClientId(),
+                        restTemplate.getResource().getScope(),
+                        lmsSetup);
+                throw new RuntimeException("Failed to get SEB webservice access token for Moodle...");
+            }
 
             final IntegrationData data = new IntegrationData(
                     connectionId,
