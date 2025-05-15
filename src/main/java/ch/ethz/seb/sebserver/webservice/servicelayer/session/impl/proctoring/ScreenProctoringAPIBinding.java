@@ -263,25 +263,10 @@ public class ScreenProctoringAPIBinding {
         if (UserService.LMS_INTEGRATION_CLIENT_UUID.equals(userUUID)) {
             return;
         }
-
+        
         try {
-
-            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
-            // check if user exists on SPS
-            final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsServiceURL)
-                    .path(USER_ACCOUNT_ENDPOINT + userUUID)
-                    .build()
-                    .toUriString();
-
-            final ResponseEntity<String> exchange = apiTemplate.exchange(
-                    uri, HttpMethod.GET, null, apiTemplate.getHeaders());
-
-            if (exchange.getStatusCode() == HttpStatus.OK) {
-                log.info("Synchronize SPS user account for SEB Server user account with id: {} ", userUUID);
-                this.synchronizeUserAccount(userUUID, apiTemplate);
-            }
-
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = getAPITemplate(null);
+            synchronizeUserAccount(userUUID, apiTemplate);
         } catch (final Exception e) {
             log.error("Failed to synchronize user account with SPS for user: {}", userUUID);
         }

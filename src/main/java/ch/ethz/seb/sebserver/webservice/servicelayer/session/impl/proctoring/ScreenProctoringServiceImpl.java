@@ -323,7 +323,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     @Override
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void synchronizeSPSUser(final String userUUID) {
-
+        // is screen proctoring configured?
         if (!webserviceInfo.getScreenProctoringServiceBundle().bundled) {
             return;
         }

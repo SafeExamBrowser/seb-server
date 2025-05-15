@@ -15,10 +15,11 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import ch.ethz.seb.sebserver.gbl.model.user.*;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.MultiValueMap;
@@ -50,6 +51,7 @@ public class RegisterUserController {
     private final UserActivityLogDAO userActivityLogDAO;
     private final UserDAO userDAO;
     private final BeanValidationService beanValidationService;
+    private final ScreenProctoringService screenProctoringService;
     private final LocalBucket requestRateLimitBucket;
     private final LocalBucket createRateLimitBucket;
     private final boolean registeringEnabled;
@@ -62,8 +64,9 @@ public class RegisterUserController {
             final BeanValidationService beanValidationService,
             final RateLimitService rateLimitService,
             final WebserviceInfo webserviceInfo,
+            final ScreenProctoringService screenProctoringService,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
-
+        
         final Map<String, Boolean> features = webserviceInfo.configuredFeatures();
         this.userActivityLogDAO = userActivityLogDAO;
         this.userDAO = userDAO;
@@ -72,6 +75,7 @@ public class RegisterUserController {
         this.autoActivation = BooleanUtils.isTrue(features.get(UserFeatures.Feature.ADMIN_USER_ACCOUNT_SELF_REGISTERING_AUTO_ACTIVATION.featureName));
         this.requestRateLimitBucket = rateLimitService.createRequestLimitBucker();
         this.createRateLimitBucket = rateLimitService.createCreationLimitBucker();
+        this.screenProctoringService = screenProctoringService;
     }
 
     @RequestMapping(
@@ -120,8 +124,16 @@ public class RegisterUserController {
                 .flatMap(account -> this.userDAO.setActive(account, autoActivation))
                 .flatMap(this.userActivityLogDAO::logRegisterAccount)
                 .flatMap(account -> this.userDAO.byModelId(account.getModelId()))
+                .flatMap(this::createSPSAccount)
                 .getOrThrow();
 
+    }
+    
+    private Result<UserInfo> createSPSAccount(final UserInfo userInfo) {
+        return Result.tryCatch(() -> {
+            this.screenProctoringService.synchronizeSPSUser(userInfo.uuid);
+            return userInfo;
+        });
     }
 
 }

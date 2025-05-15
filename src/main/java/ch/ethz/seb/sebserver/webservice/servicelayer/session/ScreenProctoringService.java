@@ -108,6 +108,9 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      *  (mainly the number of active clients in the group) by calling SPS API and store newest data. */
     void updateActiveGroups();
 
+    /** This synchronizes the user account with given UUID with regarding SPS user account.
+     * If there is no SPS User account for the given user account, SPS will generate one new with the given data
+     * @param userUUID The UUID of the user account to synchronize with SPS service*/
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUser(final String userUUID);
     
