@@ -477,14 +477,12 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                     Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS)
                     .map(AdditionalAttributeRecord::getValue)
                     .getOr("0"));
-            
-            log.info("*************** attempts: {} recoverAttempts: {}", attempts, this.recoverAttempts);
 
             if (attempts >= this.recoverAttempts) {
                 if (log.isTraceEnabled()) {
                     log.debug("Skip recovering quiz due to too many attempts for exam: {}", exam.getModelId());
-                    throw new RuntimeException("Recover attempts reached");
                 }
+                throw new RuntimeException("Recover attempts reached");
             }
 
             log.info(

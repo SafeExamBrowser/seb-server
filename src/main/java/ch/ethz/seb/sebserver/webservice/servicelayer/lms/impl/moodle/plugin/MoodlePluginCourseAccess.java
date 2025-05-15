@@ -281,7 +281,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
 //            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
 //            attributes.add(ATTR_VALUE, shortname);
-            final String condition = SQL_COURSE_NAME + " LIKE '" + shortname;
+            final String condition = SQL_COURSE_NAME + " LIKE '" + shortname + "'";
             log.info("**************** moodle request condition: {}", condition);
             
             attributes.add(PARAM_SQL_CONDITIONS, condition);
