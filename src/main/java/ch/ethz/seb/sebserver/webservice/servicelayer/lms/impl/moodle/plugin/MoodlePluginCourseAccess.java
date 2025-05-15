@@ -281,13 +281,14 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
 //            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
 //            attributes.add(ATTR_VALUE, shortname);
-            final String n = Utils.toSQLWildcard(shortname);
+            final String n = shortname;
             final String condition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
             log.info("**************** moodle request condition: {}", condition);
-            
+
+            attributes.add(PARAM_COURSE_ID_ARRAY, "0");
             attributes.add(PARAM_SQL_CONDITIONS, condition);
             attributes.add(PARAM_PAGE_START, "0");
-            attributes.add(PARAM_PAGE_SIZE, "1");
+            attributes.add(PARAM_PAGE_SIZE, "10");
             final String courseJSON = this.protectedMoodlePageCall
                     .protectedRun(() -> restTemplate.callMoodleAPIFunction(
                             COURSES_API_FUNCTION_NAME,
