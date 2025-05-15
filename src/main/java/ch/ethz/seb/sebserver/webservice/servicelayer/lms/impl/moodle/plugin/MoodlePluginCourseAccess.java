@@ -283,11 +283,14 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 //            attributes.add(ATTR_VALUE, shortname);
             final String condition = SQL_COURSE_NAME + " LIKE '" + shortname + "'";
             log.info("**************** moodle request condition: {}", condition);
-            
+
+            attributes.add(PARAM_COURSE_ID_ARRAY, "0");
             attributes.add(PARAM_SQL_CONDITIONS, condition);
-            final String courseJSON = restTemplate.callMoodleAPIFunction(
-                    COURSES_API_FUNCTION_NAME,
-                    attributes);
+            final String courseJSON = this.protectedMoodlePageCall
+                    .protectedRun(() -> restTemplate.callMoodleAPIFunction(
+                            COURSES_API_FUNCTION_NAME,
+                            attributes))
+                    .getOrThrow();
             
             log.info("**************** moodle response: {}", courseJSON);
 
