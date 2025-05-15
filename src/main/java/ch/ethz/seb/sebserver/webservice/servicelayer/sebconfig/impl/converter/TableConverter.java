@@ -115,7 +115,8 @@ public class TableConverter implements AttributeValueConverter {
             values.addAll(this.configurationValueDAO.getOrderedTableValues(
                     value.institutionId,
                     value.configurationId,
-                    attribute.id)
+                    attribute.id,
+                            false)
                     .onError(error -> log.error("Failed to get table values for attribute: {}", attribute.name, error))
                     .getOrElse(() -> Collections.emptyList()));
         } else {

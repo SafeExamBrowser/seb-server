@@ -281,7 +281,7 @@ public class SEBSettingsController {
 
         // TODO get last index in a better way
         final int index = configurationValueDAO
-                .getOrderedTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id)
+                .getOrderedTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id, false)
                 .getOrThrow()
                 .size();
         
@@ -411,7 +411,8 @@ public class SEBSettingsController {
         return configurationValueDAO.getOrderedTableValues(
                 followUpConfig.institutionId,
                 followUpConfig.getId(),
-                attribute.id)
+                attribute.id,
+                        true)
                 .map(val -> {
                     final List<SEBSettingsView.TableRowValues> res = new ArrayList<>();
                     int i = 0;
@@ -462,10 +463,13 @@ public class SEBSettingsController {
         final Map<String, List<List<ConfigurationValue>>> listValues = new HashMap<>();
         attributes.values().forEach(attr -> {
             if (attr.type == AttributeType.TABLE || attr.type == AttributeType.COMPOSITE_TABLE) {
-                final List<List<ConfigurationValue>> tableValues = configurationValueDAO.getOrderedTableValues(
-                        institutionId, 
-                        configId, 
-                        attr.id).getOrThrow();
+                final List<List<ConfigurationValue>> tableValues = configurationValueDAO
+                        .getOrderedTableValues(
+                                institutionId, 
+                                configId, 
+                                attr.id,
+                                true)
+                        .getOrThrow();
                 listValues.put(attr.name, tableValues);
             }
         });

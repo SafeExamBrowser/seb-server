@@ -28,7 +28,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -394,7 +393,8 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     public Result<List<List<ConfigurationValue>>> getOrderedTableValues(
             final Long institutionId,
             final Long configurationId,
-            final Long attributeId) {
+            final Long attributeId,
+            final boolean fixMissingValues) {
 
         return Result.tryCatch(() -> {
 
@@ -448,7 +448,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                         .stream()
                         .map(attr -> {
                             final ConfigurationValue configurationValue = rowValuesMapping.get(attr.getId());
-                            if (configurationValue == null) {
+                            if (configurationValue == null && fixMissingValues) {
                                 return handleMissingValue(attr, institutionId, configurationId, i);
                             }
                             return configurationValue;

@@ -52,11 +52,13 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
      * @param institutionId the institution identifier
      * @param configurationId the configuration identifier
      * @param attributeId the table attribute to get all values for
+     * @param fixMissingValues indicates whether this call should fix missing SEB Settings values or not.
      * @return an ordered list of all ConfigurationValue of a table attribute on a specified configuration */
     Result<List<List<ConfigurationValue>>> getOrderedTableValues(
             Long institutionId,
             Long configurationId,
-            Long attributeId);
+            Long attributeId,
+            boolean fixMissingValues);
 
     /** Use this to save all values of a table attribute.
      *

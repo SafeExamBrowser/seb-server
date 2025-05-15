@@ -52,6 +52,7 @@ public class ExamImportServiceImpl implements ExamImportService {
     private final ExamDAO examDAO;
     private final ExamTemplateService examTemplateService;
     private final ExamAdminService examAdminService;
+    private final SEBRestrictionService sebRestrictionService;
     private final boolean appSignatureKeyEnabled;
     private final int defaultNumericalTrustThreshold;
 
@@ -60,6 +61,7 @@ public class ExamImportServiceImpl implements ExamImportService {
             final ExamTemplateService examTemplateService,
             final SEBRestrictionService sebRestrictionService,
             final ExamAdminService examAdminService,
+            final SEBRestrictionService sebRestrictionService1,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final LmsAPIService lmsAPIService,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
@@ -68,6 +70,7 @@ public class ExamImportServiceImpl implements ExamImportService {
         this.examDAO = examDAO;
         this.examTemplateService = examTemplateService;
         this.examAdminService = examAdminService;
+        this.sebRestrictionService = sebRestrictionService1;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.lmsAPIService = lmsAPIService;
         this.appSignatureKeyEnabled = appSignatureKeyEnabled;
@@ -99,14 +102,16 @@ public class ExamImportServiceImpl implements ExamImportService {
                         errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG.of(error));
                     }
                 })
-                .flatMap(this::applyAdditionalSEBRestrictions)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error)))
+                .flatMap(this::applyAdditionalSEBRestrictionAttributes)
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error)))
                 .flatMap(examAdminService::applyQuitPassword)
                 .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_QUIT_PASSWORD.of(error)))
                 .flatMap(examTemplateService::applyScreenProctoringSettingsForExam)
                 .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS.of(error)))
                 .flatMap(examAdminService::applySPSEnabled)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED.of(error)));
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED.of(error)))
+                .flatMap( this::applySEBRestriction)
+                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error)));
 
 
         if (!errors.isEmpty()) {
@@ -120,6 +125,20 @@ public class ExamImportServiceImpl implements ExamImportService {
         } else {
             return this.examDAO.byPK(exam.id);
         }
+    }
+
+    private Result<Object> applySEBRestriction(final Exam exam) {
+        return Result.tryCatch(() -> {
+            this.sebRestrictionService
+                    .applySEBClientRestriction(exam)
+                    .onError(error -> log.error("Failed to apply SEB Restriction for exam: {}, cause: {}",
+                            exam, 
+                            error.getMessage()));
+
+            return this.examDAO
+                    .byPK(exam.id)
+                    .getOrThrow();
+        });
     }
 
     @Override
@@ -150,7 +169,7 @@ public class ExamImportServiceImpl implements ExamImportService {
         }).flatMap(this::initAdditionalAttributesForMoodleExams);
     }
 
-    private Result<Exam> applyAdditionalSEBRestrictions(final Exam exam) {
+    private Result<Exam> applyAdditionalSEBRestrictionAttributes(final Exam exam) {
         return Result.tryCatch(() -> {
 
             // this only applies to exams that are attached to an LMS

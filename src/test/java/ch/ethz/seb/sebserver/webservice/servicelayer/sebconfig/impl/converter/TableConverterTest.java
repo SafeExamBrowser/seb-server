@@ -98,7 +98,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(this.TABLE_VALUES));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
@@ -138,7 +138,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(Collections.emptyList()));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
@@ -164,7 +164,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(this.COMPOSITE_TABLE_VALUES));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
@@ -196,7 +196,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(Collections.emptyList()));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
@@ -222,7 +222,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(this.TABLE_VALUES));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
@@ -249,7 +249,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(Collections.emptyList()));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
@@ -276,7 +276,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(this.COMPOSITE_TABLE_VALUES));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
@@ -303,7 +303,7 @@ public class TableConverterTest {
 
         final ConfigurationValueDAO configurationValueDAO =
                 Mockito.mock(ConfigurationValueDAO.class);
-        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L))
+        Mockito.when(configurationValueDAO.getOrderedTableValues(1L, 1L, 1L, false))
                 .thenReturn(Result.of(Collections.emptyList()));
 
         final TableConverter tableConverter = new TableConverter(configurationAttributeDAO, configurationValueDAO);
