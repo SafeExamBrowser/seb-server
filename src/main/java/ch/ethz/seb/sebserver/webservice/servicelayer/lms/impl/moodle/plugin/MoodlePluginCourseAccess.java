@@ -447,7 +447,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
                 final String n = Utils.toSQLWildcard(nameCondition);
-                sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
+                sqlCondition = sqlCondition + SQL_QUIZ_NAME + " LIKE '" + n;
+                //sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
             }
 
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
