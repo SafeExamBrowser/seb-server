@@ -447,7 +447,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
                 final String n = Utils.toSQLWildcard(nameCondition);
-                sqlCondition = sqlCondition + SQL_QUIZ_NAME + " LIKE '" + n;
+                sqlCondition = sqlCondition + " AND " + SQL_QUIZ_NAME + " LIKE '" + n+ "'";
                 //sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
             }
 
