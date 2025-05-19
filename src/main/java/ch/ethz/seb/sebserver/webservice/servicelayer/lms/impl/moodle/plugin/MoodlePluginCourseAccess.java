@@ -286,7 +286,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             final long start = Utils.toUnixTimeInSeconds(exam.getStartTime().minusDays(2));
             final long end = Utils.toUnixTimeInSeconds(exam.getStartTime().plusDays(2));
-            final String condition = "startdate >= " + start + " AND startdate <= " + end;
+            //final String condition = "startdate >= " + start + " AND startdate <= " + end;
+            final String condition = "(startdate is null OR startdate = 0 OR startdate >= " + start + ") AND (startdate is null or startdate = 0 OR startdate >= " + end + ")";
             
             log.info("**************** moodle request condition: {}", condition);
 
