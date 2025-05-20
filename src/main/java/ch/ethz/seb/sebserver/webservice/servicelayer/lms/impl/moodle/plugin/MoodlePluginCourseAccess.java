@@ -79,6 +79,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String PARAM_SQL_CONDITIONS = "conditions";
     public static final String PARAM_PAGE_START = "startneedle";
     public static final String PARAM_PAGE_SIZE = "perpage";
+    public static final String PARAM_FILTER_COURSES = "filtercourses";
 
     public static final String SQL_QUIZ_NAME = "m.name";
     public static final String SQL_COURSE_NAME = "shortname";
@@ -278,21 +279,21 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String shortname = MoodleUtils.getShortname(exam.externalId);
 
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-//            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
-//            attributes.add(ATTR_VALUE, shortname);
-//            final String n = shortname;
-//            final String condition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
-//            log.info("**************** moodle request condition: {}", condition);
+            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
+            attributes.add(ATTR_VALUE, shortname);
+            final String n = Utils.toSQLWildcard(shortname);
+            final String condition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
+            log.info("**************** moodle request condition: {}", condition);
 
-            final long start = Utils.toUnixTimeInSeconds(exam.getStartTime().minusDays(2));
-            final long end = Utils.toUnixTimeInSeconds(exam.getStartTime().plusDays(2));
-            //final String condition = "startdate >= " + start + " AND startdate <= " + end;
-            final String condition = "(startdate is null OR startdate = 0 OR startdate >= " + start + ") AND (startdate is null or startdate = 0 OR startdate >= " + end + ")";
+//            final long start = Utils.toUnixTimeInSeconds(exam.getStartTime().minusDays(2));
+//            final long end = Utils.toUnixTimeInSeconds(exam.getStartTime().plusDays(2));
+//            //final String condition = "startdate >= " + start + " AND startdate <= " + end;
+//            final String condition = "(startdate is null OR startdate = 0 OR startdate >= " + start + ") AND (startdate is null or startdate = 0 OR startdate >= " + end + ")";
             
             log.info("**************** moodle request condition: {}", condition);
 
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
-            attributes.add("filtercourses", "1");
+            attributes.add(PARAM_FILTER_COURSES, "1");
             attributes.add(PARAM_SQL_CONDITIONS, condition);
             attributes.add(PARAM_PAGE_START, "0");
             attributes.add(PARAM_PAGE_SIZE, "10");
@@ -459,7 +460,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
-            attributes.add("filtercourses", "1");
+            attributes.add(PARAM_FILTER_COURSES, "1");
             attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
             attributes.add(PARAM_PAGE_START, fromElement);
             attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
