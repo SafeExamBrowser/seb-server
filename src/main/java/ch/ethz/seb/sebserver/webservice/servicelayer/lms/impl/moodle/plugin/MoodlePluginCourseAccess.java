@@ -291,7 +291,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             
             log.info("**************** moodle request condition: {}", condition);
 
-            attributes.add(PARAM_COURSE_ID_ARRAY, "1");
+            attributes.add(PARAM_COURSE_ID_ARRAY, "0");
+            attributes.add("filtercourses", "1");
             attributes.add(PARAM_SQL_CONDITIONS, condition);
             attributes.add(PARAM_PAGE_START, "0");
             attributes.add(PARAM_PAGE_SIZE, "10");
@@ -457,7 +458,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             }
 
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
-            attributes.add(PARAM_COURSE_ID_ARRAY, "1");
+            attributes.add(PARAM_COURSE_ID_ARRAY, "0");
+            attributes.add("filtercourses", "1");
             attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
             attributes.add(PARAM_PAGE_START, fromElement);
             attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
