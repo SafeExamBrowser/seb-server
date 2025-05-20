@@ -279,15 +279,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String shortname = MoodleUtils.getShortname(exam.externalId);
 
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-//            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
-//            attributes.add(ATTR_VALUE, shortname);
             final String n = Utils.toSQLWildcard(shortname);
             final String condition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
-
-//            final long start = Utils.toUnixTimeInSeconds(exam.getStartTime().minusDays(2));
-//            final long end = Utils.toUnixTimeInSeconds(exam.getStartTime().plusDays(2));
-//            //final String condition = "startdate >= " + start + " AND startdate <= " + end;
-//            final String condition = "(startdate is null OR startdate = 0 OR startdate >= " + start + ") AND (startdate is null or startdate = 0 OR startdate >= " + end + ")";
             
             log.info("**************** moodle request condition: {}", condition);
 
@@ -315,10 +308,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                                     c,
                                     urlPrefix,
                                     this.prependShortCourseName).stream())
-                            .filter(q -> {
-                                log.info("**************** examName: {} quizName. {}", exam.name, q.name);
-                                return exam.name.contains(q.name);
-                            })
+                            .filter(q -> exam.name.contains(q.name))
                             .findFirst()
                             .get();
         });
