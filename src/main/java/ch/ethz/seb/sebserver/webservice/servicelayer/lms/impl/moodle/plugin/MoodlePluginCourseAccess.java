@@ -277,12 +277,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             // get the course name identifier for recovering
             final String shortname = MoodleUtils.getShortname(exam.externalId);
-
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
             final String n = Utils.toSQLWildcard(shortname);
             final String condition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
-            
-            log.info("**************** moodle request condition: {}", condition);
 
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
             attributes.add(PARAM_FILTER_COURSES, "1");
