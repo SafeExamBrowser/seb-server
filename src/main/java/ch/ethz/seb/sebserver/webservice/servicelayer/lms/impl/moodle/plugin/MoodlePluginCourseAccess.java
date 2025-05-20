@@ -279,8 +279,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String shortname = MoodleUtils.getShortname(exam.externalId);
 
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
-            attributes.add(ATTR_VALUE, shortname);
+//            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
+//            attributes.add(ATTR_VALUE, shortname);
             final String n = Utils.toSQLWildcard(shortname);
             final String condition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
             log.info("**************** moodle request condition: {}", condition);
