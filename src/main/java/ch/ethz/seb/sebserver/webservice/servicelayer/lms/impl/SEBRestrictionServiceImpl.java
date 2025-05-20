@@ -351,6 +351,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                                     return exam;
                                 })
                                 .onError(error -> this.examDAO.setSEBRestriction(exam.id, false))
+                                .onSuccess( e -> this.examDAO.setSEBRestriction(e.id, true))
                                 .getOrThrow();
                     })
                     .getOrThrow();
