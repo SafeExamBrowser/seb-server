@@ -283,7 +283,6 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 //            attributes.add(ATTR_VALUE, shortname);
             final String n = Utils.toSQLWildcard(shortname);
             final String condition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
-            log.info("**************** moodle request condition: {}", condition);
 
 //            final long start = Utils.toUnixTimeInSeconds(exam.getStartTime().minusDays(2));
 //            final long end = Utils.toUnixTimeInSeconds(exam.getStartTime().plusDays(2));
@@ -316,7 +315,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                                     c,
                                     urlPrefix,
                                     this.prependShortCourseName).stream())
-                            .filter(q -> exam.name.contains(q.name))
+                            .filter(q -> {
+                                log.info("**************** examName: {} quizName. {}", exam.name, q.name);
+                                return exam.name.contains(q.name);
+                            })
                             .findFirst()
                             .get();
         });
