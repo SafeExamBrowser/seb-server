@@ -184,6 +184,7 @@ public final class API {
     public static final String LMS_FULL_INTEGRATION_USER_EMAIL = "user_email";
     public static final String LMS_FULL_INTEGRATION_USER_FIRST_NAME = "user_firstname";
     public static final String LMS_FULL_INTEGRATION_USER_LAST_NAME = "user_lastname";
+    public static final String LMS_LOOKUP_NEW_SEARCH = "force_new_search";
 
     public static final String LMS_FULL_INTEGRATION_TIME_ZONE = "account_time_zone";
 

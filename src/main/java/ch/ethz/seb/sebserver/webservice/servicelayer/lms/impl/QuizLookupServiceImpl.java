@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,19 +273,17 @@ public class QuizLookupServiceImpl implements QuizLookupService {
 
         @Override
         public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("LookupFilterCriteria [institutionId=");
-            builder.append(this.institutionId);
-            builder.append(", lmsId=");
-            builder.append(this.lmsId);
-            builder.append(", name=");
-            builder.append(this.name);
-            builder.append(", startTime=");
-            builder.append(this.startTime);
-            builder.append(", startTimeMillis=");
-            builder.append(this.startTimeMillis);
-            builder.append("]");
-            return builder.toString();
+            return "LookupFilterCriteria [institutionId=" +
+                    this.institutionId +
+                    ", lmsId=" +
+                    this.lmsId +
+                    ", name=" +
+                    this.name +
+                    ", startTime=" +
+                    this.startTime +
+                    ", startTimeMillis=" +
+                    this.startTimeMillis +
+                    "]";
         }
     }
 
@@ -334,6 +333,10 @@ public class QuizLookupServiceImpl implements QuizLookupService {
         }
 
         boolean isValid(final FilterMap filterMap) {
+            if (filterMap.getBoolean(API.LMS_LOOKUP_NEW_SEARCH)) {
+                return false;
+            }
+            
             if (!isUpToDate()) {
                 return false;
             }
@@ -347,9 +350,7 @@ public class QuizLookupServiceImpl implements QuizLookupService {
             }
             final boolean running = this.asyncBuffers
                     .stream()
-                    .filter(b -> !b.finished)
-                    .findFirst()
-                    .isPresent();
+                    .anyMatch(b -> !b.finished);
             if (!running) {
                 this.timeCompleted = Utils.getMillisecondsNow();
             }

@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -126,6 +127,7 @@ public interface LmsAPIService {
             
             // this is the new way with the filter date timestamp from the user input. 
             // Unix timestamp from user selected date plus now time within the users day (users timezone)
+            final long endThreshold = Utils.getMillisecondsNow() + Constants.HOUR_IN_MILLIS * 2; 
             final Long quizFromTimeMillis = filterMap.getQuizFromTimeMillis();
             final DateTimeZone userTimeZone = filterMap.getUserTimeZone();
             final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(quizFromTimeMillis, userTimeZone);
@@ -133,6 +135,7 @@ public interface LmsAPIService {
             return q -> {
                 final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
                 final long quizStart = q.startTime.getMillis();
+                final DateTime endTime = q.getEndTime();
                 final boolean startTimeFilter = userDaySpanMillis == null || userDaySpanMillis.a <= quizStart && userDaySpanMillis.b >= quizStart;
 
                 // SEBSERV-632
@@ -141,7 +144,7 @@ public interface LmsAPIService {
                     imported = importedExams.contains(q.id);
                 }
 
-                return nameFilter && startTimeFilter && !imported;
+                return nameFilter && startTimeFilter && !imported && (endTime == null || endTime.getMillis() > endThreshold);
             };
         }
     }

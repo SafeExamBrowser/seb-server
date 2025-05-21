@@ -133,7 +133,8 @@ public class ExamImportServiceImpl implements ExamImportService {
                     .applySEBClientRestriction(exam)
                     .onError(error -> log.error("Failed to apply SEB Restriction for exam: {}, cause: {}",
                             exam, 
-                            error.getMessage()));
+                            error.getMessage()))
+                    .getOrThrow();
 
             return this.examDAO
                     .byPK(exam.id)

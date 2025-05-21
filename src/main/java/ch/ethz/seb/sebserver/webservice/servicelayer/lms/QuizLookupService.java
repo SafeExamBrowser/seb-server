@@ -45,7 +45,7 @@ public interface QuizLookupService {
         return new LookupResult(Collections.emptyList(), true);
     }
 
-    public final static class LookupResult {
+    final class LookupResult {
         public final List<QuizData> quizData;
         public final boolean completed;
         public final long timestamp;
@@ -62,7 +62,7 @@ public interface QuizLookupService {
 
     /** Closure that gives a Function to create a Page of QuizData from a given List of QuizData with the
      * attributes, pageNumber, pageSize and sort.
-     *
+     * <p>
      * NOTE: this is not sorting the QuizData list but uses the sortAttribute for the page creation
      *
      * @param sortAttribute the sort attribute for the new Page
