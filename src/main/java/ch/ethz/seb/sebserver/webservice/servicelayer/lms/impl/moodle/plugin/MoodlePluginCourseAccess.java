@@ -82,7 +82,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String PARAM_FILTER_COURSES = "filtercourses";
 
     public static final String SQL_QUIZ_NAME = "m.name";
-    public static final String SQL_COURSE_NAME = "fullname";
+    public static final String SQL_COURSE_NAME = "shortname";
 
     public static final String SQL_CONDITION_TEMPLATE =
             "(startdate is null OR startdate = 0 OR startdate >= %s) AND (enddate is null or enddate = 0 OR enddate >= %s)";
@@ -449,7 +449,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
-            attributes.add(PARAM_FILTER_COURSES, "1");
+            // Note: skip filter courses here since it is still not working as expected. See Issue: SEBSERV-705
+            //attributes.add(PARAM_FILTER_COURSES, "1");
             attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
             attributes.add(PARAM_PAGE_START, fromElement);
             attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
