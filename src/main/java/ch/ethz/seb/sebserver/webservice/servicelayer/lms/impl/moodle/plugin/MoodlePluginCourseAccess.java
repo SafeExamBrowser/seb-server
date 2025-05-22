@@ -130,7 +130,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         this.maxSize =
                 environment.getProperty("sebserver.webservice.cache.moodle.course.maxSize", Integer.class, 10000);
         this.pageSize =
-                environment.getProperty("sebserver.webservice.cache.moodle.course.pageSize", Integer.class, 500);
+                environment.getProperty("sebserver.webservice.cache.moodle.course.pageSize", Integer.class, 1000);
 
         this.cutoffTimeOffset = environment.getProperty(
                 "sebserver.webservice.lms.moodle.fetch.cutoffdate.yearsBeforeNow",
@@ -292,7 +292,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
             
-            log.info("**************** moodle response: {}", courseJSON);
+            //log.info("**************** moodle response: {}", courseJSON);
 
             MoodleUtils.checkJSONFormat(courseJSON);
 
@@ -461,8 +461,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
             
-            log.info("******** course page: {} condition: {}", page, sqlCondition);
-            log.info("******** response: {}", courseKeyPageJSON);
+//            log.info("******** course page: {} condition: {}", page, sqlCondition);
+//            log.info("******** response: {}", courseKeyPageJSON);
 
             MoodleUtils.checkJSONFormat(courseKeyPageJSON);
 
