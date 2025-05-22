@@ -202,7 +202,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
         
-        authorization.check(PrivilegeType.READ, EntityType.USER);
+        authorization.check(
+                PrivilegeType.READ, 
+                EntityType.USER, 
+                institutionId);
 
         final FilterMap filterMap = new FilterMap();
         filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
@@ -210,7 +213,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         return super.getAll(filterMap)
                 .map(all -> all.stream()
                         .filter(u -> Objects.equals(u.institutionId, institutionId) && 
-                                u.hasAnyRole(UserRole.EXAM_SUPPORTER) && u.isActive())
+                                u.hasAnyRole(UserRole.EXAM_SUPPORTER) && 
+                                u.isActive())
                         .map(u -> new EntityName(u.getEntityKey(), u.name))
                         .toList())
                 .getOrThrow();
