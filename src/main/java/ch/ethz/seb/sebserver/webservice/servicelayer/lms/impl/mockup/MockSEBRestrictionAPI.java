@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,7 +26,7 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
 
     private static final Logger log = LoggerFactory.getLogger(MockSEBRestrictionAPI.class);
 
-    private Map<Long, SEBRestriction> restrictionDB = new ConcurrentHashMap<>();
+    private final Map<Long, SEBRestriction> restrictionDB = new ConcurrentHashMap<>();
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
