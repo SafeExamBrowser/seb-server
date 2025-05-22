@@ -211,12 +211,15 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         
         return super.getAll(filterMap)
-                .map(all -> all.stream()
-                        .filter(u -> Objects.equals(u.institutionId, institutionId) && 
-                                u.hasAnyRole(UserRole.EXAM_SUPPORTER) && 
-                                u.isActive())
-                        .map(u -> new EntityName(u.getEntityKey(), u.name))
-                        .toList())
+                .map(all -> {
+                    log.info("************** all active users: {}", all);
+                    return all.stream()
+                            .filter(u -> Objects.equals(u.institutionId, institutionId) &&
+                                    u.hasAnyRole(UserRole.EXAM_SUPPORTER) &&
+                                    u.isActive())
+                            .map(UserInfo::toName)
+                            .toList();
+                })
                 .getOrThrow();
     }
 
