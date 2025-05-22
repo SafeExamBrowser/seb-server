@@ -210,9 +210,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         return super.getAll(filterMap)
                 .map(all -> all.stream()
                         .filter(u -> Objects.equals(u.institutionId, institutionId) && 
-                                u.hasAnyRole(
-                                UserRole.EXAM_SUPPORTER,
-                                UserRole.EXAM_ADMIN) && u.isActive())
+                                u.hasAnyRole(UserRole.EXAM_SUPPORTER) && u.isActive())
                         .map(u -> new EntityName(u.getEntityKey(), u.name))
                         .toList())
                 .getOrThrow();
