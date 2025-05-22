@@ -81,8 +81,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String PARAM_PAGE_SIZE = "perpage";
     public static final String PARAM_FILTER_COURSES = "filtercourses";
 
-    public static final String SQL_QUIZ_NAME = "m.name";
-    public static final String SQL_COURSE_NAME = "shortname";
+    public static final String SQL_QUIZ_NAME = "m.fullname";
+    public static final String SQL_COURSE_NAME = "name";
 
     public static final String SQL_CONDITION_TEMPLATE =
             "(startdate is null OR startdate = 0 OR startdate >= %s) AND (enddate is null or enddate = 0 OR enddate >= %s)";
