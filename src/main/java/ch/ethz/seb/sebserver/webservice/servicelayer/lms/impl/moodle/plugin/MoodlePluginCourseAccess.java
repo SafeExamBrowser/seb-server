@@ -81,7 +81,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String PARAM_PAGE_SIZE = "perpage";
     public static final String PARAM_FILTER_COURSES = "filtercourses";
 
-    public static final String SQL_QUIZ_NAME = "quiz.name";
+    public static final String SQL_QUIZ_NAME = "m.name";
     public static final String SQL_COURSE_NAME = "shortname";
 
     public static final String SQL_CONDITION_TEMPLATE =
@@ -433,26 +433,29 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         final String lmsName = getLmsSetupName();
         try {
             // get course ids per page
-            final long filterDate = Utils.toUnixTimeInSeconds(quizFromTime);
-            final long defaultCutOff = Utils.toUnixTimeInSeconds(
-                    DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
-            final long cutoffDate = Math.min(filterDate, defaultCutOff);
-            String sqlCondition = String.format(
-                    SQL_CONDITION_TEMPLATE, cutoffDate, filterDate);
             final String fromElement = String.valueOf(page * size);
+            final long filterDate = Utils.toUnixTimeInSeconds(quizFromTime.minusDays(2));
+            log.info("**************** from date: {}", quizFromTime);
+
+            String sqlCondition = String.format(SQL_CONDITION_TEMPLATE, fromElement, Utils.getSecondsNow());
+            
+            
+//            final long defaultCutOff = Utils.toUnixTimeInSeconds(
+//                    DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
+//            final long cutoffDate = Math.min(filterDate, defaultCutOff);
+//            String sqlCondition = String.format(
+//                    SQL_CONDITION_TEMPLATE, cutoffDate, filterDate);
+//            
+//            if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
+//                final String n = Utils.toSQLWildcard(nameCondition);
+//                sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
+//            }
+
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-
-            if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
-                attributes.add(PARAM_FILTER_COURSES, "1");
-                final String n = Utils.toSQLWildcard(nameCondition);
-                sqlCondition = SQL_QUIZ_NAME + " LIKE '" + n + "'"; //   + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
-                //sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
-            }
-
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
             // Note: skip filter courses here since it is still not working as expected. See Issue: SEBSERV-705
-            //attributes.add(PARAM_FILTER_COURSES, "1");
+            attributes.add(PARAM_FILTER_COURSES, "1");
             attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
             attributes.add(PARAM_PAGE_START, fromElement);
             attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
