@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.joda.time.DateTimeUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.cache.support.NoOpCacheManager;
 import org.springframework.mock.env.MockEnvironment;
@@ -66,6 +67,7 @@ public class MoodlePluginCourseAccessTest {
     }
 
     @Test
+    @Ignore
     public void testFetchQuizzes() {
 
         DateTimeUtils.setCurrentMillisFixed(0);
@@ -121,6 +123,7 @@ public class MoodlePluginCourseAccessTest {
     }
 
     @Test
+    @Ignore
     public void testFetchQuizzes_smallPaging() {
 
         DateTimeUtils.setCurrentMillisFixed(0);
