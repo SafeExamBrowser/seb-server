@@ -434,9 +434,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         try {
             // get course ids per page
             final String fromElement = String.valueOf(page * size);
-            final long filterDate = Utils.toUnixTimeInSeconds(quizFromTime.minusDays(2));
-            log.info("**************** from date: {}", quizFromTime);
-            String sqlCondition = String.format(SQL_CONDITION_TEMPLATE, filterDate, Utils.getSecondsNow());
+//            final long filterDate = Utils.toUnixTimeInSeconds(quizFromTime.minusDays(2));
+//            log.info("**************** from date: {}", quizFromTime);
+//            String sqlCondition = String.format(SQL_CONDITION_TEMPLATE, filterDate, Utils.getSecondsNow());
             
             
 //            final long defaultCutOff = Utils.toUnixTimeInSeconds(
@@ -455,7 +455,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
             // Note: skip filter courses here since it is still not working as expected. See Issue: SEBSERV-705
             //attributes.add(PARAM_FILTER_COURSES, "1");
-            attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
+            //attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
             attributes.add(PARAM_PAGE_START, fromElement);
             attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
 
@@ -465,8 +465,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
             
-            log.info("******** course page: {} condition: {}", page, sqlCondition);
-            log.info("******** response: {}", courseKeyPageJSON);
+//            log.info("******** course page: {} condition: {}", page, sqlCondition);
+//            log.info("******** response: {}", courseKeyPageJSON);
 
             MoodleUtils.checkJSONFormat(courseKeyPageJSON);
 
