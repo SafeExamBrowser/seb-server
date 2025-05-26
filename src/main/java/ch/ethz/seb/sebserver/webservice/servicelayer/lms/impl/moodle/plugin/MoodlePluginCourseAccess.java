@@ -463,8 +463,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
             
-//            log.info("******** course page: {} condition: {}", page, sqlCondition);
-//            log.info("******** response: {}", courseKeyPageJSON);
+            log.info("******** course page: {} condition: {}", page, sqlCondition);
+            log.info("******** response: {}", courseKeyPageJSON);
 
             MoodleUtils.checkJSONFormat(courseKeyPageJSON);
 
