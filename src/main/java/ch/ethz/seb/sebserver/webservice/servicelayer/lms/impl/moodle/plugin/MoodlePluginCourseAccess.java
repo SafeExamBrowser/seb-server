@@ -292,7 +292,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
             
-            //log.info("**************** moodle response: {}", courseJSON);
+            log.info("**************** moodle response: {}", courseJSON);
 
             MoodleUtils.checkJSONFormat(courseJSON);
 
@@ -443,8 +443,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
 
             if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
+                attributes.add(PARAM_FILTER_COURSES, "1");
                 final String n = Utils.toSQLWildcard(nameCondition);
-                sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
+                sqlCondition = SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "'";
+                //sqlCondition = sqlCondition + " AND (" + SQL_QUIZ_NAME + " LIKE '" + n + "' OR " + SQL_COURSE_NAME + " LIKE '" + n + "')";
             }
 
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
