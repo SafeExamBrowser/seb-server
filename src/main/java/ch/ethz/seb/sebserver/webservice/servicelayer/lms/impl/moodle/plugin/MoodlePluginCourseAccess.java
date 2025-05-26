@@ -81,7 +81,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String PARAM_PAGE_SIZE = "perpage";
     public static final String PARAM_FILTER_COURSES = "filtercourses";
 
-    public static final String SQL_QUIZ_NAME = "q.name";
+    public static final String SQL_QUIZ_NAME = "quiz.name";
     public static final String SQL_COURSE_NAME = "shortname";
 
     public static final String SQL_CONDITION_TEMPLATE =
