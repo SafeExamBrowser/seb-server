@@ -52,16 +52,6 @@ public interface SEBRestrictionService {
      * @return Result refer to the Exam instance or to an error if happened */
     Result<Exam> applySEBClientRestriction(Exam exam);
 
-    default Result<Exam> applySEBRestrictionIfExamRunning(final Exam exam) {
-        return Result.tryCatch(() -> {
-            if (exam.status != Exam.ExamStatus.RUNNING) {
-                return exam;
-            }
-
-            return applySEBClientRestriction(exam).getOrThrow();
-        });
-    }
-
     /** Release SEB Client restriction within the LMS API for a specified Exam.
      *
      * @param exam the Exam instance

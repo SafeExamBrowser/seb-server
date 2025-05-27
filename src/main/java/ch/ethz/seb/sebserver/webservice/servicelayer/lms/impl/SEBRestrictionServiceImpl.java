@@ -108,7 +108,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                 examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
                         .getOrThrow()
                         .forEach(exam -> {
-                            this.applySEBRestrictionIfExamRunning(exam)
+                            if (exam.status != Exam.ExamStatus.RUNNING) {
+                                return;
+                            }
+
+                            applySEBClientRestriction(exam)
                                     .onError(error -> log.warn("Failed to update SEB restriction for exam: {} error: {}", exam.name, error.getMessage()));
                         });
             } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {

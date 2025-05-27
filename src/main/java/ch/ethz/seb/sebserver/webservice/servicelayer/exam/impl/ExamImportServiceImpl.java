@@ -110,9 +110,7 @@ public class ExamImportServiceImpl implements ExamImportService {
                 .flatMap(examTemplateService::applyScreenProctoringSettingsForExam)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS))
                 .flatMap(examAdminService::applySPSEnabled)
-                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED))
-                .flatMap( this::applySEBRestriction)
-                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION));
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED));
 
         if (!errors.isEmpty()) {
             errors.add(0, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(

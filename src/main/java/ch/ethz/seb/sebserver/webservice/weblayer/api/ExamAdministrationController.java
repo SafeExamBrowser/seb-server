@@ -691,7 +691,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> notifyCreated(final Exam entity) {
         return examImportService.applyExamImportInitialization(entity)
                 .flatMapIgnoreError(this.fullLmsIntegrationService::applyExamDataToLMS)
-                .flatMapIgnoreError(this.sebRestrictionService::applySEBRestrictionIfExamRunning);
+                .flatMapIgnoreError(this.sebRestrictionService::applySEBClientRestriction);
     }
 
     @Override

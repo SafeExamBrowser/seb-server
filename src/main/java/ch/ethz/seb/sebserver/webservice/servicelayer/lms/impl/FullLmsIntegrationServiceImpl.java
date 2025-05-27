@@ -375,16 +375,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 .map(template -> getQuizData(template, courseId, quizId, examData))
                 .map(createExam(examTemplateId, showQuitLink, quitPassword))
                 .map(exam -> applyExamData(exam, false))
-                .map(this::applySEBClientRestrictionIfRunning);
-    }
-
-    private Exam applySEBClientRestrictionIfRunning(final Exam exam) {
-        if (exam.status == Exam.ExamStatus.RUNNING) {
-            return sebRestrictionService
-                    .applySEBClientRestriction(exam)
-                    .getOrThrow();
-        }
-        return exam;
+                .flatMap(sebRestrictionService::applySEBClientRestriction);
     }
 
     @Override
