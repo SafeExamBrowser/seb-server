@@ -144,10 +144,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 if (examTemplate == null) {
                     return exam;
                 }
-
                 
                 final String idsString = exam.getAdditionalAttribute(API.EXAM_IMPORT_ATTR_CLIENT_GROUP_IDS);
-                final Set<Long> selectedClientGroupIds = (idsString != null)
+                final Set<Long> selectedClientGroupIds = (StringUtils.isNotBlank(idsString))
                         ? Arrays.stream(idsString.split(Constants.LIST_SEPARATOR))
                                 .map(Long::parseLong)
                                 .collect(Collectors.toSet())

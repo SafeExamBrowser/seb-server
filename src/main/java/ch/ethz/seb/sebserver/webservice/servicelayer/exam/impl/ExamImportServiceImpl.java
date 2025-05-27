@@ -87,32 +87,32 @@ public class ExamImportServiceImpl implements ExamImportService {
         final List<APIMessage> errors = new ArrayList<>();
 
         this.initAdditionalAttributes(exam)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
                 .flatMap(this.examTemplateService::addDefinedIndicators)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR))
                 .flatMap(this.examTemplateService::addDefinedClientGroups)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS))
                 .flatMap(this.examTemplateService::initAdditionalTemplateAttributes)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
                 .flatMap(this.examTemplateService::initExamConfiguration)
-                .onError(error -> {
+                .onErrorDo(error -> {
                     if (error instanceof APIMessage.APIMessageException) {
                         errors.addAll(((APIMessage.APIMessageException) error).getAPIMessages());
                     } else {
                         errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG.of(error));
                     }
+                    return exam;
                 })
                 .flatMap(this::applyAdditionalSEBRestrictionAttributes)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
                 .flatMap(examAdminService::applyQuitPassword)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_QUIT_PASSWORD.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_QUIT_PASSWORD))
                 .flatMap(examTemplateService::applyScreenProctoringSettingsForExam)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS))
                 .flatMap(examAdminService::applySPSEnabled)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED.of(error)))
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED))
                 .flatMap( this::applySEBRestriction)
-                .onError(error -> errors.add(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error)));
-
+                .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION));
 
         if (!errors.isEmpty()) {
             errors.add(0, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
@@ -125,6 +125,11 @@ public class ExamImportServiceImpl implements ExamImportService {
         } else {
             return this.examDAO.byPK(exam.id);
         }
+    }
+    
+    private Exam handleError(final Exception error, final Exam exam, final List<APIMessage> errors, final APIMessage.ErrorMessage message) {
+        errors.add(message.of(error));
+        return exam;
     }
 
     private Result<Object> applySEBRestriction(final Exam exam) {
