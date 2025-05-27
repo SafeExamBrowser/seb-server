@@ -292,7 +292,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
             
-            log.info("**************** moodle response: {}", courseJSON);
+            //log.info("**************** moodle response: {}", courseJSON);
 
             MoodleUtils.checkJSONFormat(courseJSON);
 
