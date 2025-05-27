@@ -22,5 +22,5 @@ Table of Content
    exams
    monitoring
    screen_proctoring
+   glossary
    troubleshooting
-
