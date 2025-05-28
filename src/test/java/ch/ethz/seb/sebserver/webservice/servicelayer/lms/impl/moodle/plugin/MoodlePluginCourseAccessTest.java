@@ -67,7 +67,6 @@ public class MoodlePluginCourseAccessTest {
     }
 
     @Test
-    @Ignore
     public void testFetchQuizzes() {
 
         DateTimeUtils.setCurrentMillisFixed(0);
@@ -82,7 +81,7 @@ public class MoodlePluginCourseAccessTest {
         assertNull(asyncQuizFetchBuffer.error);
 
         assertEquals(
-                "MoodlePluginCourseAccess [pageSize=1000, maxSize=10000, cutoffTimeOffset=3, restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams], callLog=[<courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=0&perpage=1000,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=1000&perpage=1000,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                "MoodlePluginCourseAccess [pageSize=1000, maxSize=10000, cutoffTimeOffset=3, restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams], callLog=[<courseid[]=0&startneedle=0&perpage=1000,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&startneedle=1000&perpage=1000,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
 
         final List<String> ids =
@@ -123,7 +122,6 @@ public class MoodlePluginCourseAccessTest {
     }
 
     @Test
-    @Ignore
     public void testFetchQuizzes_smallPaging() {
 
         DateTimeUtils.setCurrentMillisFixed(0);
@@ -141,7 +139,7 @@ public class MoodlePluginCourseAccessTest {
         assertNull(asyncQuizFetchBuffer.error);
 
         assertEquals(
-                "MoodlePluginCourseAccess [pageSize=5, maxSize=10000, cutoffTimeOffset=3, restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams], callLog=[<courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=0&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=5&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=10&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=15&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&conditions=%28startdate+is+null+OR+startdate+%3D+0+OR+startdate+%3E%3D+-94694400%29+AND+%28enddate+is+null+or+enddate+%3D+0+OR+enddate+%3E%3D+-94694400%29&startneedle=20&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                "MoodlePluginCourseAccess [pageSize=5, maxSize=10000, cutoffTimeOffset=3, restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, testLog=[callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams, callMoodleAPIFunction: quizaccess_sebserver_get_exams], callLog=[<courseid[]=0&startneedle=0&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&startneedle=5&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&startneedle=10&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&startneedle=15&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, <courseid[]=0&startneedle=20&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
 
         final List<String> ids =
