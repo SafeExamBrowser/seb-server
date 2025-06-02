@@ -738,9 +738,15 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         }
         
         final String lmsApiUrl = lmsAPITemplate.lmsSetup().lmsApiUrl;
-        final String downloadLink = lmsApiUrl.endsWith(Constants.SLASH.toString()) 
+        String downloadLink = lmsApiUrl.endsWith(Constants.SLASH.toString()) 
                 ? lmsApiUrl 
                 : lmsApiUrl + Constants.SLASH;
+        
+        // use seb(s) protocol instead of http(s)
+        if (downloadLink.startsWith("http")) {
+            downloadLink = downloadLink.replaceFirst("http", "seb");
+        }
+        
         return downloadLink + MoodleUtils.SEB_RECONFIGURATION_LINK_TEMPLATE.formatted(quizContextId);
     }
 
