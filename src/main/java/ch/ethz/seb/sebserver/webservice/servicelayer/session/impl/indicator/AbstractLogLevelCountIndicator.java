@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.SqlCriterion;
 import org.slf4j.Logger;
@@ -38,8 +39,8 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     @Override
     public final void notifyValueChange(final String textValue, final double numValue) {
         if (this.tags == null || this.tags.length == 0 || hasTag(textValue)) {
-            if (super.ditributedIndicatorValueRecordId != null) {
-                this.distributedIndicatorValueService.incrementIndicatorValue(super.ditributedIndicatorValueRecordId);
+            if (super.distributedIndicatorValueRecordId != null) {
+                this.distributedIndicatorValueService.incrementIndicatorValue(super.distributedIndicatorValueRecordId);
             }
             this.currentValue = getValue() + 1d;
         }
@@ -47,7 +48,17 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
 
     @Override
     public final boolean hasIncident() {
-        return this.currentValue >= this.incidentThreshold;
+        return this.currentValue >= this.dataMap.incidentThreshold;
+    }
+
+    @Override
+    public boolean hasWarning() {
+        return this.currentValue >= this.dataMap.warningThreshold;
+    }
+
+    @Override
+    public Indicator.DataMap getDataMap() {
+        return dataMap;
     }
 
     @Override
@@ -72,9 +83,9 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
                     .execute();
 
             // update active indicator value record on persistent when caching is not enabled
-            if (this.active && this.ditributedIndicatorValueRecordId != null) {
+            if (this.active && this.distributedIndicatorValueRecordId != null) {
                 this.distributedIndicatorValueService.updateIndicatorValue(
-                        this.ditributedIndicatorValueRecordId,
+                        this.distributedIndicatorValueRecordId,
                         numberOfLogs.longValue());
             }
 

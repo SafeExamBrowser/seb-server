@@ -42,9 +42,9 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     @Override
     public void notifyValueChange(final String textValue, final double numValue) {
         if (this.tags == null || this.tags.length == 0 || hasTag(textValue)) {
-            if (super.ditributedIndicatorValueRecordId != null) {
+            if (super.distributedIndicatorValueRecordId != null) {
                 if (!this.distributedIndicatorValueService.updateIndicatorValueAsync(
-                        this.ditributedIndicatorValueRecordId,
+                        this.distributedIndicatorValueRecordId,
                         Double.valueOf(numValue).longValue())) {
 
                     this.currentValue = computeValueAt(Utils.getMillisecondsNow());
@@ -86,9 +86,9 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
             if (numericValue != null) {
 
                 // update active indicator value record on persistent when caching is not enabled
-                if (this.active && this.ditributedIndicatorValueRecordId != null) {
+                if (this.active && this.distributedIndicatorValueRecordId != null) {
                     this.distributedIndicatorValueService.updateIndicatorValue(
-                            this.ditributedIndicatorValueRecordId,
+                            this.distributedIndicatorValueRecordId,
                             numericValue.longValue());
                 }
 

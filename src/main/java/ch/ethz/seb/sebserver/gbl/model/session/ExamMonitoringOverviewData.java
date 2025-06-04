@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record ExamMonitoringOverviewData(
         @JsonProperty("clientStates") ClientStatesData clientStates,
         @JsonProperty("clientGroups") Collection<ClientGroup> clientGroups,
-        @JsonProperty("indicators") IndicatorData indicators,
+        @JsonProperty("indicators") Indicators indicators,
         @JsonProperty("notifications") NotificationData notifications
 ) {
 
@@ -42,14 +42,16 @@ public record ExamMonitoringOverviewData(
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static final class IndicatorData {
-        @JsonProperty("total") public int total = 0;
-        @JsonProperty("WLAN_STATUS") public int WLAN_STATUS = 0;
-        @JsonProperty("BATTERY_STATUS") public int BATTERY_STATUS = 0;
+    public static final class Indicators {
+        @JsonProperty("WLAN_STATUS") public IndicatorData WLAN_STATUS;
+        @JsonProperty("BATTERY_STATUS") public IndicatorData BATTERY_STATUS;
+    }
 
-        public void calcTotal() {
-            total = WLAN_STATUS + BATTERY_STATUS;
-        }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class IndicatorData {
+        @JsonProperty("color") public String color;
+        @JsonProperty("incident") public int incident;
+        @JsonProperty("warning") public int warning;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

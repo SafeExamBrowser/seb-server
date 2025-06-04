@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.PingIntervalClientIndicator;
@@ -41,24 +40,26 @@ public class ClientIndicatorFactory {
     private static final Logger log = LoggerFactory.getLogger(ClientIndicatorFactory.class);
 
     private final ApplicationContext applicationContext;
-    private final IndicatorDAO indicatorDAO;
     private final DistributedIndicatorValueService distributedPingCache;
+    private final ExamSessionCacheServiceProvider examSessionCacheServiceProvider;
     private final boolean distributedSetup;
     private final boolean enableCaching;
+
+    
 
     @Autowired
     public ClientIndicatorFactory(
             final ApplicationContext applicationContext,
-            final IndicatorDAO indicatorDAO,
             final DistributedIndicatorValueService distributedPingCache,
+            final ExamSessionCacheServiceProvider examSessionCacheServiceProvider,
             @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup,
             @Value("${sebserver.webservice.api.exam.enable-indicator-cache:true}") final boolean enableCaching) {
 
         this.applicationContext = applicationContext;
-        this.indicatorDAO = indicatorDAO;
         this.distributedPingCache = distributedPingCache;
+        this.examSessionCacheServiceProvider = examSessionCacheServiceProvider;
         this.distributedSetup = distributedSetup;
-        this.enableCaching = distributedSetup ? false : enableCaching;
+        this.enableCaching = !distributedSetup && enableCaching;
     }
 
     public void initializeDistributedCaches(final ClientConnection clientConnection) {
@@ -68,9 +69,9 @@ public class ClientIndicatorFactory {
                 return;
             }
 
-            final Collection<Indicator> examIndicators = this.indicatorDAO
-                    .allForExam(clientConnection.examId)
-                    .getOrThrow();
+            final Collection<Indicator> examIndicators = this.examSessionCacheServiceProvider
+                    .getExamSessionCacheService()
+                    .allIndicatorsForExam(clientConnection.examId);
 
             boolean pingIndicatorAvailable = false;
             for (final Indicator indicatorDef : examIndicators) {
@@ -110,9 +111,9 @@ public class ClientIndicatorFactory {
 
         try {
 
-            final Collection<Indicator> examIndicators = this.indicatorDAO
-                    .allForExam(clientConnection.examId)
-                    .getOrThrow();
+            final Collection<Indicator> examIndicators = this.examSessionCacheServiceProvider
+                    .getExamSessionCacheService()
+                    .allIndicatorsForExam(clientConnection.examId);
 
             for (final Indicator indicatorDef : examIndicators) {
                 try {
@@ -147,9 +148,9 @@ public class ClientIndicatorFactory {
 
         try {
 
-            final Collection<Indicator> examIndicators = this.indicatorDAO
-                    .allForExam(clientConnection.examId)
-                    .getOrThrow();
+            final Collection<Indicator> examIndicators = this.examSessionCacheServiceProvider
+                    .getExamSessionCacheService()
+                    .allIndicatorsForExam(clientConnection.examId);
 
             boolean pingIndicatorAvailable = false;
             for (final Indicator indicatorDef : examIndicators) {
@@ -209,5 +210,7 @@ public class ClientIndicatorFactory {
 
         return Collections.unmodifiableList(result);
     }
-
+    
+    
+    
 }

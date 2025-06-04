@@ -30,8 +30,8 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
     public final void notifyPing(final long timestamp) {
         super.currentValue = timestamp;
 
-        if (!this.cachingEnabled && super.ditributedIndicatorValueRecordId != null) {
-            this.distributedIndicatorValueService.updatePingAsync(this.ditributedIndicatorValueRecordId);
+        if (!this.cachingEnabled && super.distributedIndicatorValueRecordId != null) {
+            this.distributedIndicatorValueService.updatePingAsync(this.distributedIndicatorValueRecordId);
         }
     }
 

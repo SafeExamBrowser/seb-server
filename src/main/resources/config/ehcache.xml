@@ -125,5 +125,15 @@
             <heap unit="entries">10000</heap>
         </resources>
     </cache>
-    
+
+    <cache alias="EXAM_INDICATOR_CACHE">
+        <key-type>java.lang.Long</key-type>
+        <value-type>java.util.Collection</value-type>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">10</heap>
+        </resources>
+    </cache>
 </config>

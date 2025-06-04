@@ -67,9 +67,19 @@ public interface ClientIndicator extends IndicatorValue {
     void notifyValueChange(String textValue, double numValue);
 
     /** This indicates if the indicator indicates an incident. This is the case if the actual indicator value
-     * is above or below the max or min value defined by the indicator threshold settings.
+     * is above (or below) value defined by the last indicator threshold settings.
      *
      * @return true if this indicator indicates an incident */
     boolean hasIncident();
 
+    /** This indicates if the indicator indicates an warning. This is the case if the actual indicator value
+     * is above (or below) value defined by the first indicator threshold settings.
+     *
+     * @return true if this indicator indicates an incident */
+    boolean hasWarning();
+
+    /** Get the indicators threshold data mapping for efficient indicator and threshold analysis
+     * 
+     * @return Indicator.DataMap*/
+    Indicator.DataMap getDataMap();
 }

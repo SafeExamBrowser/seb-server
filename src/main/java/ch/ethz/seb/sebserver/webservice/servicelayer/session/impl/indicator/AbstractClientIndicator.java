@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
-import java.util.Comparator;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,14 +28,14 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     protected boolean cachingEnabled;
     protected boolean active = true;
 
-    protected Long ditributedIndicatorValueRecordId = null;
+    protected Long distributedIndicatorValueRecordId = null;
 
     protected boolean initialized = false;
     protected double currentValue = Double.NaN;
 
-    protected double incidentThreshold = 0.0;
-
     protected long lastUpdate = 0;
+    
+    protected Indicator.DataMap dataMap;
 
     public AbstractClientIndicator(final DistributedIndicatorValueService distributedIndicatorValueService) {
         super();
@@ -51,17 +50,25 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
             final boolean cachingEnabled) {
 
         if (indicatorDefinition != null) {
-            this.incidentThreshold = (!indicatorDefinition.type.inverse)
-                    ? indicatorDefinition.thresholds.stream()
-                            .map(t -> t.value)
-                            .max(Comparator.naturalOrder())
-                            .orElse(0.0)
-                    : indicatorDefinition.thresholds.stream()
-                            .map(t -> t.value)
-                            .min(Comparator.naturalOrder())
-                            .orElse(0.0);
+            this.dataMap = indicatorDefinition.dataMap;
+
+//            this.incidentThreshold = (!indicatorDefinition.type.inverse)
+//                    ? indicatorDefinition.thresholds.stream()
+//                            .map(t -> t.value)
+//                            .max(Comparator.naturalOrder())
+//                            .orElse(0.0)
+//                    : indicatorDefinition.thresholds.stream()
+//                            .map(t -> t.value)
+//                            .min(Comparator.naturalOrder())
+//                            .orElse(0.0);
             this.indicatorId = indicatorDefinition.id;
             this.examId = indicatorDefinition.examId;
+        } else {
+            this.dataMap = new Indicator.DataMap(
+                    Double.MAX_VALUE, 
+                    Double.MAX_VALUE,
+                    new double[0], 
+                    new String[0]);
         }
 
         this.connectionId = connectionId;
@@ -69,24 +76,28 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
         this.cachingEnabled = cachingEnabled;
 
         if (!this.cachingEnabled && this.active) {
-
-            this.ditributedIndicatorValueRecordId = this.distributedIndicatorValueService
+            this.distributedIndicatorValueRecordId = this.distributedIndicatorValueService
                     .getIndicatorForConnection(connectionId, getType());
-
         }
 
         this.currentValue = computeValueAt(Utils.getMillisecondsNow());
         this.initialized = true;
     }
 
+    @Override
+    @JsonIgnore
+    public Indicator.DataMap getDataMap() {
+        return dataMap;
+    }
+
     protected void tryRecoverIndicatorRecord() {
-        this.ditributedIndicatorValueRecordId = this.distributedIndicatorValueService
+        this.distributedIndicatorValueRecordId = this.distributedIndicatorValueService
                 .createIndicatorForConnection(
                         this.connectionId,
                         getType(),
                         0);
 
-        if (this.ditributedIndicatorValueRecordId == null && log.isDebugEnabled()) {
+        if (this.distributedIndicatorValueRecordId == null && log.isDebugEnabled()) {
             log.debug("Failed to recover from missing indicator value cache record: {} type: {}",
                     this.connectionId,
                     getType());
@@ -118,12 +129,12 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
         if (this.initialized && !this.cachingEnabled && this.active
                 && this.lastUpdate != this.distributedIndicatorValueService.lastUpdate()) {
 
-            if (this.ditributedIndicatorValueRecordId == null) {
+            if (this.distributedIndicatorValueRecordId == null) {
                 this.tryRecoverIndicatorRecord();
             }
 
             final Long indicatorValue = this.distributedIndicatorValueService
-                    .getIndicatorValue(this.ditributedIndicatorValueRecordId);
+                    .getIndicatorValue(this.distributedIndicatorValueRecordId);
             if (indicatorValue != null) {
                 this.currentValue = indicatorValue.doubleValue();
             }

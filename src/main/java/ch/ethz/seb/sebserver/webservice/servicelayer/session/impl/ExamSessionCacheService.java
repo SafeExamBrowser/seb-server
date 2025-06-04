@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collection;
+import java.util.Collections;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.slf4j.Logger;
@@ -43,6 +45,7 @@ public class ExamSessionCacheService {
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
     public static final String CACHE_NAME_SCREEN_PROCTORING_GROUPS = "SCREEN_PROCTORING_GROUPS";
+    public static final String EXAM_INDICATOR_CACHE = "EXAM_INDICATOR_CACHE";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
@@ -52,6 +55,7 @@ public class ExamSessionCacheService {
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final ExamConfigService sebExamConfigService;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
+    private final IndicatorDAO indicatorDAO;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
@@ -60,7 +64,8 @@ public class ExamSessionCacheService {
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final ExamConfigService sebExamConfigService,
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
-            final ScreenProctoringGroupDAO screenProctoringGroupDAO) {
+            final ScreenProctoringGroupDAO screenProctoringGroupDAO, 
+            final IndicatorDAO indicatorDAO) {
 
         this.examDAO = examDAO;
         this.clientGroupDAO = clientGroupDAO;
@@ -68,6 +73,7 @@ public class ExamSessionCacheService {
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.sebExamConfigService = sebExamConfigService;
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
+        this.indicatorDAO = indicatorDAO;
     }
 
     @Cacheable(
@@ -205,6 +211,28 @@ public class ExamSessionCacheService {
             log.error("Unexpected error while getting default exam configuration for running exam; {}", examId, e);
             throw e;
         }
+    }
+
+    @Cacheable(
+            cacheNames = EXAM_INDICATOR_CACHE,
+            key = "#examId",
+            condition = "#examId!=null",
+            unless = "#result.isEmpty()")
+    public Collection<Indicator> allIndicatorsForExam(final Long examId) {
+        return indicatorDAO
+                .allForExam(examId)
+                .onError(error -> log.error(
+                        "Failed to load indicators for exam: {}, error: {}",
+                        examId,
+                        error.getMessage()))
+                .getOr(Collections.emptyList());
+    }
+
+    @CacheEvict(
+            cacheNames = EXAM_INDICATOR_CACHE,
+            key = "#examId")
+    public void evictExamIndicators(final Long examId) {
+        // just evict from cache
     }
 
     public boolean isUpToDate(final InMemorySEBConfig inMemorySEBConfig) {

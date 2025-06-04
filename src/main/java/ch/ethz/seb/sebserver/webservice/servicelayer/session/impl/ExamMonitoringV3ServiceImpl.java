@@ -16,6 +16,7 @@ import static ch.ethz.seb.sebserver.gbl.model.session.ExamMonitoringOverviewData
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.*;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
@@ -30,6 +31,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +40,8 @@ import org.springframework.stereotype.Service;
 @Service
 @WebServiceProfile
 public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(ExamMonitoringV3ServiceImpl.class);
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientNotificationService sebClientNotificationService;
     private final ScreenProctoringService screenProctoringService;
@@ -69,15 +73,16 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         
         final boolean screenProctoringEnabled = this.examAdminService.isScreenProctoringEnabled(runningExam);
         
-        // TODO apply caching here
-        final Map<Long, ScreenProctoringGroup> spsGroups =  (screenProctoringEnabled)
+        // TODO apply caching here!? Problem is the size that changes
+        // Strategy: cache the Map<Long, ClientGroup> groups mapping and only get and update the actual clients amount value
+        final Map<Long, ScreenProctoringGroup> spsGroups = (screenProctoringEnabled)
                 ? screenProctoringService.getCollectingGroups(runningExam.id)
-                .getOr(Collections.emptyList())
-                .stream()
-                .collect(Collectors.toMap(
-                        g -> g.sebGroupId != null ? g.sebGroupId : -1,
-                        g -> g
-                ))
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            g -> g.sebGroupId != null ? g.sebGroupId : -1,
+                            g -> g
+                    ))
                 : Collections.emptyMap();
 
         final Map<Long, ClientGroup> groups = this.clientGroupDAO
@@ -95,14 +100,37 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         
         if (spsGroups.containsKey(-1L)) {
             final ScreenProctoringGroup spsFallbackGroup = spsGroups.get(-1L);
-            groups.put(-1L, new ClientGroup(1L, spsFallbackGroup.name,
+            groups.put(-1L, new ClientGroup(
+                    1L, 
+                    spsFallbackGroup.name,
                     spsFallbackGroup.uuid,
                     "SP_FALLBACK_GROUP",
                     StringUtils.EMPTY));
         }
         
+        // indicators
+        final Indicators indicators = new Indicators();
+        final IndicatorProbe indicatorProbe = new IndicatorProbe();
+        final Collection<Indicator> allInd = examSessionCacheService.allIndicatorsForExam(runningExam.id);
+        if (allInd != null) {
+            for (final Indicator i : allInd) {
+                switch (i.type) {
+                    case BATTERY_STATUS -> {
+                        indicators.BATTERY_STATUS = new IndicatorData();
+                        indicatorProbe.batteryDataMap = i.dataMap;
+                        break;
+                    }
+                    case WLAN_STATUS -> {
+                        indicators.WLAN_STATUS = new IndicatorData();
+                        indicatorProbe.wlanDataMap = i.dataMap;
+                        break;
+                    }
+                    default -> {}
+                }
+            }
+        }
+
         final ClientStatesData clientStates = new ClientStatesData();
-        final IndicatorData indicators = new IndicatorData();
         final NotificationData notifications = new NotificationData();
 
         this.clientConnectionDAO
@@ -128,14 +156,8 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     }
                     clientStates.calcTotal();
                     
-                    // incidences on indicators
-                    if (cc.hasIncident(IndicatorType.BATTERY_STATUS)) {
-                        indicators.BATTERY_STATUS++;
-                    }
-                    if (cc.hasIncident(IndicatorType.WLAN_STATUS)) {
-                        indicators.WLAN_STATUS++;
-                    }
-                    indicators.calcTotal();;
+                    // incidences and warnings on indicators
+                    indicatorProbe.probe(cc, indicators);
                     
                     // notifications
                     if (cc.pendingNotification != null && cc.pendingNotification) {
@@ -153,26 +175,34 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     notifications.calcTotal();
                     
                     // groups
-                    if (cc.groups != null) {
-                        if (cc.groups.isEmpty()) {
-                            if (screenProctoringEnabled) {
-                                final ClientGroup fallbackGroup = groups.get(-1L);
-                                fallbackGroup.clientAmount++;
+                    try {
+                        if (cc.groups != null) {
+                            if (cc.groups.isEmpty()) {
+                                if (screenProctoringEnabled) {
+                                    groups.get(-1L).clientAmount++;
+                                }
+                            } else {
+                                cc.groups.forEach(gId -> {
+                                    if (groups.containsKey(gId)) {
+                                        groups.get(gId).clientAmount++;
+                                    }
+                                });
                             }
-                        } else {
-                            cc.groups.forEach(gId -> {
-                                final ClientGroup clientGroup = groups.get(gId);
-                                clientGroup.clientAmount++;
-                            });
+                        } else if (screenProctoringEnabled) {
+                            final ClientGroup fallbackGroup = groups.get(-1L);
+                            fallbackGroup.clientAmount++;
                         }
-                    } else  if (screenProctoringEnabled) {
-                        final ClientGroup fallbackGroup = groups.get(-1L);
-                        fallbackGroup.clientAmount++;
+                    } catch (final Exception e) {
+                        // TODO remove this after testing
+                        log.error("Failed to process groups: {}", e.getMessage());
                     }
-
                 });
         
-        return new ExamMonitoringOverviewData(clientStates, groups.values(), indicators, notifications);
+        return new ExamMonitoringOverviewData(
+                clientStates, 
+                groups.values(),
+                indicatorProbe.deriveColor(indicators),
+                notifications);
     }
 
     @Override
@@ -280,5 +310,63 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             // pass
             return true;
         };
+    }
+    
+    private final static class IndicatorProbe {
+        double battery_min = Double.MAX_VALUE;
+        double wlan_min = Double.MAX_VALUE;
+        Indicator.DataMap batteryDataMap = null;
+        Indicator.DataMap wlanDataMap = null;
+        
+        private void probe(final ClientConnectionDataInternal cc, final Indicators indicators) {
+            if (batteryDataMap != null) {
+                final double val = cc.getValueByType(IndicatorType.BATTERY_STATUS);
+                if (!Double.isNaN(val)) {
+                    battery_min = Math.min(battery_min, val);
+                    if (val >= batteryDataMap.incidentThreshold) {
+                        indicators.BATTERY_STATUS.incident++;
+                    } else if (val >= batteryDataMap.warningThreshold) {
+                        indicators.BATTERY_STATUS.warning++;
+                    }
+                }
+            }
+            if (wlanDataMap != null) {
+                final double val = cc.getValueByType(IndicatorType.WLAN_STATUS);
+                if (!Double.isNaN(val)) {
+                    wlan_min = Math.min(wlan_min, val);
+                    if (val >= wlanDataMap.incidentThreshold) {
+                        indicators.WLAN_STATUS.incident++;
+                    } else if (val >= wlanDataMap.warningThreshold) {
+                        indicators.WLAN_STATUS.warning++;
+                    }
+                }
+            }
+        }
+
+        public Indicators deriveColor(final Indicators indicators) {
+            if (batteryDataMap != null) {
+                for (int i = 0; i < batteryDataMap.thresholdValues.length; i++) {
+                    if (battery_min < batteryDataMap.thresholdValues[i]) {
+                        continue;
+                    }
+                    if (i - 1 > 0) {
+                        indicators.BATTERY_STATUS.color = batteryDataMap.colors[i - 1];
+                        break;
+                    }
+                }
+            }
+            if (wlanDataMap != null) {
+                for (int i = 0; i < wlanDataMap.thresholdValues.length; i++) {
+                    if (battery_min < wlanDataMap.thresholdValues[i]) {
+                        continue;
+                    }
+                    if (i - 1 > 0) {
+                        indicators.WLAN_STATUS.color = wlanDataMap.colors[i - 1];
+                        break;
+                    }
+                }
+            }
+            return indicators;
+        }
     }
 }

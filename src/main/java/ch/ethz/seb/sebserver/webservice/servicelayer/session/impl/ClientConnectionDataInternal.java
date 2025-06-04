@@ -120,6 +120,24 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         return clientIndicator != null && clientIndicator.hasIncident();
     }
 
+    @JsonIgnore
+    public final boolean hasWarning(final Indicator.IndicatorType type) {
+        final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
+        return clientIndicator != null && clientIndicator.hasWarning();
+    }
+
+    @JsonIgnore
+    public final double getValueByType(final Indicator.IndicatorType type) {
+        final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
+        return clientIndicator != null ? clientIndicator.getValue() : Double.NaN;
+    }
+
+    @JsonIgnore
+    public Indicator.DataMap getIndicatorDataMap(final Indicator.IndicatorType type) {
+        final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
+        return clientIndicator != null ? clientIndicator.getDataMap() : null;
+    }
+
     private boolean hasIncident() {
         return this.indicatorMapping.values()
                 .stream()
@@ -204,4 +222,5 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
                     ClientConnectionDataInternal.this.clientConnection.info,
                     this.groups);
 
+    
 }

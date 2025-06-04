@@ -10,10 +10,12 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -110,7 +112,10 @@ public final class Indicator implements Entity {
 
     @JsonProperty(THRESHOLD.REFERENCE_NAME)
     public final List<Threshold> thresholds;
-
+    
+    @JsonIgnore
+    public final DataMap dataMap;
+    
     @JsonCreator
     public Indicator(
             @JsonProperty(INDICATOR.ATTR_ID) final Long id,
@@ -130,8 +135,9 @@ public final class Indicator implements Entity {
         this.defaultIcon = defaultIcon;
         this.tags = tags;
         this.thresholds = Utils.immutableListOf(thresholds);
+        this.dataMap = initDataMap();
     }
-
+    
     public Indicator(final Long examId, final POSTMapper postParams) {
         this.id = null;
         this.examId = examId;
@@ -141,6 +147,7 @@ public final class Indicator implements Entity {
         this.defaultIcon = postParams.getString(Domain.INDICATOR.ATTR_ICON);
         this.tags = postParams.getString(Domain.INDICATOR.ATTR_TAGS);
         this.thresholds = postParams.getThresholds();
+        this.dataMap = initDataMap();
     }
 
     /** This initialize an indicator for an exam template */
@@ -153,6 +160,40 @@ public final class Indicator implements Entity {
         this.defaultIcon = postParams.getString(Domain.INDICATOR.ATTR_ICON);
         this.tags = postParams.getString(Domain.INDICATOR.ATTR_TAGS);
         this.thresholds = postParams.getThresholds();
+        this.dataMap = initDataMap();
+    }
+
+    private DataMap initDataMap() {
+        if (thresholds == null || thresholds.isEmpty()) {
+            return new DataMap(
+                    Double.MAX_VALUE, 
+                    Double.MAX_VALUE, 
+                    new double[0],
+                    new String[0]);
+        }
+        
+        final double[] thresholdValues = new double[thresholds.size()];
+        final String[] colors = new String[thresholds.size()];
+        final AtomicInteger index = new AtomicInteger();
+        final List<Indicator.Threshold> list = thresholds
+                .stream()
+                .sorted((t1, t2) -> {
+                    final int i = t1.value.compareTo(t2.value);
+                    return type.inverse ? i * -1 : i;
+                })
+                .peek(t -> {
+                    final int i = index.getAndIncrement();
+                    thresholdValues[i] = t.value;
+                    colors[i] = t.color;
+                })
+                .toList();
+        
+        return new DataMap(
+                list.get(list.size() - 1).value,
+                list.get(0).value,
+                thresholdValues,
+                colors
+        );
     }
 
     @Override
@@ -200,25 +241,9 @@ public final class Indicator implements Entity {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Indicator [id=");
-        builder.append(this.id);
-        builder.append(", examId=");
-        builder.append(this.examId);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", type=");
-        builder.append(this.type);
-        builder.append(", defaultColor=");
-        builder.append(this.defaultColor);
-        builder.append(", defaultIcon=");
-        builder.append(this.defaultIcon);
-        builder.append(", tags=");
-        builder.append(this.tags);
-        builder.append(", thresholds=");
-        builder.append(this.thresholds);
-        builder.append("]");
-        return builder.toString();
+        return "Indicator [id=" + this.id + ", examId=" + this.examId + ", name=" + this.name + ", type=" +
+                this.type + ", defaultColor=" + this.defaultColor + ", defaultIcon=" + this.defaultIcon +
+                ", tags=" + this.tags + ", thresholds=" + this.thresholds + "]";
     }
 
     public static Indicator createNew(final String examId) {
@@ -278,15 +303,7 @@ public final class Indicator implements Entity {
 
         @Override
         public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("Threshold [value=");
-            builder.append(this.value);
-            builder.append(", color=");
-            builder.append(this.color);
-            builder.append(", icon=");
-            builder.append(this.icon);
-            builder.append("]");
-            return builder.toString();
+            return "Threshold [value=" + this.value + ", color=" + this.color + ", icon=" + this.icon + "]";
         }
 
         @Override
@@ -295,5 +312,23 @@ public final class Indicator implements Entity {
         }
 
     }
+    
+    public static final class DataMap {
+        public final double incidentThreshold;
+        public final double warningThreshold;
+        public final double[] thresholdValues;
+        public final String[] colors;
 
+        public DataMap(
+                final double incidentThreshold, 
+                final double warningThreshold, 
+                final double[] thresholdValues, 
+                final String[] colors) {
+            
+            this.incidentThreshold = incidentThreshold;
+            this.warningThreshold = warningThreshold;
+            this.thresholdValues = thresholdValues;
+            this.colors = colors;
+        }
+    }
 }

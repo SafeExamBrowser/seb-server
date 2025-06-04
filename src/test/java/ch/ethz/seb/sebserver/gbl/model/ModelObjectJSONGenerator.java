@@ -417,10 +417,18 @@ public class ModelObjectJSONGenerator {
 
         @Override
         public boolean hasIncident() {
-            // TODO Auto-generated method stub
             return false;
         }
 
+        @Override
+        public boolean hasWarning() {
+            return false;
+        }
+
+        @Override
+        public Indicator.DataMap getDataMap() {
+            return null;
+        }
     }
 
 }

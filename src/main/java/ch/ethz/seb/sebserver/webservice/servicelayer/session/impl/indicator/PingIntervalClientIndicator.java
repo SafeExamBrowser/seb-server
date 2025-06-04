@@ -48,9 +48,10 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
         this.lastCheckVal = getValue();
 
-        if (this.incidentThreshold <= 0.0) {
-            this.incidentThreshold = DEFAULT_PING_ERROR_THRESHOLD;
-        }
+        // TODO is this really needed?
+//        if (this.dataMap.incidentThreshold() >= Double.MAX_VALUE) {
+//            this.dataMap.incidentThreshold = DEFAULT_PING_ERROR_THRESHOLD;
+//        }
     }
 
     @JsonIgnore
@@ -86,7 +87,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
         }
 
         final double res = currentTimeMillis - value;
-        return res >= 0.0D ? res : 0.0D;
+        return Math.max(res, 0.0D);
     }
 
     @Override
@@ -96,10 +97,10 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public final double computeValueAt(final long timestamp) {
-        if (super.ditributedIndicatorValueRecordId != null) {
+        if (super.distributedIndicatorValueRecordId != null) {
 
             final Long lastPing = this.distributedIndicatorValueService
-                    .getIndicatorValue(super.ditributedIndicatorValueRecordId);
+                    .getIndicatorValue(super.distributedIndicatorValueRecordId);
 
             return (lastPing != null)
                     ? lastPing.doubleValue()
@@ -110,12 +111,21 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     }
 
     @Override
-    public final boolean hasIncident() {
+    public boolean hasIncident() {
         if (!this.active) {
             return false;
         }
 
-        return getValue() >= super.incidentThreshold;
+        return getValue() >= super.dataMap.incidentThreshold;
+    }
+
+    @Override
+    public boolean hasWarning() {
+        if (!this.active) {
+            return false;
+        }
+
+        return getValue() >= super.dataMap.warningThreshold;
     }
 
     private double lastCheckVal = 0;
@@ -127,8 +137,9 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
         final double val = getValue();
         // check if incident threshold has passed (up or down) since last update
-        final boolean changed = (this.lastCheckVal < this.incidentThreshold && val >= this.incidentThreshold) ||
-                (this.lastCheckVal >= this.incidentThreshold && val < this.incidentThreshold);
+        final double incident = this.dataMap.incidentThreshold;
+        final boolean changed = (this.lastCheckVal < incident && val >= incident) ||
+                (this.lastCheckVal >= incident && val < incident);
 
         this.lastCheckVal = val;
         return changed;
