@@ -248,7 +248,7 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
 
     @Override
     public String getExamineeName(final String examineeUserId) {
-        return "--" + " (" + examineeUserId + ")";
+        return examineeUserId + " (" + examineeUserId + ")";
     }
 
     @Override

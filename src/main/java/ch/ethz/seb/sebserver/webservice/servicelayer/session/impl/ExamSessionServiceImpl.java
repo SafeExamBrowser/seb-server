@@ -575,6 +575,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             this.examSessionCacheService.evict(exam);
             this.examSessionCacheService.evictDefaultSEBConfig(exam.id);
             this.examSessionCacheService.evictScreenProctoringGroups(exam.id);
+            this.examSessionCacheService.evictExamIndicators(exam.id);
             // evict client connection
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)

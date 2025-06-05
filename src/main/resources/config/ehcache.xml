@@ -42,7 +42,7 @@
         <key-type>java.lang.Long</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.util.Result</value-type>
         <expiry>
-            <ttl unit="seconds">3</ttl>
+            <ttl unit="seconds">5</ttl>
         </expiry>
         <resources>
             <heap unit="entries">10</heap>
@@ -126,7 +126,7 @@
         </resources>
     </cache>
 
-    <cache alias="EXAM_INDICATOR_CACHE">
+    <cache alias="EXAM_INDICATOR">
         <key-type>java.lang.Long</key-type>
         <value-type>java.util.Collection</value-type>
         <expiry>
@@ -136,4 +136,16 @@
             <heap unit="entries">10</heap>
         </resources>
     </cache>
+
+    <cache alias="EXAM_SCREEN_PROCTORING_GROUPS">
+        <key-type>java.lang.Long</key-type>
+        <value-type>java.util.Map</value-type>
+        <expiry>
+            <ttl unit="minutes">15</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">10</heap>
+        </resources>
+    </cache>
+
 </config>

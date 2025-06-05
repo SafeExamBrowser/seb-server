@@ -14,6 +14,7 @@ import java.util.Collections;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ProctoringGroupMonitoringData;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,8 @@ public class ExamSessionCacheService {
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
     public static final String CACHE_NAME_SCREEN_PROCTORING_GROUPS = "SCREEN_PROCTORING_GROUPS";
-    public static final String EXAM_INDICATOR_CACHE = "EXAM_INDICATOR_CACHE";
+    public static final String CACHE_EXAM_INDICATOR = "EXAM_INDICATOR";
+    public static final String CACHE_EXAM_SCREEN_PROCTORING_GROUPS = "EXAM_SCREEN_PROCTORING_GROUPS";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
@@ -155,6 +157,7 @@ public class ExamSessionCacheService {
     
     // NOTE currently caching has a time to live of 3 seconds this is due to support distributed setups.
     //      So updating the size of a group can be delayed for 3 to 5 seconds.
+    // TODO this will become obsolete when the old GUI is not supported anymore.
     @Cacheable(
             cacheNames = CACHE_NAME_SCREEN_PROCTORING_GROUPS,
             key = "#examId",
@@ -189,6 +192,46 @@ public class ExamSessionCacheService {
     }
 
     @Cacheable(
+            cacheNames = CACHE_EXAM_INDICATOR,
+            key = "#examId",
+            condition = "#examId!=null",
+            unless = "#result.isEmpty()")
+    public Collection<Indicator> allIndicatorsForExam(final Long examId) {
+        return indicatorDAO
+                .allForExam(examId)
+                .onError(error -> log.error(
+                        "Failed to load indicators for exam: {}, error: {}",
+                        examId,
+                        error.getMessage()))
+                .getOr(Collections.emptyList());
+    }
+
+    @CacheEvict(
+            cacheNames = CACHE_EXAM_INDICATOR,
+            key = "#examId")
+    public void evictExamIndicators(final Long examId) {
+        // just evict from cache
+    }
+
+    @Cacheable(
+            cacheNames = CACHE_EXAM_SCREEN_PROCTORING_GROUPS,
+            key = "#examId",
+            condition = "#examId!=null",
+            unless = "#result.isEmpty()")
+    public Collection<ScreenProctoringGroup> getExamScreenProctoringGroups(final Long examId) {
+        return screenProctoringGroupDAO
+                .getCollectingGroups(examId)
+                .getOr(Collections.emptyList());
+    }
+
+    @CacheEvict(
+            cacheNames = CACHE_EXAM_SCREEN_PROCTORING_GROUPS,
+            key = "#examId")
+    public void evictExamScreenProctoringGroups(final Long examId) {
+        // just evict from cache
+    }
+
+    @Cacheable(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
             key = "#examId",
             sync = true)
@@ -211,28 +254,6 @@ public class ExamSessionCacheService {
             log.error("Unexpected error while getting default exam configuration for running exam; {}", examId, e);
             throw e;
         }
-    }
-
-    @Cacheable(
-            cacheNames = EXAM_INDICATOR_CACHE,
-            key = "#examId",
-            condition = "#examId!=null",
-            unless = "#result.isEmpty()")
-    public Collection<Indicator> allIndicatorsForExam(final Long examId) {
-        return indicatorDAO
-                .allForExam(examId)
-                .onError(error -> log.error(
-                        "Failed to load indicators for exam: {}, error: {}",
-                        examId,
-                        error.getMessage()))
-                .getOr(Collections.emptyList());
-    }
-
-    @CacheEvict(
-            cacheNames = EXAM_INDICATOR_CACHE,
-            key = "#examId")
-    public void evictExamIndicators(final Long examId) {
-        // just evict from cache
     }
 
     public boolean isUpToDate(final InMemorySEBConfig inMemorySEBConfig) {

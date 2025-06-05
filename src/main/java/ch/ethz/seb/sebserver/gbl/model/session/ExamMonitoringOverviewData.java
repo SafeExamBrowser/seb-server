@@ -49,9 +49,9 @@ public record ExamMonitoringOverviewData(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class IndicatorData {
-        @JsonProperty("color") public String color;
-        @JsonProperty("incident") public int incident;
-        @JsonProperty("warning") public int warning;
+        @JsonProperty("color") public String color = null;
+        @JsonProperty("incident") public int incident = 0;
+        @JsonProperty("warning") public int warning = 0;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

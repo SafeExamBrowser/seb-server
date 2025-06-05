@@ -44,7 +44,6 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringV3ServiceImpl.class);
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientNotificationService sebClientNotificationService;
-    private final ScreenProctoringService screenProctoringService;
     private final ExamAdminService examAdminService;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientGroupDAO clientGroupDAO;
@@ -53,7 +52,6 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     public ExamMonitoringV3ServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
             final SEBClientNotificationService sebClientNotificationService,
-            final ScreenProctoringService screenProctoringService,
             final ExamAdminService examAdminService,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientGroupDAO clientGroupDAO, 
@@ -61,7 +59,6 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         
         this.examSessionCacheService = examSessionCacheService;
         this.sebClientNotificationService = sebClientNotificationService;
-        this.screenProctoringService = screenProctoringService;
         this.examAdminService = examAdminService;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientGroupDAO = clientGroupDAO;
@@ -73,11 +70,8 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         
         final boolean screenProctoringEnabled = this.examAdminService.isScreenProctoringEnabled(runningExam);
         
-        // TODO apply caching here!? Problem is the size that changes
-        // Strategy: cache the Map<Long, ClientGroup> groups mapping and only get and update the actual clients amount value
         final Map<Long, ScreenProctoringGroup> spsGroups = (screenProctoringEnabled)
-                ? screenProctoringService.getCollectingGroups(runningExam.id)
-                    .getOr(Collections.emptyList())
+                ? examSessionCacheService.getExamScreenProctoringGroups(runningExam.id)
                     .stream()
                     .collect(Collectors.toMap(
                             g -> g.sebGroupId != null ? g.sebGroupId : -1,
@@ -97,7 +91,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                                 spsGroups.containsKey(g.id) ? spsGroups.get(g.id).uuid : null, 
                                 g.type.name(), 
                                 g.displayValue())));
-        
+
         if (spsGroups.containsKey(-1L)) {
             final ScreenProctoringGroup spsFallbackGroup = spsGroups.get(-1L);
             groups.put(-1L, new ClientGroup(
@@ -108,7 +102,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     StringUtils.EMPTY));
         }
         
-        // indicators
+        // indicators (also from cache)
         final Indicators indicators = new Indicators();
         final IndicatorProbe indicatorProbe = new IndicatorProbe();
         final Collection<Indicator> allInd = examSessionCacheService.allIndicatorsForExam(runningExam.id);
@@ -133,6 +127,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         final ClientStatesData clientStates = new ClientStatesData();
         final NotificationData notifications = new NotificationData();
 
+        // get a list of all connection Tokens of the exam from cache and iterate over cached Client Connections
         this.clientConnectionDAO
                 .getConnectionTokens(runningExam.id)
                 .getOrThrow()
@@ -156,8 +151,10 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     }
                     clientStates.calcTotal();
                     
-                    // incidences and warnings on indicators
-                    indicatorProbe.probe(cc, indicators);
+                    // incidences and warnings on indicators, only relevant for active connections
+                    if (cc.clientConnection.status.clientActiveStatus) {
+                        indicatorProbe.probe(cc, indicators);
+                    }
                     
                     // notifications
                     if (cc.pendingNotification != null && cc.pendingNotification) {
@@ -323,9 +320,9 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                 final double val = cc.getValueByType(IndicatorType.BATTERY_STATUS);
                 if (!Double.isNaN(val)) {
                     battery_min = Math.min(battery_min, val);
-                    if (val >= batteryDataMap.incidentThreshold) {
+                    if (val <= batteryDataMap.incidentThreshold) {
                         indicators.BATTERY_STATUS.incident++;
-                    } else if (val >= batteryDataMap.warningThreshold) {
+                    } else if (val <= batteryDataMap.warningThreshold) {
                         indicators.BATTERY_STATUS.warning++;
                     }
                 }
@@ -334,9 +331,9 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                 final double val = cc.getValueByType(IndicatorType.WLAN_STATUS);
                 if (!Double.isNaN(val)) {
                     wlan_min = Math.min(wlan_min, val);
-                    if (val >= wlanDataMap.incidentThreshold) {
+                    if (val <= wlanDataMap.incidentThreshold) {
                         indicators.WLAN_STATUS.incident++;
-                    } else if (val >= wlanDataMap.warningThreshold) {
+                    } else if (val <= wlanDataMap.warningThreshold) {
                         indicators.WLAN_STATUS.warning++;
                     }
                 }
@@ -345,24 +342,24 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
         public Indicators deriveColor(final Indicators indicators) {
             if (batteryDataMap != null) {
-                for (int i = 0; i < batteryDataMap.thresholdValues.length; i++) {
-                    if (battery_min < batteryDataMap.thresholdValues[i]) {
-                        continue;
-                    }
-                    if (i - 1 > 0) {
-                        indicators.BATTERY_STATUS.color = batteryDataMap.colors[i - 1];
-                        break;
+                if (indicators.BATTERY_STATUS.incident > 0) {
+                    indicators.BATTERY_STATUS.color = batteryDataMap.colors[batteryDataMap.colors.length - 1];
+                } else if (indicators.BATTERY_STATUS.warning > 0) {
+                    for (int i = 0; i < batteryDataMap.thresholdValues.length - 1; i++) {
+                        if (battery_min < batteryDataMap.thresholdValues[i] && battery_min > batteryDataMap.thresholdValues[i + 1]) {
+                            indicators.BATTERY_STATUS.color = batteryDataMap.colors[i];
+                        }
                     }
                 }
             }
             if (wlanDataMap != null) {
-                for (int i = 0; i < wlanDataMap.thresholdValues.length; i++) {
-                    if (battery_min < wlanDataMap.thresholdValues[i]) {
-                        continue;
-                    }
-                    if (i - 1 > 0) {
-                        indicators.WLAN_STATUS.color = wlanDataMap.colors[i - 1];
-                        break;
+                if (indicators.WLAN_STATUS.incident > 0) {
+                    indicators.WLAN_STATUS.color = wlanDataMap.colors[wlanDataMap.colors.length - 1];
+                } else if (indicators.WLAN_STATUS.warning > 0) {
+                    for (int i = 0; i < wlanDataMap.thresholdValues.length - 1; i++) {
+                        if (wlan_min < wlanDataMap.thresholdValues[i] && wlan_min > wlanDataMap.thresholdValues[i + 1]) {
+                            indicators.WLAN_STATUS.color = wlanDataMap.colors[i];
+                        }
                     }
                 }
             }

@@ -51,16 +51,6 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
         if (indicatorDefinition != null) {
             this.dataMap = indicatorDefinition.dataMap;
-
-//            this.incidentThreshold = (!indicatorDefinition.type.inverse)
-//                    ? indicatorDefinition.thresholds.stream()
-//                            .map(t -> t.value)
-//                            .max(Comparator.naturalOrder())
-//                            .orElse(0.0)
-//                    : indicatorDefinition.thresholds.stream()
-//                            .map(t -> t.value)
-//                            .min(Comparator.naturalOrder())
-//                            .orElse(0.0);
             this.indicatorId = indicatorDefinition.id;
             this.examId = indicatorDefinition.examId;
         } else {

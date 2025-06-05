@@ -287,6 +287,11 @@ public class ExamMonitoringController {
                 .getOrThrow();
     }
 
+    /** This is the new endpoint to get the monitoring overview data for the new GUI.
+     * 
+     * @param institutionId the institution identifier from the user. If absent the system will get the one from logged in user
+     * @param examId the exam identifier
+     * @return ExamMonitoringOverviewData containing actual monitoring overview data for the particular exam.*/
     @RequestMapping(
             path = API.EXAM_MONITORING_OVERVIEW_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -302,6 +307,16 @@ public class ExamMonitoringController {
         return examMonitoringV3Service.getExamMonitoringOverviewData(exam);
     }
 
+    /** This is the new monitoring page data endpoint for the new GUI.
+     * 
+     * @param institutionId the institution identifier from the user. If absent the system will get the one from logged in user
+     * @param examId the exam identifier
+     * @param showAll flag to indicate none filter applied. If "true", filtering is ignored
+     * @param showStates comma separated list of client status names to show (filter property)
+     * @param showGroups comma separated list of client group ids of client groups to show (filter property)
+     * @param showIncidences comma separated list of indicator names to show incidents and warnings for (filter property)
+     * @param showNotifications comma separated list of notification type names  to show (filter property)
+     * @return MonitoringFullPageData with filtered live SEB connection data for the given running exam */
     @RequestMapping(
             path = API.EXAM_MONITORING_CONNECTIONS + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -327,8 +342,8 @@ public class ExamMonitoringController {
                     runningExam, 
                     examMonitoringV3Service.createMonitoringFilter(
                             showStates, 
-                            showGroups
-                            , showIncidences,
+                            showGroups,
+                            showIncidences,
                             showNotifications));
         }
     }
