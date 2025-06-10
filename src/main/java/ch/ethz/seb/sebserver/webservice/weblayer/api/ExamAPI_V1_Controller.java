@@ -177,9 +177,7 @@ public class ExamAPI_V1_Controller {
             @RequestParam(name = API.EXAM_API_PARAM_SEB_VERSION, required = false) final String sebVersion,
             @RequestParam(name = API.EXAM_API_PARAM_SEB_OS_NAME, required = false) final String sebOSName,
             @RequestParam(name = API.EXAM_API_PARAM_SEB_MACHINE_NAME, required = false) final String sebMachineName,
-            @RequestParam(
-                    name = API.EXAM_API_PARAM_SIGNATURE_KEY,
-                    required = false) final String browserSignatureKey,
+            @RequestParam(name = API.EXAM_API_PARAM_SIGNATURE_KEY, required = false) final String browserSignatureKey,
             @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientId,
             final Principal principal,
             final HttpServletRequest request,
