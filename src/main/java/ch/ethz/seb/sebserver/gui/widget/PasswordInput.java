@@ -107,6 +107,8 @@ public class PasswordInput extends Composite {
             passwordInput.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.CONFIG_INPUT_READONLY.key);
             if (!this.isEditable) {
                 gridData.heightHint = 21;
+            } else {
+                WidgetFactory.setAttribute(passwordInput, "autocomplete", "off");
             }
         }
 
