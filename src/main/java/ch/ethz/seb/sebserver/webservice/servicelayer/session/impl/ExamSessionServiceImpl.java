@@ -21,7 +21,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -576,6 +575,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             this.examSessionCacheService.evictDefaultSEBConfig(exam.id);
             this.examSessionCacheService.evictScreenProctoringGroups(exam.id);
             this.examSessionCacheService.evictExamIndicators(exam.id);
+            this.examSessionCacheService.evictExamScreenProctoringGroups(exam.id);
             // evict client connection
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)
