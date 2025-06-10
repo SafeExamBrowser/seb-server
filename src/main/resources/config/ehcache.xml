@@ -139,7 +139,7 @@
 
     <cache alias="EXAM_SCREEN_PROCTORING_GROUPS">
         <key-type>java.lang.Long</key-type>
-        <value-type>java.util.Map</value-type>
+        <value-type>java.util.Collection</value-type>
         <expiry>
             <ttl unit="minutes">15</ttl>
         </expiry>
