@@ -289,11 +289,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId,
             @RequestParam(name = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG, required = false) final String tagName) {
-
-        this.checkWritePrivilege(institutionId);
-
+        
         return this.examDAO.byPK(examId)
-                .flatMap(this::checkReadAccess)
+                .map(authorization::checkIsSupporterOrOwner)
                 .flatMap(exam -> this.securityKeyService.grantAppSignatureKey(
                         institutionId,
                         examId,
@@ -316,9 +314,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
-
-        this.checkWritePrivilege(institutionId);
+        
         return this.examDAO.byPK(examId)
+                .map(authorization::checkIsSupporterOrOwner)
                 .flatMap(this::checkReadAccess)
                 .flatMap(exam -> this.securityKeyService.deleteSecurityKeyGrant(keyId))
                 .flatMap(this.userActivityLogDAO::logDelete)
@@ -747,7 +745,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             if (oldExam.supporter != null) {
                 final List<String> teacherAccounts = oldExam.supporter
                         .stream()
-                        .filter(s -> s.contains(TeacherAccountService.AD_HOC_TEACHER_ID_PREFIX))
+                        .filter(s -> s.contains(TeacherAccountService.AD_HOC_TEACHER_ID_PREFIX) || authorization.isTeacherOnly(s))
                         .toList();
                 if (!teacherAccounts.isEmpty()) {
                     final ArrayList<String> supporterAndTeacher = new ArrayList<>(teacherAccounts);
@@ -912,4 +910,5 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             return list;
         };
     }
+    
 }

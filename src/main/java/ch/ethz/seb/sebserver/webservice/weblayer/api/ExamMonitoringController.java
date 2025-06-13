@@ -273,7 +273,7 @@ public class ExamMonitoringController {
                 UserRole.EXAM_ADMIN);
 
         return this.examDAO.byPK(examId)
-                .flatMap(authorization::checkModify)
+                .map(authorization::checkIsSupporterOrOwner)
                 .flatMap(examSessionService::toggleTestRun)
                 .map(exam -> {
                     examSessionService.flushCache(exam);

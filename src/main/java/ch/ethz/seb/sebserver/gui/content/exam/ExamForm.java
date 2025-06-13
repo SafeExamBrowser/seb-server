@@ -121,7 +121,6 @@ public class ExamForm implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final ExamSEBRestrictionSettings examSEBRestrictionSettings;
-    private final ProctoringSettingsPopup proctoringSettingsPopup;
     private final ScreenProctoringSettingsPopup screenProctoringSettingsPopup;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
@@ -134,7 +133,6 @@ public class ExamForm implements TemplateComposer {
     protected ExamForm(
             final PageService pageService,
             final ExamSEBRestrictionSettings examSEBRestrictionSettings,
-            final ProctoringSettingsPopup proctoringSettingsPopup,
             final ScreenProctoringSettingsPopup screenProctoringSettingsPopup,
             final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
@@ -148,7 +146,6 @@ public class ExamForm implements TemplateComposer {
         this.resourceService = pageService.getResourceService();
         this.examSEBRestrictionSettings = examSEBRestrictionSettings;
         this.screenProctoringSettingsPopup = screenProctoringSettingsPopup;
-        this.proctoringSettingsPopup = proctoringSettingsPopup;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
         this.examDeletePopup = examDeletePopup;
@@ -206,7 +203,9 @@ public class ExamForm implements TemplateComposer {
         final boolean modifyGrant = entityGrantCheck.m();
         final boolean writeGrant = entityGrantCheck.w();
         final boolean editable = modifyGrant && Exam.ACTIVE_STATES.contains(exam.getStatus());
-        
+        final boolean supporterOnly = currentUser.isOnlySupporter();
+        final boolean teacherOnly = currentUser.isOnlyTeacher();
+        final boolean supporterOrTeacherOnly = supporterOnly || teacherOnly;
         
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
@@ -299,12 +298,12 @@ public class ExamForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_TOGGLE_TEST_RUN_ON)
                 .withEntityKey(entityKey)
                 .withExec(this::toggleTestRun)
-                .publishIf(() -> modifyGrant && readonly && exam.status == ExamStatus.UP_COMING)
+                .publishIf(() -> (modifyGrant || supporterOrTeacherOnly) && readonly && exam.status == ExamStatus.UP_COMING)
 
                 .newAction(ActionDefinition.EXAM_TOGGLE_TEST_RUN_OFF)
                 .withEntityKey(entityKey)
                 .withExec(this::toggleTestRun)
-                .publishIf(() -> modifyGrant && readonly && exam.status == ExamStatus.TEST_RUN)
+                .publishIf(() -> (modifyGrant || supporterOrTeacherOnly) && readonly && exam.status == ExamStatus.TEST_RUN)
 
                 .newAction(ActionDefinition.EXAM_ARCHIVE)
                 .withEntityKey(entityKey)
@@ -346,7 +345,7 @@ public class ExamForm implements TemplateComposer {
                 .withAttribute(ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_ID, String.valueOf(exam.lmsSetupId))
                 .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant || !editable))
                 .noEventPropagation()
-                .publishIf(() -> restrictionEnabled && sebRestrictionAvailable)
+                .publishIf(() -> restrictionEnabled && sebRestrictionAvailable && !teacherOnly)
 
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
@@ -359,24 +358,12 @@ public class ExamForm implements TemplateComposer {
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && modifyGrant && !importFromQuizData && BooleanUtils.isTrue(isRestricted))
 
-                .newAction(ActionDefinition.EXAM_PROCTORING_ON)
-                .withEntityKey(entityKey)
-                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
-                .noEventPropagation()
-                .publishIf(() -> lpEnabled && !isLight && proctoringEnabled)
-
-                .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
-                .withEntityKey(entityKey)
-                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
-                .noEventPropagation()
-                .publishIf(() -> lpEnabled && !isLight && !proctoringEnabled && readonly)
-
                 .newAction(ActionDefinition.SCREEN_PROCTORING_ON)
                 .withEntityKey(entityKey)
                 .withExec(
                         this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> spsFeatureEnabled && screenProctoringEnabled)
+                .publishIf(() -> spsFeatureEnabled && screenProctoringEnabled && readonly && !supporterOrTeacherOnly)
 
                 .newAction(ActionDefinition.SCREEN_PROCTORING_OFF)
                 .withEntityKey(entityKey)
@@ -384,7 +371,7 @@ public class ExamForm implements TemplateComposer {
                         this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
                 .publishIf(
-                        () -> spsFeatureEnabled && !screenProctoringEnabled && readonly)
+                        () -> spsFeatureEnabled && !screenProctoringEnabled && readonly && !supporterOrTeacherOnly)
         ;
 
         // additional data in read-only view

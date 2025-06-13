@@ -16,10 +16,6 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -82,6 +78,10 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for certificates
@@ -113,6 +113,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 

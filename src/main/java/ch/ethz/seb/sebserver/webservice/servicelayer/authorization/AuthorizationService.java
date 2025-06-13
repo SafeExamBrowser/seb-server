@@ -14,6 +14,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -36,8 +37,7 @@ public interface AuthorizationService {
      *
      * @return all registered Privileges */
     Collection<Privilege> getAllPrivileges();
-
-
+    
 
     /** Check grant on privilege type for specified EntityType and for the given user and institution.
      * <p>
@@ -319,5 +319,25 @@ public interface AuthorizationService {
             return userInfo.uuid;
         }
         return null;
+    }
+
+    default Exam checkIsSupporterOrOwner(final Exam exam) {
+        checkRead(exam);
+        final SEBServerUser currentUser = getUserService().getCurrentUser();
+        if (!exam.isOwnerOrSupporter(currentUser.uuid())) {
+            throw new PermissionDeniedException(
+                    exam,
+                    PrivilegeType.MODIFY,
+                    currentUser.uuid());
+        }
+        return exam;
+    }
+
+    default boolean isTeacherOnly(final String uuid) {
+        UserInfo user = getUserService().getUser(uuid);
+        if (user.roles.size() > 1) {
+            return false;
+        }
+        return user.hasRole(UserRole.TEACHER);
     }
 }

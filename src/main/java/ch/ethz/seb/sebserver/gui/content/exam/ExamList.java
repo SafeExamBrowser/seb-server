@@ -144,11 +144,12 @@ public class ExamList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-
+    
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
+        final boolean teacherOnly = currentUser.isOnlyTeacher();
 
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
@@ -160,10 +161,7 @@ public class ExamList implements TemplateComposer {
 
         final BooleanSupplier isSEBAdmin =
                 () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
-
-        final Function<String, String> institutionNameFunction =
-                this.resourceService.getInstitutionNameFunction();
-
+        
         // table
         final EntityTable<Exam> table =
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
@@ -181,12 +179,13 @@ public class ExamList implements TemplateComposer {
                                 () -> new ColumnDefinition<Exam>(
                                         Domain.EXAM.ATTR_INSTITUTION_ID,
                                         COLUMN_TITLE_INSTITUTION_KEY,
-                                        exam -> institutionNameFunction
+                                        exam -> this.resourceService.getInstitutionNameFunction()
                                                 .apply(String.valueOf(exam.getInstitutionId())))
                                                         .withFilter(this.institutionFilter)
                                                         .sortable())
 
-                        .withColumn(new ColumnDefinition<>(
+                        .withColumnIf(() -> !teacherOnly,
+                                () -> new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,
                                 COLUMN_TITLE_LMS_KEY,
                                 examLmsSetupNameFunction(this.resourceService))

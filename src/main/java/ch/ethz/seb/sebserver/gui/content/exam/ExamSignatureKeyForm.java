@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content.exam;
 
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
@@ -111,6 +112,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+        final CurrentUser currentUser = pageService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
@@ -123,6 +125,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         final String ct = exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD);
         final boolean readonly = exam.status == ExamStatus.FINISHED || exam.status == ExamStatus.ARCHIVED;
+        final boolean teacherOnly = currentUser.isOnlyTeacher();
 
         final Composite content = widgetFactory
                 .defaultPageLayout(pageContext.getParent(), TILE);
@@ -140,7 +143,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         FORM_ENABLED,
                         String.valueOf(signatureKeyCheckEnabled))
                         .withInputSpan(1)
-                        .readonly(readonly))
+                        .readonly(readonly || teacherOnly))
 
                 .addField(FormBuilder.text(
                         Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD,
@@ -153,7 +156,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         })
                         .mandatory()
                         .withInputSpan(1)
-                        .readonly(readonly))
+                        .readonly(readonly || teacherOnly))
 
                 .build();
 
@@ -265,15 +268,15 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(action -> this.saveSettings(action, form.getForm()))
                 .ignoreMoveAwayFromEdit()
-                .publishIf(() -> !readonly)
+                .publishIf(() -> !readonly && !teacherOnly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_CANCEL_MODIFY)
                 .withExec(this.pageService.backToCurrentFunction())
-                .publishIf(() -> !readonly)
+                .publishIf(() -> !readonly && !teacherOnly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_BACK_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> readonly)
+                .publishIf(() -> readonly || teacherOnly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP)
                 .withParentEntityKey(entityKey)

@@ -366,7 +366,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         if (event.exam.status != Exam.ExamStatus.UP_COMING) {
-            this.screenProctoringAPIBinding.deactivateScreenProctoring(event.exam);
+            this.screenProctoringAPIBinding
+                    .deactivateScreenProctoring(event.exam)
+                    .onError(error -> log.warn("Failed to deactivate SPS on exam finishing: {}", error.getMessage()));
+            
             this.screenProctoringGroupDAO.resetAllForExam(event.exam.id);
         }
     }

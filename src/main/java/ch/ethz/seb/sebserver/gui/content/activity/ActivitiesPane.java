@@ -72,9 +72,8 @@ public class ActivitiesPane implements TemplateComposer {
         final UserInfo userInfo = this.currentUser
                 .getOrHandleError(t -> this.pageService.logoutOnError(t, pageContext));
 
-        final boolean isSupporterOnly = userInfo.hasRole(UserRole.EXAM_SUPPORTER) &&
-                !userInfo.hasAnyRole(UserRole.EXAM_ADMIN, UserRole.INSTITUTIONAL_ADMIN, UserRole.SEB_SERVER_ADMIN);
-
+        final boolean isSupporterOnly = this.currentUser.isOnlySupporter() || this.currentUser.isOnlyTeacher();
+        
         if (this.pageService.getI18nSupport().hasText(TITLE_KEY)) {
             final Label activities = this.widgetFactory.labelLocalized(
                     pageContext.getParent(),
@@ -274,7 +273,7 @@ public class ActivitiesPane implements TemplateComposer {
         // ---- EXAM ADMINISTRATION ------------------------------------------------------------
 
         final boolean lmsRead = this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.LMS_SETUP);
-        final boolean examRead = userInfo.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.EXAM_ADMIN) ||
+        final boolean examRead = userInfo.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.EXAM_ADMIN, UserRole.TEACHER) ||
                 this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM);
         final boolean examWrite = this.currentUser.hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.EXAM);
 
@@ -284,7 +283,7 @@ public class ActivitiesPane implements TemplateComposer {
         final boolean examTemplateEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.EXAM_TEMPLATE);
         final boolean anyExamAdminEnabled = lmsSetupEnabled || quizLookupEnabled || examEnabled || examTemplateEnabled;
 
-        if (anyExamAdminEnabled && !isTeacherOnly) {
+        if (anyExamAdminEnabled) {
             // Exam Administration
             final TreeItem examAdmin = this.widgetFactory.treeItemLocalized(
                     navigation,

@@ -431,7 +431,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                         (connectionData.clientConnection.status.clientActiveStatus ||
                                 connectionData.clientConnection.status == ConnectionStatus.CLOSED));
 
-        if (askEnabled && clientConnectionDetails.checkSecurityGrant) {
+        if (askEnabled /* SEBSERV-674 && clientConnectionDetails.checkSecurityGrant */) {
             final SecurityKey securityKey = this.pageService
                     .getRestService()
                     .getBuilder(GetClientConnectionSecurityKey.class)

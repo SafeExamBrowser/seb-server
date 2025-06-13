@@ -101,6 +101,7 @@ public class ExamFormConfigs implements TemplateComposer {
                 pageContext.getAttribute(ExamForm.ATTR_EXAM_STATUS));
         final boolean isExamRunning = examStatus == ExamStatus.RUNNING;
         final boolean examConfigEnabled = currentUser.isFeatureEnabled(UserFeatures.Feature.CONFIG_EXAM_CONFIGURATION);
+        final boolean teacherOnly = currentUser.isOnlyTeacher();
 
         // List of SEB Configuration
         this.widgetFactory.addFormSubContextHeader(
@@ -132,7 +133,7 @@ public class ExamFormConfigs implements TemplateComposer {
                                 this.resourceService::localizedExamConfigStatusName)
                                         .widthProportion(1))
                         .withDefaultActionIf(
-                                () -> readGrant && examConfigEnabled,
+                                () -> readGrant && examConfigEnabled && !teacherOnly,
                                 this::viewExamConfigPageAction)
 
                         .withSelectionListener(this.pageService.getSelectionPublisher(
@@ -166,7 +167,7 @@ public class ExamFormConfigs implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                 .withParentEntityKey(entityKey)
                 .withEntityKey(configKey)
-                .publishIf(() -> examConfigEnabled && readGrant && configurationTable.hasAnyContent(), false)
+                .publishIf(() -> !teacherOnly && examConfigEnabled && readGrant && configurationTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_MODIFY_FROM_LIST)
                 .withParentEntityKey(entityKey)
@@ -175,7 +176,7 @@ public class ExamFormConfigs implements TemplateComposer {
                         this.examToConfigBindingForm.bindFunction(),
                         CONFIG_EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(() -> examConfigEnabled && editable && configurationTable.hasAnyContent(), false)
+                .publishIf(() -> !teacherOnly && examConfigEnabled && editable && configurationTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
@@ -197,7 +198,7 @@ public class ExamFormConfigs implements TemplateComposer {
                         this::getExamConfigKey,
                         CONFIG_EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(() -> readGrant && configurationTable.hasAnyContent(), false);
+                .publishIf(() -> !teacherOnly && readGrant && configurationTable.hasAnyContent(), false);
 
     }
 

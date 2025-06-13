@@ -316,6 +316,22 @@ public class CurrentUser {
         }
     }
 
+    public boolean isOnlySupporter() {
+        final UserInfo userInfo = this.get();
+        if (userInfo.roles.size() > 1) {
+            return false;
+        }
+        return userInfo.hasAnyRole(UserRole.EXAM_SUPPORTER);
+    }
+
+    public boolean isOnlyTeacher() {
+        final UserInfo userInfo = this.get();
+        if (userInfo.roles.size() > 1) {
+            return false;
+        }
+        return userInfo.hasAnyRole( UserRole.TEACHER);
+    }
+
     /** Wrapper can be used for base and institutional grant checks for a specified EntityType */
     public class GrantCheck {
         private final EntityType entityType;
