@@ -291,7 +291,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @RequestParam(name = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG, required = false) final String tagName) {
         
         return this.examDAO.byPK(examId)
-                .map(authorization::checkIsSupporterOrOwner)
+                .map(this::checkSecurityGrantAccess)
                 .flatMap(exam -> this.securityKeyService.grantAppSignatureKey(
                         institutionId,
                         examId,
@@ -316,11 +316,18 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
         
         return this.examDAO.byPK(examId)
-                .map(authorization::checkIsSupporterOrOwner)
-                .flatMap(this::checkReadAccess)
+                .map(this::checkSecurityGrantAccess)
                 .flatMap(exam -> this.securityKeyService.deleteSecurityKeyGrant(keyId))
                 .flatMap(this.userActivityLogDAO::logDelete)
                 .getOrThrow();
+    }
+    
+    private Exam checkSecurityGrantAccess(final Exam exam) {
+        if (authorization.hasModifyGrant(exam)) {
+            return exam;
+        }
+        
+        return authorization.checkIsSupporterOrOwner(exam);
     }
 
     // **** SEB Security Key
