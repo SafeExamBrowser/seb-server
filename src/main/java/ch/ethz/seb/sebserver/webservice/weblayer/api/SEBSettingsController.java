@@ -278,15 +278,9 @@ public class SEBSettingsController {
         final Collection<ConfigurationAttribute> columns = configurationAttributeDAO
                 .allChildAttributes(tableAttribute.id)
                 .getOrThrow();
-
-        // TODO get last index in a better way
-        final int index = configurationValueDAO
-                .getOrderedTableValues(followUpConfig.institutionId, followUpConfig.id, tableAttribute.id, false)
-                .getOrThrow()
-                .size();
         
+        final int index = configurationValueDAO.getTableSize(followUpConfig.id, tableAttribute.id);
         columns.forEach( column -> {
-            // TODO try to batch create
             final ConfigurationValue newValue = configurationValueDAO.createNew(new ConfigurationValue(
                             null,
                             followUpConfig.institutionId,
@@ -367,18 +361,15 @@ public class SEBSettingsController {
     }
 
     private Map<String, ConfigurationAttribute> getAttributesForView(final SEBSettingsView.ViewType viewType) {
-        // TODO Note this is hard coded for now but should be dynamic
-
         final Set<Long> attrIds = viewAttributeMapping.get(viewType);
         if (attrIds == null) {
             return Collections.emptyMap();
         }
         
         return configurationAttributeDAO.allOf(attrIds)
-                .map(attrs -> attrs.stream()
-                        .collect(Collectors.toMap( 
-                                a -> a.name, 
-                                Function.identity())))
+                .map(attrs -> attrs
+                        .stream()
+                        .collect(Collectors.toMap(a -> a.name, Function.identity())))
                 .getOrThrow();
     }
     

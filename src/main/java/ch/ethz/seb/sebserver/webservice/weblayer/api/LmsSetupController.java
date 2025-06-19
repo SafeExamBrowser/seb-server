@@ -10,14 +10,17 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import javax.validation.Valid;
 
+import java.util.concurrent.Executor;
+
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,7 +66,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     private final SEBRestrictionService sebRestrictionService;
     private final FullLmsIntegrationService fullLmsIntegrationService;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final ScreenProctoringService screenProctoringService;
+    private final Executor executor;
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
@@ -77,7 +80,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final SEBRestrictionService sebRestrictionService,
             final FullLmsIntegrationService fullLmsIntegrationService,
             final ApplicationEventPublisher applicationEventPublisher,
-            final ScreenProctoringService screenProctoringService) {
+            @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
 
         super(authorization,
                 bulkActionService,
@@ -91,7 +94,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         this.sebRestrictionService = sebRestrictionService;
         this.fullLmsIntegrationService = fullLmsIntegrationService;
         this.applicationEventPublisher = applicationEventPublisher;
-        this.screenProctoringService = screenProctoringService;
+        this.executor = executor;
     }
 
     @Override
@@ -170,7 +173,15 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         //      currently leads to GUI timeout when there are a lot of exams
         //      Solution, run this in a background task (and store errors when possible)
         //      involved: SEB Restriction, LmsAPI Service, FullLMSIntegration, Screen Proctoring, Proctoring, 
-        this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
+
+        executor.execute(() -> {
+            try {
+                this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
+            } catch (final Exception e) {
+                log.error("Failed on publish LmsSetupChangeEvent: ", e);
+            }
+        });
+        
         return super.notifySaved(entity, activation);
     }
 

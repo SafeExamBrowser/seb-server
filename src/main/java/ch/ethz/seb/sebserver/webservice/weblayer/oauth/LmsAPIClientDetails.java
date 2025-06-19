@@ -47,10 +47,7 @@ public class LmsAPIClientDetails  {
     public String getClientId() {
         return clientId;
     }
-
-    // It seems this get called multiple times per token request
-    // TODO do we need very short time caching here?
-
+    
     public ClientDetails getClientDetails() {
 
         final String joinIds = StringUtils.join(

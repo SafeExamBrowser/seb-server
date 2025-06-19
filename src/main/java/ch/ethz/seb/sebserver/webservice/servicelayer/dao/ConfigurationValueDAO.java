@@ -60,6 +60,8 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
             Long attributeId,
             boolean fixMissingValues);
 
+    int getTableSize(Long configurationId, Long attributeId);
+
     /** Use this to save all values of a table attribute.
      *
      * @param value the ConfigurationTableValues instance containing all actual table attribute and value information
@@ -100,5 +102,6 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
     Result<Void> saveQuitPassword(Long configurationId, String pwd);
 
     Result<ConfigurationValue> saveForce(ConfigurationValue configurationValue);
+
     
 }

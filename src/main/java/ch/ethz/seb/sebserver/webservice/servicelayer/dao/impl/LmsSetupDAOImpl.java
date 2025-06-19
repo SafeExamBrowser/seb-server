@@ -143,9 +143,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     .collect(Collectors.toList());
 
             return this.lmsSetupRecordMapper.selectIdsByExample()
-                    .where(
-                            lmsType,
-                            isIn(types))
+                    .where(lmsType, isIn(types))
                     .build()
                     .execute();
         });

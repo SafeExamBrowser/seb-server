@@ -462,6 +462,39 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     }
 
     @Override
+    public int getTableSize(final Long configurationId, final Long attributeId) {
+        try {
+
+            final Long childAttributeId = this.configurationAttributeRecordMapper
+                    .selectIdsByExample()
+                    .where(
+                            ConfigurationAttributeRecordDynamicSqlSupport.parentId,
+                            isEqualTo(attributeId))
+                    .build()
+                    .execute()
+                    .stream().findFirst().orElse(null);
+
+            final Long count = configurationValueRecordMapper
+                    .countByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(configurationId))
+                    .and(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                            isEqualTo(childAttributeId)
+                    )
+                    .build()
+                    .execute();
+            
+            return count.intValue();
+
+        } catch (final Exception e) {
+            log.warn("Failed to get seb settings attribute table size for table: {}", attributeId, e);
+        }
+        return 0;
+    }
+
+    @Override
     @Transactional
     public Result<ConfigurationTableValues> saveTableValues(final ConfigurationTableValues value) {
         return this.configurationDAOBatchService
