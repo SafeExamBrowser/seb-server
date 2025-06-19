@@ -173,14 +173,14 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         //      currently leads to GUI timeout when there are a lot of exams
         //      Solution, run this in a background task (and store errors when possible)
         //      involved: SEB Restriction, LmsAPI Service, FullLMSIntegration, Screen Proctoring, Proctoring, 
-
-        executor.execute(() -> {
-            try {
-                this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
-            } catch (final Exception e) {
-                log.error("Failed on publish LmsSetupChangeEvent: ", e);
-            }
-        });
+        this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
+//        executor.execute(() -> {
+//            try {
+//                this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
+//            } catch (final Exception e) {
+//                log.error("Failed on publish LmsSetupChangeEvent: ", e);
+//            }
+//        });
         
         return super.notifySaved(entity, activation);
     }
