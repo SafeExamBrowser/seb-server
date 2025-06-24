@@ -58,14 +58,14 @@ public class WebserviceConfig {
                                 .in(SecurityScheme.In.HEADER)
                                 .bearerFormat("jwt")
                                 .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl("/oauth/token"))))
-//
-//                        .addSecuritySchemes(SWAGGER_AUTH_SEB_API, new SecurityScheme()
-//                                .type(SecurityScheme.Type.OAUTH2)
-//                                .scheme("basic")
-//                                .in(SecurityScheme.In.HEADER)
-//                                .flows(new OAuthFlows().clientCredentials(new OAuthFlow()
-//                                        .tokenUrl("/oauth/token")
-//                                        .scopes(new Scopes().addString("read", "read").addString("write", "write")))))
+
+                        .addSecuritySchemes(SWAGGER_AUTH_SEB_API, new SecurityScheme()
+                                .type(SecurityScheme.Type.OAUTH2)
+                                .scheme("basic")
+                                .in(SecurityScheme.In.HEADER)
+                                .flows(new OAuthFlows().clientCredentials(new OAuthFlow()
+                                        .tokenUrl("/oauth/token")
+                                        .scopes(new Scopes().addString("read", "read").addString("write", "write")))))
                 );
 
     }

@@ -22,6 +22,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +57,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionSer
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.v1}")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_SEB_API)
 public class ExamAPI_V1_Controller {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAPI_V1_Controller.class);
