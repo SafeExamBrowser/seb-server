@@ -487,7 +487,7 @@ public class ExamForm implements TemplateComposer {
                                 this.resourceService::examTypeResources)
                         .withEmptyCellSeparation(false))
 
-                .addField(FormBuilder.password(
+                .addField(FormBuilder.text(
                                 Domain.EXAM.ATTR_QUIT_PASSWORD,
                                 FORM_QUIT_PWD_TEXT_KEY,
                                 exam.quitPassword)
@@ -616,7 +616,7 @@ public class ExamForm implements TemplateComposer {
                                 this.resourceService::examTypeResources)
                         .mandatory(true))
 
-                .addField(FormBuilder.password(
+                .addField(FormBuilder.text(
                         Domain.EXAM.ATTR_QUIT_PASSWORD,
                         FORM_QUIT_PWD_TEXT_KEY,
                         exam.quitPassword))
