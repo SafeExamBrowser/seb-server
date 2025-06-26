@@ -298,6 +298,21 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> userRoleEditResources() {
+        final boolean showServerAdminRole = this.currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION);
+        return UserRole.publicRolesForUser(this.currentUser.get())
+                .stream()
+                .filter(ur -> ur != UserRole.TEACHER && (ur != UserRole.SEB_SERVER_ADMIN || showServerAdminRole))
+                .map(ur -> new Tuple3<>(
+                        ur.name(),
+                        this.i18nSupport.getText(USERACCOUNT_ROLE_PREFIX + ur.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                USERACCOUNT_ROLE_PREFIX + ur.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
     public List<Tuple<String>> institutionResource() {
         return this.restService.getBuilder(GetInstitutionNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)

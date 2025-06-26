@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.admin;
 
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.function.BooleanSupplier;
 
@@ -141,6 +142,8 @@ public class UserAccountForm implements TemplateComposer {
         final PageContext formContext = pageContext.withEntityKey(userAccount.getEntityKey());
         final boolean ownAccount = user.uuid.equals(userAccount.getModelId());
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(userAccount);
+        final EnumSet<UserRole> userRoles = userAccount.getUserRoles();
+        final boolean teacherOnly = userRoles.contains(UserRole.TEACHER) && userRoles.size() == 1;
 
         final boolean writeGrant = roleBasedEditGrant
                 && userGrantCheck.w()
@@ -235,7 +238,7 @@ public class UserAccountForm implements TemplateComposer {
                                 USER_ROLE.REFERENCE_NAME,
                                 FORM_ROLES_TEXT_KEY,
                                 StringUtils.join(userAccount.getRoles(), Constants.LIST_SEPARATOR_CHAR),
-                                this.resourceService::userRoleResources)
+                                 readonly ? this.resourceService::userRoleResources : this.resourceService::userRoleEditResources)
                                 .mandatory(!readonly))
                 .addFieldIf(
                         isNew,
@@ -265,11 +268,11 @@ public class UserAccountForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && readonly && institutionActive)
+                .publishIf(() -> modifyGrant && readonly && institutionActive && !teacherOnly)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSWORD)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && readonly && institutionActive && userAccount.isActive())
+                .publishIf(() -> modifyGrant && readonly && institutionActive && userAccount.isActive() && !teacherOnly)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_DEACTIVATE)
                 .withEntityKey(entityKey)
