@@ -64,6 +64,8 @@ public interface UserAccount extends GrantEntity, Activatable {
 
     /** The roles of the User-Account as UerRole */
     EnumSet<UserRole> getUserRoles();
+    
+    boolean isOnlyTeacher();
 
     /** The EntityKey (ModelId plus EntityType) of the User-Account */
     @Override

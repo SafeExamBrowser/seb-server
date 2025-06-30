@@ -256,6 +256,12 @@ public final class UserInfo implements UserAccount, Serializable {
                         .collect(Collectors.toList()));
     }
 
+    @Override
+    @JsonIgnore
+    public boolean isOnlyTeacher() {
+        return this.roles.contains(UserRole.TEACHER.name()) && this.roles.size() == 1;
+    }
+
     public boolean hasRole(final UserRole userRole) {
         if (userRole == null) {
             return false;

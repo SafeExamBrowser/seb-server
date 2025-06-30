@@ -228,6 +228,12 @@ public final class UserMod implements UserAccount {
         return EnumSet.copyOf(roles);
     }
 
+    @Override
+    @JsonIgnore
+    public boolean isOnlyTeacher() {
+        return this.roles.contains(UserRole.TEACHER.name()) && this.roles.size() == 1;
+    }
+
     public CharSequence getRetypedNewPassword() {
         return this.confirmNewPassword;
     }

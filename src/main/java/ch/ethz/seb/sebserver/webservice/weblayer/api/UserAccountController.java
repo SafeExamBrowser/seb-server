@@ -43,7 +43,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
-import com.sun.xml.bind.v2.TODO;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +51,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.*;
 
@@ -262,11 +259,24 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     /** Additional consistency checks that has to be checked before create and save actions */
     private <T extends UserAccount> Result<T> additionalConsistencyChecks(final T userInfo) {
         return Result.tryCatch(() -> {
+
+            // check if this is a teacher only account. Teacher only accounts cannot be edited
+            if (userInfo.getModelId() != null) {
+                userDAO
+                        .byModelId(userInfo.getModelId())
+                        .ifPresent( savedAccount -> {
+                                if (savedAccount.isOnlyTeacher()) {
+                                    throw new APIConstraintViolationException(
+                                            "Teacher accounts are managed by other systems and can therefore not be changes");
+                                }
+                        });
+            }
+            
             final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
             final EnumSet<UserRole> rolesOfCurrentUser = currentUser.getUserRoles();
             final EnumSet<UserRole> userRolesOfAccount = userInfo.getUserRoles();
 
-            // check of institution of UserInfo is active. Otherwise save is not valid
+            // check of institution of UserInfo is active, otherwise save is not valid
             if (!this.beanValidationService
                     .isActive(new EntityKey(userInfo.getInstitutionId(), EntityType.INSTITUTION))) {
                 throw new APIConstraintViolationException(
@@ -274,7 +284,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             }
 
             // check if the current User has the role based right to save the User Account
-            // role based right in this context means that for example a Institutional Administrator that
+            // role based right in this context means that for example an Institutional Administrator that
             // has normally the right to edit a User Account of his own institution, don't has the right
             // to edit a User Account of his own institution with a higher role based rank, for example a
             // SEB Server Admin of the same Institution
@@ -353,7 +363,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
         }catch(final Exception e){
             log.error("Unable to delete initial admin credentials from the additional attributes table: ", e);
-
         }
 
         return userInfo;
