@@ -704,11 +704,11 @@ public class ExamForm implements TemplateComposer {
                 form.setFieldValue(
                         Domain.EXAM.ATTR_SUPPORTER,
                         StringUtils.join(examTemplate.supporter, Constants.LIST_SEPARATOR));
-                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, quitPassword);
+                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, quitPassword != null ? quitPassword : StringUtils.EMPTY);
             } else {
                 form.setFieldValue(Domain.EXAM.ATTR_TYPE, Exam.ExamType.UNDEFINED.name());
                 form.setFieldValue(Domain.EXAM.ATTR_SUPPORTER, null);
-                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, null);
+                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, StringUtils.EMPTY);
             }
         } catch (final Exception e) {
             context.notifyError(FORM_EXAM_TEMPLATE_ERROR, e);
