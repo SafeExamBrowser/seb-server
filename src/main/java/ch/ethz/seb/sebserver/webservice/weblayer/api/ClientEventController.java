@@ -19,6 +19,9 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import org.apache.commons.io.IOUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.HttpStatus;
@@ -88,6 +91,41 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
         this.sebClientEventAdminService = sebClientEventAdminService;
     }
 
+    @Operation(
+            summary = "Get a page of ExtendedClientEvent. Sorting and filtering is applied before paging",
+            description = "Sorting: the sort parameter to sort the list of entities before paging\n"
+                    + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
+                    + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most\n"
+                    + "are.\n"
+                    + "</p>\n"
+                    + "Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)\n"
+                    + "and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually\n"
+                    + "filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
+                    + "a given text-snippet.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = Page.ATTR_PAGE_NUMBER,
+                            description = "The number of the page to get from the whole list. If the page does not exists, the API retruns with the first page."),
+                    @Parameter(
+                            name = Page.ATTR_PAGE_SIZE,
+                            description = "The size of the page to get."),
+                    @Parameter(
+                            name = Page.ATTR_SORT,
+                            description = "the sort parameter to sort the list of entities before paging"),
+                    @Parameter(
+                            name = API.PARAM_INSTITUTION_ID,
+                            description = "The institution identifier of the request.\n"
+                                    + "Default is the institution identifier of the institution of the current user"),
+                    @Parameter(
+                            name = "filterCriteria",
+                            description = "Additional filter criterias \n" +
+                                    "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
+                            example = "{\"name\":\"ethz\"}",
+                            required = false,
+                            allowEmptyValue = true)
+            })
     @RequestMapping(
             path = API.SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT,
             method = RequestMethod.GET,
