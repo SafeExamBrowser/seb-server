@@ -84,7 +84,7 @@ public class ClientConnectionData implements GrantEntity {
         if (this.groups == null || clientGroupIds == null || clientGroupIds.isEmpty()) {
             return false;
         }
-        return this.groups != null && this.groups.containsAll(clientGroupIds);
+        return this.groups.containsAll(clientGroupIds);
     }
 
     @JsonIgnore

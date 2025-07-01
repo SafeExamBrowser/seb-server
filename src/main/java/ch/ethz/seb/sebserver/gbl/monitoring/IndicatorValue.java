@@ -16,9 +16,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 
 public interface IndicatorValue extends IndicatorValueHolder {
 
-    public static final String ATTR_INDICATOR_ID = "id";
-    public static final String ATTR_INDICATOR_VALUE = "val";
-    public static final String ATTR_INDICATOR_TYPE = "type";
+    String ATTR_INDICATOR_ID = "id";
+    String ATTR_INDICATOR_VALUE = "val";
+    String ATTR_INDICATOR_TYPE = "type";
 
     @JsonProperty(SimpleIndicatorValue.ATTR_INDICATOR_ID)
     Long getIndicatorId();
@@ -57,11 +57,6 @@ public interface IndicatorValue extends IndicatorValueHolder {
         } catch (final NumberFormatException nfe) {
             return Double.NaN;
         }
-
-//        if (displayValue == null || displayValue == Constants.EMPTY_NOTE) {
-//            return Double.NaN;
-//        }
-//        return Double.parseDouble(displayValue);
     }
 
     default boolean dataEquals(final IndicatorValue other) {

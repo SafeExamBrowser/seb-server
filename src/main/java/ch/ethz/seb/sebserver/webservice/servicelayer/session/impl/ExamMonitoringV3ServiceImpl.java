@@ -341,28 +341,38 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         }
 
         public Indicators deriveColor(final Indicators indicators) {
-            if (batteryDataMap != null) {
-                if (indicators.BATTERY_STATUS.incident > 0) {
-                    indicators.BATTERY_STATUS.color = batteryDataMap.colors[batteryDataMap.colors.length - 1];
-                } else if (indicators.BATTERY_STATUS.warning > 0) {
-                    for (int i = 0; i < batteryDataMap.thresholdValues.length - 1; i++) {
-                        if (battery_min < batteryDataMap.thresholdValues[i] && battery_min > batteryDataMap.thresholdValues[i + 1]) {
-                            indicators.BATTERY_STATUS.color = batteryDataMap.colors[i];
+            try {
+                if (batteryDataMap != null && batteryDataMap.colors.length > 0) {
+                    if (indicators.BATTERY_STATUS.incident > 0) {
+                        indicators.BATTERY_STATUS.color = batteryDataMap.colors[batteryDataMap.colors.length - 1];
+                    } else if (indicators.BATTERY_STATUS.warning > 0) {
+                        for (int i = 0; i < batteryDataMap.thresholdValues.length - 1; i++) {
+                            if (battery_min < batteryDataMap.thresholdValues[i] && battery_min > batteryDataMap.thresholdValues[i + 1]) {
+                                indicators.BATTERY_STATUS.color = batteryDataMap.colors[i];
+                            }
                         }
                     }
                 }
+            } catch (final Exception e) {
+                log.warn("Failed to derive color for battery indicator");
             }
-            if (wlanDataMap != null) {
-                if (indicators.WLAN_STATUS.incident > 0) {
-                    indicators.WLAN_STATUS.color = wlanDataMap.colors[wlanDataMap.colors.length - 1];
-                } else if (indicators.WLAN_STATUS.warning > 0) {
-                    for (int i = 0; i < wlanDataMap.thresholdValues.length - 1; i++) {
-                        if (wlan_min < wlanDataMap.thresholdValues[i] && wlan_min > wlanDataMap.thresholdValues[i + 1]) {
-                            indicators.WLAN_STATUS.color = wlanDataMap.colors[i];
+            
+            try {
+                if (wlanDataMap != null && wlanDataMap.colors.length > 0) {
+                    if (indicators.WLAN_STATUS.incident > 0) {
+                        indicators.WLAN_STATUS.color = wlanDataMap.colors[wlanDataMap.colors.length - 1];
+                    } else if (indicators.WLAN_STATUS.warning > 0) {
+                        for (int i = 0; i < wlanDataMap.thresholdValues.length - 1; i++) {
+                            if (wlan_min < wlanDataMap.thresholdValues[i] && wlan_min > wlanDataMap.thresholdValues[i + 1]) {
+                                indicators.WLAN_STATUS.color = wlanDataMap.colors[i];
+                            }
                         }
                     }
                 }
+            } catch (final Exception e) {
+                log.warn("Failed to derive color for wlan indicator");
             }
+            
             return indicators;
         }
     }
