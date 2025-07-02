@@ -122,9 +122,9 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                             name = "filterCriteria",
                             description = "Additional filter criterias \n" +
                                     "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
-                            example = "{\"name\":\"ethz\"}",
+                            example = "{}",
                             required = false,
-                            allowEmptyValue = true)
+                            allowEmptyValue = false)
             })
     @RequestMapping(
             path = API.SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT,
@@ -139,13 +139,13 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have base read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
         return this.paginationService.getPage(

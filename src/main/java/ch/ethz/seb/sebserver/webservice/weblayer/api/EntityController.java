@@ -132,7 +132,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @param sort the sort parameter to sort the list of entities before paging
      *            the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
      *            descending sort order.
-     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering.
+     * @param filterCriteria a MultiValueMap of all request parameter that is used for filtering.
      * @return Page of domain-model-entities of specified type */
     @Operation(
             summary = "Get a page of the specific domain entity. Sorting and filtering is applied before paging",
@@ -165,9 +165,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = "filterCriteria",
                             description = "Additional filter criterias \n" +
                                     "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
-                            example = "{\"name\":\"ethz\"}",
+                            example = "{}",
                             required = false,
-                            allowEmptyValue = true)
+                            allowEmptyValue = false)
             })
     @RequestMapping(
             method = RequestMethod.GET,
@@ -181,13 +181,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
         final Page<T> page = this.paginationService.getPage(
@@ -224,9 +224,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = "filterCriteria",
                             description = "Additional filter criterias \n" +
                                     "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
-                            example = "{\"name\":\"ethz\"}",
+                            example = "{}",
                             required = false,
-                            allowEmptyValue = true)
+                            allowEmptyValue = false)
             })
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
@@ -238,13 +238,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
 
         // if current user has no read access for specified entity type within other institution then its own institution,
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance

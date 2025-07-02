@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
@@ -88,18 +91,54 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
-        return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
+        return super.getPage(institutionId, pageNumber, pageSize, sort, filterCriteria, request);
     }
 
+    @Operation(
+            summary = "Get a page of ClientConnectionData domain entity. Sorting and filtering is applied before paging",
+            description = """
+                    Sorting: the sort parameter to sort the list of entities before paging
+                    the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+                    descending sort order. Note that not all entity-model attribute are suited for sorting while the most
+                    are.
+                    </p>
+                    Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
+                    and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
+                    filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
+                    a given text-snippet.""",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = Page.ATTR_PAGE_NUMBER,
+                            description = "The number of the page to get from the whole list. If the page does not exists, the API retruns with the first page."),
+                    @Parameter(
+                            name = Page.ATTR_PAGE_SIZE,
+                            description = "The size of the page to get."),
+                    @Parameter(
+                            name = Page.ATTR_SORT,
+                            description = "the sort parameter to sort the list of entities before paging"),
+                    @Parameter(
+                            name = API.PARAM_INSTITUTION_ID,
+                            description = "The institution identifier of the request.\n"
+                                    + "Default is the institution identifier of the institution of the current user"),
+                    @Parameter(
+                            name = "filterCriteria",
+                            description = "Additional filter criterias \n" +
+                                    "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
+                            example = "{}",
+                            required = false,
+                            allowEmptyValue = false)
+            })
     @RequestMapping(
             path = API.SEB_CLIENT_CONNECTION_DATA_ENDPOINT,
             method = RequestMethod.GET,
@@ -113,13 +152,13 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
         if (StringUtils.isNotBlank(sort) && sort.contains(ClientConnectionData.ATTR_INDICATOR_VALUE)) {
