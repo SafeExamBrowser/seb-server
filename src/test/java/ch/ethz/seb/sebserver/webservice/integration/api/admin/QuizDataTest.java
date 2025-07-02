@@ -12,7 +12,6 @@ import static org.junit.Assert.*;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;

@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import org.springframework.core.io.ClassPathResource;
 
 public class AttributeMapping {
 
@@ -203,23 +202,14 @@ public class AttributeMapping {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("AttributeMapping [templateId=");
-        builder.append(this.templateId);
-        builder.append(", attributeIdMapping=");
-        builder.append(this.attributeIdMapping);
-        builder.append(", attributeNameIdMapping=");
-        builder.append(this.attributeNameIdMapping);
-        builder.append(", orientationAttributeMapping=");
-        builder.append(this.orientationAttributeMapping);
-        builder.append(", orientationAttributeNameMapping=");
-        builder.append(this.orientationAttributeNameMapping);
-        builder.append(", childAttributeMapping=");
-        builder.append(this.childAttributeMapping);
-        builder.append(", attributeGroupMapping=");
-        builder.append(this.attributeGroupMapping);
-        builder.append("]");
-        return builder.toString();
+        return "AttributeMapping [templateId=" + this.templateId +
+                ", attributeIdMapping=" + this.attributeIdMapping +
+                ", attributeNameIdMapping=" + this.attributeNameIdMapping +
+                ", orientationAttributeMapping=" + this.orientationAttributeMapping +
+                ", orientationAttributeNameMapping=" + this.orientationAttributeNameMapping +
+                ", childAttributeMapping=" + this.childAttributeMapping +
+                ", attributeGroupMapping=" + this.attributeGroupMapping +
+                "]";
     }
 
     private List<ConfigurationAttribute> getChildAttributes(final ConfigurationAttribute attribute) {
