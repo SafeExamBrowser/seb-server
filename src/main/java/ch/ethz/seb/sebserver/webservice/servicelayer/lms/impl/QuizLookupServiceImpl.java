@@ -273,16 +273,11 @@ public class QuizLookupServiceImpl implements QuizLookupService {
 
         @Override
         public String toString() {
-            return "LookupFilterCriteria [institutionId=" +
-                    this.institutionId +
-                    ", lmsId=" +
-                    this.lmsId +
-                    ", name=" +
-                    this.name +
-                    ", startTime=" +
-                    this.startTime +
-                    ", startTimeMillis=" +
-                    this.startTimeMillis +
+            return "LookupFilterCriteria [institutionId=" + this.institutionId +
+                    ", lmsId=" + this.lmsId +
+                    ", name=" + this.name +
+                    ", startTime=" + this.startTime +
+                    ", startTimeMillis=" + this.startTimeMillis +
                     "]";
         }
     }
@@ -358,7 +353,7 @@ public class QuizLookupServiceImpl implements QuizLookupService {
         }
 
         void cancel() {
-            this.asyncBuffers.stream().forEach(AsyncQuizFetchBuffer::cancel);
+            this.asyncBuffers.forEach(AsyncQuizFetchBuffer::cancel);
         }
     }
 

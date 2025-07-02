@@ -110,7 +110,8 @@ public interface LmsAPIService {
         if (from != null) {
             // this is the old way to search with due date 
             return q -> {
-                final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
+
+                final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && Utils.containsIgnoreCase(q.name, name));
                 final boolean startTimeFilter = q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from));
                 final DateTime endTime = now.isAfter(from) ? now : from;
                 final boolean fromTimeFilter = q.endTime == null || endTime.isBefore(q.endTime);

@@ -967,4 +967,30 @@ public final class Utils {
         }
         return result;
     }
+
+    /** Use this to test if a source String is containing a sub-string by testing case-insensitive and also not 
+     * using regex that is slow.
+     * @param src The source string to check contains on
+     * @param sub The sub string that is used to test.
+     * @return true if src contains sub by testing case-insensitive.*/
+    public static boolean containsIgnoreCase(final String src, final String sub) {
+        final int length = sub.length();
+        if (length == 0)
+            return true; // Empty string is contained
+
+        final char firstLo = Character.toLowerCase(sub.charAt(0));
+        final char firstUp = Character.toUpperCase(sub.charAt(0));
+
+        for (int i = src.length() - length; i >= 0; i--) {
+            // Quick check before calling the more expensive regionMatches() method:
+            final char ch = src.charAt(i);
+            if (ch != firstLo && ch != firstUp)
+                continue;
+
+            if (src.regionMatches(true, i, sub, 0, length))
+                return true;
+        }
+
+        return false;
+    }
 }
