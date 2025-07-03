@@ -252,7 +252,7 @@ public class CurrentUser {
                                 .stream()
                                 .reduce(new HashMap<>(),
                                         (map, privilege) -> {
-                                            map.put(privilege.roleTypeKey, privilege);
+                                            map.put(privilege.roleTypeKey(), privilege);
                                             return map;
                                         },
                                         (map1, map2) -> {
