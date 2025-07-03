@@ -340,7 +340,21 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     false
             );
         }
-        return screenProctoringSettings;
+        return new ScreenProctoringSettings(
+                exam.id,
+                screenProctoringSettings.enableScreenProctoring,
+                screenProctoringSettings.spsServiceURL,
+                screenProctoringSettings.spsAPIKey,
+                screenProctoringSettings.spsAPISecret,
+                screenProctoringSettings.spsAccountId,
+                screenProctoringSettings.spsAccountPassword,
+                screenProctoringSettings.collectingStrategy,
+                screenProctoringSettings.collectingGroupName,
+                screenProctoringSettings.collectingGroupSize,
+                screenProctoringSettings.sebGroupsSelection,
+                screenProctoringSettings.bundled,
+                false
+        );
     }
 
     private ConfigurationNode createOrReuseConfig(final Exam exam, final ExamTemplate examTemplate) {
