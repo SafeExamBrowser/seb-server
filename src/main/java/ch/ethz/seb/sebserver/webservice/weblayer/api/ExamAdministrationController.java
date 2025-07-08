@@ -829,6 +829,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                         .filter(user -> user.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.TEACHER))
                         .map(user -> user.uuid)
                         .collect(Collectors.toSet()))
+                .onError(error -> log.error("Failed....", error))
                 .getOrThrow();
 
         for (final String supporterUUID : exam.getSupporter()) {

@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
@@ -62,6 +63,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     private final Cryptor cryptor;
     final TokenEndpoint tokenEndpoint;
     private final AdminAPIClientDetails adminAPIClientDetails;
+    protected final AuthorizationService authorizationService;
 
     public TeacherAccountServiceImpl(
             final UserDAO userDAO,
@@ -69,7 +71,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final ExamDAO examDAO,
             final Cryptor cryptor,
             final TokenEndpoint tokenEndpoint,
-            final AdminAPIClientDetails adminAPIClientDetails) {
+            final AdminAPIClientDetails adminAPIClientDetails, 
+            final AuthorizationService authorizationService) {
 
         this.userDAO = userDAO;
         this.screenProctoringService = screenProctoringService;
@@ -77,6 +80,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         this.cryptor = cryptor;
         this.tokenEndpoint = tokenEndpoint;
         this.adminAPIClientDetails = adminAPIClientDetails;
+        this.authorizationService = authorizationService;
     }
 
     @Override
@@ -200,14 +204,14 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     @Override
     public void notifyExamFinished(final ExamFinishedEvent event) {
+        final List<String> supporterWithoutTeacherAccounts = event.exam.supporter
+                .stream()
+                .filter(uuid -> uuid != null && !(uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)))
+                .toList();
+        
         deleteAllTeacherAccounts(event.exam);
         
         // remove all teacher accounts from Exam supporter list
-        final List<String> supporterWithoutTeacherAccounts = event.exam.supporter
-                .stream()
-                .filter(uuid -> uuid != null && !uuid.contains(AD_HOC_TEACHER_ID_PREFIX))
-                .toList();
-        
         examDAO.updateSupporterAccounts(
                 event.exam.id, 
                 supporterWithoutTeacherAccounts);
@@ -229,8 +233,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
            final Set<EntityKey> keysToDelete = exam.supporter
                     .stream()
-                    .filter(uuid -> uuid != null && 
-                            uuid.contains(AD_HOC_TEACHER_ID_PREFIX) && 
+                    .filter(uuid -> uuid != null &&
+                            (uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)) && 
                             examDAO.numOfExamsReferencingSupporter(uuid) == 1)
                     .map(uuid -> new EntityKey(uuid, EntityType.USER))
                     .collect(Collectors.toSet());

@@ -250,6 +250,10 @@ public final class UserInfo implements UserAccount, Serializable {
     @Override
     @JsonIgnore
     public EnumSet<UserRole> getUserRoles() {
+        if (roles == null || roles.isEmpty()) {
+            return EnumSet.noneOf(UserRole.class);
+        }
+        
         return EnumSet.copyOf(
                 getRoles().stream()
                         .map(UserRole::valueOf)
