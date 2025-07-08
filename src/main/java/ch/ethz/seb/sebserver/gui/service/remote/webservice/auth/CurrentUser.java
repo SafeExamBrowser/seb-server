@@ -214,7 +214,9 @@ public class CurrentUser {
                         .getAuthorizationContext()
                         .logout();
             } catch (final Exception e) {
-                log.warn("Unexpected error while logout: {}", e.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.warn("Unexpected error while logout: {}", e.getMessage());
+                }
                 return false;
             }
         }

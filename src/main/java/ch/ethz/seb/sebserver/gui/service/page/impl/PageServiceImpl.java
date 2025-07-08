@@ -428,7 +428,9 @@ public class PageServiceImpl implements PageService {
             final boolean logoutSuccessful = this.currentUser.logout();
 
             if (!logoutSuccessful) {
-                log.warn("Failed to logout. See log-files for more information");
+                if (log.isDebugEnabled()) {
+                    log.warn("Failed to logout. See log-files for more information");
+                }
                 return false;
             }
 
