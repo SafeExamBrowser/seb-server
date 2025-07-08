@@ -81,7 +81,7 @@ public abstract class AbstractCachedCourseAccess {
      * </p>
      * The cache key with lms suffix is composed internally
      *
-     * @param quizData */
+     * @param quizData the quiz data*/
     protected void putToCache(final QuizData quizData) {
         if (quizData == null) {
             return;
@@ -104,7 +104,7 @@ public abstract class AbstractCachedCourseAccess {
         if (quizData == null || quizData.isEmpty()) {
             return quizData;
         }
-        quizData.stream().forEach(q -> this.cache.put(createCacheKey(q.id), q));
+        quizData.forEach(q -> this.cache.put(createCacheKey(q.id), q));
         return quizData;
     }
 
@@ -122,10 +122,10 @@ public abstract class AbstractCachedCourseAccess {
     /** Get the LMS setup identifier that is wrapped within the implementing template.
      * This is used to create the cache Key.
      *
-     * @return */
+     * @return cache key for quiz */
     protected abstract Long getLmsSetupId();
 
-    private final String createCacheKey(final String id) {
+    private String createCacheKey(final String id) {
         return id + Constants.UNDERLINE + getLmsSetupId();
     }
 

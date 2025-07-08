@@ -989,9 +989,7 @@ public class ScreenProctoringAPIBinding {
     void deleteExamOnScreenProctoring(final Exam exam) {
         try {
             
-            if (log.isDebugEnabled()) {
-                log.info("Delete or deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
-            }
+            log.info("Delete or deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
             final SPSData spsData = this.getSPSData(exam.id);

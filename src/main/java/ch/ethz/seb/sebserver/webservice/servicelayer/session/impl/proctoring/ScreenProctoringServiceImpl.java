@@ -169,7 +169,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 final Collection<ScreenProctoringGroup> existingGroups = this
                         .getCollectingGroups(screenProctoringSettings.examId)
                         .getOr(Collections.emptyList());
-
+                
                 if (!existingGroups.isEmpty()) {
                     // if we have a confirmChangeStrategy then we can apply the changing settings otherwise not
                     if (!screenProctoringSettings.confirmChangeStrategy) {
