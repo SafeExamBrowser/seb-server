@@ -44,8 +44,9 @@ public interface FullLmsIntegrationService {
     void notifyExamArchived(ExamArchivedEvent event);
 
     /** Applies the exam data to LMS to inform the LMS that the exam exists on SEB Server site.
-     * @param exam The Exam
-     */
+     * 
+     * @param exam the Exam
+     * @return Result refer to the exa or to an error when happened*/
     Result<Exam> applyExamDataToLMS(Exam exam);
 
     Result<IntegrationData> applyFullLmsIntegration(Long lmsSetupId);

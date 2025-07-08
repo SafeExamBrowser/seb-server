@@ -119,7 +119,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
                     .stream()
                     .map(o -> o.width)
                     .reduce(0, Integer::sum);
-            final int widthUnit = currentTableWidth / div;
+            final int widthUnit = div != 0 ? currentTableWidth / div : 100;
             for (int i = 0; i < columns.length - ((readonly) ? 0 : 2); i++) {
                 columns[i].setWidth(widthUnit * orientations.get(i).width);
             }
