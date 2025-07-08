@@ -134,7 +134,7 @@ public interface LmsAPIService {
             final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(quizFromTimeMillis, userTimeZone);
 
             return q -> {
-                final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && q.name.contains(name));
+                final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && Utils.containsIgnoreCase(q.name, name));
                 final long quizStart = q.startTime.getMillis();
                 final DateTime endTime = q.getEndTime();
                 final boolean startTimeFilter = userDaySpanMillis == null || userDaySpanMillis.a <= quizStart && userDaySpanMillis.b >= quizStart;
