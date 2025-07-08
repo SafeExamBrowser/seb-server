@@ -204,17 +204,20 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     @Override
     public void notifyExamFinished(final ExamFinishedEvent event) {
-        final List<String> supporterWithoutTeacherAccounts = event.exam.supporter
-                .stream()
-                .filter(uuid -> uuid != null && !(uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)))
-                .toList();
-        
-        deleteAllTeacherAccounts(event.exam);
-        
-        // remove all teacher accounts from Exam supporter list
-        examDAO.updateSupporterAccounts(
-                event.exam.id, 
-                supporterWithoutTeacherAccounts);
+
+        if (event.exam.status != Exam.ExamStatus.UP_COMING) {
+            final List<String> supporterWithoutTeacherAccounts = event.exam.supporter
+                    .stream()
+                    .filter(uuid -> uuid != null && !(uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)))
+                    .toList();
+
+            deleteAllTeacherAccounts(event.exam);
+
+            // remove all teacher accounts from Exam supporter list
+            examDAO.updateSupporterAccounts(
+                    event.exam.id,
+                    supporterWithoutTeacherAccounts);
+        }
     }
 
     @Override
