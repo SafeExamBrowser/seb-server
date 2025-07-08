@@ -499,7 +499,7 @@ public class ExamRecordDAO {
                         .build()
                         .execute();
                 if (nameCount > 0) {
-                    throw new DuplicateResourceException(EntityType.EXAM, exam.externalId);
+                    throw new DuplicateResourceException(EntityType.EXAM, exam.name);
                 }
             }
 
