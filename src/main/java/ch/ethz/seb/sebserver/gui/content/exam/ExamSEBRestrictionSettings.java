@@ -298,7 +298,7 @@ public class ExamSEBRestrictionSettings {
                                             .get(OpenEdxSEBRestriction.ATTR_BLACKLIST_CHAPTERS),
                                     () -> chapters.chapter_list
                                             .stream()
-                                            .map(chapter -> new Tuple<>(chapter.id, chapter.name))
+                                            .map(chapter -> new Tuple<>(chapter.id(), chapter.name()))
                                             .collect(Collectors.toList())))
 
                     .addFieldIf(

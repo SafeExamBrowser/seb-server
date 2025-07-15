@@ -488,41 +488,23 @@ public final class Exam implements GrantEntity {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Exam [id=");
-        builder.append(this.id);
-        builder.append(", institutionId=");
-        builder.append(this.institutionId);
-        builder.append(", lmsSetupId=");
-        builder.append(this.lmsSetupId);
-        builder.append(", externalId=");
-        builder.append(this.externalId);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", description=");
-        builder.append(Utils.truncateText(this.getDescription(), 32));
-        builder.append(", startTime=");
-        builder.append(this.startTime);
-        builder.append(", endTime=");
-        builder.append(this.endTime);
-        builder.append(", startURL=");
-        builder.append(this.getStartURL());
-        builder.append(", type=");
-        builder.append(this.type);
-        builder.append(", owner=");
-        builder.append(this.owner);
-        builder.append(", supporter=");
-        builder.append(this.supporter);
-        builder.append(", status=");
-        builder.append(this.status);
-        builder.append(", browserExamKeys=");
-        builder.append(this.browserExamKeys);
-        builder.append(", active=");
-        builder.append(this.active);
-        builder.append(", lastUpdate=");
-        builder.append(this.lastUpdate);
-        builder.append("]");
-        return builder.toString();
+        return "Exam [id=" + this.id +
+                ", institutionId=" + this.institutionId +
+                ", lmsSetupId=" + this.lmsSetupId +
+                ", externalId=" + this.externalId +
+                ", name=" + this.name +
+                ", description=" + Utils.truncateText(this.getDescription(), 32) +
+                ", startTime=" + this.startTime +
+                ", endTime=" + this.endTime +
+                ", startURL=" + this.getStartURL() +
+                ", type=" + this.type +
+                ", owner=" + this.owner +
+                ", supporter=" + this.supporter +
+                ", status=" + this.status +
+                ", browserExamKeys=" + this.browserExamKeys +
+                ", active=" + this.active +
+                ", lastUpdate=" + this.lastUpdate +
+                "]";
     }
 
     public static ExamStatus getStatusFromDate(final DateTime startTime, final DateTime endTime) {

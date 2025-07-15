@@ -17,8 +17,6 @@ public class UserFeatures {
     public enum Feature {
         ADMIN_INSTITUTION("admin.institution"),
 
-
-
         ADMIN_USER_ADMINISTRATION("admin.user.administration"),
         ADMIN_USER_ACCOUNT("admin.user.account"),
         ADMIN_USER_ACCOUNT_SELF_REGISTERING("admin.user.account.self.registering"),
@@ -45,7 +43,6 @@ public class UserFeatures {
         EXAM_SEB_RESTRICTION( "exam.seb.restriction"),
         EXAM_LIVE_PROCTORING("exam.seb.liveProctoring"),
         EXAM_NO_LMS("exam.noLMS"),
-
         EXAM_SCREEN_PROCTORING("exam.seb.screenProctoring"),
         EXAM_INDICATORS("exam.monitoring.indicators"),
         EXAM_SEB_CLIENT_GROUPS("exam.seb.clientgroups"),

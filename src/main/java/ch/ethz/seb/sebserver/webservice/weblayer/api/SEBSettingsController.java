@@ -182,6 +182,8 @@ public class SEBSettingsController {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
         
+        System.out.println("******** value: " + value);
+        
         final ConfigurationValue cValue = configurationValueDAO.byPK(valueId).getOrThrow();
         final ConfigurationValue newCValue = configurationValueDAO.save(new ConfigurationValue(
                 cValue.id,

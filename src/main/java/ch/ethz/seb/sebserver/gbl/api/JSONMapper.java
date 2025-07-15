@@ -23,8 +23,6 @@ public class JSONMapper extends ObjectMapper {
 
     private static final Logger log = LoggerFactory.getLogger(JSONMapper.class);
 
-    private static final long serialVersionUID = 2883304481547670626L;
-
     public JSONMapper() {
         super();
         super.registerModule(new JodaModule());
