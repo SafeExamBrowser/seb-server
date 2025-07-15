@@ -11,9 +11,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ExamMonitoringOverviewData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 
 public interface ExamMonitoringV3Service {
 
@@ -31,7 +31,7 @@ public interface ExamMonitoringV3Service {
     // TODO create filter cache per user!?
     MonitoringFullPageData getFullMonitoringPageData(
             Exam runningExam,
-            Predicate<ClientConnectionData> filter);
+            Predicate<ClientConnectionDataInternal> filter);
 
     /** Use this to create a monitoring page list filter.
      * Inputs are comma separated lists of filter values for a filter-group
@@ -42,7 +42,7 @@ public interface ExamMonitoringV3Service {
      * @param showIndicators indicator filter group, comma separated list of IndicatorType. Currently only WLAN und BATTERY are supported
      * @param showNotifications notification filter group, comma separated list of NotificationType
      * @return monitoring page list filter */
-    Predicate<ClientConnectionData> createMonitoringFilter(
+    Predicate<ClientConnectionDataInternal> createMonitoringFilter(
             String showStates,
             String showClientGroups,
             String showIndicators,

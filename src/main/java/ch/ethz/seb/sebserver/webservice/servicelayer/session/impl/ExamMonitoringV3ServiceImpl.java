@@ -137,7 +137,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                 .forEach(cc -> {
                     
                     // states
-                    if (cc.missingPing != null && cc.missingPing) {
+                    if (BooleanUtils.isTrue(cc.getMissingPing())) {
                         clientStates.MISSING++;
                     } else {
                         switch (cc.clientConnection.status) {
@@ -205,7 +205,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     @Override
     public MonitoringFullPageData getFullMonitoringPageData(
             final Exam runningExam,
-            final Predicate<ClientConnectionData> filter) {
+            final Predicate<ClientConnectionDataInternal> filter) {
         
         final List<? extends ClientMonitoringDataView> filteredConnections = this.clientConnectionDAO
                 .getConnectionTokens(runningExam.id)
@@ -228,7 +228,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     }
 
     @Override
-    public Predicate<ClientConnectionData> createMonitoringFilter(
+    public Predicate<ClientConnectionDataInternal> createMonitoringFilter(
             final String showStates, 
             final String showClientGroups, 
             final String showIndicators, 
@@ -242,10 +242,15 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             return Utils.falsePredicate();
         }
 
+        boolean missingFilter = false;
         final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);
         if (StringUtils.isNotBlank(showStates)) {
             for (final String s : StringUtils.split(showStates, Constants.LIST_SEPARATOR)) {
-                states.add(ConnectionStatus.valueOf(s));
+                if (Objects.equals("MISSING", s)) {
+                    missingFilter = true;
+                } else {
+                    states.add(ConnectionStatus.valueOf(s));
+                }
             }
         }
         final Set<Long> showInClientGroups = showClientGroups != null 
@@ -255,6 +260,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                 : null;
         
         final boolean checkStates = !states.isEmpty();
+        final boolean missing = missingFilter;
         final boolean checkGroups = showInClientGroups != null && !showInClientGroups.isEmpty();
         final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(-1L);
         final boolean showWLANIncident = showIndicators != null && showIndicators.contains(IndicatorType.WLAN_STATUS.name);
@@ -265,9 +271,20 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         return cc -> {
             
             // state filter
-            if (checkStates && !states.contains(cc.clientConnection.status)) {
+            if (missing && !cc.getMissingPing() && states.isEmpty()) {
                 return false;
             }
+            if (checkStates && !states.contains(cc.clientConnection.status) || (!missing && cc.getMissingPing())) {
+                return false;
+            }
+
+//            if (checkStates) {
+//                
+//                
+//                if (missing && !cc.getMissingPing() || !states.contains(cc.clientConnection.status)) {
+//                    return false;
+//                }
+//            }
 
             // groups filter
             if (checkGroups) {
