@@ -201,7 +201,7 @@ public class SEBClientEvents implements TemplateComposer {
                                         CriteriaType.DATE_TIME_RANGE,
                                         ClientEvent.FILTER_ATTR_SERVER_TIME_FROM_TO,
                                         Utils.toDateTimeUTC(Utils.getMillisecondsNow())
-                                                .minusYears(1)
+                                                .minusDays(1)
                                                 .toString(),
                                         Utils.createFilterTooltipKey(TIME_TEXT_KEY)))
                                 .sortable()
