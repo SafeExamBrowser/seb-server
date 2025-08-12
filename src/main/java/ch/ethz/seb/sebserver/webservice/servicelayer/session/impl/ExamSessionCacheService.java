@@ -43,6 +43,7 @@ public class ExamSessionCacheService {
     public static final Object CLIENT_CONNECTION_CREATION_LOCK = new Object();
 
     public static final String CACHE_NAME_RUNNING_EXAM = "RUNNING_EXAM";
+    public static final String CACHE_NAME_EXAM_SHORT_TIME = "EXAM_SHORT_TIME";
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
     public static final String CACHE_NAME_SCREEN_PROCTORING_GROUPS = "SCREEN_PROCTORING_GROUPS";
@@ -290,5 +291,4 @@ public class ExamSessionCacheService {
         }
         return result.get();
     }
-    
 }

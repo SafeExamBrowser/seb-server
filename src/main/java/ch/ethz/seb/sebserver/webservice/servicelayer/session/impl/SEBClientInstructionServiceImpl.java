@@ -16,7 +16,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -53,8 +57,10 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
     private static final String JSON_ATTR = "attributes";
 
     private final WebserviceInfo webserviceInfo;
+    private final ExamDAO examDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientInstructionDAO clientInstructionDAO;
+    private final ClientEventDAO clientEventDAO;
     private final JSONMapper jsonMapper;
 
     private final Map<String, SizedArrayNonBlockingQueue<ClientInstructionRecord>> instructions;
@@ -64,13 +70,17 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
     public SEBClientInstructionServiceImpl(
             final WebserviceInfo webserviceInfo,
+            final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final ClientInstructionDAO clientInstructionDAO,
+            final ClientInstructionDAO clientInstructionDAO, 
+            final ClientEventDAO clientEventDAO,
             final JSONMapper jsonMapper) {
 
         this.webserviceInfo = webserviceInfo;
+        this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientInstructionDAO = clientInstructionDAO;
+        this.clientEventDAO = clientEventDAO;
         this.jsonMapper = jsonMapper;
         this.instructions = new ConcurrentHashMap<>();
     }
@@ -91,7 +101,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                                 "Failed  to initialize and load persistent storage SEB client instructions: ",
                                 error));
 
-        if (this.instructions.size() > 0) {
+        if (!this.instructions.isEmpty()) {
             SEBServerInit.INIT_LOGGER.info("------> Loaded {} SEB client instructions from persistent storage",
                     this.instructions.size());
         } else {
@@ -276,6 +286,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
     @Override
     public void sendQuitInstruction(final String connectionToken, final Long examId) {
+        
         Long _examId = examId;
         if (examId == null) {
             final Result<ClientConnection> clientConnectionResult = clientConnectionDAO
@@ -283,19 +294,36 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
             if (clientConnectionResult.hasError()) {
                 log.error(
-                        "Failed to get examId for client connection token: {} error: {}",
+                        "Failed to get examId for client connection token: {} skip automated SEB quit. error: {}",
                         connectionToken,
                         clientConnectionResult.getError().getMessage());
+                return;
             }
 
-            _examId = clientConnectionResult.get().examId;
+            final ClientConnection clientConnection = clientConnectionResult.get();
+            if (clientConnection.status != ClientConnection.ConnectionStatus.DISABLED && examDAO.isRunning(clientConnection.examId)) {
+                log.info("Connection active and Exam is still running, skip automated SEB quit. clientConnection: {}", clientConnection);
+                return;
+            }
+
+            // add SEB event log that SEB Server has automatically send quit instruction to SEB
+            final long now = Utils.getMillisecondsNow();
+            clientEventDAO.save(new ClientEvent(
+                    null, 
+                    clientConnection.id, 
+                    ClientEvent.EventType.WARN_LOG, 
+                    now, 
+                    now, 
+                    null, 
+                    "Automated SEB Client quit sent from SEB Server"))
+                    .onError(error -> log.error("Failed to put SEB Log about automated SEB quit for connection: {}", clientConnection.connectionToken));
+
+            _examId = clientConnection.examId;
         }
 
         if (_examId != null) {
 
             log.info("Send automated quit instruction to SEB for connection token: {}", connectionToken);
-
-            // TODO add SEB event log that SEB Server has automatically send quit instruction to SEB
 
             this.registerInstruction(
                     _examId,

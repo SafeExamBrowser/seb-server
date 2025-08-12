@@ -74,7 +74,6 @@ public interface SEBClientInstructionService {
     default Result<Void> registerInstruction(
             final ClientInstruction clientInstruction,
             final boolean needsConfirmation) {
-
         return registerInstruction(
                 clientInstruction.examId,
                 clientInstruction.type,
@@ -137,8 +136,11 @@ public interface SEBClientInstructionService {
     void cleanupInstructions();
 
     /** Used to send automated quit instruction to given SEB connection.
+     * <p> 
+     * If examId is null, tries to get the Exam on DB and also checks if the Exam is running when the connection is still active (Not disabled)
+     * This should prevent unintentional automated SEB quits on cache issues or other unexpected errors
      * 
      * @param connectionToken SEB connection token to send quit instruction to
-     * @param examId exam identifier, if null try to get it from connection*/
+     * @param examId exam identifier, if null try to get it from connection and check if exam is not running anymore */
     void sendQuitInstruction(String connectionToken, Long examId);
 }

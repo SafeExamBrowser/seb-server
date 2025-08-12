@@ -22,5 +22,6 @@ public enum UserLogActivityType {
     DELETE,
     LOGIN,
     LOGOUT,
-    ARCHIVE
+    ARCHIVE,
+    REGISTER_INSTRUCTION
 }
