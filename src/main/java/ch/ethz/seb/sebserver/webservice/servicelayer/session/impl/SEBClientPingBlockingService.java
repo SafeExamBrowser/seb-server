@@ -66,7 +66,9 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
         } else {
             // SEBSERV-613 send quit instruction if exam is not running
             log.warn("Failed to get ClientConnectionDataInternal probably due to finished Exam for: {}.", connectionToken);
-            this.sebClientInstructionService.sendQuitInstruction(connectionToken,null);
+            // SEBSERV-752 temporarily skip automated quit on exam finish for this patch
+            log.info("Skipped automated SEB quit for this patch due to risk of unintended quits");
+            // this.sebClientInstructionService.sendQuitInstruction(connectionToken,null);
         }
 
         if (StringUtils.isNotBlank(instructionConfirm)) {
