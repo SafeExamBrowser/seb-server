@@ -75,6 +75,4 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
 
         return this.sebClientInstructionService.getInstructionJSON(connectionToken);
     }
-    
-
 }
