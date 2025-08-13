@@ -23,6 +23,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -61,6 +62,12 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
         } else if (ex instanceof OnlyMessageLogExceptionWrapper) {
             ((OnlyMessageLogExceptionWrapper) ex).log(log);
             return new ResponseEntity<>(status);
+        } else if (ex instanceof HttpMessageNotReadableException) {
+            final String message = ex.getMessage();
+            if (message.contains("I/O error") || message.contains("Connection reset")) {
+                log.warn("Client IO error probably due to client disconnection. cause: {}", message);
+                return null;
+            }
         } else {
             log.error("Unexpected generic error caught at the API endpoint: ", ex);
         }
@@ -100,12 +107,26 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(String.valueOf(ex.code));
     }
 
+//    @ExceptionHandler(HttpMessageNotReadableException.class)
+//    public ResponseEntity<Object> httpMessageNotReadableException(
+//            final HttpMessageNotReadableException ex,
+//            final WebRequest request) {
+//
+//        final String message = ex.getMessage();
+//        if (message.contains("I/O error") || message.contains("Connection reset")) {
+//            log.warn("Client IO error probably due to client disconnection. cause: {}", message);
+//            return null;
+//        }
+//
+//        return handleRuntimeException(ex, request);
+//    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Object> handleRuntimeException(
             final RuntimeException ex,
             final WebRequest request) {
 
-        log.error("Unexpected internal error catched at the API endpoint: ", ex);
+        log.error("Unexpected internal error caught at the API endpoint: ", ex);
         final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(ex.getMessage()));
         return new ResponseEntity<>(
                 errors,
