@@ -66,7 +66,6 @@ public class SEBClientEventBatchService {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
         this.transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
-        //this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.examSessionCacheService = examSessionCacheService;
         this.jsonMapper = jsonMapper;
 
@@ -258,8 +257,9 @@ public class SEBClientEventBatchService {
                     .getClientConnection(eventData.connectionToken);
 
             if (clientConnection == null) {
-                log.warn("Failed to retrieve ClientConnection for token {}. Skip this event",
-                        eventData.connectionToken);
+                if (log.isDebugEnabled()) {
+                    log.warn("Failed to retrieve ClientConnection for token {}. Skip this event", eventData.connectionToken);
+                }
                 return null;
             }
 
@@ -274,7 +274,8 @@ public class SEBClientEventBatchService {
 
         } catch (final Exception e) {
             log.error(
-                    "Unexpected error while converting SEB event data to record for: {} Skip this event", eventData,
+                    "Unexpected error while converting SEB event data to record for: {} Skip this event", 
+                    eventData,
                     e);
             return null;
         }
