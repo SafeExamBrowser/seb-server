@@ -18,8 +18,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.session.*;
+import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -85,6 +87,7 @@ public class ExamMonitoringController {
     private final SecurityKeyService securityKeyService;
     private final ScreenProctoringService screenProctoringService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final UserActivityLogDAO userActivityLogDAO;
     private final ExamDAO examDAO;
     private final Executor executor;
 
@@ -98,7 +101,8 @@ public class ExamMonitoringController {
             final SecurityKeyService securityKeyService,
             final ExamAdminService examAdminService,
             final ScreenProctoringService screenProctoringService,
-            final ApplicationEventPublisher applicationEventPublisher,
+            final ApplicationEventPublisher applicationEventPublisher, 
+            final UserActivityLogDAO userActivityLogDAO,
             final ExamDAO examDAO,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
         this.examMonitoringV3Service = examMonitoringV3Service;
@@ -113,6 +117,7 @@ public class ExamMonitoringController {
         this.securityKeyService = securityKeyService;
         this.screenProctoringService = screenProctoringService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.userActivityLogDAO = userActivityLogDAO;
         this.examDAO = examDAO;
         this.executor = executor;
     }
@@ -492,6 +497,16 @@ public class ExamMonitoringController {
             @Valid @RequestBody final ClientInstruction clientInstruction) {
 
         checkPrivileges(institutionId, examId);
+        
+        log.info("Register clientInstruction: {}", Utils.truncateText(clientInstruction.toString(), 512));
+
+        userActivityLogDAO.log(
+                UserLogActivityType.REGISTER_INSTRUCTION, 
+                EntityType.EXAM, 
+                String.valueOf(examId), 
+                clientInstruction.toString()
+        );
+        
         this.sebClientInstructionService.registerInstructionAsync(clientInstruction);
     }
 
