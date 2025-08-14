@@ -8,12 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+
 import javax.validation.Valid;
 
 import java.util.concurrent.Executor;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
@@ -67,6 +69,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     private final FullLmsIntegrationService fullLmsIntegrationService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final Executor executor;
+    private final Cryptor cryptor;
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
@@ -80,6 +83,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final SEBRestrictionService sebRestrictionService,
             final FullLmsIntegrationService fullLmsIntegrationService,
             final ApplicationEventPublisher applicationEventPublisher,
+            final Cryptor cryptor,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
 
         super(authorization,
@@ -95,6 +99,46 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         this.fullLmsIntegrationService = fullLmsIntegrationService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.executor = executor;
+        this.cryptor = cryptor;
+    }
+
+    @Override
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public LmsSetup getBy(@PathVariable final String modelId) {
+
+        LmsSetup lmsSetup = this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this::checkReadAccess)
+                .getOrThrow();
+        
+        return new LmsSetup(
+            lmsSetup.id,
+            lmsSetup.institutionId,
+            lmsSetup.name,
+            lmsSetup.lmsType,
+            lmsSetup.lmsAuthName,
+            (lmsSetup.lmsAuthSecret != null) 
+                    ? String.valueOf(cryptor.decrypt(lmsSetup.lmsAuthSecret).getOr(lmsSetup.lmsAuthSecret))
+                    : null,
+            lmsSetup.lmsApiUrl,
+                (lmsSetup.lmsRestApiToken != null)
+                        ? String.valueOf(cryptor.decrypt(lmsSetup.lmsRestApiToken).getOr(lmsSetup.lmsRestApiToken))
+                        : null,
+            lmsSetup.proxyHost,
+            lmsSetup.proxyPort,
+            lmsSetup.proxyAuthUsername,
+                (lmsSetup.proxyAuthSecret != null)
+                        ? String.valueOf(cryptor.decrypt(lmsSetup.proxyAuthSecret).getOr(lmsSetup.proxyAuthSecret))
+                        : null,
+            lmsSetup.active,
+            lmsSetup.updateTime,
+            lmsSetup.connectionId ,
+            lmsSetup.integrationActive
+        );
     }
 
     @Override

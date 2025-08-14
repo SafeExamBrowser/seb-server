@@ -145,6 +145,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected SqlTable getSQLTableOfEntity() {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
+    
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,
