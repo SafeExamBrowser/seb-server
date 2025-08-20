@@ -309,11 +309,6 @@ public class SEBClientConfigForm implements TemplateComposer {
         final boolean showVDIAttrs = clientConfig.vdiType == VDIType.VM_WARE;
         final boolean showFallbackAttrs = BooleanUtils.isTrue(clientConfig.fallback);
 
-        final CharSequence pwd = (formHandleAnchor.formHandle == null)
-                ? clientConfig.getEncryptSecret()
-                : this.cryptor.encrypt(clientConfig.getEncryptSecret())
-                        .getOrThrow();
-
         PageService.clearComposite(formContent);
 
         final FormBuilder formBuilder = this.pageService.formBuilder(
@@ -373,7 +368,7 @@ public class SEBClientConfigForm implements TemplateComposer {
                 .addField(FormBuilder.password(
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET,
                         FORM_ENCRYPT_SECRET_TEXT_KEY,
-                        pwd))
+                        clientConfig.getEncryptSecret()))
 
                 .withDefaultSpanEmptyCell(3)
                 .addFieldIf(
@@ -381,7 +376,7 @@ public class SEBClientConfigForm implements TemplateComposer {
                         () -> FormBuilder.password(
                                 SEBClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM,
                                 FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
-                                pwd))
+                                clientConfig.getEncryptSecret()))
 
                 .withDefaultSpanInput(2)
                 .addField(FormBuilder.singleSelection(
@@ -420,20 +415,9 @@ public class SEBClientConfigForm implements TemplateComposer {
                         .withInputSpan(5))
                 .withDefaultSpanEmptyCell(1);
 
-                // VDI
+                // VDI skipped
 
-//                .withDefaultSpanInput(2)
-//                .addFieldIf(
-//                        () -> false, // TODO skipped for version 1.2 --> 1.3 or 1.4
-//                        () -> FormBuilder.singleSelection(
-//                                SEBClientConfig.ATTR_VDI_TYPE,
-//                                VDI_TYPE_TEXT_KEY,
-//                                clientConfig.vdiType != null
-//                                        ? clientConfig.vdiType.name()
-//                                        : SEBClientConfig.VDIType.NO.name(),
-//                                () -> this.pageService.getResourceService().vdiTypeResources())
-//                                .mandatory(!isReadonly))
-//                .withDefaultSpanEmptyCell(3);
+
 
         // VDI Attributes
 
@@ -531,7 +515,7 @@ public class SEBClientConfigForm implements TemplateComposer {
                             () -> FormBuilder.password(
                                     SEBClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
                                     FALLBACK_PASSWORD_CONFIRM_TEXT_KEY,
-                                    clientConfig.getFallbackPasswordConfirm()))
+                                    clientConfig.getFallbackPassword()))
 
                     .addField(FormBuilder.password(
                             SEBClientConfig.ATTR_QUIT_PASSWORD,
@@ -547,7 +531,7 @@ public class SEBClientConfigForm implements TemplateComposer {
                             () -> FormBuilder.password(
                                     SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM,
                                     QUIT_PASSWORD_CONFIRM_TEXT_KEY,
-                                    clientConfig.getQuitPasswordConfirm()));
+                                    clientConfig.getQuitPassword()));
         }
 
         formHandleAnchor.formHandle = formBuilder.buildFor((isNew)

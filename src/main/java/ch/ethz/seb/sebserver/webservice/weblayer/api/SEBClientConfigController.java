@@ -8,16 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.quitPassword;
+
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +70,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
     private final ConnectionConfigurationService sebConnectionConfigurationService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final Cryptor cryptor;
 
     public SEBClientConfigController(
             final SEBClientConfigDAO sebClientConfigDAO,
@@ -74,7 +80,8 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final ConnectionConfigurationService sebConnectionConfigurationService,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final ApplicationEventPublisher applicationEventPublisher, 
+            final Cryptor cryptor) {
 
         super(authorization,
                 bulkActionService,
@@ -85,6 +92,59 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
         this.sebConnectionConfigurationService = sebConnectionConfigurationService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.cryptor = cryptor;
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SEBClientConfig getBy(@PathVariable final String modelId) {
+
+        final SEBClientConfig config = this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this::checkReadAccess)
+                .getOrThrow();
+
+        final CharSequence fallbackPassword = config.fallbackPassword != null 
+                ? cryptor.decrypt(config.fallbackPassword).getOr(config.fallbackPassword) 
+                : null;
+        final CharSequence quitPassword = config.quitPassword != null
+                ? cryptor.decrypt(config.quitPassword).getOr(config.quitPassword)
+                : null;
+        final CharSequence encryptSecret = config.encryptSecret != null
+                ? cryptor.decrypt(config.encryptSecret).getOr(config.encryptSecret)
+                : null;
+        
+        return new SEBClientConfig(
+                config.id,
+                config.institutionId,
+                config.name,
+                config.configPurpose,
+                config.sebServerPingTime,
+                config.vdiType,
+                config.vdiExecutable,
+                config.vdiPath,
+                config.vdiArguments,
+                config.fallback,
+                config.fallbackStartURL,
+                config.fallbackTimeout,
+                config.fallbackAttempts,
+                config.fallbackAttemptInterval,
+                fallbackPassword,
+                config.fallbackPasswordConfirm,
+                quitPassword,
+                config.quitPasswordConfirm,
+                config.date,
+                encryptSecret,
+                config.encryptSecretConfirm,
+                config.encryptCertificateAlias,
+                config.encryptCertificateAsym,
+                config.active,
+                config.lastUpdateTime,
+                config.lastUpdateUser,
+                config.selectedExams);
     }
 
     @RequestMapping(
