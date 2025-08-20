@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
@@ -129,6 +130,7 @@ public class ExamForm implements TemplateComposer {
     private final ExamIndicatorsList examIndicatorsList;
     private final ExamClientGroupList examClientGroupList;
     private final ExamCreateClientConfigPopup examCreateClientConfigPopup;
+    private final Cryptor cryptor;
 
     protected ExamForm(
             final PageService pageService,
@@ -140,13 +142,15 @@ public class ExamForm implements TemplateComposer {
             final ExamFormConfigs examFormConfigs,
             final ExamIndicatorsList examIndicatorsList,
             final ExamClientGroupList examClientGroupList,
-            final ExamCreateClientConfigPopup examCreateClientConfigPopup) {
+            final ExamCreateClientConfigPopup examCreateClientConfigPopup, 
+            final Cryptor cryptor) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.examSEBRestrictionSettings = examSEBRestrictionSettings;
         this.screenProctoringSettingsPopup = screenProctoringSettingsPopup;
         this.widgetFactory = pageService.getWidgetFactory();
+        this.cryptor = cryptor;
         this.restService = this.resourceService.getRestService();
         this.examDeletePopup = examDeletePopup;
         this.examFormConfigs = examFormConfigs;
@@ -700,11 +704,12 @@ public class ExamForm implements TemplateComposer {
                         .getOrThrow();
 
                 final String quitPassword = examTemplate.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
+                final CharSequence pwd = (quitPassword != null) ? cryptor.decrypt(quitPassword).getOr(quitPassword) : null;
                 form.setFieldValue(Domain.EXAM.ATTR_TYPE, examTemplate.examType.name());
                 form.setFieldValue(
                         Domain.EXAM.ATTR_SUPPORTER,
                         StringUtils.join(examTemplate.supporter, Constants.LIST_SEPARATOR));
-                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, quitPassword != null ? quitPassword : StringUtils.EMPTY);
+                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, pwd != null ? String.valueOf(pwd) : StringUtils.EMPTY);
             } else {
                 form.setFieldValue(Domain.EXAM.ATTR_TYPE, Exam.ExamType.UNDEFINED.name());
                 form.setFieldValue(Domain.EXAM.ATTR_SUPPORTER, null);
