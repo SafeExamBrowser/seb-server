@@ -14,10 +14,12 @@ import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -36,9 +38,6 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
@@ -62,6 +61,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     private final ProctoringAdminService proctoringServiceSettingsService;
     private final ExamConfigurationValueService examConfigurationValueService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final Cryptor cryptor;
 
     protected ExamTemplateController(
             final AuthorizationService authorization,
@@ -72,7 +72,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             final BeanValidationService beanValidationService,
             final ProctoringAdminService proctoringServiceSettingsService,
             final ExamConfigurationValueService examConfigurationValueService,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final ApplicationEventPublisher applicationEventPublisher, 
+            final Cryptor cryptor) {
 
         super(
                 authorization,
@@ -86,6 +87,46 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
         this.examConfigurationValueService = examConfigurationValueService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.cryptor = cryptor;
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate getBy(@PathVariable final String modelId) {
+
+        final ExamTemplate examTemplate = this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this::checkReadAccess)
+                .getOrThrow();
+        
+        if (examTemplate.examAttributes.containsKey(ExamTemplate.ATTR_QUIT_PASSWORD)) {
+            final HashMap<String, String> examAttributes = new HashMap<>(examTemplate.examAttributes);
+            final String pwd = examTemplate.examAttributes.get(ExamTemplate.ATTR_QUIT_PASSWORD);
+            examAttributes.put(
+                    ExamTemplate.ATTR_QUIT_PASSWORD, 
+                    String.valueOf(cryptor.decrypt(pwd).getOr(pwd)));
+            
+            return new ExamTemplate(
+                    examTemplate.id,
+                    examTemplate.institutionId,
+                    examTemplate.name,
+                    examTemplate.description,
+                    examTemplate.examType,
+                    examTemplate.supporter,
+                    examTemplate.configTemplateId,
+                    examTemplate.institutionalDefault,
+                    examTemplate.lmsIntegration,
+                    examTemplate.clientConfigurationId,
+                    examTemplate.indicatorTemplates,
+                    examTemplate.clientGroupTemplates,
+                    examAttributes
+            );
+        }
+        
+        return examTemplate;
     }
 
     @RequestMapping(
