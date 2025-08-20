@@ -79,7 +79,12 @@ public class ClientIndicatorFactory {
                 this.distributedPingCache.createIndicatorForConnection(
                         clientConnection.id,
                         indicatorDef.type,
-                        indicatorDef.type == IndicatorType.LAST_PING ? Utils.getMillisecondsNow() : 0L);
+                        indicatorDef.type == IndicatorType.LAST_PING 
+                                ? Utils.getMillisecondsNow() 
+                                : (indicatorDef.type == IndicatorType.WLAN_STATUS || indicatorDef.type == IndicatorType.BATTERY_STATUS) 
+                                    ? 100L 
+                                    : 0L
+                );
 
                 if (!pingIndicatorAvailable) {
                     pingIndicatorAvailable = indicatorDef.type == IndicatorType.LAST_PING;

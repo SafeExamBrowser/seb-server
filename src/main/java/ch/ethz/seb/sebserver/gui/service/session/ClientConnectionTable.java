@@ -783,13 +783,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
                     ClientConnectionTable.this.needsSort = true;
                     this.thresholdsWeight -= (indicatorData.indicator.type.inverse)
-                            ? indicatorData.indicator.thresholds.size()
-                                    - this.indicatorWeights[indicatorData.index]
+                            ? indicatorData.indicator.thresholds.size() - this.indicatorWeights[indicatorData.index]
                             : this.indicatorWeights[indicatorData.index];
                     this.indicatorWeights[indicatorData.index] = indicatorWeight;
                     this.thresholdsWeight += (indicatorData.indicator.type.inverse)
-                            ? indicatorData.indicator.thresholds.size()
-                                    - this.indicatorWeights[indicatorData.index]
+                            ? indicatorData.indicator.thresholds.size() - this.indicatorWeights[indicatorData.index]
                             : this.indicatorWeights[indicatorData.index];
                 }
             });

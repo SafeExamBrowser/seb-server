@@ -52,6 +52,15 @@ public record ExamMonitoringOverviewData(
         @JsonProperty("color") public String color = null;
         @JsonProperty("incident") public int incident = 0;
         @JsonProperty("warning") public int warning = 0;
+
+        @Override
+        public String toString() {
+            return "IndicatorData{" +
+                    "color=" + color +
+                    ", incident=" + incident +
+                    ", warning=" + warning +
+                    '}';
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

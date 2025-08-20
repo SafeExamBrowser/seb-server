@@ -14,7 +14,6 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;

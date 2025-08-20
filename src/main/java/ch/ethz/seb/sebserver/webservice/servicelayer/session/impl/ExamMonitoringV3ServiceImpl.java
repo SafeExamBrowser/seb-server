@@ -370,6 +370,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                         }
                     }
                 }
+                System.out.println("********* indicators.BATTERY_STATUS: " + indicators.BATTERY_STATUS);
             } catch (final Exception e) {
                 log.warn("Failed to derive color for battery indicator");
             }

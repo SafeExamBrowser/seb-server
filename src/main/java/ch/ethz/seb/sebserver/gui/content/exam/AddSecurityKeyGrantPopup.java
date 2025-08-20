@@ -171,11 +171,7 @@ public class AddSecurityKeyGrantPopup {
                                 TABLE_TITLE,
                                 TABLE_TITLE_TOOLTIP);
 
-                        final List<ClientConnection> list = new ArrayList<>(this.pageService
-                                .getRestService()
-                                .getBuilder(GetClientConnections.class)
-                                .withQueryParam(API.PARAM_MODEL_ID_LIST, clientConnectionIds)
-                                .call().getOrThrow());
+                        final List<ClientConnection> list = new ArrayList<>(connections);
                         list.sort((cc1, cc2) -> ObjectUtils.compare(cc1.userSessionId, cc2.userSessionId));
                         this.pageService.staticListTableBuilder(list, EntityType.CLIENT_CONNECTION)
                                 .withPaging(10)
