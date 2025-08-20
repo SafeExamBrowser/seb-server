@@ -74,13 +74,18 @@ final class IndicatorData {
     }
 
     static int getWeight(final IndicatorData indicatorData, final double value) {
+        
         for (int j = 0; j < indicatorData.thresholdColor.length; j++) {
             if (value < indicatorData.thresholdColor[j].value) {
-                return (j == 0) ? -1 : j - 1;
+                if (indicatorData.indicator.type.inverse) {
+                    return j;
+                } else {
+                    return (j == 0) ? -1 : j - 1;
+                }
             }
-        }
+       }
 
-        return indicatorData.thresholdColor.length - 1;
+        return (indicatorData.indicator.type.inverse) ? -1 : indicatorData.thresholdColor.length - 1;
     }
 
     static final class ThresholdColor {
