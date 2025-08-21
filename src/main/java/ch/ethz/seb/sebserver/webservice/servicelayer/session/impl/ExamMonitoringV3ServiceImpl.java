@@ -267,6 +267,8 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         final boolean showBatteryIncident = showIndicators != null && showIndicators.contains(IndicatorType.BATTERY_STATUS.name);
         final boolean showLockScreenNotifications = showNotifications != null && showNotifications.contains(NotificationType.LOCK_SCREEN.name());
         final boolean showRaiseHandNotifications = showNotifications != null && showNotifications.contains(NotificationType.RAISE_HAND.name());
+        
+        System.out.println("************** showBatteryIncident: " + showBatteryIncident);
 
         return cc -> {
             
@@ -303,8 +305,13 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
             // indicators filter
             if (showWLANIncident || showBatteryIncident) {
-                final boolean wlan = showWLANIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.WLAN_STATUS);
-                final boolean battery = showBatteryIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.BATTERY_STATUS);
+                
+                // Battery and WLAN only makes sense for active status
+                if (!cc.clientConnection.status.clientActiveStatus) {
+                    return false;
+                }
+                final boolean wlan = showWLANIncident && (cc.hasIncidentOrWarning(IndicatorType.WLAN_STATUS));
+                final boolean battery = showBatteryIncident && (cc.hasIncidentOrWarning(IndicatorType.BATTERY_STATUS));
                 if (!(wlan || battery)) {
                     return false;
                 }

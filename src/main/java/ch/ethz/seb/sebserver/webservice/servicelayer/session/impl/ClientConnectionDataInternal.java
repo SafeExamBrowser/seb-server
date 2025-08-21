@@ -127,6 +127,12 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     }
 
     @JsonIgnore
+    public final boolean hasIncidentOrWarning(final Indicator.IndicatorType type) {
+        final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
+        return clientIndicator != null && (clientIndicator.hasWarning() || clientIndicator.hasWarning());
+    }
+
+    @JsonIgnore
     public final double getValueByType(final Indicator.IndicatorType type) {
         final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
         return clientIndicator != null ? clientIndicator.getValue() : Double.NaN;
