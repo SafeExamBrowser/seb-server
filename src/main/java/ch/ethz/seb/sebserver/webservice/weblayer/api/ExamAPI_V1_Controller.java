@@ -373,8 +373,6 @@ public class ExamAPI_V1_Controller {
                         .getOr(null));
     }
 
-
-
     private String getClientAddress(final HttpServletRequest request) {
         try {
             final String ipAddress = request.getHeader("X-FORWARDED-FOR");

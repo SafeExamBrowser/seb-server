@@ -101,7 +101,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         this.examSessionService
                 .getExamDAO()
                 .allRunningExamIds()
-                .onSuccess(ids -> ids.stream().forEach(examId -> updateGrants(examId)))
+                .onSuccess(ids -> ids.stream().forEach(this::updateGrants))
                 .onError(error -> log.error("Unexpected error while trying to updateASKGrants: ", error));
     }
 
