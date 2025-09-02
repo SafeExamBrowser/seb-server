@@ -486,7 +486,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                     ActionDefinition.MONITOR_EXAM_HIDE_ASK_GRANTED);
         }
 
-        if(issueFilterEnabled && allowedSEBVersions != null) {
+        if(issueFilterEnabled && allowedSEBVersions != null && !allowedSEBVersions.isEmpty()) {
             addIssueFilterAction(
                     monitoringStatus,
                     statusFilterGUIUpdate,

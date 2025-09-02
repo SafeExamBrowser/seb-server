@@ -286,53 +286,63 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
     @Override
     public void sendQuitInstruction(final String connectionToken, final Long examId) {
-        
-        Long _examId = examId;
-        if (examId == null) {
-            final Result<ClientConnection> clientConnectionResult = clientConnectionDAO
-                    .byConnectionToken(connectionToken);
 
-            if (clientConnectionResult.hasError()) {
-                log.error(
-                        "Failed to get examId for client connection token: {} skip automated SEB quit. error: {}",
+        synchronized (instructions) {
+            if (instructions.containsKey(connectionToken) && !instructions.get(connectionToken).isEmpty()) {
+                // there is already an instruction 
+                return;
+            }
+
+            Long _examId = examId;
+            if (examId == null) {
+                final Result<ClientConnection> clientConnectionResult = clientConnectionDAO
+                        .byConnectionToken(connectionToken);
+
+                if (clientConnectionResult.hasError()) {
+                    log.error(
+                            "Failed to get examId for client connection token: {} skip automated SEB quit. error: {}",
+                            connectionToken,
+                            clientConnectionResult.getError().getMessage());
+                    return;
+                }
+
+                final ClientConnection clientConnection = clientConnectionResult.get();
+                if (clientConnection.status != ClientConnection.ConnectionStatus.DISABLED && examDAO.isRunning(clientConnection.examId)) {
+                    log.info("Connection active and Exam is still running, skip automated SEB quit. clientConnection: {}", clientConnection);
+                    return;
+                }
+
+                // add SEB event log that SEB Server has automatically send quit instruction to SEB
+                final long now = Utils.getMillisecondsNow();
+                clientEventDAO.createNew(new ClientEvent(
+                                null,
+                                clientConnection.id,
+                                ClientEvent.EventType.WARN_LOG,
+                                now,
+                                now,
+                                null,
+                                "Automated SEB Client quit sent from SEB Server"))
+                        .onError(error -> log.error("Failed to put SEB Log about automated SEB quit for connection: {}", clientConnection.connectionToken));
+
+                _examId = clientConnection.examId;
+            }
+
+            if (_examId != null) {
+
+                log.info("Send automated quit instruction to SEB for connection token: {}", connectionToken);
+
+                this.registerInstruction(
+                        _examId,
+                        ClientInstruction.InstructionType.SEB_QUIT,
+                        Collections.emptyMap(),
                         connectionToken,
-                        clientConnectionResult.getError().getMessage());
-                return;
+                        false,
+                        false
+                );
+                if (webserviceInfo.isDistributed()) {
+                    loadInstructions();
+                }
             }
-
-            final ClientConnection clientConnection = clientConnectionResult.get();
-            if (clientConnection.status != ClientConnection.ConnectionStatus.DISABLED && examDAO.isRunning(clientConnection.examId)) {
-                log.info("Connection active and Exam is still running, skip automated SEB quit. clientConnection: {}", clientConnection);
-                return;
-            }
-
-            // add SEB event log that SEB Server has automatically send quit instruction to SEB
-            final long now = Utils.getMillisecondsNow();
-            clientEventDAO.save(new ClientEvent(
-                    null, 
-                    clientConnection.id, 
-                    ClientEvent.EventType.WARN_LOG, 
-                    now, 
-                    now, 
-                    null, 
-                    "Automated SEB Client quit sent from SEB Server"))
-                    .onError(error -> log.error("Failed to put SEB Log about automated SEB quit for connection: {}", clientConnection.connectionToken));
-
-            _examId = clientConnection.examId;
-        }
-
-        if (_examId != null) {
-
-            log.info("Send automated quit instruction to SEB for connection token: {}", connectionToken);
-
-            this.registerInstruction(
-                    _examId,
-                    ClientInstruction.InstructionType.SEB_QUIT,
-                    Collections.emptyMap(),
-                    connectionToken,
-                    false,
-                    false
-            );
         }
     }
 
@@ -375,7 +385,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                     .getInactiveConnectionTokens(this.instructions.keySet());
 
             if (result.hasValue()) {
-                result.get().stream().forEach(token -> this.instructions.remove(token));
+                result.get().forEach(this.instructions::remove);
             }
         }
     }

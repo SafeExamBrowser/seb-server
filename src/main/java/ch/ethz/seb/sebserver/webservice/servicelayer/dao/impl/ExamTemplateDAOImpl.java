@@ -233,16 +233,17 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     BooleanUtils.toInteger(data.lmsIntegration),
                     data.clientConfigurationId);
 
+            this.examTemplateRecordMapper.insert(newRecord);
+
             final String quitPassword = data.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
             if (StringUtils.isNotBlank(quitPassword)) {
                 this.additionalAttributesDAO.saveAdditionalAttribute(
                         EntityType.EXAM_TEMPLATE,
-                        data.id,
+                        newRecord.getId(),
                         ExamTemplate.ATTR_QUIT_PASSWORD,
                         quitPassword);
             }
-
-            this.examTemplateRecordMapper.insert(newRecord);
+            
             return newRecord;
         })
                 .flatMap(this::toDomainModel)
