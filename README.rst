@@ -48,42 +48,48 @@ a more automated and secure setup for high-stake exams.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-1.5/docs/images/setup_1.png
     
-SEB Server Version 2.1 is out
+SEB Server Version 2.2 is out
 -------------------------------
 
-Within this new version 2.1 we implemented mostly new features for Screen Proctoring and make SEB Server and Screen Proctoring 
+Within this new version 2.2 we implemented mostly new features for Screen Proctoring and make SEB Server and Screen Proctoring 
 more stable. We also stabilized the SEB Server Moodle Plugin integration for SEB Server Moodle Plugin Version 2.
 
-For a migration from a running SEB Server setup with version 1.x to new major version 2.0, please also read the `migration guide <https://seb-server-setup.readthedocs.io/en/latest/major-migration.html>`_.
-
 New Features:
-    - SEB Server - Screen Proctoring: Client group application for screen proctoring groups. Client groups applied in an exam can now be applied to screen proctoring to have the same groups.
-    - Screen Proctoring: Deletion of screen proctoring sessions for admin users
-    - Screen Proctoring: Application View search   
+    - SEB Server - Allow exams with multiple consecutive quizzes in Moodle
+    - SEB Server - Allow App Signature Key (ASK) for Teacher Roles
+    - SEB Server - SEB Lock on Assessment Tool gets set as soon as the Exam is imported
+    - SEB Server - New SEB Settings for Exam Configuration 
+        Change default value of "enableLogging" from false to true
+        Change default value of "quitURLRestart" from true to false
+        New iOS setting "mobileShowEditConfigShortcutItem"
+        New iOS setting "allowUploadsiOS"
+        New setting "downloadFileTypes"
 
 Improvements:
-   - SEB Server - SEB Settings: All new SEB Settings from SEB Win, SEB Mac and SEB iOS now in SEB Settings GUI
-   - SEB Server - Screen Proctoring: Apply Screen Proctoring to SEB Settings from Exam. When screen proctoring is enabled/disables on Exam, it is also enabled/disabled in the applied SEB Settings for SEB
-   - SEB Server - Screen Proctoring: Stabilise Screen Proctoring Feature and make SPS API Connection more stable
-   - SEB Server - Setup: Simplify Spring profiles
-   - SEB Server - Moodle Integration: Stabilise Moodle Plugin 2 Integration
-   - SEB Server - Moodle Integration: Make Teacher Accounts not selectable as Exam supporter
-   - SEB Server - Error Handling: Improve error message and logs in SEB Server
-   - SEB Server - ASK: ASK Monitoring: Make clearer note when SEB do not send an ASK 
-   - Screen Proctoring: Update to latest Spring Boot version 3.3.2
-   - Screen Proctoring: Add limit to Screenshot Queue to prevent out of memory
-   - Screen Proctoring: Make sure Exam Admin and Institution Admin see only supported Exams on SPS
+   - SEB Server - Improved Teacher Account administration by SEB Server Admin and Institutional Admin
+   - SEB Server - Improved name filter in Assessment Tool Lookup. Is now case insensitive
+   - SEB Server - Improved start time filter within Assessment Tool Lookup
+   - SEB Server - Improved Assessment Tool Lookup to not show already imported exams
+   - SEB Server - Exam quit password is now a normal text field
+   - SEB Server - Improved SEB auto quit when Exam as finished - check does not relay on cache data now but on actual stored data (prevent unintended auto quits)
+   - SEB Server - Add manual SEB instructions like SEB Quit, SEB Lock... to Audit Log
+   - SEB Server / Screen Proctoring - Improve account registration and synchronization
+   - SEB Server / Screen Proctoring - Improved logging for testing and prod
+   - Support for newer MariaDB version 11.4 
 
 Bugfixes:
-   - SEB Server - Moodle Integration: LMS Moodle external_id should not be greater than 255 chars
-   - SEB Server - Moodle Integration: Delete Teacher users when exam is deleted or assessment tool setup is deactivated
-   - SEB Server - Moodle Integration: using twice the same quiz name in a Moodle Course seems not working
-   - SEB Server - Monitoring: Notification symbol does not appear when locking a client from the list view
-   - Screen Proctoring: Prevent queue overflow on metadata store error (due to to long meta data for example)
-   - Screen Proctoring: Fix RDBMS and S3 store strategy to avoid multiple entries in screenshot_data table when retrying to store screenshot
-   - Screen Proctoring: S3 Storage: HTTP Connection leak on abandoned image requests (fast time line shift on recorder for example)
-   - Screen Proctoring: URLEncoded metadata in Header has problem with spaces replaces by '+'
-   - Screen Proctoring: Can't use screen proctoring with OLAT due to OLAT exam identifier
+   - SEB Server - Fixed Sometimes or for certain Exam Templates Screen Proctoring don't get applied in Exam Import
+   - SEB Server - Fixed Moodle course filter where it was not working on Moodle site
+   - SEB Server / Screen Proctoring - Fixed screen proctoring initialization on Exam import
+   - SEB Server Monitoring - Fix lock screen for a client in the state ready not possible
+   - SEB Server - Fixed colon in quizname causes problems in search
+   - SEB Server / Moodle - Fixed Decoded quit password in Exam causes errors in Exam Configuration and Moodle
+   
+Removed:
+   - SEB Server - SEB Logs functionality has been removed due to performance issues and obsoleteness of the feature. 
+        SEB Logs can be seen and exported on Exam and SEB Client view level now.
+
+For a migration from a running SEB Server setup with version 1.x to new major version 2.0, please also read the `migration guide <https://seb-server-setup.readthedocs.io/en/latest/major-migration.html>`_.
 
 
 SEB - SEB Server Compatibility
@@ -98,8 +104,8 @@ SEB Server version. There is an entry for each platform with a beta or testing r
    :header: "Platform / OS", "Release Version"
 
    "SEB Client for iOS", "3.5"
-   "SEB Client for Mac", "3.5"
-   "SEB Client for Windows", "3.9"
+   "SEB Client for Mac", "3.6"
+   "SEB Client for Windows", "3.10"
 
 Install SEB Server
 ------------------
