@@ -10,14 +10,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -29,9 +26,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
@@ -48,15 +42,18 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     private final ConfigurationRecordMapper configurationRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ConfigurationDAOBatchService configurationDAOBatchService;
+    private final ConfigurationValueRecordMapper configurationValueRecordMapper;
 
     protected ConfigurationDAOImpl(
             final ConfigurationRecordMapper configurationRecordMapper,
             final ConfigurationNodeRecordMapper configurationNodeRecordMapper,
-            final ConfigurationDAOBatchService configurationDAOBatchService) {
+            final ConfigurationDAOBatchService configurationDAOBatchService, 
+            final ConfigurationValueRecordMapper configurationValueRecordMapper) {
 
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.configurationDAOBatchService = configurationDAOBatchService;
+        this.configurationValueRecordMapper = configurationValueRecordMapper;
     }
 
     @Override
@@ -140,7 +137,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Long> getFollowupConfigurationId(final Long configNodeId) {
-        return Result.tryCatch(() -> this.configurationRecordMapper.selectIdsByExample()
+        return Result.tryCatch(() -> this.configurationRecordMapper
+                .selectIdsByExample()
                 .where(
                         ConfigurationRecordDynamicSqlSupport.configurationNodeId,
                         isEqualTo(configNodeId))
@@ -199,6 +197,45 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         return this.configurationDAOBatchService
                 .saveToHistory(configurationNodeId)
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Result<Configuration> clearHistory(final Long configurationNodeId) {
+        return Result.tryCatch(() -> {
+            
+            final Long lastStableId = getConfigurationLastStableVersion(configurationNodeId)
+                    .getOrThrow()
+                    .id;
+            final Configuration followup = getFollowupConfiguration(configurationNodeId)
+                    .getOrThrow();
+            final Long followupId = followup.id;
+
+            List<Long> configurationIds = this.configurationRecordMapper
+                    .selectIdsByExample()
+                    .where(
+                            ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                            isEqualTo(configurationNodeId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .filter(pk -> !Objects.equals(pk, lastStableId) && !Objects.equals(pk, followupId))
+                    .toList();
+
+            // delete all ConfigurationValue's that belongs to the Configuration's to delete
+            this.configurationValueRecordMapper.deleteByExample()
+                    .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isIn(configurationIds))
+                    .build()
+                    .execute();
+
+            // delete all Configuration's
+            this.configurationRecordMapper.deleteByExample()
+                    .where(ConfigurationRecordDynamicSqlSupport.id, isIn(configurationIds))
+                    .build()
+                    .execute();
+            
+            return followup;
+        });
     }
 
     @Override

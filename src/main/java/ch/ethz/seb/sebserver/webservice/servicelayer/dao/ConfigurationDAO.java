@@ -43,6 +43,12 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
      * @return the new follow-up Configuration model */
     Result<Configuration> saveToHistory(Long configurationNodeId);
 
+    /** Clears the history in the manner that only the latest stable reverence and the followup is remaining
+     *
+     * @param configurationNodeId the identifier of the ConfigurationNode to clear
+     * @return the follow-up Configuration model */
+    Result<Configuration> clearHistory(Long configurationNodeId);
+    
     /** Can be used to reset the current follow-up configuration back to the last saved version in the history
      *
      * @param configurationNodeId ConfigurationNode identifier to apply the undo on
