@@ -52,7 +52,8 @@ SEB Server Version 2.2 is out
 -------------------------------
 
 Within this new version 2.2 we implemented mostly new features for Screen Proctoring and make SEB Server and Screen Proctoring 
-more stable. We also stabilized the SEB Server Moodle Plugin integration for SEB Server Moodle Plugin Version 2.
+more stable. We also stabilized the SEB Server Moodle Plugin integration for SEB Server Moodle Plugin Version 2. Please make sure
+you have the newest update of the SEB Server Moodle Plugin.
 
 New Features:
     - SEB Server - Allow exams with multiple consecutive quizzes in Moodle
