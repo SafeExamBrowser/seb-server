@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -212,6 +213,7 @@ public class OrientationDAOImpl implements OrientationDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Orientation> getAttributeOfTemplate(final Long templateId, final Long attributeId) {
         return Result.tryCatch(() -> this.orientationRecordMapper
                 .selectByExample()
@@ -227,6 +229,30 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .map(OrientationDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Utils.toSingleton()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Set<Long>> getConfigAttributeIdsOfView(final SEBSettingsView.ViewType viewType) {
+        return Result.tryCatch(() -> {
+            if (viewType == null) {
+                throw new ResourceNotFoundException(EntityType.VIEW, null);
+            }
+            
+            return this.orientationRecordMapper
+                    .selectByExample()
+                    .where(
+                            OrientationRecordDynamicSqlSupport.templateId,
+                            SqlBuilder.isEqualTo(0L))
+                    .and(
+                            OrientationRecordDynamicSqlSupport.viewId,
+                            SqlBuilder.isEqualTo(viewType.viewId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(OrientationRecord::getConfigAttributeId)
+                    .collect(Collectors.toSet());
+        });
     }
 
     @Override

@@ -54,6 +54,10 @@ public interface SEBSettingsService {
                 ))
         );
     }
+    
+    default Set<Long> getAttributeIdsForView(final SEBSettingsView.ViewType viewType) {
+        return VIEW_ATTRIBUTE_MAPPINGS.get(viewType);
+    }
 
     Result<SEBSettingsView> getSEBSettingsOfTemplate(Long templateId, SEBSettingsView.ViewType viewType);
     Result<SEBSettingsView> getSEBSettingsOfExam(Long examId, SEBSettingsView.ViewType viewType);

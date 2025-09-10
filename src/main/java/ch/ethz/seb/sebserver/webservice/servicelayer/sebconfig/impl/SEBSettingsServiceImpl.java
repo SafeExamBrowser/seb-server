@@ -33,22 +33,32 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
 
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
+    private final OrientationDAO orientationDAO;
     private final ConfigurationValueDAO configurationValueDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
 
     public SEBSettingsServiceImpl(
             final ConfigurationDAO configurationDAO,
-            final ConfigurationAttributeDAO configurationAttributeDAO,
+            final ConfigurationAttributeDAO configurationAttributeDAO, 
+            final OrientationDAO orientationDAO,
             final ConfigurationValueDAO configurationValueDAO,
-            final ExamConfigurationMapDAO examConfigurationMapDAO, 
+            final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamConfigUpdateService examConfigUpdateService) {
         
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
+        this.orientationDAO = orientationDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examConfigUpdateService = examConfigUpdateService;
+    }
+
+    @Override
+    public Set<Long> getAttributeIdsForView(final SEBSettingsView.ViewType viewType) {
+        return orientationDAO
+                .getConfigAttributeIdsOfView(viewType)
+                .getOr(VIEW_ATTRIBUTE_MAPPINGS.get(viewType));
     }
 
 
@@ -401,7 +411,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     }
 
     private Map<String, ConfigurationAttribute> getAttributesForView(final SEBSettingsView.ViewType viewType) {
-        final Set<Long> attrIds = VIEW_ATTRIBUTE_MAPPINGS.get(viewType);
+        final Set<Long> attrIds = getAttributeIdsForView(viewType);
         if (attrIds == null) {
             return Collections.emptyMap();
         }

@@ -29,10 +29,27 @@ public record SEBSettingsView(
     public final static String ATTR_SINGLE_VALUES = "singleValues";
     public final static String ATTR_TABLE_VALUES = "tableValues";
     public final static String ATTR_TABLE_ROW_VALUES = "rowValues";
-
+    
     public enum ViewType {
-        APPLICATION,
-        NETWORK
+        GENERAL(1L),
+        USER_INTERFACE(2L),
+        BROWSER(3L),
+        DOWN_UPLOAD(4L),
+        EXAM(5L),
+        APPLICATION(6L),
+        RESOURCES(5L),
+        NETWORK(8L),
+        SECURITY(9L),
+        REGISTRY(10L),
+        HOOKED_KEYS(11L),
+        PROCTORING(12L)
+        ;
+        
+        public final Long viewId;
+
+        ViewType(final Long viewId) {
+            this.viewId = viewId;
+        }
     }
     
     public record TableRowValues(
