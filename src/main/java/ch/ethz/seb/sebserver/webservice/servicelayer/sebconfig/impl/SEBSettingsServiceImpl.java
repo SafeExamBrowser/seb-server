@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -37,14 +38,16 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     private final ConfigurationValueDAO configurationValueDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
+    private final ExamSessionService examSessionService;
 
     public SEBSettingsServiceImpl(
             final ConfigurationDAO configurationDAO,
-            final ConfigurationAttributeDAO configurationAttributeDAO, 
+            final ConfigurationAttributeDAO configurationAttributeDAO,
             final OrientationDAO orientationDAO,
             final ConfigurationValueDAO configurationValueDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
-            final ExamConfigUpdateService examConfigUpdateService) {
+            final ExamConfigUpdateService examConfigUpdateService, 
+            final ExamSessionService examSessionService) {
         
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
@@ -52,6 +55,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         this.configurationValueDAO = configurationValueDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examConfigUpdateService = examConfigUpdateService;
+        this.examSessionService = examSessionService;
     }
 
     @Override
@@ -174,6 +178,13 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         return  examConfigurationMapDAO
                 .getDefaultConfigurationNode(examId)
                 .map( configNodeId -> deleteTableRow(configNodeId, attributeName, index));
+    }
+
+    @Override
+    public Result<Integer> getActiveSEBClientsForExam(final Long examId) {
+        return examSessionService
+                .getActiveConnectionTokens(examId)
+                .map(Collection::size);
     }
 
     @Override

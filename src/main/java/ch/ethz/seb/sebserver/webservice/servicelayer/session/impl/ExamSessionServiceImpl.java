@@ -500,14 +500,12 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Collection<String>> getActiveConnectionTokens(final Long examId) {
-        return this.clientConnectionDAO
-                .getActiveConnectionTokens(examId);
+        return this.clientConnectionDAO.getActiveConnectionTokens(examId);
     }
 
     @Override
     public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
-        return this.clientConnectionDAO
-                .getAllActiveConnectionTokens(examId);
+        return this.clientConnectionDAO.getAllActiveConnectionTokens(examId);
     }
 
     @EventListener

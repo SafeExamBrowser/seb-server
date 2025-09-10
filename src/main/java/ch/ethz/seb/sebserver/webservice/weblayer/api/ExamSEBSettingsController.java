@@ -39,18 +39,20 @@ public class ExamSEBSettingsController {
     private final AuthorizationService authorizationService;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamDAO examDAO;
-    
+    private final UserActivityLogDAO userActivityLogDAO;
 
     public ExamSEBSettingsController(
             final SEBSettingsService sebSettingsService,
-            final AuthorizationService authorizationService, 
+            final AuthorizationService authorizationService,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
-            final ExamDAO examDAO) {
+            final ExamDAO examDAO, 
+            final UserActivityLogDAO userActivityLogDAO) {
         
         this.sebSettingsService = sebSettingsService;
         this.authorizationService = authorizationService;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examDAO = examDAO;
+        this.userActivityLogDAO = userActivityLogDAO;
     }
 
     @RequestMapping(
@@ -170,6 +172,53 @@ public class ExamSEBSettingsController {
 
         return sebSettingsService
                 .deleteTableRowForExam(examId, attributeName, index)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_ACTIVE_SEB_CLIENTS,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Integer getActiveSEBClients(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
+
+        authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
+
+        return sebSettingsService
+                .getActiveSEBClientsForExam(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT +
+                    API.SEB_SETTINGS_PUBLISH,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Exam publish(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
+
+        authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
+
+        return sebSettingsService
+                .applySettingsForExam(examId)
+                .flatMap(examDAO::byPK)
+                .flatMap(userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT +
+                    API.SEB_SETTINGS_UNDO,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Exam undoChanges(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
+
+        authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
+
+        return sebSettingsService
+                .undoSettingsForExam(examId)
+                .flatMap(examDAO::byPK)
+                .flatMap(userActivityLogDAO::logModify)
                 .getOrThrow();
     }
 }

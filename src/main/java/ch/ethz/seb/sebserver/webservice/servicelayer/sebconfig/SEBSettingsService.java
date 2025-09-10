@@ -77,6 +77,8 @@ public interface SEBSettingsService {
     Result<List<SEBSettingsView.TableRowValues>> deleteTableRowForTemplate(Long templateId, String attributeName, int index);
     Result<List<SEBSettingsView.TableRowValues>> deleteTableRowForExam(Long examId, String attributeName, int index);
 
+    Result<Integer> getActiveSEBClientsForExam(Long examId);
+    
     Result<Long> applySettingsForTemplate(Long templateId);
     Result<Long> applySettingsForExam(Long examId);
 
