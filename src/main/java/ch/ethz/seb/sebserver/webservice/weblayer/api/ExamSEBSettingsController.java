@@ -192,11 +192,12 @@ public class ExamSEBSettingsController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT +
                     API.SEB_SETTINGS_PUBLISH,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam publish(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
+        
+        System.out.println("************* publish SEB Settings");
 
         return sebSettingsService
                 .applySettingsForExam(examId)
@@ -209,11 +210,12 @@ public class ExamSEBSettingsController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT +
                     API.SEB_SETTINGS_UNDO,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam undoChanges(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
+
+        System.out.println("************* undo SEB Setting changes");
 
         return sebSettingsService
                 .undoSettingsForExam(examId)

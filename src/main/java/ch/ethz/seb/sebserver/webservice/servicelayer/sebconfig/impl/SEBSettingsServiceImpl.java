@@ -218,8 +218,9 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
 
     @Override
     public Result<Long> undoSettingsForExam(final Long examId) {
-        return configurationDAO
-                .undo(examId)
+        return examConfigurationMapDAO
+                .getDefaultConfigurationNode(examId)
+                .flatMap(configurationDAO::undo)
                 .map( config -> examId);
     }
 
