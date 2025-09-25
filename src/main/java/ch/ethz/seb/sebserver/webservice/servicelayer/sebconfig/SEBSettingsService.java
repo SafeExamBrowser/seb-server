@@ -24,6 +24,9 @@ public interface SEBSettingsService {
     EnumMap<SEBSettingsView.ViewType, Set<Long>> VIEW_ATTRIBUTE_MAPPINGS =
             new EnumMap<>(SEBSettingsView.ViewType.class);
 
+    /** Password attributes id list */
+    Set<Long> PASSWORD_TYPE_ATTRIBUTES = new HashSet<>(Arrays.asList(1L, 4L));
+
     @EventListener(SEBServerInitEvent.class)
     default void init() {
 

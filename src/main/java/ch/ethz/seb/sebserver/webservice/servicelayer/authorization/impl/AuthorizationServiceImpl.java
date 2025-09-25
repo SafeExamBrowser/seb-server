@@ -79,6 +79,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.TEACHER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)

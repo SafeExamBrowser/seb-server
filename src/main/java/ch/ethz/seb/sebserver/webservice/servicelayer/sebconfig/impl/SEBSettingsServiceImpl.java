@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
@@ -39,6 +40,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
     private final ExamSessionService examSessionService;
+    private final Cryptor cryptor;
 
     public SEBSettingsServiceImpl(
             final ConfigurationDAO configurationDAO,
@@ -46,8 +48,9 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
             final OrientationDAO orientationDAO,
             final ConfigurationValueDAO configurationValueDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
-            final ExamConfigUpdateService examConfigUpdateService, 
-            final ExamSessionService examSessionService) {
+            final ExamConfigUpdateService examConfigUpdateService,
+            final ExamSessionService examSessionService, 
+            final Cryptor cryptor) {
         
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
@@ -56,6 +59,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examConfigUpdateService = examConfigUpdateService;
         this.examSessionService = examSessionService;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -120,7 +124,41 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
 
         return  examConfigurationMapDAO
                 .getDefaultConfigurationNode(examId)
-                .map( configNodeId -> saveSingleValue(configNodeId, valueId, value));
+                .map( configNodeId -> saveSingleValue(
+                        configNodeId, 
+                        valueId, 
+                        convertValueWrite(valueId, value)));
+    }
+    
+    private String convertValueWrite(final Long valueId, final String value)  {
+        return this.configurationValueDAO.byPK(valueId)
+                .map(rec -> {
+                    if (PASSWORD_TYPE_ATTRIBUTES.contains(rec.attributeId)) {
+                        return cryptor
+                                .encrypt(value)
+                                .getOrThrow()
+                                .toString();
+                    } 
+                    return value;
+                })
+                .onError( error -> log.error("Failed to encrypt SEB settings value as password: ", error ))
+                .getOr(value);
+    }
+
+    private String convertValueRead(final Long attrId, final String value)  {
+        if (attrId == null) {
+            return value;
+        }
+        
+        if (PASSWORD_TYPE_ATTRIBUTES.contains(attrId)) {
+            return cryptor
+                    .decrypt(value)
+                    .onError( error -> log.error("Failed to decrypt SEB settings value as password: ", error ))
+                    .getOr(value)
+                    .toString();
+        } 
+        return value;
+        
     }
 
     @Override
@@ -447,7 +485,9 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 .map( attrs -> attrs.stream()
                         .collect(Collectors.toMap(
                                 val -> attrIdsMap.get(val.attributeId).name,
-                                val -> new SEBSettingsView.Value(val.id, val.value) )))
+                                val -> new SEBSettingsView.Value(
+                                        val.id, 
+                                        convertValueRead( attrIdsMap.get(val.attributeId).id, val.value) ))))
                 .getOrThrow();
     }
 
