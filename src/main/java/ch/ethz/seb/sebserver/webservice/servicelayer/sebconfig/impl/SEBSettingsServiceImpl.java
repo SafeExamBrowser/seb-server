@@ -131,6 +131,10 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     }
     
     private String convertValueWrite(final Long valueId, final String value)  {
+        if (valueId == null || value == null) {
+            return value;
+        }
+        
         return this.configurationValueDAO.byPK(valueId)
                 .map(rec -> {
                     if (PASSWORD_TYPE_ATTRIBUTES.contains(rec.attributeId)) {
@@ -146,7 +150,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     }
 
     private String convertValueRead(final Long attrId, final String value)  {
-        if (attrId == null) {
+        if (attrId == null || value == null) {
             return value;
         }
         

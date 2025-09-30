@@ -18,8 +18,8 @@ import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -62,6 +62,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     private final ExamConfigurationValueService examConfigurationValueService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final Cryptor cryptor;
+    private final WebserviceInfo webserviceInfo;
 
     protected ExamTemplateController(
             final AuthorizationService authorization,
@@ -72,8 +73,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             final BeanValidationService beanValidationService,
             final ProctoringAdminService proctoringServiceSettingsService,
             final ExamConfigurationValueService examConfigurationValueService,
-            final ApplicationEventPublisher applicationEventPublisher, 
-            final Cryptor cryptor) {
+            final ApplicationEventPublisher applicationEventPublisher,
+            final Cryptor cryptor, 
+            final WebserviceInfo webserviceInfo) {
 
         super(
                 authorization,
@@ -88,6 +90,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         this.examConfigurationValueService = examConfigurationValueService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.cryptor = cryptor;
+        this.webserviceInfo = webserviceInfo;
     }
 
     @RequestMapping(
@@ -201,6 +204,48 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             }
         }
         return entity;
+    }
+
+    @RequestMapping(
+            path = API.EXAM_TEMPLATE_FULL_CREATE,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate createExamTemplate(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestBody final ExamTemplate examTemplate) {
+
+        checkWritePrivilege(institutionId);
+
+        final ExamTemplate newExamTemplate = new ExamTemplate(
+                null,
+                institutionId,
+                examTemplate.name,
+                examTemplate.description,
+                examTemplate.examType,
+                examTemplate.supporter,
+                examTemplate.configTemplateId,
+                examTemplate.institutionalDefault,
+                examTemplate.lmsIntegration,
+                examTemplate.clientConfigurationId,
+                examTemplate.indicatorTemplates,
+                examTemplate.clientGroupTemplates,
+                examTemplate.examAttributes);
+        
+        final ExamTemplate created = beanValidationService
+                .validateBean(newExamTemplate)
+                .flatMap(examTemplateDAO::createNew)
+                .map(t -> createExamTemplateAdditionalData(t.id, newExamTemplate))
+                .flatMap(this::logCreate)
+                .getOrThrow();
+
+        // get source of truth from DB
+        return examTemplateDAO
+                .byPK(created.id)
+                .getOrThrow();
     }
 
     // ****************************************************************************
@@ -494,60 +539,60 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // ****************************************************************************
     // **** Proctoring
-
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ProctoringServiceSettings getProctoringServiceSettings(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
-
-        checkReadPrivilege(institutionId);
-        return this.proctoringServiceSettingsService
-                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM_TEMPLATE))
-                .getOrThrow();
-    }
-
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ExamTemplate saveProctoringServiceSettings(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
-
-        checkModifyPrivilege(institutionId);
-        return this.entityDAO
-                .byPK(examId)
-                .flatMap(this.authorization::checkModify)
-                .flatMap(examTemplate -> testAndSaveProctoringSettings(examId, examTemplate, proctoringServiceSettings))
-                .flatMap(this.userActivityLogDAO::logModify)
-                .getOrThrow();
-    }
-
-    private Result<ExamTemplate> testAndSaveProctoringSettings(
-            final Long examId,
-            final ExamTemplate examTemplate,
-            final ProctoringServiceSettings proctoringServiceSettings) {
-
-        return this.proctoringServiceSettingsService
-                .testProctoringSettings(proctoringServiceSettings)
-                .flatMap(test -> this.proctoringServiceSettingsService
-                        .saveProctoringServiceSettings(
-                                new EntityKey(examId, EntityType.EXAM_TEMPLATE),
-                                proctoringServiceSettings))
-                .map(settings -> examTemplate);
-    }
+// NOTE: Not used anymore... remove it for 3.0
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+//            method = RequestMethod.GET,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ProctoringServiceSettings getProctoringServiceSettings(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @PathVariable final Long modelId) {
+//
+//        checkReadPrivilege(institutionId);
+//        return this.proctoringServiceSettingsService
+//                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM_TEMPLATE))
+//                .getOrThrow();
+//    }
+//
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT
+//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+//            method = RequestMethod.POST,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ExamTemplate saveProctoringServiceSettings(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+//            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
+//
+//        checkModifyPrivilege(institutionId);
+//        return this.entityDAO
+//                .byPK(examId)
+//                .flatMap(this.authorization::checkModify)
+//                .flatMap(examTemplate -> testAndSaveProctoringSettings(examId, examTemplate, proctoringServiceSettings))
+//                .flatMap(this.userActivityLogDAO::logModify)
+//                .getOrThrow();
+//    }
+//
+//    private Result<ExamTemplate> testAndSaveProctoringSettings(
+//            final Long examId,
+//            final ExamTemplate examTemplate,
+//            final ProctoringServiceSettings proctoringServiceSettings) {
+//
+//        return this.proctoringServiceSettingsService
+//                .testProctoringSettings(proctoringServiceSettings)
+//                .flatMap(test -> this.proctoringServiceSettingsService
+//                        .saveProctoringServiceSettings(
+//                                new EntityKey(examId, EntityType.EXAM_TEMPLATE),
+//                                proctoringServiceSettings))
+//                .map(settings -> examTemplate);
+//    }
 
     // **** Proctoring
     // ****************************************************************************
@@ -671,6 +716,70 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             log.error("Failed to notify ExamTemplate change: ", e);
         }
         return Result.of(entity);
+    }
+
+    private ExamTemplate createExamTemplateAdditionalData(
+            final Long createdTemplateId, 
+            final ExamTemplate examTemplate) {
+        
+        // create group templates
+        examTemplate
+                .getClientGroupTemplates()
+                .forEach(clientGroupTemplate -> {
+                    final ClientGroupTemplate newTemplate = new ClientGroupTemplate(
+                            null,
+                            createdTemplateId,
+                            clientGroupTemplate.name,
+                            clientGroupTemplate.type,
+                            clientGroupTemplate.color,
+                            clientGroupTemplate.icon,
+                            clientGroupTemplate.ipRangeStart,
+                            clientGroupTemplate.ipRangeEnd,
+                            clientGroupTemplate.clientOS,
+                            clientGroupTemplate.nameRangeStartLetter,
+                            clientGroupTemplate.nameRangeEndLetter
+                    );
+                    final ClientGroupTemplate newGroup = this.beanValidationService
+                            .validateBean(newTemplate)
+                            .map(ExamUtils::checkClientGroupConsistency)
+                            .flatMap(this.examTemplateDAO::createNewClientGroupTemplate)
+                            .onError(error -> log.error("Failed to create ClientGroupTemplate: {}", clientGroupTemplate, error))
+                            .getOr(null);
+                });
+
+        // create SPS data if present and enabled
+        if (examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)) {
+            try {
+                final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle = webserviceInfo
+                        .getScreenProctoringServiceBundle();
+                
+                final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
+                        null,
+                        true,
+                        screenProctoringServiceBundle.serviceURL,
+                        screenProctoringServiceBundle.clientId,
+                        screenProctoringServiceBundle.clientSecret.toString(),
+                        screenProctoringServiceBundle.apiAccountName,
+                        screenProctoringServiceBundle.apiAccountPassword.toString(),
+                        CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)),
+                        examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME),
+                        null,
+                        examTemplate.examAttributes.get(ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION),
+                        true,
+                        false);
+
+                this.proctoringServiceSettingsService
+                        .saveScreenProctoringSettings(
+                                new EntityKey(createdTemplateId, EntityType.EXAM_TEMPLATE),
+                                screenProctoringSettings)
+                        .getOrThrow();
+
+            } catch (final Exception e) {
+                log.error("Failed to create SPS data for ExamTemplate: {}", examTemplate, e);
+            }
+        }
+
+        return examTemplateDAO.byPK(createdTemplateId).getOr(examTemplate);
     }
 
 }

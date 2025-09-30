@@ -8,21 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings.*;
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -44,10 +44,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
@@ -56,13 +53,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDy
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamTemplateRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
@@ -72,19 +62,22 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ProctoringSettingsDAO proctoringSettingsDAO;
     private final ExamDAO examDAO;
     private final JSONMapper jsonMapper;
 
     public ExamTemplateDAOImpl(
             final ExamTemplateRecordMapper examTemplateRecordMapper,
             final AdditionalAttributesDAO additionalAttributesDAO,
-            final ApplicationEventPublisher applicationEventPublisher,
+            final ApplicationEventPublisher applicationEventPublisher, 
+            final ProctoringSettingsDAO proctoringSettingsDAO,
             final ExamDAO examDAO,
             final JSONMapper jsonMapper) {
 
         this.examTemplateRecordMapper = examTemplateRecordMapper;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.examDAO = examDAO;
         this.jsonMapper = jsonMapper;
     }
@@ -211,11 +204,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             checkUniqueName(data);
             checkUniqueDefault(data);
 
-            final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
-            final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
-                    ? this.jsonMapper.writeValueAsString(indicatorTemplates)
-                    : null;
-
             final ExamTemplateRecord newRecord = new ExamTemplateRecord(
                     null,
                     data.institutionId,
@@ -228,13 +216,21 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    indicatorsJSON,
+                    null,
                     BooleanUtils.toInteger(data.institutionalDefault),
                     BooleanUtils.toInteger(data.lmsIntegration),
                     data.clientConfigurationId);
 
             this.examTemplateRecordMapper.insert(newRecord);
 
+            final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
+            if (indicatorTemplates != null && !indicatorTemplates.isEmpty()) {
+                indicatorTemplates.forEach( t -> {
+                    createNewIndicatorTemplate(new IndicatorTemplate(null, newRecord.getId(), t.name, t.type, t.defaultColor, t.defaultIcon, t.tags, t.thresholds))
+                            .onError(error -> log.error("Failed to create new IndicatorTemplate: {t}", error));
+                });
+            }
+            
             final String quitPassword = data.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
             if (StringUtils.isNotBlank(quitPassword)) {
                 this.additionalAttributesDAO.saveAdditionalAttribute(
@@ -533,14 +529,16 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                             })
                     : null;
 
-            final Map<String, String> examAttributes = this.additionalAttributesDAO
-                    .getAdditionalAttributes(EntityType.EXAM_TEMPLATE, record.getId())
-                    .map(attrs -> attrs.stream()
-                            .collect(Collectors.toMap(
-                                    AdditionalAttributeRecord::getName,
-                                    AdditionalAttributeRecord::getValue)))
-                    .onError(error -> log.error("Failed to load exam attributes for template: {}", record, error))
-                    .getOrElse(Collections::emptyMap);
+            final Map<String, String> examAttributes = adaptSPSValues(
+                    record.getId(), 
+                    this.additionalAttributesDAO
+                        .getAdditionalAttributes(EntityType.EXAM_TEMPLATE, record.getId())
+                        .map(attrs -> attrs.stream()
+                                .collect(Collectors.toMap(
+                                        AdditionalAttributeRecord::getName,
+                                        AdditionalAttributeRecord::getValue)))
+                        .onError(error -> log.error("Failed to load exam attributes for template: {}", record, error))
+                        .getOrElse(Collections::emptyMap));
 
             final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
@@ -567,6 +565,29 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     clientGroupTemplates,
                     examAttributes);
         });
+    }
+
+    private Map<String, String> adaptSPSValues(final Long examTemplateId, final Map<String, String> sourceAdditionalAttributes) {
+        if (!sourceAdditionalAttributes.containsKey(ScreenProctoringSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME)) {
+            return sourceAdditionalAttributes;
+        }
+        
+        final HashMap<String, String> result = new HashMap<>(sourceAdditionalAttributes);
+        final String encryptedSPSAttrs = result.remove(ScreenProctoringSettings.ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME);
+        if (StringUtils.isNotBlank(encryptedSPSAttrs)) {
+            final ScreenProctoringSettings screenProctoringSettings = proctoringSettingsDAO
+                    .getScreenProctoringSettings(new EntityKey(examTemplateId, EntityType.EXAM_TEMPLATE))
+                    .getOr(null);
+            if (screenProctoringSettings != null) {
+                result.put(ATTR_COLLECTING_STRATEGY, screenProctoringSettings.collectingStrategy.name());
+                result.put(ATTR_COLLECTING_GROUP_NAME, screenProctoringSettings.collectingGroupName);
+                if (screenProctoringSettings.getCollectingGroupSize() != null) {
+                    result.put(ATTR_COLLECTING_GROUP_SIZE, String.valueOf(screenProctoringSettings.getCollectingGroupSize()));
+                }
+                result.put(ATT_SEB_GROUPS_SELECTION, screenProctoringSettings.sebGroupsSelection);
+            }
+        }
+        return result;
     }
 
     private void checkUniqueName(final ExamTemplate examTemplate) {
