@@ -210,31 +210,30 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional
     public Result<LmsSetup> save(final LmsSetup lmsSetup) {
-        return Result.tryCatch(() -> {
+        return recordById(lmsSetup.id)
+                .map(rec -> {
+                    
+                    final LmsSetupRecord newRecord = new LmsSetupRecord(
+                            lmsSetup.id,
+                            rec.getInstitutionId(),
+                            lmsSetup.name,
+                            rec.getLmsType(),
+                            lmsSetup.lmsApiUrl,
+                            lmsSetup.lmsAuthName,
+                            this.encryptForSave(lmsSetup.lmsAuthSecret),
+                            this.encryptForSave(lmsSetup.lmsRestApiToken),
+                            lmsSetup.getProxyHost(),
+                            lmsSetup.getProxyPort(),
+                            lmsSetup.proxyAuthUsername,
+                            this.encryptForSave(lmsSetup.proxyAuthSecret),
+                            System.currentTimeMillis(),
+                            rec.getActive(),
+                            createConnectionIdIfNotExists(lmsSetup.id),
+                            rec.getIntegrationActive());
 
-            checkUniqueName(lmsSetup);
-
-            final LmsSetupRecord newRecord = new LmsSetupRecord(
-                    lmsSetup.id,
-                    lmsSetup.institutionId,
-                    lmsSetup.name,
-                    (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
-                    lmsSetup.lmsApiUrl,
-                    lmsSetup.lmsAuthName,
-                    this.encryptForSave(lmsSetup.lmsAuthSecret),
-                    this.encryptForSave(lmsSetup.lmsRestApiToken),
-                    lmsSetup.getProxyHost(),
-                    lmsSetup.getProxyPort(),
-                    lmsSetup.proxyAuthUsername,
-                    this.encryptForSave(lmsSetup.proxyAuthSecret),
-                    System.currentTimeMillis(),
-                    null,
-                    createConnectionIdIfNotExists(lmsSetup.id),
-                    null);
-
-            this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
-        })
+                    this.lmsSetupRecordMapper.updateByPrimaryKey(newRecord);
+                    return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
+                })
                 .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
