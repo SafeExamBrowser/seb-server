@@ -254,7 +254,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
         try {
             // Include leadTime and followupTime
             final DateTime startTimeThreshold = now.plus(leadTime);
-            final DateTime endTimeThreshold = now.minus(leadTime);
+            final DateTime endTimeThreshold = now.minus(followupTime);
 
             if (log.isDebugEnabled()) {
                 log.debug("Check exam update for startTimeThreshold: {}, endTimeThreshold {}, exam: {}",
@@ -283,9 +283,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                 }
             }
 
-            if (exam.status != ExamStatus.FINISHED &&
-                    exam.endTime != null &&
-                    endTimeThreshold.isAfter(exam.endTime)) {
+            if (exam.status != ExamStatus.FINISHED && exam.endTime != null && endTimeThreshold.isAfter(exam.endTime)) {
                 setFinished(exam, updateId)
                         .onError(error -> log.error("Failed to update exam to finished state: {}",
                                 exam,
@@ -293,9 +291,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                 return;
             }
 
-            if (exam.status != ExamStatus.UP_COMING &&
-                    exam.startTime != null &&
-                    startTimeThreshold.isBefore(exam.startTime)) {
+            if (exam.status != ExamStatus.UP_COMING && exam.startTime != null && startTimeThreshold.isBefore(exam.startTime)) {
                 setUpcoming(exam, updateId)
                         .onError(error -> log.error("Failed to update exam to up-coming state: {}",
                                 exam,
