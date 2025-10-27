@@ -92,7 +92,9 @@ public class LmsIntegrationController {
                     log.error(
                             "Failed to create/import exam: lmsId:{}, courseId: {}, quizId: {}, templateId: {} error: {}",
                             lmsUUId, courseId, quizId, templateId, e.getMessage());
+
                     log.info("Rollback Exam creation...");
+
                     fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
                             .onError(error -> {
                                 if (error instanceof NoResourceFoundException) {
@@ -102,7 +104,10 @@ public class LmsIntegrationController {
                                 }
                             });
                     
-                    return new LMSAutoImportException("Failed to import Exam due to error: " + e.getMessage() + ". All partial imported Exam components has been deleted on SEB Server (Rollback)", e);
+                    return new LMSAutoImportException(
+                            "Failed to import Exam due to error: " + e.getMessage() + ". " +
+                            "All partial imported Exam components has been deleted on SEB Server (Rollback)",
+                            e);
                 })
                 .onSuccess(exam -> log.info("Auto import of exam successful: {}", exam))
                 .getOrThrow();
