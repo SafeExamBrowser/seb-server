@@ -531,6 +531,12 @@ public class ExamMonitoringController {
                 institutionId,
                 examId,
                 connectionToken);
+
+        // NOTE: when SEB connection is not in an active state, notifications are not relevant and not visible
+        if (!connection.clientConnection.status.clientActiveStatus) {
+            return Collections.emptyList();
+        }
+
         return this.sebClientNotificationService
                 .getPendingNotifications(connection.getConnectionId())
                 .getOrThrow();
@@ -541,8 +547,7 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+            method = RequestMethod.POST)
     public void confirmNotification(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,

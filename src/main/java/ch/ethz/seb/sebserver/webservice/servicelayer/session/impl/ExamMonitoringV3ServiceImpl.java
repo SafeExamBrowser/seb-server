@@ -154,22 +154,23 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     // incidences and warnings on indicators, only relevant for active connections
                     if (cc.clientConnection.status.clientActiveStatus) {
                         indicatorProbe.probe(cc, indicators);
+
+                        // notifications, only relevant for active connections
+                        if (cc.pendingNotification()) {
+                            System.out.println("****************************** " + cc.clientStaticData.connectionToken);
+                            sebClientNotificationService
+                                    .getPendingNotifications(cc.getConnectionId())
+                                    .getOr(Collections.emptyList())
+                                    .forEach( n -> {
+                                        switch (n.notificationType) {
+                                            case LOCK_SCREEN -> notifications.LOCK_SCREEN++;
+                                            case RAISE_HAND -> notifications.RAISE_HAND++;
+                                            default -> {}
+                                        }
+                                    });
+                        }
+                        notifications.calcTotal();
                     }
-                    
-                    // notifications
-                    if (cc.pendingNotification != null && cc.pendingNotification) {
-                        sebClientNotificationService
-                                .getPendingNotifications(cc.getConnectionId())
-                                .getOr(Collections.emptyList())
-                                .forEach( n -> {
-                                    switch (n.notificationType) {
-                                        case LOCK_SCREEN -> notifications.LOCK_SCREEN++;
-                                        case RAISE_HAND -> notifications.RAISE_HAND++;
-                                        default -> {}
-                                    }
-                                });
-                    }
-                    notifications.calcTotal();
                     
                     // groups
                     try {
@@ -267,11 +268,10 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         final boolean showBatteryIncident = showIndicators != null && showIndicators.contains(IndicatorType.BATTERY_STATUS.name);
         final boolean showLockScreenNotifications = showNotifications != null && showNotifications.contains(NotificationType.LOCK_SCREEN.name());
         final boolean showRaiseHandNotifications = showNotifications != null && showNotifications.contains(NotificationType.RAISE_HAND.name());
-        
-        System.out.println("************** showBatteryIncident: " + showBatteryIncident);
+
+
 
         return cc -> {
-            
             // state filter
             if (missing && !cc.getMissingPing() && states.isEmpty()) {
                 return false;
@@ -279,14 +279,6 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             if (checkStates && !states.contains(cc.clientConnection.status) || (!missing && cc.getMissingPing())) {
                 return false;
             }
-
-//            if (checkStates) {
-//                
-//                
-//                if (missing && !cc.getMissingPing() || !states.contains(cc.clientConnection.status)) {
-//                    return false;
-//                }
-//            }
 
             // groups filter
             if (checkGroups) {
@@ -316,14 +308,25 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     return false;
                 }
             }
+
+
             
             // notifications filter
-            if (BooleanUtils.isTrue(cc.pendingNotification) && (showLockScreenNotifications || showRaiseHandNotifications)) {
-                final boolean lock = showLockScreenNotifications && sebClientNotificationService
-                        .hasPendingNotification(cc.clientConnection, NotificationType.LOCK_SCREEN );
-                final boolean raise =  showRaiseHandNotifications && sebClientNotificationService
-                        .hasPendingNotification(cc.clientConnection, NotificationType.RAISE_HAND );
-                if (!(lock || raise)) {
+            if (showLockScreenNotifications || showRaiseHandNotifications) {
+                // notifications only make sense for active status
+                if (!cc.clientConnection.status.clientActiveStatus) {
+                    return false;
+                }
+
+                if (cc.pendingNotification()) {
+
+                    final boolean lock = showLockScreenNotifications && sebClientNotificationService
+                            .hasPendingNotification(cc.clientConnection, NotificationType.LOCK_SCREEN );
+                    final boolean raise =  showRaiseHandNotifications && sebClientNotificationService
+                            .hasPendingNotification(cc.clientConnection, NotificationType.RAISE_HAND );
+
+                    return lock || raise;
+                } else {
                     return false;
                 }
             }

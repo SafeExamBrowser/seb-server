@@ -296,8 +296,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
             log.warn("Unauthorized Request: {} : Redirect to login after unauthorized request",
                     request.getRequestURI());
 
-            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-            response.setHeader(HttpHeaders.LOCATION, this.redirect);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.flushBuffer();
         }
     }

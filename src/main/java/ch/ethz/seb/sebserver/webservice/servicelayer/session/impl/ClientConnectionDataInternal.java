@@ -105,6 +105,9 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     @Override
     @JsonProperty(ATTR_PENDING_NOTIFICATION)
     public final Boolean pendingNotification() {
+        if (!clientConnection.status.clientActiveStatus) {
+            return false;
+        }
         return this.pendingNotificationIndication.notifictionPending();
     }
 

@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -755,7 +756,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 
                 final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
                         null,
-                        true,
+                        BooleanUtils.toBoolean(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)),
                         screenProctoringServiceBundle.serviceURL,
                         screenProctoringServiceBundle.clientId,
                         screenProctoringServiceBundle.clientSecret.toString(),
