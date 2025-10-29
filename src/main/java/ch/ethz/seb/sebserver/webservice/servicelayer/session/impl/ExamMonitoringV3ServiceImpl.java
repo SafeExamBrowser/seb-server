@@ -157,7 +157,6 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
                         // notifications, only relevant for active connections
                         if (cc.pendingNotification()) {
-                            System.out.println("****************************** " + cc.clientStaticData.connectionToken);
                             sebClientNotificationService
                                     .getPendingNotifications(cc.getConnectionId())
                                     .getOr(Collections.emptyList())
