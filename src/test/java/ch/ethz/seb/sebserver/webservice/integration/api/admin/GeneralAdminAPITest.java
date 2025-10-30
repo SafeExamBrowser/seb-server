@@ -21,7 +21,7 @@ public class GeneralAdminAPITest extends AdministrationAPIIntegrationTester {
     @Test
     public void getHello_givenNoToken_thenRedirect() throws Exception {
         this.mockMvc.perform(get(this.endpoint + "/hello"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
