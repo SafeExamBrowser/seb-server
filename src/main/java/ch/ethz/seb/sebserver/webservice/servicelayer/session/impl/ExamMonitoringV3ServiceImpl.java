@@ -268,14 +268,19 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         final boolean showLockScreenNotifications = showNotifications != null && showNotifications.contains(NotificationType.LOCK_SCREEN.name());
         final boolean showRaiseHandNotifications = showNotifications != null && showNotifications.contains(NotificationType.RAISE_HAND.name());
 
-
-
         return cc -> {
             // state filter
-            if (missing && !cc.getMissingPing() && states.isEmpty()) {
-                return false;
+            final boolean isMissing = cc.getMissingPing();
+            if (missing && !isMissing) {
+                if (states.isEmpty()) {
+                    return false;
+                } else {
+                    if (checkStates && !states.contains(cc.clientConnection.status)) {
+                        return false;
+                    }
+                }
             }
-            if (checkStates && !states.contains(cc.clientConnection.status) || (!missing && cc.getMissingPing())) {
+            if (!missing && checkStates && !states.contains(cc.clientConnection.status)) {
                 return false;
             }
 
