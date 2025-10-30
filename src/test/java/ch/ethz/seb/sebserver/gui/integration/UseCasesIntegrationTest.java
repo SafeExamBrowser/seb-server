@@ -2309,7 +2309,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     exam.getModelId(),
                     String.valueOf(exam.institutionId),
                     true);
-            //Thread.sleep(1000);
+            //Thread.sleep(10000);
 
             // send get connections
             connectionsCall =
@@ -2350,7 +2350,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             final ClientConnection clientConnection = ccCall.get();
             assertTrue(clientConnection.userSessionId.contains("connection"));
 
-            // get notification
+
+            // get notification NOTE: is not possible anymore since not present vor closed connections
             final Result<Collection<ClientNotification>> notificationsCall =
                     restService.getBuilder(GetPendingClientNotifications.class)
                             .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
@@ -2359,17 +2360,17 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             assertNotNull(notificationsCall);
             assertFalse(notificationsCall.hasError());
             final Collection<ClientNotification> collection = notificationsCall.get();
-            assertFalse(collection.isEmpty());
-            final ClientNotification notification = collection.iterator().next();
-            assertEquals("NOTIFICATION", notification.eventType.name());
-
-            // confirm notification
-            final Result<Void> confirm = restService.getBuilder(ConfirmPendingClientNotification.class)
-                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
-                    .withURIVariable(API.PARAM_MODEL_ID, notification.getModelId())
-                    .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, con.clientConnection.connectionToken)
-                    .call();
-            assertFalse(confirm.hasError());
+            assertTrue(collection.isEmpty());
+//            final ClientNotification notification = collection.iterator().next();
+//            assertEquals("NOTIFICATION", notification.eventType.name());
+//
+//            // confirm notification
+//            final Result<Void> confirm = restService.getBuilder(ConfirmPendingClientNotification.class)
+//                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+//                    .withURIVariable(API.PARAM_MODEL_ID, notification.getModelId())
+//                    .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, con.clientConnection.connectionToken)
+//                    .call();
+//            assertFalse(confirm.hasError());
 
             // send quit instruction
             final ClientInstruction clientInstruction = new ClientInstruction(
@@ -2387,7 +2388,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             assertNotNull(instructionCall);
             assertFalse(instructionCall.hasError());
 
-            //Thread.sleep(1000);
+            Thread.sleep(1000);
         } catch (final Exception e) {
             fail(e.getMessage());
         }
