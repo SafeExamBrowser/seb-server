@@ -246,6 +246,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         // get source of truth from DB
         return examTemplateDAO
                 .byPK(created.id)
+                .map(this::applySPSData)
                 .getOrThrow();
     }
 
@@ -781,6 +782,51 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         }
 
         return examTemplateDAO.byPK(createdTemplateId).getOr(examTemplate);
+    }
+
+    private ExamTemplate applySPSData(ExamTemplate examTemplate) {
+        ScreenProctoringSettings spsSettings = this.proctoringServiceSettingsService
+                .getScreenProctoringSettings(new EntityKey(examTemplate.getModelId(), EntityType.EXAM_TEMPLATE))
+                .getOrThrow();
+
+        Map<String, String> examAttributes = new HashMap<>(examTemplate.examAttributes);
+        examAttributes.put(
+                ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING,
+                Boolean.toString(spsSettings.enableScreenProctoring));
+
+        examAttributes.put(
+                ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY,
+                spsSettings.collectingStrategy.toString());
+
+        examAttributes.put(
+                ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME,
+                spsSettings.collectingGroupName);
+
+        if (spsSettings.collectingGroupSize != null) {
+            examAttributes.put(
+                    ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE,
+                    Integer.toString(spsSettings.collectingGroupSize));
+        }
+
+        examAttributes.put(
+                ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION,
+                spsSettings.sebGroupsSelection);
+
+        return new ExamTemplate(
+                examTemplate.id,
+                examTemplate.institutionId,
+                examTemplate.name,
+                examTemplate.description,
+                examTemplate.examType,
+                examTemplate.supporter,
+                examTemplate.configTemplateId,
+                examTemplate.institutionalDefault,
+                examTemplate.lmsIntegration,
+                examTemplate.clientConfigurationId,
+                examTemplate.indicatorTemplates,
+                examTemplate.clientGroupTemplates,
+                examAttributes
+        );
     }
 
 }
