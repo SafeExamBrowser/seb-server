@@ -160,7 +160,7 @@ public class LmsIntegrationController {
             outputStream.flush();
 
         } catch (final APIMessage.APIMessageException me) {
-            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setStatus(HttpStatus.EXPECTATION_FAILED.value());
             throw me;
         } catch (final Exception e) {
             log.error(

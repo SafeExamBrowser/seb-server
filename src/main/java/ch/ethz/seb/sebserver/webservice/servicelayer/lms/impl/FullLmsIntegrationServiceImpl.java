@@ -458,9 +458,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     .all(exam.institutionId, true)
                     .map(all -> all.stream().filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
                             .findFirst()
-                            .orElseThrow(() -> new APIMessage.APIMessageException(
-                                    APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of(
-                                            "No active Connection Configuration found"))))
+                            .orElseThrow())
                     .map(SEBClientConfig::getModelId)
                     .getOr(null);
         }
