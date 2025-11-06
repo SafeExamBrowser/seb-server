@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -559,7 +560,13 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     Domain.EXAM.ATTR_SUPPORTER,
                     StringUtils.join(examTemplate.supporter, Constants.LIST_SEPARATOR));
             post.putIfAbsent(Domain.EXAM.ATTR_TYPE, examTemplate.examType.name());
+
             if (StringUtils.isNotBlank(quitPassword)) {
+                // check new quit password has no invalid trailing chars
+                if (quitPassword != null && !Objects.equals(quitPassword, StringUtils.trim(quitPassword))) {
+                    throw new IllegalArgumentException("quit password has invalid trailing characters!");
+                }
+
                 post.putIfAbsent(Domain.EXAM.ATTR_QUIT_PASSWORD, quitPassword);
             }
 

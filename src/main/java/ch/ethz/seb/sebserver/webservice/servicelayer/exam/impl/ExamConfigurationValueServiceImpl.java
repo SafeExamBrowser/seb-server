@@ -147,6 +147,13 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
             if (Objects.equals(oldQuitPassword, quitSecret)) {
                 return examId;
             }
+
+            // check new quit password has no invalid trailing chars
+            if (quitSecret != null && !Objects.equals(quitSecret, StringUtils.trim(quitSecret))) {
+                // Note: this should never happen and the quit password should be validated and handled before this
+                //       If this is not the case do so, go up the stack of the particular case and handle it above
+                throw new IllegalArgumentException("quit password has invalid trailing characters!");
+            }
             
             return saveSEBAttributeValueToConfig(
                     examId, 
