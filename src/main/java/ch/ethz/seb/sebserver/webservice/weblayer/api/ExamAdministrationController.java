@@ -327,7 +327,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             return exam;
         }
         
-        return authorization.checkIsSupporterOrOwner(exam);
+        return authorization.checkIsExamAdminSupporterOrOwner(exam);
     }
 
     // **** SEB Security Key

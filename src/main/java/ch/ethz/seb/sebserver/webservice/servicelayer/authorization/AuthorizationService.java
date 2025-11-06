@@ -321,9 +321,15 @@ public interface AuthorizationService {
         return null;
     }
 
-    default Exam checkIsSupporterOrOwner(final Exam exam) {
+    default Exam checkIsExamAdminSupporterOrOwner(final Exam exam) {
         checkRead(exam);
         final SEBServerUser currentUser = getUserService().getCurrentUser();
+
+        // If user has role Exam Administrator it has access anyway
+        if (currentUser.getUserRoles().contains(UserRole.EXAM_ADMIN)) {
+            return exam;
+        }
+
         if (!exam.isOwnerOrSupporter(currentUser.uuid())) {
             throw new PermissionDeniedException(
                     exam,
