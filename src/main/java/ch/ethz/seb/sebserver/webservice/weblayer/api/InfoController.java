@@ -9,9 +9,11 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,13 +37,16 @@ public class InfoController {
 
     private final InstitutionDAO institutionDAO;
     private final AuthorizationService authorizationGrantService;
+    private final WebserviceInfo webserviceInfo;
 
     protected InfoController(
             final InstitutionDAO institutionDAO,
-            final AuthorizationService authorizationGrantService) {
+            final AuthorizationService authorizationGrantService,
+            final WebserviceInfo webserviceInfo) {
 
         this.institutionDAO = institutionDAO;
         this.authorizationGrantService = authorizationGrantService;
+        this.webserviceInfo = webserviceInfo;
     }
 
     @RequestMapping(
@@ -99,6 +104,14 @@ public class InfoController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<Privilege> privileges() {
         return this.authorizationGrantService.getAllPrivileges();
+    }
+
+    @RequestMapping(
+            path =  API.FEATURES_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Boolean> getServiceFeatures() {
+        return webserviceInfo.configuredFeatures();
     }
 
 }
