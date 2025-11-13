@@ -304,7 +304,7 @@ public class ModelObjectJSONGenerator {
                         false, null, null),
                 new PendingNotificationIndication() {
                     @Override
-                    public boolean notifictionPending() {
+                    public boolean notificationPending() {
                         return false;
                     }
                 },

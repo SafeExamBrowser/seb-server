@@ -108,7 +108,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         if (!clientConnection.status.clientActiveStatus) {
             return false;
         }
-        return this.pendingNotificationIndication.notifictionPending();
+        return this.pendingNotificationIndication.notificationPending();
     }
 
     @Override
@@ -179,8 +179,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
         @Override
         public Integer notificationFlag() {
-            final int flag = 0
-                    | (isMissingPing() ? ClientMonitoringDataView.FLAG_MISSING_PING : 0)
+            final int flag = (isMissingPing() ? ClientMonitoringDataView.FLAG_MISSING_PING : 0)
                     | (isPendingNotification() ? ClientMonitoringDataView.FLAG_PENDING_NOTIFICATION : 0)
                     | (!isGrantChecked() ? ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED : 0)
                     | (isGrantDenied() ? ClientMonitoringDataView.FLAG_GRANT_DENIED : 0)

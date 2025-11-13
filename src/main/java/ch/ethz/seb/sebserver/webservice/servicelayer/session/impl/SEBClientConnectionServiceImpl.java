@@ -53,11 +53,7 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -426,10 +422,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             } else if (log.isDebugEnabled()) {
                 log.debug("SEB client connection, successfully established ClientConnection: {}",
                         establishedClientConnection);
-            }
-            
-            if (StringUtils.isBlank(activeClientConnection.clientConnection.ask)) {
-                log.warn("No ASK has been saved for established connection: {}", activeClientConnection.clientConnection);
+
+                if (StringUtils.isBlank(activeClientConnection.clientConnection.ask)) {
+                    log.warn("No ASK has been saved for established connection: {}", activeClientConnection.clientConnection);
+                }
             }
 
             return establishedClientConnection;
@@ -619,7 +615,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
         } catch (final IllegalArgumentException e) {
-            final Collection<APIMessage> errorMessages = Arrays.asList(
+            final Collection<APIMessage> errorMessages = List.of(
                     APIMessage.ErrorMessage.CLIENT_CONNECTION_INTEGRITY_VIOLATION.of(e.getMessage()));
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             writeSEBClientErrors(response, errorMessages);
@@ -628,7 +624,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     "Unexpected error while trying to stream SEB Exam Configuration to client with connection: {}",
                     connectionToken, e);
 
-            final Collection<APIMessage> errorMessages = Arrays.asList(
+            final Collection<APIMessage> errorMessages = List.of(
                     APIMessage.ErrorMessage.GENERIC.of(e.getMessage()));
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             writeSEBClientErrors(response, errorMessages);
@@ -840,6 +836,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .map(template -> template.getExamineeName(userSessionId))
                     .getOr(userSessionId);
 
+            System.out.println("*********** accountId: " + accountId);
+
             // if userSessionId is not set yet or a placeholder is set, just use the new account name
             if (clientConnection.userSessionId == null ||
                     clientConnection.userSessionId.equals(clientConnection.sebClientUserId) ||
@@ -854,6 +852,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     Constants.EMBEDDED_LIST_SEPARATOR +
                     Constants.SPACE +
                     clientConnection.userSessionId;
+
+            System.out.println("*********** userSessionName: " + userSessionName);
+
             if (userSessionName.length() > 255) {
                 return Utils.truncateText(userSessionName, 240);
             } else {
