@@ -836,8 +836,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .map(template -> template.getExamineeName(userSessionId))
                     .getOr(userSessionId);
 
-            System.out.println("*********** accountId: " + accountId);
-
             // if userSessionId is not set yet or a placeholder is set, just use the new account name
             if (clientConnection.userSessionId == null ||
                     clientConnection.userSessionId.equals(clientConnection.sebClientUserId) ||
@@ -852,8 +850,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     Constants.EMBEDDED_LIST_SEPARATOR +
                     Constants.SPACE +
                     clientConnection.userSessionId;
-
-            System.out.println("*********** userSessionName: " + userSessionName);
 
             if (userSessionName.length() > 255) {
                 return Utils.truncateText(userSessionName, 240);
