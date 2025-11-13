@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 public interface ClientMonitoringDataView {
 
     String ATTR_STATUS = "st";
+    String LAST_UPDATE_TIME = "lat";
     String ATTR_CONNECTION_TOKEN = "tk";
     String ATTR_EXAM_USER_SESSION_ID = "si";
     String ATTR_INFO = "in";
@@ -39,6 +40,9 @@ public interface ClientMonitoringDataView {
 
     @JsonProperty(ATTR_STATUS)
     ConnectionStatus getStatus();
+
+    @JsonProperty(LAST_UPDATE_TIME)
+    Long getLastUpdateTime();
 
     @JsonProperty(ATTR_INDICATOR_VALUES)
     Map<Long, String> getIndicatorValues();

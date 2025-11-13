@@ -23,6 +23,7 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
 
     public final Long id;
     public final ConnectionStatus status;
+    private final long lastUpdateTime;
     public final Map<Long, String> indicatorVals;
 
     public final int notificationFlag;
@@ -36,11 +37,13 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
     public ClientMonitoringData(
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID) final Long id,
             @JsonProperty(ATTR_STATUS) final ConnectionStatus status,
+            @JsonProperty(LAST_UPDATE_TIME) final long lastUpdateTime,
             @JsonProperty(ATTR_INDICATOR_VALUES) final Map<Long, String> indicatorVals,
             @JsonProperty(ATTR_NOTIFICATION_FLAG) final Integer notificationFlag) {
 
         this.id = id;
         this.status = status;
+        this.lastUpdateTime = lastUpdateTime;
         this.indicatorVals = indicatorVals;
         this.notificationFlag = notificationFlag != null ? notificationFlag : -1;
         this.missingPing = notificationFlag != null && (notificationFlag & FLAG_MISSING_PING) > 0;
@@ -61,6 +64,11 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
     }
 
     @Override
+    public Long getLastUpdateTime() {
+        return this.lastUpdateTime;
+    }
+
+    @Override
     public Map<Long, String> getIndicatorValues() {
         return this.indicatorVals;
     }
@@ -72,7 +80,8 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
 
     public boolean hasChanged(final ClientMonitoringData other) {
         return this.status != other.status ||
-                !Objects.equals(this.notificationFlag, other.notificationFlag);
+                !Objects.equals(this.notificationFlag, other.notificationFlag) ||
+                !Objects.equals(this.lastUpdateTime, other.lastUpdateTime);
     }
 
     public boolean indicatorValuesEquals(final ClientMonitoringData other) {
