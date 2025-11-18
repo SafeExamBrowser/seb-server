@@ -775,6 +775,8 @@ public class ExamForm implements TemplateComposer {
                             return action.withEntityKey(new EntityKey(split[1], EntityType.EXAM));
                         }
                     }
+                } else if (ErrorMessage.FIELD_VALIDATION.isOf(apiMessage)) {
+                    throw (RuntimeException) error;
                 }
             }
         }

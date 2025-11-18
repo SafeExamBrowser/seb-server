@@ -169,6 +169,11 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         }
 
         @Override
+        public Long getLastUpdateTime() {
+            return ClientConnectionDataInternal.this.clientConnection.updateTime;
+        }
+
+        @Override
         public Map<Long, String> getIndicatorValues() {
             return ClientConnectionDataInternal.this.indicatorValues
                     .stream()
