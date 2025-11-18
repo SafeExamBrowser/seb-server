@@ -1,4 +1,5 @@
 SET FOREIGN_KEY_CHECKS = 0;
+SET GLOBAL FOREIGN_KEY_CHECKS=0;
 
 -- -----------------------------------------------------
 -- Table `institution`
@@ -274,3 +275,4 @@ ALTER TABLE `SEBServer`.`feature_privilege` CHARACTER SET = utf8mb4, COLLATE = u
   CHANGE COLUMN `user_uuid` `user_uuid` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL;
 
 SET FOREIGN_KEY_CHECKS = 1;
+SET GLOBAL FOREIGN_KEY_CHECKS=1;
