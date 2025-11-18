@@ -130,6 +130,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
             return userDAO.createNew(adHocTeacherUser)
                     .flatMap(account -> userDAO.setActive(account, true))
+                    .onError(error -> log.error("Failed to create ad hoc user data: {} adHocTeacherUser: {}", adHocAccountData, adHocTeacherUser, error))
                     .getOrThrow();
 
         });
@@ -144,13 +145,12 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         if (exam.status == Exam.ExamStatus.FINISHED || exam.status == Exam.ExamStatus.ARCHIVED) {
             return Result.ofError(new IllegalStateException("Exam is not running"));
         }
+
+        log.info("Try to get one time token for AdHocAccountData: {}", adHocAccountData);
         
         return this.userDAO
                 .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))
-                .onErrorDo(error -> {
-                    log.warn("********** getOneTimeTokenForTeacherAccount, getTeacherAccountIdentifier error: ", error);
-                    return handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData);
-                })
+                .onErrorDo(error -> handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData))
                 .map(account -> applySupporter(account, exam))
                 .map(account -> this.createOneTimeToken(account, exam.id));
     }
