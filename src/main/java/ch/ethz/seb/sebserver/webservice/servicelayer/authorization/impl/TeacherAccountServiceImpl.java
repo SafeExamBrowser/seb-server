@@ -130,7 +130,10 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
             return userDAO.createNew(adHocTeacherUser)
                     .flatMap(account -> userDAO.setActive(account, true))
-                    .onError(error -> log.error("Failed to create ad hoc user data: {} adHocTeacherUser: {}", adHocAccountData, adHocTeacherUser, error))
+                    .onError(error -> log.error("Failed to create ad hoc user data: {} adHocTeacherUser: {} error: {}",
+                            adHocAccountData,
+                            adHocTeacherUser,
+                            error.getMessage()))
                     .getOrThrow();
 
         });
