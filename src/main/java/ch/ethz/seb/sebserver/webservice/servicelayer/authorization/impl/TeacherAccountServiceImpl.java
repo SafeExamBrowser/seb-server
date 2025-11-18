@@ -89,6 +89,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final String userId) {
 
         if (lmsId == null || userId == null) {
+            log.error("Failed to getTeacherAccountIdentifier, examId and/or userId cannot be null: lmsId: {}, userId: {}", lmsId, userId);
             throw new RuntimeException("examId and/or userId cannot be null");
         }
 
@@ -146,7 +147,10 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         
         return this.userDAO
                 .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))
-                .onErrorDo(error -> handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData))
+                .onErrorDo(error -> {
+                    log.warn("********** getOneTimeTokenForTeacherAccount, getTeacherAccountIdentifier error: ", error);
+                    return handleAccountDoesNotExistYet(createIfNotExists, exam, adHocAccountData);
+                })
                 .map(account -> applySupporter(account, exam))
                 .map(account -> this.createOneTimeToken(account, exam.id));
     }
