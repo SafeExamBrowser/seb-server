@@ -89,6 +89,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             final String userId) {
 
         if (lmsId == null || userId == null) {
+            log.error("Failed to getTeacherAccountIdentifier, examId and/or userId cannot be null: lmsId: {}, userId: {}", lmsId, userId);
             throw new RuntimeException("examId and/or userId cannot be null");
         }
 
@@ -129,6 +130,10 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
             return userDAO.createNew(adHocTeacherUser)
                     .flatMap(account -> userDAO.setActive(account, true))
+                    .onError(error -> log.error("Failed to create ad hoc user data: {} adHocTeacherUser: {} error: {}",
+                            adHocAccountData,
+                            adHocTeacherUser,
+                            error.getMessage()))
                     .getOrThrow();
 
         });
@@ -143,6 +148,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         if (exam.status == Exam.ExamStatus.FINISHED || exam.status == Exam.ExamStatus.ARCHIVED) {
             return Result.ofError(new IllegalStateException("Exam is not running"));
         }
+
+        log.info("Try to get one time token for AdHocAccountData: {}", adHocAccountData);
         
         return this.userDAO
                 .byModelId(getTeacherAccountIdentifier(exam, adHocAccountData))

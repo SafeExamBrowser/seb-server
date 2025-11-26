@@ -32,6 +32,8 @@ import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
+import java.util.Objects;
+
 @Lazy
 @Component
 @GuiProfile
@@ -121,6 +123,13 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
                 final CharSequence confirm = confirmInput.getValue();
 
                 if (passwordInputField.initValue != null && passwordInputField.initValue.contentEquals(pwd)) {
+                    return;
+                }
+
+                if (!Objects.equals(pwd.toString(), pwd.toString().trim())) {
+                    passwordInputField.showError(viewContext
+                            .getI18nSupport()
+                            .getText(new LocTextKey("sebserver.form.validation.fieldError.hasInvalidTrailing", 256)));
                     return;
                 }
 

@@ -31,4 +31,16 @@ public final class AdHocAccountData {
         this.lastName = lastName;
         this.timezone = timezone;
     }
+
+    @Override
+    public String toString() {
+        return "AdHocAccountData{" +
+                "userId='" + userId + '\'' +
+                ", username='" + username + '\'' +
+                ", userMail='" + userMail + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", timezone='" + timezone + '\'' +
+                '}';
+    }
 }

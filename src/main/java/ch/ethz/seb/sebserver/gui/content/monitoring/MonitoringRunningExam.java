@@ -159,6 +159,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         final boolean cancelEnabled = currentUser.isFeatureEnabled(MONITORING_RUNNING_EXAM_CANCEL_CON);
         final boolean supporting = user.hasAnyRole(UserRole.EXAM_SUPPORTER, UserRole.TEACHER) &&
                 exam.supporter.contains(user.uuid);
+        final boolean isTeacherOnly = user.hasAnyRole(UserRole.TEACHER) && user.roles.size() == 1;
         final BooleanSupplier isExamSupporter = () -> supporting || user.hasRole(UserRole.EXAM_ADMIN);
 
         final Collection<Indicator> indicators = this.restService.getBuilder(GetIndicators.class)
@@ -229,7 +230,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withConfirm(() -> CONFIRM_QUIT_ALL)
                 .withExec(action -> this.quitSEBClients(action, clientTable, true))
                 .noEventPropagation()
-                .publishIf(() -> isExamSupporter.getAsBoolean() && quitEnabled)
+                .publishIf(() -> isExamSupporter.getAsBoolean() && quitEnabled && !isTeacherOnly)
 
                 .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
                 .withEntityKey(entityKey)

@@ -83,7 +83,7 @@ public class PasswordInput extends Composite {
     private void changePasswordView() {
         final String value = (this.passwordInputField != null)
                 ? this.passwordInputField.getText() != null
-                        ? this.passwordInputField.getText().trim()
+                        ? this.passwordInputField.getText()
                         : null
                 : null;
         final boolean buildPassword = this.isPlainText;

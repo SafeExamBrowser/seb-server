@@ -259,8 +259,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "SEB client connection, update ClientConnection for connectionToken {} institutionId: {} exam: {} client address: {} userSessionId: {} clientId: {}",
-                    connectionToken, institutionId, examId, clientAddress, userSessionId, clientId);
+                    "SEB client connection, update ClientConnection for connectionToken {} institutionId: {} exam: {} client address: {} userSessionId: {} clientId: {} ask-sent: {}",
+                    connectionToken, institutionId, examId, clientAddress, userSessionId, clientId,
+                    StringUtils.isNotBlank(appSignatureKey) ? "yes" : "no" );
             }
 
             final String updateUserSessionId = updateUserSessionId(
@@ -352,8 +353,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             if (log.isDebugEnabled()) {
                 log.debug(
-                        "SEB client connection, establish ClientConnection for connectionToken {} institutionId: {} exam: {} client address: {} userSessionId: {} clientId: {}",
-                        connectionToken, institutionId, examId, clientAddress, userSessionId, clientId);
+                        "SEB client connection, establish ClientConnection for connectionToken {} institutionId: {} exam: {} client address: {} userSessionId: {} clientId: {} ask-sent: {}",
+                        connectionToken, institutionId, examId, clientAddress, userSessionId, clientId,
+                        StringUtils.isNotBlank(appSignatureKey) ? "yes" : "no" );
             }
 
             final String updateUserSessionId = updateUserSessionId(
@@ -424,6 +426,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             } else if (log.isDebugEnabled()) {
                 log.debug("SEB client connection, successfully established ClientConnection: {}",
                         establishedClientConnection);
+            }
+            
+            if (StringUtils.isBlank(activeClientConnection.clientConnection.ask)) {
+                log.warn("No ASK has been saved for established connection: {}", activeClientConnection.clientConnection);
             }
 
             return establishedClientConnection;

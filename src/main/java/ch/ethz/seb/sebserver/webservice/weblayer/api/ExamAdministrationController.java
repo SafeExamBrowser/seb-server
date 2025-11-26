@@ -327,7 +327,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             return exam;
         }
         
-        return authorization.checkIsSupporterOrOwner(exam);
+        return authorization.checkIsExamAdminSupporterOrOwner(exam);
     }
 
     // **** SEB Security Key
@@ -711,6 +711,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @Override
     protected Result<Exam> validForCreate(final Exam entity) {
         return super.validForCreate(entity)
+                .map(this::checkQuitPasswordTrailing)
                 .map(this::checkExamSupporterRole);
     }
 
@@ -720,9 +721,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .map(this::checkExamSupporterRole)
                 .map(this::checkConsecutiveExam)
                 .map(ExamUtils::noLMSFieldValidation)
+                .map(this::checkQuitPasswordTrailing)
                 .map(this::checkQuitPasswordChange)
                 .map(this::mergeTeacherAccounts);
     }
+
     
     private Exam checkConsecutiveExam(final Exam exam) {
         if (exam.followUpId != null) {
@@ -800,6 +803,20 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @Override
     protected Result<Exam> validForDelete(final Exam entity) {
         return checkNoActiveSEBClientConnections(entity);
+    }
+
+    private Exam checkQuitPasswordTrailing(final Exam exam) {
+        if (exam.quitPassword != null) {
+            if (!Objects.equals(exam.quitPassword, StringUtils.trim(exam.quitPassword))) {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                EXAM.ATTR_QUIT_PASSWORD,
+                                EXAM.ATTR_QUIT_PASSWORD,
+                                "exam:quitPassword:hasInvalidTrailing:")));
+            }
+        }
+
+        return exam;
     }
 
     private Exam checkQuitPasswordChange(final Exam exam) {
