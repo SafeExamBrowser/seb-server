@@ -17,11 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout seb-server repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: main
     - name: Checkout Cobenian/shai-hulud-detect
-      uses: actions/checkout@master
+      uses: actions/checkout@v6
       with:
         repository: Cobenian/shai-hulud-detect
     - name: Workflow Dir
