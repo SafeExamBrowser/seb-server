@@ -34,8 +34,8 @@ jobs:
     - # Pipeline will automatically fail on exit codes 1 or 2
       name: Security Scan with Shai-Hulud Detector
       run: |
-        chmod +x ./shai-hulud-detector.sh
-        ./shai-hulud-detector.sh ./seb
+        chmod +x ./hulud/shai-hulud-detector.sh
+        ./hulud/shai-hulud-detector.sh ./seb
 
   maven-build-reporting:
     runs-on: ubuntu-latest
