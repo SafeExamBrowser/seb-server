@@ -26,6 +26,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         repository: Cobenian/shai-hulud-detect
+        clean: false
     - name: Workflow Dir
       run: echo $GITHUB_WORKSPACE
     - # Pipeline will automatically fail on exit codes 1 or 2
