@@ -16,12 +16,12 @@ jobs:
   shai-hulud-detector:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout seb-server repo
+      uses: actions/checkout@v4
     - name: Checkout Cobenian/shai-hulud-detect
       uses: actions/checkout@master
       with:
         repository: Cobenian/shai-hulud-detect
-    - name: Checkout seb-server repo
-      uses: actions/checkout@v4
     - # Pipeline will automatically fail on exit codes 1 or 2
       name: Security Scan with Shai-Hulud Detector
       run: |
