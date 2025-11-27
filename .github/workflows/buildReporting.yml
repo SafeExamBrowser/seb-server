@@ -18,6 +18,8 @@ jobs:
     steps:
     - name: Checkout seb-server repo
       uses: actions/checkout@v4
+      with:
+        path: main
     - name: Checkout Cobenian/shai-hulud-detect
       uses: actions/checkout@master
       with:
