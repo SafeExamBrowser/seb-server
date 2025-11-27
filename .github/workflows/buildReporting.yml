@@ -21,7 +21,7 @@ jobs:
     - name: Checkout seb-server repo
       uses: actions/checkout@v6
       with:
-        path: main
+        path: seb
         clean: false
     - name: Checkout Cobenian/shai-hulud-detect
       uses: actions/checkout@v6
@@ -34,7 +34,7 @@ jobs:
       name: Security Scan with Shai-Hulud Detector
       run: |
         chmod +x ./shai-hulud-detector.sh
-        ./shai-hulud-detector.sh ../main
+        ./shai-hulud-detector.sh ../seb
 
   maven-build-reporting:
     runs-on: ubuntu-latest
