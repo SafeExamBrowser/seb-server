@@ -27,6 +27,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         repository: Cobenian/shai-hulud-detect
+        path: hulud
         clean: false
     - name: Workflow Dir
       run: echo $GITHUB_WORKSPACE
@@ -34,7 +35,7 @@ jobs:
       name: Security Scan with Shai-Hulud Detector
       run: |
         chmod +x ./shai-hulud-detector.sh
-        ./shai-hulud-detector.sh ../seb
+        ./shai-hulud-detector.sh ./seb
 
   maven-build-reporting:
     runs-on: ubuntu-latest
