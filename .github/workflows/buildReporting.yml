@@ -19,7 +19,6 @@ jobs:
     - uses: actions/checkout@master
       with:
         name: Cobenian/shai-hulud-detect
-        ref: refs/heads/release
     - name: Checkout repository
       uses: actions/checkout@v4
     - # Pipeline will automatically fail on exit codes 1 or 2
