@@ -16,6 +16,8 @@ jobs:
   shai-hulud-detector:
     runs-on: ubuntu-latest
     steps:
+    - name: Workflow Dir
+      run: echo $GITHUB_WORKSPACE
     - name: Checkout seb-server repo
       uses: actions/checkout@v6
       with:
