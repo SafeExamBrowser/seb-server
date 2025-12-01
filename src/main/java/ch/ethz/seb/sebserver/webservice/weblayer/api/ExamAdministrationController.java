@@ -135,10 +135,16 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         filterMap.putIfAbsent(
                 FilterMap.ATTR_USER_TIME_ZONE,
                 authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
-        
-        return this.entityDAO.allMatching(
+
+        Result<Collection<Exam>> collectionResult = this.entityDAO.allMatching(
                 filterMap,
                 this::hasReadAccess);
+
+        if (!collectionResult.hasError()) {
+            System.out.println("*************** Exams found: " + collectionResult.get().size() + " Filter: " + filterMap);
+        }
+
+        return collectionResult;
     }
 
     @Override
