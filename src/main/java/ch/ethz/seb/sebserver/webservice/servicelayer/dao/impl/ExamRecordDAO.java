@@ -265,12 +265,15 @@ public class ExamRecordDAO {
                     ? filterMap.getSQLWildcard(QuizData.FILTER_ATTR_NAME)
                     : filterMap.getSQLWildcard(Domain.EXAM.ATTR_QUIZ_NAME);
 
-            return whereClause
+            List<ExamRecord> execute = whereClause
                     .and(
-                            ExamRecordDynamicSqlSupport.quizName,
+                            quizName,
                             isLikeWhenPresent(nameCriteria))
                     .build()
                     .execute();
+
+            System.out.println("************** exams found: " + execute.size());
+            return execute;
         });
     }
 
