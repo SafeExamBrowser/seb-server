@@ -292,9 +292,9 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         }
 
         releaseSEBClientRestriction(event.exam)
-                .onError(error -> log.error(
+                .onError(error -> log.info(
                         "Failed to release SEB restrictions for finished exam: {} error: {}",
-                        event.exam,
+                        event.exam.externalId,
                         error.getMessage()));
     }
 
@@ -314,7 +314,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                 .whenDo(
                         exam -> exam.lmsSetupId != null,
                         exam -> releaseSEBClientRestriction(exam).getOrThrow()
-                ).onError(error -> log.error(
+                ).onError(error -> log.info(
                         "Failed to release SEB restrictions for finished exam: {} error: {}",
                         examId, error.getMessage()));
     }
