@@ -316,7 +316,7 @@ interface SPS_API {
                 return accessToken.getExpiresIn() >= 60;
 
             } catch (final Exception e) {
-                log.error("Failed to verify SEB Screen Proctoring OAuth2RestTemplate status", e);
+                log.error("Failed to verify SEB Screen Proctoring OAuth2RestTemplate status. Error message: {}", e.getMessage());
                 return false;
             }
         }
