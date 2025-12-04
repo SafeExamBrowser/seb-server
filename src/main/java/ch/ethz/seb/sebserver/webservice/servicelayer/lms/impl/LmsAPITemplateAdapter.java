@@ -486,7 +486,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
         final Result<Exam> protectedRun = this.examRequest.protectedRun(() -> this.sebRestrictionAPI
                 .releaseSEBClientRestriction(exam)
-                .onError(error -> log.error(
+                .onError(error -> log.warn(
                         "Failed to release SEB restrictions: {}",
                         error.getMessage()))
                 .getOrThrow());
