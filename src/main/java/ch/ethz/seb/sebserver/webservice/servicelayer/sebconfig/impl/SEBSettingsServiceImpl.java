@@ -18,9 +18,11 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -40,6 +42,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
     private final ExamSessionService examSessionService;
+    private final ExamConfigService examConfigService;
     private final Cryptor cryptor;
 
     public SEBSettingsServiceImpl(
@@ -49,7 +52,8 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
             final ConfigurationValueDAO configurationValueDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamConfigUpdateService examConfigUpdateService,
-            final ExamSessionService examSessionService, 
+            final ExamSessionService examSessionService,
+            final ExamConfigService examConfigService,
             final Cryptor cryptor) {
         
         this.configurationDAO = configurationDAO;
@@ -59,6 +63,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examConfigUpdateService = examConfigUpdateService;
         this.examSessionService = examSessionService;
+        this.examConfigService = examConfigService;
         this.cryptor = cryptor;
     }
 
@@ -323,6 +328,8 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 .getOrThrow();
 
         final ConfigurationValue cValue = configurationValueDAO.byPK(valueId).getOrThrow();
+        examConfigService.validate(cValue);
+
         final ConfigurationValue newCValue = configurationValueDAO.save(new ConfigurationValue(
                 cValue.id,
                 cValue.institutionId,

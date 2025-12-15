@@ -125,7 +125,7 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
         return Result.tryCatch(() -> {
             final int deleteByPrimaryKey = this.clientInstructionRecordMapper.deleteByPrimaryKey(id);
             if (deleteByPrimaryKey != 1) {
-                throw new RuntimeException("Failed to delete ClientInstruction with id: " + id);
+                log.info("Failed to delete ClientInstruction with id:{}", id);
             } else if (log.isDebugEnabled()) {
                 log.debug("Deleted client instruction with id: {}", id);
             }

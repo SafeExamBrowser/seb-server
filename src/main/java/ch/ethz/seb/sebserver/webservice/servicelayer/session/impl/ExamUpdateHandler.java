@@ -213,7 +213,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                                                 Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS);
                                     }
                                     failedOrMissing.remove(quiz.id);
-                                    log.info("Updated quiz data for exam: {}", updateQuizData.get());
+                                    log.info("Updated quiz data for exam: {}", updateQuizData.get().id);
                                 }
 
                                 // also update the exam on screen proctoring service if exam has screen proctoring enabled

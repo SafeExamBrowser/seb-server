@@ -162,17 +162,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         clientId);
             }
 
-            final String connectionToken = createToken();
-
             if (examId != null) {
                 checkExamIntegrity(
                         examId,
                         null,
                         institutionId,
-                        connectionToken,
+                        "NONE",
                         clientAddress);
             }
 
+            final String connectionToken = createToken();
             final String updateUserSessionId = updateUserSessionId(
                     examId,
                     null,
@@ -738,9 +737,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
     private void checkExamRunning(final Long examId, final String ccToken, final String ccInfo) {
         if (examId != null && !this.examSessionService.isExamRunning(examId)) {
-            log.warn("The exam {} is not running. Called by: {} info {}", examId, ccToken, ccInfo);
-            throw new APIConstraintViolationException(
-                    "The exam " + examId + " is not running");
+            if (log.isDebugEnabled()) {
+                log.warn("The exam {} is not running. Called by: {} info {}", examId, ccToken, ccInfo);
+            }
+            throw new APIConstraintViolationException("The exam " + examId + " is not running. info: " + ccInfo);
         }
     }
 
