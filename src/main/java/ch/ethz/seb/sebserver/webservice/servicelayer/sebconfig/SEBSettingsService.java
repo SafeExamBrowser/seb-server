@@ -14,6 +14,7 @@ import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.springframework.context.event.EventListener;
 
 public interface SEBSettingsService {
@@ -33,13 +34,13 @@ public interface SEBSettingsService {
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info("------> Initialize SEB Settings Service...");
         SEBServerInit.INIT_LOGGER.info("------>");
-        
+
         /* Ids of all SEB Setting/Configuration Attributes for the Application view */
         VIEW_ATTRIBUTE_MAPPINGS.put(
                 SEBSettingsView.ViewType.APPLICATION,
-                new HashSet<>(Arrays.asList(
+                Utils.immutableSetOf( Arrays.asList(
                         73L, 74L, 75L, 76L, 77L, 78L, 79L, 81L, 82L, 85L,
-                        86L, 87L, 88L, 89L, 90L, 91L, 92L, 93L, 94L, 95L,
+                        86L, 87L, 88L, 89L, 90L, 91L, 93L, 94L, 95L,
                         96L, 97L, 98L, 99L, 100L, 1200L, 1577L, 1630L,
                         1631L, 1632L, 1633L, 1634L))
         );
@@ -47,7 +48,7 @@ public interface SEBSettingsService {
         /* Ids id all SEB Settings/ConfigurationAttributes for the Network vew */
         VIEW_ATTRIBUTE_MAPPINGS.put(
                 SEBSettingsView.ViewType.NETWORK,
-                new HashSet<>(Arrays.asList(
+                Utils.immutableSetOf( Arrays.asList(
                         200L, 201L, 202L, 203L, 204L, 205L, 206L, 210L, 220L,
                         221L, 222L, 223L, 231L, 233L, 234L, 235L, 236L, 237L,
                         238L, 239L, 240L, 241L, 242L, 243L, 244L, 245L, 246L,
@@ -64,7 +65,7 @@ public interface SEBSettingsService {
 
     Result<SEBSettingsView> getSEBSettingsOfTemplate(Long templateId, SEBSettingsView.ViewType viewType);
     Result<SEBSettingsView> getSEBSettingsOfExam(Long examId, SEBSettingsView.ViewType viewType);
-    
+
     Result<List<SEBSettingsView.TableRowValues>> getTableValuesOfTemplate(Long templateId,  String attributeName);
     Result<List<SEBSettingsView.TableRowValues>> getTableValuesOfExam(Long examId,  String attributeName);
     

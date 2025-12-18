@@ -733,8 +733,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         }
     }
 
-
-
     private void checkExamRunning(final Long examId, final String ccToken, final String ccInfo) {
         if (examId != null && !this.examSessionService.isExamRunning(examId)) {
             if (log.isDebugEnabled()) {

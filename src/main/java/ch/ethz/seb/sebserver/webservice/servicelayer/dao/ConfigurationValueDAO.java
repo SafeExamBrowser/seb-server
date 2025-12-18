@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationAttributeRecord;
 
 public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, ConfigurationValue> {
 
@@ -103,5 +104,4 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
 
     Result<ConfigurationValue> saveForce(ConfigurationValue configurationValue);
 
-    
 }

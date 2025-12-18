@@ -256,7 +256,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .stream()
                 .map(ConfigurationValueDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
     }
 
     @Override
@@ -280,7 +280,30 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             value);
 
                     this.configurationValueRecordMapper.insert(newRecord);
-                    return newRecord;
+
+                    List<ConfigurationValueRecord> newResults = configurationValueRecordMapper
+                            .selectByExample()
+                            .where(
+                                    institutionId,
+                                    SqlBuilder.isEqualToWhenPresent(data.institutionId))
+                            .and(
+                                    configurationId,
+                                    isEqualTo(data.configurationId))
+                            .and(
+                                    configurationAttributeId,
+                                    isEqualTo(data.attributeId))
+                            .and(
+                                    listIndex,
+                                    isEqualTo(data.listIndex))
+                            .build()
+                            .execute();
+
+                    if (newResults == null || newResults.size() != 1) {
+                        log.warn("Expected one value but found none or more then one: {}", newResults);
+                        return newRecord;
+                    }
+
+                    return newResults.get(0);
                 })
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -784,6 +807,27 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             final int index) {
 
         log.info("Missing SEB Setting value detected for attribute: {} try to create one", attr);
+
+        // first try to find value if one already exists, return that
+        Optional<ConfigurationValueRecord> first = this.configurationValueRecordMapper.selectByExample()
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        isEqualTo(configurationId))
+                .and(
+                        configurationAttributeId,
+                        isEqualTo(attr.getId()))
+                .and(
+                        listIndex,
+                        isEqualTo(index))
+                .build()
+                .execute()
+                .stream()
+                .findFirst();
+
+        if (first.isPresent()) {
+            log.info("Found missing SEB Setting value: {}", first.get());
+            return toDomainModel(first.get()).getOr(null);
+        }
 
         return createNew(new ConfigurationValue(
                 null,

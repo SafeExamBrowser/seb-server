@@ -22,7 +22,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -69,9 +68,13 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
 
     @Override
     public Set<Long> getAttributeIdsForView(final SEBSettingsView.ViewType viewType) {
+        if (VIEW_ATTRIBUTE_MAPPINGS.containsKey(viewType)) {
+            return VIEW_ATTRIBUTE_MAPPINGS.get(viewType);
+        }
+
         return orientationDAO
                 .getConfigAttributeIdsOfView(viewType)
-                .getOr(VIEW_ATTRIBUTE_MAPPINGS.get(viewType));
+                .getOrThrow();
     }
 
 
@@ -284,7 +287,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         final Map<String, ConfigurationAttribute> attributes = getAttributesForView(viewType);
         final Map<Long, ConfigurationAttribute> attrIdMapping = attributes.values().stream()
                 .collect(Collectors.toMap(attr -> attr.id, Function.identity()));
-        final Map<String, SEBSettingsView.Value>  singleValues = getSingleValues(followUpConfig.id, attributes);
+        final Map<String, SEBSettingsView.Value>  singleValues = getSingleValues(viewType, followUpConfig.id, attributes);
         final Map<String, List<SEBSettingsView.TableRowValues>> tableValues = getTableRowMapping(followUpConfig, attributes, attrIdMapping);
 
         return new SEBSettingsView(
@@ -485,21 +488,84 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     }
 
     private Map<String, SEBSettingsView.Value> getSingleValues(
+            final SEBSettingsView.ViewType viewType,
             final Long configId,
             final Map<String, ConfigurationAttribute> attributes) {
 
         final Map<Long, ConfigurationAttribute> attrIdsMap = attributes.values().stream()
                 .filter( attr -> attr.parentId == null)
                 .collect(Collectors.toMap(attr -> attr.id, Function.identity()));
-        return configurationValueDAO
+
+        final Set<Long> missing = new HashSet<>(VIEW_ATTRIBUTE_MAPPINGS.getOrDefault(viewType, Collections.emptySet()));
+
+        Map<String, SEBSettingsView.Value> vals = configurationValueDAO
                 .getConfigAttributeValues(configId, attrIdsMap.keySet())
-                .map( attrs -> attrs.stream()
+                .map(values -> values.stream()
+                        .peek(val -> missing.remove(val.attributeId))
                         .collect(Collectors.toMap(
                                 val -> attrIdsMap.get(val.attributeId).name,
                                 val -> new SEBSettingsView.Value(
-                                        val.id, 
-                                        convertValueRead( attrIdsMap.get(val.attributeId).id, val.value) ))))
+                                        val.id,
+                                        convertValueRead(attrIdsMap.get(val.attributeId).id, val.value)))))
+                .onError(error -> log.warn("Failed to get single values: ", error))
                 .getOrThrow();
+
+        // create missing values if we have (init with default value)
+        // Note: We need that because the GUI needs a value id to store changed values afterward
+        if (!missing.isEmpty()) {
+            Configuration configuration = configurationDAO.byPK(configId).getOr(null);
+            if (configuration != null) {
+                missing.forEach(attrId -> handleMissing(attrId, configuration, vals, attrIdsMap));
+            }
+        }
+
+        return vals;
+    }
+
+    private void handleMissing(
+            Long attrId,
+            Configuration configuration,
+            Map<String, SEBSettingsView.Value> vals,
+            Map<Long, ConfigurationAttribute> attrIdsMap) {
+
+        try {
+            ConfigurationAttribute missingAttr = configurationAttributeDAO.byPK(attrId).getOrThrow();
+
+            // If this is not a single value, skip
+            if (missingAttr.parentId != null ||
+                    missingAttr.type ==AttributeType.TABLE ||
+                    missingAttr.type ==AttributeType.COMPOSITE_TABLE ||
+                    missingAttr.type ==AttributeType.INLINE_TABLE) {
+                return;
+            }
+
+            ConfigurationAttribute configurationAttribute = attrIdsMap.get(attrId);
+            if (configurationAttribute == null) {
+                return;
+            }
+
+            log.info("Missing SEB Setting value detected for attribute: {} try to create one", missingAttr);
+
+            ConfigurationValue newValue = configurationValueDAO.createNew(new ConfigurationValue(
+                            null,
+                            configuration.institutionId,
+                            configuration.id,
+                            missingAttr.getId(),
+                            0,
+                            missingAttr.getDefaultValue()))
+                    .onError(error -> log.error("Failed to create missing SEB Setting value: {}", error.getMessage()))
+                    .getOr(null);
+
+            if (newValue != null) {
+                vals.put(
+                        configurationAttribute.getName(),
+                        new SEBSettingsView.Value(
+                                newValue.id,
+                                convertValueRead(configurationAttribute.id, newValue.value)));
+            }
+        } catch (Exception e) {
+            log.warn("Failed to create new value for missing SEB Settings: {}", attrId);
+        }
     }
 
     private Result<List<SEBSettingsView.TableRowValues>> getTableValues(
