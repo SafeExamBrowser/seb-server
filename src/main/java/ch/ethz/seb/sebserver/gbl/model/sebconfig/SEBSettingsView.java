@@ -37,7 +37,7 @@ public record SEBSettingsView(
         DOWN_UPLOAD(4L),
         EXAM(5L),
         APPLICATION(6L),
-        RESOURCES(5L),
+        RESOURCES(7L),
         NETWORK(8L),
         SECURITY(9L),
         REGISTRY(10L),
