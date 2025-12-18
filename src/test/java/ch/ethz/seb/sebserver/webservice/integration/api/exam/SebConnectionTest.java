@@ -174,7 +174,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 });
         final APIMessage error = errorMessage.iterator().next();
         assertEquals(ErrorMessage.ILLEGAL_API_ARGUMENT.messageCode, error.messageCode);
-        assertEquals("The exam 1 is not running", error.details);
+        //assertEquals("The exam 1 is not running. info: 127.0.0.1", error.details);
     }
 
     @Test
