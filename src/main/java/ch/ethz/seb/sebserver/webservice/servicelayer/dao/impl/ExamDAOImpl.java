@@ -674,6 +674,8 @@ public class ExamDAOImpl implements ExamDAO {
             }
 
             // notify exam deletion listener about following deletion, to clean up stuff before deletion
+            // TODO this is blocking and should never be done within this transaction
+            //      Move this up to be done before core deletion here
             this.applicationEventPublisher.publishEvent(new ExamDeletionEvent(ids));
 
             this.examRecordMapper.deleteByExample()

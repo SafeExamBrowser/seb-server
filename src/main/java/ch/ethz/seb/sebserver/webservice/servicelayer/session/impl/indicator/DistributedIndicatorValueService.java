@@ -385,6 +385,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
     }
 
     /** Update an indicator value within a transaction */
+    // TODO do we need the Transaction here?
     @Transactional
     void updateIndicatorValue(final Long pk, final Long value) {
         try {

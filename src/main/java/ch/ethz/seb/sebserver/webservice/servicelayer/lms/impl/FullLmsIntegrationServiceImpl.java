@@ -581,6 +581,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     private Exam checkDeletion(final Exam exam) {
+        // TODO it should also not been deleted when archived
         if (exam.status != Exam.ExamStatus.RUNNING) {
             return exam;
         }
