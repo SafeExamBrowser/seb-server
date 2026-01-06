@@ -433,7 +433,7 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> this.examRecordMapper.selectByExample()
                         .where(
                                 ExamRecordDynamicSqlSupport.lmsSetupId,
-                                isNotNull())
+                                isEqualTo(lmsSetupId))
                         .and(
                                 ExamRecordDynamicSqlSupport.status,
                                 isNotEqualTo(ExamStatus.ARCHIVED.name()))
