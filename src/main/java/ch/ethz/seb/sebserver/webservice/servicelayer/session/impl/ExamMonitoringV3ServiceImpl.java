@@ -339,7 +339,34 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             return true;
         };
     }
-    
+
+    @Override
+    public ClientInstruction createQuitAllInstruction(final Long examId) {
+        try {
+
+            if (!examSessionService.isExamRunning(examId)) {
+                log.warn("Failed to create ClientInstruction for quit all for Exam: {} because Exam is not running", examId);
+                return null;
+            }
+
+            return clientConnectionDAO
+                    .getAllActiveConnectionTokens(examId)
+                    .map(tokens -> StringUtils.join(tokens, Constants.LIST_SEPARATOR))
+                    .map(allTokens -> new ClientInstruction(
+                            null,
+                            examId,
+                            ClientInstruction.InstructionType.SEB_QUIT,
+                            allTokens,
+                            null))
+                    .onError(error -> log.error("Failed to create ClientInstruction for quit all for Exam: {}. cause: {}", examId, error.getMessage()))
+                    .getOr(null);
+
+        } catch (Exception e) {
+            log.error("Failed to create ClientInstruction for quit all for Exam: {}", examId, e);
+            return null;
+        }
+    }
+
     private final static class IndicatorProbe {
         double battery_min = Double.MAX_VALUE;
         double wlan_min = Double.MAX_VALUE;

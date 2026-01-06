@@ -294,7 +294,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 final AuthenticationException authenticationException) throws IOException {
 
             log.warn("Unauthorized Request: {} : Redirect to login after unauthorized request",
-                    request.getRequestURI());
+                    request.getRequestURI(), authenticationException);
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.flushBuffer();

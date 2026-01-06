@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ExamMonitoringOverviewData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
@@ -36,7 +37,7 @@ public interface ExamMonitoringV3Service {
     /** Use this to create a monitoring page list filter.
      * Inputs are comma separated lists of filter values for a filter-group
      * Logic is: OR in filter-groups, AND between filter-groups
-     * 
+     *
      * @param showStates connection state filter group, comma separated list of ConnectionStatus
      * @param showClientGroups client group filter group, comma separated list of client group ids
      * @param showIndicators indicator filter group, comma separated list of IndicatorType. Currently only WLAN und BATTERY are supported
@@ -47,5 +48,11 @@ public interface ExamMonitoringV3Service {
             String showClientGroups,
             String showIndicators,
             String showNotifications);
-    
+
+    /** Use this to create a quit all active SEB clients instruction for a given Exam.
+     *
+     * @param examId The exam id
+     * @return ClientInstruction to quit all active SEB clients of the given exam or null if there are none */
+    ClientInstruction createQuitAllInstruction(Long examId);
+
 }

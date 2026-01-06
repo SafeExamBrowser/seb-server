@@ -273,6 +273,7 @@ public final class API {
     public static final String EXAM_MONITORING_FINISHED_ENDPOINT = "/finishedexams";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
+    public static final String EXAM_MONITORING_QUIT_ALL = "/quitAll";
 
     public static final String EXAM_MONITORING_LIST_SHOW_ALL = "show-all";
     public static final String EXAM_MONITORING_LIST_FILTER_SHOW_STATE = "show-states";

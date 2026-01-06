@@ -485,6 +485,33 @@ public class ExamMonitoringController {
 
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_QUIT_ALL,
+            method = RequestMethod.POST)
+    public void quitAllActiveSEBClients(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId) {
+
+        checkPrivileges(institutionId, examId);
+
+        log.info("Quit all active SEB Clients for Exam: : {}", examId);
+
+        final ClientInstruction clientInstruction = examMonitoringV3Service.createQuitAllInstruction(examId);
+        if (clientInstruction != null) {
+            userActivityLogDAO.log(
+                    UserLogActivityType.REGISTER_INSTRUCTION,
+                    EntityType.EXAM,
+                    String.valueOf(examId),
+                    clientInstruction.toString()
+            );
+            this.sebClientInstructionService.registerInstructionAsync(clientInstruction);
+        }
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_INSTRUCTION_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE)
