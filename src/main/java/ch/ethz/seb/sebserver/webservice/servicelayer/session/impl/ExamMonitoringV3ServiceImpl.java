@@ -95,7 +95,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         if (spsGroups.containsKey(-1L)) {
             final ScreenProctoringGroup spsFallbackGroup = spsGroups.get(-1L);
             groups.put(-1L, new ClientGroup(
-                    1L, 
+                    1L,
                     spsFallbackGroup.name,
                     spsFallbackGroup.uuid,
                     "SP_FALLBACK_GROUP",
@@ -174,20 +174,18 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     // groups
                     try {
                         if (cc.groups != null) {
-                            if (cc.groups.isEmpty()) {
-                                if (screenProctoringEnabled) {
-                                    groups.get(-1L).clientAmount++;
+                            boolean checkSPSFallback = true;
+                            for (Long group : cc.groups) {
+                                ClientGroup clientGroup = groups.get(group);
+                                clientGroup.clientAmount++;
+                                if (clientGroup.spsGroupUUID != null) {
+                                    checkSPSFallback = false;
                                 }
-                            } else {
-                                cc.groups.forEach(gId -> {
-                                    if (groups.containsKey(gId)) {
-                                        groups.get(gId).clientAmount++;
-                                    }
-                                });
                             }
-                        } else if (screenProctoringEnabled) {
-                            final ClientGroup fallbackGroup = groups.get(-1L);
-                            fallbackGroup.clientAmount++;
+                            if (checkSPSFallback && screenProctoringEnabled && groups.containsKey(-1L) &&
+                                    cc.clientConnection.status.clientActiveStatus && cc.clientConnection.screenProctoringGroupId != null) {
+                                groups.get(-1L).clientAmount++;
+                            }
                         }
                     } catch (final Exception e) {
                         // TODO remove this after testing
