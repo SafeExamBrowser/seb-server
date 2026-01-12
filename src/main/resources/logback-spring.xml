@@ -24,6 +24,15 @@
     </Logger>
   </springProfile>
 
+    <springProfile name="e2e">
+        <root level="INFO" additivity="true">
+            <appender-ref ref="STDOUT" />
+        </root>
+        <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+        </Logger>
+    </springProfile>
+
     <springProfile name="bundled">
         <root level="INFO" additivity="true">
             <appender-ref ref="STDOUT" />
