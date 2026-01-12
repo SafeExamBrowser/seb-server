@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +36,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueCon
 @Component
 @WebServiceProfile
 public class InlineTableConverter implements AttributeValueConverter {
+
+    private static final Logger log = LoggerFactory.getLogger(InlineTableConverter.class);
 
     private static final String XML_KEY_TEMPLATE = "<key>%s</key>";
     private static final byte[] XML_ARRAY_START = Utils.toByteArray("<array>");
@@ -103,14 +107,22 @@ public class InlineTableConverter implements AttributeValueConverter {
         final String[] rows = StringUtils.split(value.value, Constants.LIST_SEPARATOR);
         final String[] columns = getSortedColumns(attribute.getResources());
 
-        StringUtils.split(attribute.resources, Constants.LIST_SEPARATOR);
         for (int i = 0; i < rows.length; i++) {
             final String[] values = StringUtils.split(rows[i], Constants.EMBEDDED_LIST_SEPARATOR);
 
             out.write((xml) ? XML_DICT_START : JSON_DICT_START);
 
             for (int j = 0; j < columns.length; j++) {
-                final String[] val = StringUtils.split(values[j], Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
+                final String[] val = new String[2];
+                int dIndex = values[j].indexOf(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
+                if (dIndex > 0) {
+                    val[0] = values[j].substring(0, dIndex);
+                    val[1] = values[j].substring(dIndex + 1);
+                } else {
+                    log.error("Failed to convert inline table value: {}, ignore it!", values[j]);
+                    continue;
+                }
+
                 final String[] column = StringUtils.split(columns[j], Constants.COMPLEX_VALUE_SEPARATOR);
                 final AttributeType attributeType = AttributeType.valueOf(column[2]);
                 final AttributeValueConverter attributeValueConverter = this.attributeValueConverterService
