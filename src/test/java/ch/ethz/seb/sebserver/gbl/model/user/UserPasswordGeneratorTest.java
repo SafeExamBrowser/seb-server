@@ -10,7 +10,7 @@ public class UserPasswordGeneratorTest {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(8);
 
         //Type in password here and run the test. It should output a hashed password
-        String rawPassword = "rthambiah";
+        String rawPassword = "insert password here";
         String hash = encoder.encode(rawPassword);
 
         System.out.println("RAW:  " + rawPassword);
