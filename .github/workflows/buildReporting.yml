@@ -57,7 +57,7 @@ jobs:
       name: Build Test Reporting
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'adopt'
     -
       name: Cache Maven packages

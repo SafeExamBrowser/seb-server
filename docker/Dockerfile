@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre-jammy
 
 ENV SERVER_PORT="8080"
 ENV JMX_PORT=
