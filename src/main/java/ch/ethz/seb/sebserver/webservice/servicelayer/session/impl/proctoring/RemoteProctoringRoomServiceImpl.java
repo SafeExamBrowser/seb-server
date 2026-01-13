@@ -35,7 +35,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.ProctoringRoomType;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -51,7 +50,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructio
 
 @Lazy
 @Service
-@WebServiceProfile
 public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomService {
 
     private static final Logger log = LoggerFactory.getLogger(RemoteProctoringRoomServiceImpl.class);

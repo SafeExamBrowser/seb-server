@@ -22,13 +22,11 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.monitoring.ClientGroupMatcherService;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class InternalClientConnectionDataFactory {
 
     private static final Logger log = LoggerFactory.getLogger(InternalClientConnectionDataFactory.class);

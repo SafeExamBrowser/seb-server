@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class LmsTestServiceImpl implements LmsTestService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsTestServiceImpl.class);

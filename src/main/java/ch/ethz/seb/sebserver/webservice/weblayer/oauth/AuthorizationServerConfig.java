@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
 import javax.servlet.http.HttpServletResponse;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +19,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -35,7 +32,6 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceSecurityConfig;
 import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
 
@@ -45,7 +41,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
  * SEB Server webservice;
  * - Administration API for administrative purpose using password grant type with refresh token
  * - Exam API for SEB-Client connections on running exams using client_credential grant type */
-@WebServiceProfile
 @Configuration
 @EnableAuthorizationServer
 @Order(100)

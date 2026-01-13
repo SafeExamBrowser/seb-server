@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -60,7 +59,6 @@ import java.util.stream.Stream;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientConnectionServiceImpl implements SEBClientConnectionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientConnectionServiceImpl.class);

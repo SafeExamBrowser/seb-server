@@ -40,7 +40,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
@@ -53,7 +52,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationExcep
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamConfigServiceImpl implements ExamConfigService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigServiceImpl.class);

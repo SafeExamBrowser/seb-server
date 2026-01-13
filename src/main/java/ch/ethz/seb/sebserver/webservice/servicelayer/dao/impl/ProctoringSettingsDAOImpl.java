@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -45,7 +44,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
 
     private static final Logger log = LoggerFactory.getLogger(ProctoringSettingsDAOImpl.class);

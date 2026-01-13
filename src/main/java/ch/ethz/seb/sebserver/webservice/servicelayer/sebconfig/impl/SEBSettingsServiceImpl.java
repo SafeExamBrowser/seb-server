@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBSettingsServiceImpl implements SEBSettingsService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBSettingsServiceImpl.class);

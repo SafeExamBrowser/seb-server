@@ -25,12 +25,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class PasswordDecryptor {
 
     private static final Logger log = LoggerFactory.getLogger(PasswordDecryptor.class);

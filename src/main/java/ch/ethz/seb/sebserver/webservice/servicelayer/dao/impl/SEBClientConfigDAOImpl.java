@@ -45,7 +45,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.ConfigPurpose;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
@@ -64,7 +63,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint.Revok
 
 @Lazy
 @Component
-@WebServiceProfile
 public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;

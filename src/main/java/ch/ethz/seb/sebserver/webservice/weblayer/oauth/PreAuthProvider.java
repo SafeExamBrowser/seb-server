@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
 import javax.annotation.PostConstruct;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class PreAuthProvider extends PreAuthenticatedAuthenticationProvider {
 
     private final WebServiceUserDetails webServiceUserDetails;

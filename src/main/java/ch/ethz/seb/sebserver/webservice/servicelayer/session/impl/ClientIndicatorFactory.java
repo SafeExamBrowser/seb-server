@@ -26,7 +26,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
@@ -34,7 +33,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.Ping
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientIndicatorFactory {
 
     private static final Logger log = LoggerFactory.getLogger(ClientIndicatorFactory.class);

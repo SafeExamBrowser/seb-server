@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.DBIntegrityCheck;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
@@ -25,7 +24,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.OrientationRecord;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class OrientationTableDuplicatesCheck implements DBIntegrityCheck {
 
     private final OrientationRecordMapper orientationRecordMapper;

@@ -19,11 +19,9 @@ import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Component
-@WebServiceProfile
 public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(SEBServerMigrationStrategy.class);

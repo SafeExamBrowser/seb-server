@@ -23,14 +23,12 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
 import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion.ClientVersion;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientVersionService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientVersionServiceImpl implements SEBClientVersionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientVersionServiceImpl.class);

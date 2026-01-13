@@ -17,7 +17,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.*;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -48,7 +47,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     private static final Logger log = LoggerFactory.getLogger(TeacherAccountServiceImpl.class);

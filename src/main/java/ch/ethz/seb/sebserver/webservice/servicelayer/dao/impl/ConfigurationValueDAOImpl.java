@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
@@ -60,7 +59,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitSer
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationValueDAOImpl.class);

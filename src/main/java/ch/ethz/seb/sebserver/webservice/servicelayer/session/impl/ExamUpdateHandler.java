@@ -32,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -51,7 +50,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringSer
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamUpdateHandler implements ExamUpdateTask {
 
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);

@@ -20,7 +20,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -28,7 +27,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventExporter
 
 @Lazy
 @Component
-@WebServiceProfile
 public class SEBClientEventCSVExporter implements SEBClientEventExporter {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientEventCSVExporter.class);

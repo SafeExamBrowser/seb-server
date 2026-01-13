@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationTy
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
@@ -38,7 +37,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringV3ServiceImpl.class);

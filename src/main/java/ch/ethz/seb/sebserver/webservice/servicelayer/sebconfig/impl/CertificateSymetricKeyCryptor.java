@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
@@ -38,7 +37,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncrypti
 
 @Lazy
 @Component
-@WebServiceProfile
+
 /** Uses symetric key for encryption of the data and a certificate asymetric key to encrypt
  * and decrypt the symetric key. All is put together as described here:
  * https://www.safeexambrowser.org/developer/seb-file-format.html

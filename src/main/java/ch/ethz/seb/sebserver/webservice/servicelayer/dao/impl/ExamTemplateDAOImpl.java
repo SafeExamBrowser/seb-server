@@ -12,17 +12,13 @@ import static ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings.*;
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -45,7 +41,6 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
@@ -56,7 +51,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     private final ExamTemplateRecordMapper examTemplateRecordMapper;

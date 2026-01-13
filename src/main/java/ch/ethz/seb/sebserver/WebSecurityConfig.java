@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,14 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 /** This is the overall seb-server Spring web-configuration that is loaded for all profiles.
  * Defines some overall web-security beans needed on both -- web-service and web-gui -- profiles */
 @Configuration
-@WebServiceProfile
-@GuiProfile
 @RestController
 @Order(7)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {

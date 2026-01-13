@@ -28,13 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class WebserviceInfo {
 
     private static final Logger log = LoggerFactory.getLogger(WebserviceInfo.class);

@@ -19,13 +19,11 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class AttributeValueConverterServiceImpl implements AttributeValueConverterService {
 
     private static final Logger log = LoggerFactory.getLogger(AttributeValueConverterServiceImpl.class);

@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigCryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
@@ -41,7 +40,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncrypti
 
 @Lazy
 @Service
-@WebServiceProfile
 public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryptionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBConfigEncryptionServiceImpl.class);

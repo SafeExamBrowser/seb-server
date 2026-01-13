@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -120,150 +121,165 @@ import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
-import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.DoBatchAction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchAction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchActionPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateSEBRestriction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportSEBSettingsConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMapping;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamDependencies;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroupPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.NewClientGroup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.SaveClientGroup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.DeleteIndicatorTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplatePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.NewIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.NewIndicatorTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.SaveIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.SaveIndicatorTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.DeleteExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetDefaultExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplatePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplates;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.NewExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.SaveExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.ActivateLmsSetup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.DeactivateLmsSetup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllClientEvents;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.ExportSEBClientLogs;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.AddCertificate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificateNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificatePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.RemoveCertificate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeactivateClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ExportClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttachDefaultOrientation;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationTableValues;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValuePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetFollowupConfiguration;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientationPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttribute;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttributePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.RemoveOrientation;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetTemplateValues;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.CloseProctoringRoom;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRoomConnections;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnection;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnectionPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.NotifyProctoringRoomOpened;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.OpenTownhallRoom;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendProctoringReconfigurationAttributes;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeleteUserAccount;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependencies;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.RegisterNewUser;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
+//import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
+//import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
+import ch.ethz.seb.sebserver.gui.api.*;
+import ch.ethz.seb.sebserver.gui.api.exam.*;
+import ch.ethz.seb.sebserver.gui.api.exam.indicator.*;
+import ch.ethz.seb.sebserver.gui.api.exam.clientgroup.*;
+import ch.ethz.seb.sebserver.gui.api.exam.template.*;
+import ch.ethz.seb.sebserver.gui.api.exam.seckey.*;
+import ch.ethz.seb.sebserver.gui.api.batch.*;
+import ch.ethz.seb.sebserver.gui.api.institution.*;
+import ch.ethz.seb.sebserver.gui.api.lmssetup.*;
+import ch.ethz.seb.sebserver.gui.api.logs.*;
+import ch.ethz.seb.sebserver.gui.api.quiz.*;
+import ch.ethz.seb.sebserver.gui.api.seb.clientconfig.*;
+import ch.ethz.seb.sebserver.gui.api.seb.cert.*;
+import ch.ethz.seb.sebserver.gui.api.seb.examconfig.*;
+import ch.ethz.seb.sebserver.gui.api.session.*;
+import ch.ethz.seb.sebserver.gui.api.useraccount.*;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.DoBatchAction;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchAction;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchActionPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateSEBRestriction;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExam;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportSEBSettingsConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMapping;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamDependencies;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamProctoringSettings;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroupPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.NewClientGroup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.SaveClientGroup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.DeleteIndicatorTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicator;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplatePage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.NewIndicator;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.NewIndicatorTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.SaveIndicator;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.SaveIndicatorTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.DeleteExamTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetDefaultExamTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplatePage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplates;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.NewExamTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.SaveExamTemplate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.NewInstitution;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.ActivateLmsSetup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.DeactivateLmsSetup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllClientEvents;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.ExportSEBClientLogs;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.AddCertificate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificateNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificatePage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.RemoveCertificate;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeactivateClientConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ExportClientConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfigPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.AttachDefaultOrientation;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.CopyConfiguration;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigAttributes;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationTableValues;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValuePage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodePage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetFollowupConfiguration;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientationPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetOrientations;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttribute;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttributePage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewList;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViewPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.RemoveOrientation;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetTemplateValues;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.CloseProctoringRoom;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRoomConnections;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnection;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnectionPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.NotifyProctoringRoomOpened;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.OpenTownhallRoom;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendProctoringReconfigurationAttributes;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeleteUserAccount;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependencies;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.RegisterNewUser;
+//import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
@@ -1249,40 +1265,40 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetOrientations(),
                 new GetOrientationPage());
 
-        final ExamConfigurationServiceImpl examConfigurationService = new ExamConfigurationServiceImpl(
-                restService,
-                new JSONMapper(),
-                null, null,
-                Collections.emptyList());
-
-        final Result<AttributeMapping> attributes = examConfigurationService.getAttributes(0l);
-        assertNotNull(attributes);
-        assertFalse(attributes.hasError());
-        final AttributeMapping attributeMapping = attributes.get();
-        assertEquals(194, attributeMapping.attributeIdMapping.size());
-        assertEquals(
-                "[active, audio, backToStart, browserSecurity, browserViewMode, exitSequence, functionKeys, kioskMode, logging, "
-                        + "macSettings, newBrowserWindow, newwinsize, proxies, quitLink, registry, servicePolicy, sessionHandling, "
-                        + "specialKeys, spellcheck, taskbar, urlFilter, userAgentDesktop, userAgentMac, userAgentTouch, winsize, wintoolbar, "
-                        + "zoom, zoomMode]",
-                attributeMapping.attributeGroupMapping.keySet()
-                        .stream()
-                        .sorted()
-                        .collect(Collectors.toList())
-                        .toString());
-
-        final String viewIds = StringUtils.join(attributeMapping.getViewIds().stream().map(String::valueOf)
-                .collect(Collectors.toList()),
-                Constants.LIST_SEPARATOR_CHAR);
-
-        assertEquals("1,2,3,4,5,6,8,9,10,11", viewIds);
-        final Result<List<View>> viewsResponse = restService
-                .getBuilder(GetViewList.class)
-                .withQueryParam(API.PARAM_MODEL_ID_LIST, viewIds)
-                .call();
-
-        assertNotNull(viewsResponse);
-        assertFalse(viewsResponse.hasError());
+//        final ExamConfigurationServiceImpl examConfigurationService = new ExamConfigurationServiceImpl(
+//                restService,
+//                new JSONMapper(),
+//                null, null,
+//                Collections.emptyList());
+//
+//        final Result<AttributeMapping> attributes = examConfigurationService.getAttributes(0l);
+//        assertNotNull(attributes);
+//        assertFalse(attributes.hasError());
+//        final AttributeMapping attributeMapping = attributes.get();
+//        assertEquals(194, attributeMapping.attributeIdMapping.size());
+//        assertEquals(
+//                "[active, audio, backToStart, browserSecurity, browserViewMode, exitSequence, functionKeys, kioskMode, logging, "
+//                        + "macSettings, newBrowserWindow, newwinsize, proxies, quitLink, registry, servicePolicy, sessionHandling, "
+//                        + "specialKeys, spellcheck, taskbar, urlFilter, userAgentDesktop, userAgentMac, userAgentTouch, winsize, wintoolbar, "
+//                        + "zoom, zoomMode]",
+//                attributeMapping.attributeGroupMapping.keySet()
+//                        .stream()
+//                        .sorted()
+//                        .collect(Collectors.toList())
+//                        .toString());
+//
+//        final String viewIds = StringUtils.join(attributeMapping.getViewIds().stream().map(String::valueOf)
+//                .collect(Collectors.toList()),
+//                Constants.LIST_SEPARATOR_CHAR);
+//
+//        assertEquals("1,2,3,4,5,6,8,9,10,11", viewIds);
+//        final Result<List<View>> viewsResponse = restService
+//                .getBuilder(GetViewList.class)
+//                .withQueryParam(API.PARAM_MODEL_ID_LIST, viewIds)
+//                .call();
+//
+//        assertNotNull(viewsResponse);
+//        assertFalse(viewsResponse.hasError());
     }
 
     @Test

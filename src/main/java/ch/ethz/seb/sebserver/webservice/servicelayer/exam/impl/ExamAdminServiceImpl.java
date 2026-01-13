@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
@@ -38,7 +37,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringSer
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamAdminServiceImpl implements ExamAdminService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAdminServiceImpl.class);

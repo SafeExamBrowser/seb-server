@@ -41,7 +41,6 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
@@ -56,7 +55,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExamConfigIO {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigIO.class);

@@ -38,7 +38,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientConnectionTokenMapper;
@@ -66,7 +65,6 @@ import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;

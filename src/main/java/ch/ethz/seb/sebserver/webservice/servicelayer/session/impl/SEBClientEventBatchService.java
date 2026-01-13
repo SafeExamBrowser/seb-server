@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
@@ -42,7 +41,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificati
 
 @Lazy
 @Component
-@WebServiceProfile
 public class SEBClientEventBatchService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientEventBatchService.class);

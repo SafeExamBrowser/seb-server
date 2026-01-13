@@ -37,7 +37,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -50,7 +49,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBRestrictionServiceImpl.class);

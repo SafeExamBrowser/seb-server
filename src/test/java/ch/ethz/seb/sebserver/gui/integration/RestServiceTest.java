@@ -13,6 +13,9 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gui.api.RestCall;
+import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.api.auth.OAuth2AuthorizationContextHolder;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -24,9 +27,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
 
 public class RestServiceTest extends GuiIntegrationTest {
 

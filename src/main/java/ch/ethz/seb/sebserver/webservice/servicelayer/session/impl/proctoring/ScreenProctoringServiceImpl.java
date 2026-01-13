@@ -39,7 +39,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
@@ -49,7 +48,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.SPS
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringServiceImpl.class);

@@ -24,11 +24,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
 
 @Configuration
-@WebServiceProfile
 public class WebserviceConfig {
 
     public static final String SWAGGER_AUTH_SEB_API = "SEBOAuth";

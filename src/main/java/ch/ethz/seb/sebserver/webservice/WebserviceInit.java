@@ -21,12 +21,10 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo.ScreenProctoringServiceBundle;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Component
-@WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
 public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent> {
 

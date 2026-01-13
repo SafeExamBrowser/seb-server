@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
@@ -47,7 +46,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplat
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigTemplateServiceImpl.class);

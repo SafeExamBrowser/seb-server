@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.api.seb.clientconfig.*;
 import org.junit.Test;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -19,12 +21,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeactivateClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class ClientConfigTest extends GuiIntegrationTest {

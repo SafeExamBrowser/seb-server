@@ -15,12 +15,10 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class IntegerTypeValidator implements ConfigurationValueValidator {
 
     public static final String NAME = "IntegerTypeValidator";

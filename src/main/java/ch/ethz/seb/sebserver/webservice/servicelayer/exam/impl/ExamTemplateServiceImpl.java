@@ -37,7 +37,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -51,7 +50,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamTemplateServiceImpl implements ExamTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateServiceImpl.class);

@@ -36,7 +36,6 @@ import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientIndicatorValueMapper;
@@ -47,7 +46,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientIndicatorRec
 
 @Lazy
 @Component
-@WebServiceProfile
 /** This service is only needed within a distributed setup where more then one webservice works
  * simultaneously within one SEB Server and one persistent storage.
  * </p>

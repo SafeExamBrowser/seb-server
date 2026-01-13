@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -60,7 +59,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServe
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ScreenProctoringAPIBinding {
 
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringAPIBinding.class);

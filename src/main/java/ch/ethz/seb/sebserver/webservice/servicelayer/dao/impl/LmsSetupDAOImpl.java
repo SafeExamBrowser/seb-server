@@ -37,7 +37,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
@@ -47,7 +46,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private final LmsSetupRecordMapper lmsSetupRecordMapper;

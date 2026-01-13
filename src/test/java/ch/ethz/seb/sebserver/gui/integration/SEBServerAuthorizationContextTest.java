@@ -10,11 +10,11 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import ch.ethz.seb.sebserver.gui.api.auth.SEBServerAuthorizationContext;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 
 public class SEBServerAuthorizationContextTest extends GuiIntegrationTest {
 

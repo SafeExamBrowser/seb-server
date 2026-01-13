@@ -35,7 +35,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.SizedArrayNonBlockingQueue;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -46,7 +45,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructio
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientInstructionServiceImpl implements SEBClientInstructionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientInstructionServiceImpl.class);

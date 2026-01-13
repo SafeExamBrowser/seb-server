@@ -49,7 +49,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 
 public final class Utils {
 
@@ -854,10 +853,6 @@ public final class Utils {
             return null;
         }
         return enumInst.name();
-    }
-
-    public static LocTextKey createFilterTooltipKey(final LocTextKey key) {
-        return new LocTextKey(key.name + ".filter" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     }
 
     public static void sleep(final int i) {

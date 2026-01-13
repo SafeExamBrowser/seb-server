@@ -41,7 +41,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.BatisConfig;
@@ -66,7 +65,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitSer
  * intensive write operation on Configuration domain. */
 @Lazy
 @Component
-@WebServiceProfile
 @DependsOn("batisConfig")
 public class ConfigurationDAOBatchService {
 

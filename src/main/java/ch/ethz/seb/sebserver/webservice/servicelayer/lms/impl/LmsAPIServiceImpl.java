@@ -20,14 +20,12 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class LmsAPIServiceImpl implements LmsAPIService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsAPIServiceImpl.class);

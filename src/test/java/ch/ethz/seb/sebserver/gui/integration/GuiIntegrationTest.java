@@ -12,6 +12,11 @@ import static org.junit.Assert.assertNotNull;
 
 import javax.servlet.http.HttpSession;
 
+import ch.ethz.seb.sebserver.gui.api.RestCall;
+import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.api.auth.OAuth2AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.api.auth.SEBServerAuthorizationContext;
+import ch.ethz.seb.sebserver.gui.api.auth.WebserviceURIService;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -31,11 +36,6 @@ import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
