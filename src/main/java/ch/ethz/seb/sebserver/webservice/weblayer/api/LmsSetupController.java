@@ -66,7 +66,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     private final SEBRestrictionService sebRestrictionService;
     private final FullLmsIntegrationService fullLmsIntegrationService;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final Executor executor;
     private final Cryptor cryptor;
 
     public LmsSetupController(
@@ -81,8 +80,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final SEBRestrictionService sebRestrictionService,
             final FullLmsIntegrationService fullLmsIntegrationService,
             final ApplicationEventPublisher applicationEventPublisher,
-            final Cryptor cryptor,
-            @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
+            final Cryptor cryptor) {
 
         super(authorization,
                 bulkActionService,
@@ -96,7 +94,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         this.sebRestrictionService = sebRestrictionService;
         this.fullLmsIntegrationService = fullLmsIntegrationService;
         this.applicationEventPublisher = applicationEventPublisher;
-        this.executor = executor;
         this.cryptor = cryptor;
     }
 
@@ -104,7 +101,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public LmsSetup getBy(@PathVariable final String modelId) {
 
@@ -147,7 +143,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     @RequestMapping(
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public LmsSetupTestResult testLms(
             @RequestParam(

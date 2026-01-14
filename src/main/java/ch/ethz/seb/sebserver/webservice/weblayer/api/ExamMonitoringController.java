@@ -151,7 +151,6 @@ public class ExamMonitoringController {
      * @return Page of domain-model-entities of specified type */
     @RequestMapping(
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<Exam> getPage(
             @RequestParam(
@@ -212,7 +211,6 @@ public class ExamMonitoringController {
     @RequestMapping(
             path = API.EXAM_MONITORING_FINISHED_ENDPOINT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<Exam> getFinishedExamsPage(
             @RequestParam(
@@ -364,7 +362,6 @@ public class ExamMonitoringController {
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientConnectionData> getConnectionData(
             @RequestParam(
@@ -429,7 +426,6 @@ public class ExamMonitoringController {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_FULLPAGE,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public MonitoringFullPageData getFullMonitoringPageData(
             @RequestParam(
@@ -464,7 +460,6 @@ public class ExamMonitoringController {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientConnectionData getConnectionDataForSingleConnection(
             @RequestParam(
@@ -540,7 +535,6 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientNotification> pendingNotifications(
             @RequestParam(
@@ -633,7 +627,6 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SecurityKey getAppSignatureKey(
             @RequestParam(

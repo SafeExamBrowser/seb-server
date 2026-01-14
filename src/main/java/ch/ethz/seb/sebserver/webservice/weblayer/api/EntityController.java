@@ -136,17 +136,16 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @return Page of domain-model-entities of specified type */
     @Operation(
             summary = "Get a page of the specific domain entity. Sorting and filtering is applied before paging",
-            description = "Sorting: the sort parameter to sort the list of entities before paging\n"
-                    + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
-                    + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most\n"
-                    + "are.\n"
-                    + "</p>\n"
-                    + "Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)\n"
-                    + "and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually\n"
-                    + "filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
-                    + "a given text-snippet.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            description = """
+                    Sorting: the sort parameter to sort the list of entities before paging
+                    the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+                    descending sort order. Note that not all entity-model attribute are suited for sorting while the most
+                    are.
+                    </p>
+                    Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
+                    and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
+                    filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
+                    a given text-snippet.""",
             parameters = {
                     @Parameter(
                             name = Page.ATTR_PAGE_NUMBER,
@@ -171,7 +170,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             })
     @RequestMapping(
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<T> getPage(
             @RequestParam(
@@ -207,14 +205,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
     @Operation(
             summary = "Get a filtered list of specific entity name keys.",
-            description = "An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity."
-                    + "</p>\n"
-                    + "Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)\n"
-                    + "and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually\n"
-                    + "filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
-                    + "a given text-snippet.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            description = """
+                    An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity.\
+                    </p>
+                    Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
+                    and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
+                    filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
+                    a given text-snippet.""",
             parameters = {
                     @Parameter(
                             name = API.PARAM_INSTITUTION_ID,
@@ -231,7 +228,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getNames(
             @RequestParam(
@@ -268,15 +264,15 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @Operation(
             summary = "Get a list of dependency keys of all dependent entity objects for a "
                     + "specified source entity and bulk action.",
-            description = "Get a list of dependency keys of all dependent entity objects for a "
-                    + "specified source entity and bulk action.\n " +
-                    "This can be used to verify depended objects for a certain bulk action to "
-                    + "give a report of affected objects beforehand.\n " +
-                    "For example for a delete action of a certain object, this gives all objects "
-                    + "that will also be deleted within the deletion of the source object",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
-
+            description = """
+                    Get a list of dependency keys of all dependent entity objects for a \
+                    specified source entity and bulk action.
+                     \
+                    This can be used to verify depended objects for a certain bulk action to \
+                    give a report of affected objects beforehand.
+                     \
+                    For example for a delete action of a certain object, this gives all objects \
+                    that will also be deleted within the deletion of the source object""",
             parameters = {
                     @Parameter(
                             name = API.PARAM_MODEL_ID,
@@ -296,7 +292,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityDependency> getDependencies(
             @PathVariable final String modelId,
@@ -311,7 +306,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         final BulkAction bulkAction = new BulkAction(
                 bulkActionType,
                 this.entityDAO.entityType(),
-                Arrays.asList(new EntityKey(modelId, this.entityDAO.entityType())),
+                List.of(new EntityKey(modelId, this.entityDAO.entityType())),
                 convertToEntityType(addIncludes, includes));
 
         this.bulkActionService.collectDependencies(bulkAction);
@@ -321,7 +316,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ******************
     // * GET (single)
     // ******************
-
     @Operation(
             summary = "Get a single entity by its modelId.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -335,7 +329,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public T getBy(@PathVariable final String modelId) {
 
@@ -351,8 +344,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
     @Operation(
             summary = "Get a list of entity objects by a given list of model identifiers of entities.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
                             name = API.PARAM_MODEL_ID_LIST,
@@ -361,7 +352,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             path = API.LIST_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public List<T> getForIds(@RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String modelIds) {
 
@@ -456,7 +446,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ************************
     // * DELETE (hard-delete)
     // ************************
-
     @Operation(
             summary = "Deletes a single entity (and all its dependencies) by its modelId.",
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
@@ -535,7 +524,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // **************************
     // * DELETE ALL (hard-delete)
     // **************************
-
     @Operation(
             summary = "Deletes all given entity (and all its dependencies) by a given list of model identifiers.",
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
@@ -637,7 +625,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         final BulkAction bulkAction = new BulkAction(
                 BulkActionType.HARD_DELETE,
                 entity.entityType(),
-                Arrays.asList(new EntityName(entity.getModelId(), entity.entityType(), entity.getName())),
+                List.of(new EntityName(entity.getModelId(), entity.entityType(), entity.getName())),
                 includeDependencies);
 
         return Result.tryCatch(() -> new Pair<>(

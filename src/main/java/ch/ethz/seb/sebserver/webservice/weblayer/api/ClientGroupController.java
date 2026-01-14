@@ -85,7 +85,7 @@ public class ClientGroupController extends EntityController<ClientGroup, ClientG
         }
 
         return this.examDao.byPK(entity.examId)
-                .flatMap(e -> this.authorization.checkWrite(e))
+                .flatMap(this.authorization::checkWrite)
                 .map(e -> entity);
     }
 

@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -135,7 +134,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration getFollowup(@PathVariable final Long modelId) {
 
@@ -152,7 +150,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SETTINGS_PUBLISHED_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SettingsPublished settingsPublished(
             @RequestParam(
@@ -228,7 +225,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_CONFIG_KEY_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigKey getConfigKey(
             @PathVariable final Long modelId,
@@ -327,7 +323,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         if (doImport.hasError()) {
 
             // rollback of the new configuration
-            this.configurationNodeDAO.delete(new HashSet<>(Arrays.asList(new EntityKey(
+            this.configurationNodeDAO.delete(new HashSet<>(List.of(new EntityKey(
                     followup.configurationNodeId,
                     EntityType.CONFIGURATION_NODE))));
         }
@@ -404,7 +400,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT + API.TEMPLATE_ATTRIBUTE_ENDPOINT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<TemplateAttribute> getTemplateAttributePage(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
@@ -463,7 +458,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute getTemplateAttribute(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,

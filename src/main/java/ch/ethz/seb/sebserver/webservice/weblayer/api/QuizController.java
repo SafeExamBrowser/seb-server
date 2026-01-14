@@ -75,7 +75,6 @@ public class QuizController {
 
     @RequestMapping(
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<QuizData> getQuizPage(
             @RequestParam(
@@ -129,7 +128,6 @@ public class QuizController {
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public QuizData getQuiz(
             @PathVariable final String modelId,

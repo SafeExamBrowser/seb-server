@@ -68,8 +68,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                     + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
                     + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most\n"
                     + "are.\n",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
                             name = Page.ATTR_PAGE_NUMBER,
@@ -88,7 +86,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     @RequestMapping(
             path = API.ACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<T> allActive(
             @RequestParam(
@@ -119,8 +116,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                     + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
                     + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most\n"
                     + "are.\n",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
                             name = Page.ATTR_PAGE_NUMBER,
@@ -140,7 +135,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     @RequestMapping(
             path = API.INACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<T> allInactive(
             @RequestParam(

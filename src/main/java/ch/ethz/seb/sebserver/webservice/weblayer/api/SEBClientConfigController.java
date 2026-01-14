@@ -92,7 +92,6 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBClientConfig getBy(@PathVariable final String modelId) {
 

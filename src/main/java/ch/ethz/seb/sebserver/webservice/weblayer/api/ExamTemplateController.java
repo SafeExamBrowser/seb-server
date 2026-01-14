@@ -95,7 +95,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ExamTemplate getBy(@PathVariable final String modelId) {
 
@@ -134,7 +133,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     @RequestMapping(
             path = API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ExamTemplate getDefault() {
         final Long institutionId = super.authorization
@@ -255,7 +253,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<IndicatorTemplate> getIndicatorPage(
             @PathVariable final String modelId,
@@ -292,7 +289,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public IndicatorTemplate getIndicatorBy(
             @PathVariable final String parentModelId,
@@ -399,7 +395,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<ClientGroupTemplate> getClientGroupTemplatePage(
             @PathVariable final String modelId,
@@ -437,7 +432,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientGroupTemplate getClientGroupTemplateBy(
             @PathVariable final String parentModelId,
@@ -536,65 +530,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     }
 
     // **** Client Group Templates
-    // ****************************************************************************
-    // ****************************************************************************
-    // **** Proctoring
-// NOTE: Not used anymore... remove it for 3.0
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-//            method = RequestMethod.GET,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ProctoringServiceSettings getProctoringServiceSettings(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable final Long modelId) {
-//
-//        checkReadPrivilege(institutionId);
-//        return this.proctoringServiceSettingsService
-//                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM_TEMPLATE))
-//                .getOrThrow();
-//    }
-//
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-//            method = RequestMethod.POST,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ExamTemplate saveProctoringServiceSettings(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-//            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
-//
-//        checkModifyPrivilege(institutionId);
-//        return this.entityDAO
-//                .byPK(examId)
-//                .flatMap(this.authorization::checkModify)
-//                .flatMap(examTemplate -> testAndSaveProctoringSettings(examId, examTemplate, proctoringServiceSettings))
-//                .flatMap(this.userActivityLogDAO::logModify)
-//                .getOrThrow();
-//    }
-//
-//    private Result<ExamTemplate> testAndSaveProctoringSettings(
-//            final Long examId,
-//            final ExamTemplate examTemplate,
-//            final ProctoringServiceSettings proctoringServiceSettings) {
-//
-//        return this.proctoringServiceSettingsService
-//                .testProctoringSettings(proctoringServiceSettings)
-//                .flatMap(test -> this.proctoringServiceSettingsService
-//                        .saveProctoringServiceSettings(
-//                                new EntityKey(examId, EntityType.EXAM_TEMPLATE),
-//                                proctoringServiceSettings))
-//                .map(settings -> examTemplate);
-//    }
-
-    // **** Proctoring
     // ****************************************************************************
     // ****************************************************************************
     // **** Screen Proctoring
@@ -752,7 +687,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             try {
                 final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle = webserviceInfo
                         .getScreenProctoringServiceBundle();
-                
+
                 final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
                         null,
                         BooleanUtils.toBoolean(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)),

@@ -84,7 +84,6 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_COLLECTING_ROOMS_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<RemoteProctoringRoom> getCollectingRoomsOfExam(
             @RequestParam(
@@ -103,7 +102,6 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_SCREEN_PROCTORING_GROUPS_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ScreenProctoringGroup> getScreenProctoringGroupsOfExam(
             @RequestParam(
@@ -121,8 +119,6 @@ public class ExamProctoringController {
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ProctoringRoomConnection getProctorRoomConnection(
             @RequestParam(
@@ -168,7 +164,6 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientConnection> getAllClientConnectionsInRoom(
             @RequestParam(

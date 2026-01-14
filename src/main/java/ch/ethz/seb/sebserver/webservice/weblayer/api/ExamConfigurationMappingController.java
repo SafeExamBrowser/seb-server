@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -236,7 +237,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     private ExamConfigurationMap checkPasswordMatch(final ExamConfigurationMap entity) {
-        if (entity.hasEncryptionSecret() && !entity.encryptSecret.equals(entity.confirmEncryptSecret)) {
+        if (entity.hasEncryptionSecret() && !Objects.equals(entity.encryptSecret, entity.confirmEncryptSecret)) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.EXAM_CONFIGURATION_MAP.TYPE_NAME,

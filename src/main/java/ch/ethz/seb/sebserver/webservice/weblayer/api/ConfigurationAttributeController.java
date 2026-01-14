@@ -56,7 +56,6 @@ public class ConfigurationAttributeController extends EntityController<Configura
     @RequestMapping(
             path = API.LIST_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public List<ConfigurationAttribute> getForIds(
             @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = false) final String modelIds) {

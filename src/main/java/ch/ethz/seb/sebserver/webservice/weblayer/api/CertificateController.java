@@ -80,7 +80,7 @@ public class CertificateController {
     /** This is called by Spring to initialize the WebDataBinder and is used here to
      * initialize the default value binding for the institutionId request-parameter
      * that has the current users insitutionId as default.
-     *
+     * <p>
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {
@@ -119,7 +119,6 @@ public class CertificateController {
      * @return Page of domain-model-entities of specified type */
     @RequestMapping(
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<CertificateInfo> getPage(
             @RequestParam(
@@ -151,7 +150,6 @@ public class CertificateController {
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getNames(
             @RequestParam(
@@ -176,7 +174,6 @@ public class CertificateController {
     @RequestMapping(
             path = API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateInfo getAlias(
             @RequestParam(

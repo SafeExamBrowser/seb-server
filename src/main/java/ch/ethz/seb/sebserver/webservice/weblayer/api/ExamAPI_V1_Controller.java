@@ -149,7 +149,7 @@ public class ExamAPI_V1_Controller {
                                 .byPK(examId)
                                 .getOrThrow();
 
-                        result = Arrays.asList(createRunningExamInfo(exam));
+                        result = List.of(createRunningExamInfo(exam));
                         processASKSalt(response, clientConnection);
                         processAlternativeBEK(response, clientConnection.examId);
                     }
