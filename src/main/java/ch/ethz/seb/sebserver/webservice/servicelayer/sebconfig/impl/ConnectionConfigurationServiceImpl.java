@@ -16,9 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -36,8 +36,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -61,7 +62,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncrypti
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 @Lazy
 @Service
@@ -198,27 +201,44 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
     }
 
     @Override
-    public Result<ClientDetails> getClientConfigDetails(final String clientName) {
+    public Result<RegisteredClient> getClientConfigDetails(final String clientName) {
         return this.getEncodedClientConfigSecret(clientName)
                 .map(pwd -> {
 
-                    final BaseClientDetails baseClientDetails = new BaseClientDetails(
-                            Utils.toString(clientName),
-                            WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
-                            null,
-                            Constants.OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS,
-                            StringUtils.EMPTY);
+                    return RegisteredClient
+                            .withId(clientName)
+                            .clientId(clientName)
+                            .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                            .clientSecretExpiresAt(null)
+                            .scope(API.READ_SCOPE_NAME)
+                            .scope(API.WRITE_SCOPE_NAME)
+                            .scope(API.SEB_API_SCOPE_NAME)
+                            .tokenSettings(TokenSettings
+                                    .builder()
+                                    .accessTokenTimeToLive(Duration.of(this.examAPITokenValiditySeconds, SECONDS))
+                                    .build())
+                            .clientSecret(Utils.toString(pwd))
+                            .build();
 
-                    baseClientDetails.setScope(Collections.emptySet());
-                    baseClientDetails.setClientSecret(Utils.toString(pwd));
-                    baseClientDetails.setAccessTokenValiditySeconds(this.examAPITokenValiditySeconds);
-                    baseClientDetails.setRefreshTokenValiditySeconds(-1); // not used, not expiring
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Created new BaseClientDetails for id: {}", clientName);
-                    }
-
-                    return baseClientDetails;
+//                    final BaseClientDetails baseClientDetails = new BaseClientDetails(
+//                            Utils.toString(clientName),
+//                            WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
+//                            null,
+//                            Constants.OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS,
+//                            StringUtils.EMPTY);
+//
+//                    baseClientDetails.setScope(Collections.emptySet());
+//                    baseClientDetails.setClientSecret(Utils.toString(pwd));
+//                    baseClientDetails.setAccessTokenValiditySeconds(this.examAPITokenValiditySeconds);
+//                    baseClientDetails.setRefreshTokenValiditySeconds(-1); // not used, not expiring
+//
+//                    if (log.isDebugEnabled()) {
+//                        log.debug("Created new BaseClientDetails for id: {}", clientName);
+//                    }
+//
+//                    return baseClientDetails;
                 });
     }
 

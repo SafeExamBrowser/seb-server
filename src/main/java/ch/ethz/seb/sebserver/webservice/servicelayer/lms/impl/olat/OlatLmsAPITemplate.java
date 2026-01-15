@@ -32,7 +32,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
@@ -506,16 +505,19 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                     .getPlainClientSecret(credentials)
                     .getOrThrow();
 
-            final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
-            details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/{username}?password={password}");
-            details.setClientId(plainClientId.toString());
-            details.setClientSecret(plainClientSecret.toString());
+//            final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
+//            details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/{username}?password={password}");
+//            details.setClientId(plainClientId.toString());
+//            details.setClientSecret(plainClientSecret.toString());
 
             final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
                     .getClientHttpRequestFactory(proxyData)
                     .getOrThrow();
 
-            final OlatLmsRestTemplate template = new OlatLmsRestTemplate(details);
+            final OlatLmsRestTemplate template = new OlatLmsRestTemplate(
+                    lmsSetup.lmsApiUrl + "/restapi/auth/{username}?password={password}",
+                    plainClientId.toString(),
+                    plainClientSecret.toString());
             template.setRequestFactory(clientHttpRequestFactory);
 
             this.cachedRestTemplate = template;

@@ -3,8 +3,8 @@ package ch.ethz.seb.sebserver.webservice.integration.api.exam;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Optional;

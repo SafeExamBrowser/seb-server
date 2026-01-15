@@ -1,7 +1,7 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 
 import java.util.Arrays;
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 public class CertificateRecord {
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.893+01:00", comments="Source field: certificate.id")

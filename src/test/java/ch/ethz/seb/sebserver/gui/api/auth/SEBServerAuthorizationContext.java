@@ -12,6 +12,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.LoginForward;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 /** Defines functionality for the SEB Server webservice authorization context used to
@@ -63,7 +64,7 @@ public interface SEBServerAuthorizationContext {
     /** Get the underling RestTemplate to connect and communicate with the SEB Server webservice.
      *
      * @return the underling RestTemplate to connect and communicate with the SEB Server webservice */
-    RestTemplate getRestTemplate();
+    OAuthRestTemplate getRestTemplate();
 
     CharSequence getUserPassword();
 

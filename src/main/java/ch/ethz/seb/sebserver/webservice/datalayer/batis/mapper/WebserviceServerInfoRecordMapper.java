@@ -5,7 +5,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.WebserviceServerInfoRecord;
 import java.util.List;
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 import org.apache.ibatis.annotations.Arg;
 import org.apache.ibatis.annotations.ConstructorArgs;
 import org.apache.ibatis.annotations.DeleteProvider;

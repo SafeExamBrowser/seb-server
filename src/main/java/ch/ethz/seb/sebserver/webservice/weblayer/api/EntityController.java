@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;

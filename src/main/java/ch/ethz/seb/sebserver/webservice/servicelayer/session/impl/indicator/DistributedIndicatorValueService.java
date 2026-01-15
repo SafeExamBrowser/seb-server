@@ -361,7 +361,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
                             Utils.getMillisecondsNow()));
         } catch (final Exception e) {
             if (log.isTraceEnabled()) {
-                log.warn("Failed to schedule ping task: {}" + e.getMessage());
+                log.warn("Failed to schedule ping task: {}", e.getMessage());
             }
         }
     }
@@ -376,7 +376,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
             return true;
         } catch (final Exception e) {
             if (log.isDebugEnabled()) {
-                log.warn("Failed to schedule indicator update task: {}" + e.getMessage());
+                log.warn("Failed to schedule indicator update task: {}", e.getMessage());
             }
             return false;
         }
@@ -389,7 +389,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
         try {
             this.clientIndicatorValueMapper.updateIndicatorValue(pk, value);
         } catch (final Exception e) {
-            log.warn("Failed to update indicator value: {}" + e.getMessage());
+            log.warn("Failed to update indicator value: {}", e.getMessage());
         }
     }
 
@@ -398,7 +398,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
         try {
             this.clientIndicatorValueMapper.incrementIndicatorValue(pk);
         } catch (final Exception e) {
-            log.warn("Failed to increment indicator value: {}" + e.getMessage());
+            log.warn("Failed to increment indicator value: {}", e.getMessage());
         }
     }
 

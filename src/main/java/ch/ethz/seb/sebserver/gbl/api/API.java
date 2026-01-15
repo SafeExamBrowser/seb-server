@@ -17,6 +17,11 @@ public final class API {
     public static final String ERROR_PATH = "/sebserver/error";
     public static final String CHECK_PATH = "/sebserver/check";
 
+    public static final String READ_SCOPE_NAME = "read";
+    public static final String WRITE_SCOPE_NAME = "write";
+    public static final String WEB_API_SCOPE_NAME = "web-api";
+    public static final String SEB_API_SCOPE_NAME = "seb-api";
+
     public enum BulkActionType {
         HARD_DELETE,
         DEACTIVATE,

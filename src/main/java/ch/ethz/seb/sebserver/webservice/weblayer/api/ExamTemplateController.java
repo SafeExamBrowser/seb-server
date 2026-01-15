@@ -11,8 +11,8 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.*;
 import java.util.function.Function;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;

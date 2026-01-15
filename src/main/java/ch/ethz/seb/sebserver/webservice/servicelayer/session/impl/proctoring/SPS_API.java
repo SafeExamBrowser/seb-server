@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,9 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -218,17 +216,15 @@ interface SPS_API {
         static final List<String> SCOPES = Collections.unmodifiableList(
                 Arrays.asList("read", "write"));
 
-        //final SPSAPIAccessData spsAPIAccessData;
         final String spsServiceURL;
         final CircuitBreaker<ResponseEntity<String>> circuitBreaker;
-        final OAuth2RestTemplate restTemplate;
+        final OAuthRestTemplate restTemplate;
 
         ScreenProctoringServiceOAuthTemplate(
                 final ScreenProctoringAPIBinding apiBinding,
                 final SPSAPIAccessData spsAPIAccessData) {
 
             this.spsServiceURL = spsAPIAccessData.getSpsServiceURL();
-            //this.spsAPIAccessData = spsAPIAccessData;
             this.circuitBreaker = apiBinding.asyncService.createCircuitBreaker(
                     2,
                     10 * Constants.SECOND_IN_MILLIS,
@@ -238,28 +234,40 @@ interface SPS_API {
                     spsAPIAccessData.getSpsAPIKey(),
                     spsAPIAccessData.getSpsAPISecret());
 
-            CharSequence decryptedSecret = apiBinding.cryptor
+            CharSequence decryptedAPISecret = apiBinding.cryptor
                     .decrypt(clientCredentials.secret)
                     .getOr(clientCredentials.secret);
 
-            final ResourceOwnerPasswordResourceDetails resource = new ResourceOwnerPasswordResourceDetails();
-            resource.setAccessTokenUri(spsAPIAccessData.getSpsServiceURL() + TOKEN_ENDPOINT);
-            resource.setClientId(clientCredentials.clientIdAsString());
-            resource.setClientSecret(decryptedSecret.toString());
-            resource.setGrantType(GRANT_TYPE);
-            resource.setScope(SCOPES);
             final ClientCredentials userCredentials = new ClientCredentials(
                     spsAPIAccessData.getSpsAccountId(),
                     spsAPIAccessData.getSpsAccountPassword());
 
-            decryptedSecret = apiBinding.cryptor
+            CharSequence decryptedUserSecret = apiBinding.cryptor
                     .decrypt(userCredentials.secret)
                     .getOr(userCredentials.secret);
 
-            resource.setUsername(userCredentials.clientIdAsString());
-            resource.setPassword(decryptedSecret.toString());
+            final OAuthRestTemplate.DefaultClientSettingsProvider clientSettingsProvider = new OAuthRestTemplate.DefaultClientSettingsProvider(
+                    clientCredentials.clientIdAsString(),
+                    decryptedAPISecret.toString(),
+                    userCredentials.clientIdAsString(),
+                    decryptedUserSecret.toString(),
+                    StringUtils.join(SCOPES, Constants.SPACE));
 
-            this.restTemplate = apiBinding.getOAuth2RestTemplate(resource);
+            restTemplate = apiBinding.getOAuth2RestTemplate(
+                    spsAPIAccessData.getSpsServiceURL(),
+                    TOKEN_ENDPOINT,
+                    clientSettingsProvider);
+
+//            final ResourceOwnerPasswordResourceDetails resource = new ResourceOwnerPasswordResourceDetails();
+//            resource.setAccessTokenUri(spsAPIAccessData.getSpsServiceURL() + TOKEN_ENDPOINT);
+//            resource.setClientId(clientCredentials.clientIdAsString());
+//            resource.setClientSecret(decryptedSecret.toString());
+//            resource.setGrantType(GRANT_TYPE);
+//            resource.setScope(SCOPES);
+//            resource.setUsername(userCredentials.clientIdAsString());
+//            resource.setPassword(decryptedSecret.toString());
+
+//            this.restTemplate = apiBinding.getOAuth2RestTemplate(resource);
         }
 
         ResponseEntity<String> testServiceConnection() {
@@ -303,20 +311,15 @@ interface SPS_API {
             
             try {
 
-                final OAuth2AccessToken accessToken = this.restTemplate.getAccessToken();
+                CharSequence accessToken = this.restTemplate.getAccessToken();
                 if (accessToken == null) {
                     return false;
                 }
 
-                final boolean expired = accessToken.isExpired();
-                if (expired) {
-                    return false;
-                }
-
-                return accessToken.getExpiresIn() >= 60;
+                return !this.restTemplate.checkAccessTokenExpiresIn(60);
 
             } catch (final Exception e) {
-                log.warn("Failed to verify SEB Screen Proctoring OAuth2RestTemplate status. Error message: {}", e.getMessage());
+                log.warn("Failed to verify SEB Screen Proctoring OAuthRestTemplate status. Error message: {}", e.getMessage());
                 return false;
             }
         }
@@ -365,16 +368,25 @@ interface SPS_API {
                 final HttpHeaders httpHeaders) {
 
             final Result<ResponseEntity<String>> protectedRunResult = this.circuitBreaker.protectedRun(() -> {
-                final HttpEntity<Object> httpEntity = (body != null)
-                        ? new HttpEntity<>(body, httpHeaders)
-                        : new HttpEntity<>(httpHeaders);
+
+
+//                final HttpEntity<Object> httpEntity = (body != null)
+//                        ? new HttpEntity<>(body, httpHeaders)
+//                        : new HttpEntity<>(httpHeaders);
 
                 try {
+
                     final ResponseEntity<String> result = this.restTemplate.exchange(
                             url,
                             method,
-                            httpEntity,
-                            String.class);
+                            body,
+                            httpHeaders);
+
+//                    final ResponseEntity<String> result = this.restTemplate.exchange(
+//                            url,
+//                            method,
+//                            httpEntity,
+//                            String.class);
 
                     if (result.getStatusCode().value() >= 400) {
                         log.warn("Error response on SEB Screen Proctoring Service API call to {} response status: {}",
@@ -385,7 +397,7 @@ interface SPS_API {
                     return result;
                 } catch (final RestClientResponseException rce) {
                     return ResponseEntity
-                            .status(rce.getRawStatusCode())
+                            .status(rce.getStatusCode())
                             .body(rce.getResponseBodyAsString());
                 }
             });

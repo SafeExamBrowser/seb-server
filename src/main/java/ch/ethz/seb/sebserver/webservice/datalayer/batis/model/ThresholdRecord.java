@@ -1,7 +1,7 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 
 import java.math.BigDecimal;
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 public class ThresholdRecord {
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.881+01:00", comments="Source field: threshold.id")

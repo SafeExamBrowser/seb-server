@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import java.util.concurrent.Executor;
 

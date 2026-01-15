@@ -1,6 +1,6 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 import org.joda.time.DateTime;
 
 public class UserRecord {

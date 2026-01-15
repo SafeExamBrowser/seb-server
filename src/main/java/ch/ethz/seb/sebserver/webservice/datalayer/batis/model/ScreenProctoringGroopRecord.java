@@ -1,6 +1,6 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 public class ScreenProctoringGroopRecord {
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2025-03-24T13:22:45.874+01:00", comments="Source field: screen_proctoring_group.id")

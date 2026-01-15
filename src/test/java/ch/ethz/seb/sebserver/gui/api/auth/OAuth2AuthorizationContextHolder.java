@@ -9,13 +9,14 @@
 package ch.ethz.seb.sebserver.gui.api.auth;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.user.LoginForward;
-import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,27 +26,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
-import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
-import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
-import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Lazy
 @Component
@@ -60,6 +46,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
     private final WebserviceURIService webserviceURIService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
+    private final OAuth2AuthorizationContext context;
+
     @Autowired
     public OAuth2AuthorizationContextHolder(
             @Value("${sebserver.webservice.api.admin.clientId}") final String guiClientId,
@@ -71,6 +59,11 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         this.guiClientSecret = guiClientSecret;
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        context = new OAuth2AuthorizationContext(
+                guiClientId,
+                guiClientSecret,
+                webserviceURIService,
+                clientHttpRequestFactoryService.getClientHttpRequestFactory().getOrThrow());
     }
 
     @Override
@@ -79,59 +72,128 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
     }
 
     @Override
-    public SEBServerAuthorizationContext getAuthorizationContext(final HttpSession session) {
-        if (log.isTraceEnabled()) {
-            log.trace("Trying to get OAuth2AuthorizationContext from HttpSession: {}", session.getId());
-        }
-
-        OAuth2AuthorizationContext context =
-                (OAuth2AuthorizationContext) session.getAttribute(CONTEXT_HOLDER_ATTRIBUTE);
-
-        if (context == null || !context.valid) {
-            log.debug(
-                    "OAuth2AuthorizationContext for HttpSession: {} is not present or is invalid. "
-                            + "Create new OAuth2AuthorizationContext for this session",
-                    session.getId());
-
-            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                    .getClientHttpRequestFactory()
-                    .getOrThrow();
-
-            context = new OAuth2AuthorizationContext(
-                    this.guiClientId,
-                    this.guiClientSecret,
-                    this.webserviceURIService,
-                    clientHttpRequestFactory);
-
-            session.setAttribute(CONTEXT_HOLDER_ATTRIBUTE, context);
-        }
-
+    public SEBServerAuthorizationContext getAuthorizationContext() {
         return context;
     }
 
-    private static final class DisposableOAuth2RestTemplate extends OAuth2RestTemplate {
+//    @Override
+//    public SEBServerAuthorizationContext getAuthorizationContext(final HttpSession session) {
+//        if (log.isTraceEnabled()) {
+//            log.trace("Trying to get OAuth2AuthorizationContext from HttpSession: {}", session.getId());
+//        }
+//
+//        OAuth2AuthorizationContext context =
+//                (OAuth2AuthorizationContext) session.getAttribute(CONTEXT_HOLDER_ATTRIBUTE);
+//
+//        if (context == null || !context.valid) {
+//            log.debug(
+//                    "OAuth2AuthorizationContext for HttpSession: {} is not present or is invalid. "
+//                            + "Create new OAuth2AuthorizationContext for this session",
+//                    session.getId());
+//
+//            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+//                    .getClientHttpRequestFactory()
+//                    .getOrThrow();
+//
+//            context = new OAuth2AuthorizationContext(
+//                    this.guiClientId,
+//                    this.guiClientSecret,
+//                    this.webserviceURIService,
+//                    clientHttpRequestFactory);
+//
+//            session.setAttribute(CONTEXT_HOLDER_ATTRIBUTE, context);
+//        }
+//
+//        return context;
+//    }
 
-        private boolean enabled = true;
+//    private static final class DisposableOAuth2RestTemplate extends OAuthRestTemplate {
+//
+//        private boolean enabled = true;
+//
+//        public DisposableOAuth2RestTemplate(final OAuth2ProtectedResourceDetails resource) {
+//            super(
+//                    resource,
+//                    new DefaultOAuth2ClientContext(new DefaultAccessTokenRequest()));
+//        }
+//
+//        @Override
+//        protected <T> T doExecute(
+//                final URI url,
+//                final HttpMethod method,
+//                final RequestCallback requestCallback,
+//                final ResponseExtractor<T> responseExtractor) throws RestClientException {
+//
+//            if (this.enabled) {
+//                return super.doExecute(url, method, requestCallback, responseExtractor);
+//            } else {
+//                throw new DisposedOAuth2RestTemplateException(
+//                        "Error: Forbidden execution call on disabled DisposableOAuth2RestTemplate");
+//            }
+//        }
+//    }
 
-        public DisposableOAuth2RestTemplate(final OAuth2ProtectedResourceDetails resource) {
-            super(
-                    resource,
-                    new DefaultOAuth2ClientContext(new DefaultAccessTokenRequest()));
+    public static final class ClientSettingsProvider implements OAuthRestTemplate.ClientSettingsProvider {
+        private final String clientId;
+        private final CharSequence clientSecret;
+        private String username;
+        private CharSequence password;
+        private final String scopes;
+
+        public ClientSettingsProvider(
+                String clientId,
+                CharSequence clientSecret,
+                String scopes) {
+
+            this.clientId = clientId;
+            this.clientSecret = clientSecret;
+            this.scopes = scopes;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public void setPassword(CharSequence password) {
+            this.password = password;
+        }
+
+        public String getClientId() {
+            return clientId;
+        }
+
+        public CharSequence getClientSecret() {
+            return clientSecret;
+        }
+
+        public String getScopes() {
+            return scopes;
+        }
+
+        public CharSequence getPassword() {
+            return password;
+        }
+
+        public String getUsername() {
+            return username;
         }
 
         @Override
-        protected <T> T doExecute(
-                final URI url,
-                final HttpMethod method,
-                final RequestCallback requestCallback,
-                final ResponseExtractor<T> responseExtractor) throws RestClientException {
+        public String getBasicAuthHeader() {
+            final String auth = clientId + Constants.COLON + clientSecret;
+            final String authEncoded = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
 
-            if (this.enabled) {
-                return super.doExecute(url, method, requestCallback, responseExtractor);
-            } else {
-                throw new DisposedOAuth2RestTemplateException(
-                        "Error: Forbidden execution call on disabled DisposableOAuth2RestTemplate");
+            return "Basic " + authEncoded;
+        }
+
+        @Override
+        public String getOAuthBody() {
+            String body = "grant_type=password&username=" + username + "&password=" + password;
+            if (scopes != null) {
+                body += "&scope=" + scopes;
             }
+
+            return body;
         }
     }
 
@@ -140,8 +202,9 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         private boolean valid = true;
 
         private final ClientHttpRequestFactory clientHttpRequestFactory;
-        private final ResourceOwnerPasswordResourceDetails resource;
-        private final DisposableOAuth2RestTemplate restTemplate;
+        //private final ResourceOwnerPasswordResourceDetails resource;
+        private final ClientSettingsProvider clientSettingsProvider;
+        private final OAuthRestTemplate restTemplate;
         private final String revokeTokenURI;
         private final String currentUserURI;
         private final String loginLogURI;
@@ -158,19 +221,33 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 final ClientHttpRequestFactory clientHttpRequestFactory) {
 
             this.clientHttpRequestFactory = clientHttpRequestFactory;
-            this.resource = new ResourceOwnerPasswordResourceDetails();
-            this.resource.setAccessTokenUri(webserviceURIService.getOAuthTokenURI());
-            this.resource.setClientId(guiClientId);
-            this.resource.setClientSecret(guiClientSecret);
-            this.resource.setGrantType(API.GRANT_TYPE_PASSWORD);
-            this.resource.setScope(API.RW_SCOPES);
+            this.clientSettingsProvider = new ClientSettingsProvider(
+                    guiClientId,
+                    guiClientSecret,
+                    "read write"
+            );
 
-            this.restTemplate = new DisposableOAuth2RestTemplate(this.resource);
-            this.restTemplate.setRequestFactory(clientHttpRequestFactory);
-            this.restTemplate.setErrorHandler(new ErrorHandler(this.resource));
-            this.restTemplate
-                    .getMessageConverters()
-                    .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+//            this.resource = new ResourceOwnerPasswordResourceDetails();
+//            this.resource.setAccessTokenUri(webserviceURIService.getOAuthTokenURI());
+//            this.resource.setClientId(guiClientId);
+//            this.resource.setClientSecret(guiClientSecret);
+//            this.resource.setGrantType(API.GRANT_TYPE_PASSWORD);
+//            this.resource.setScope(API.RW_SCOPES);
+
+//            this.restTemplate = new DisposableOAuth2RestTemplate(this.resource);
+//            this.restTemplate.setRequestFactory(clientHttpRequestFactory);
+//            this.restTemplate.setErrorHandler(new ErrorHandler(this.resource));
+//            this.restTemplate
+//                    .getMessageConverters()
+//                    .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+            RestTemplate rest = new RestTemplate();
+            rest.setRequestFactory(clientHttpRequestFactory);
+            this.restTemplate = new OAuthRestTemplate(
+                    webserviceURIService.getWebserviceServerAddress(),
+                    API.OAUTH_TOKEN_ENDPOINT,
+                    this.clientSettingsProvider,
+                    rest);
 
             this.revokeTokenURI = webserviceURIService.getOAuthRevokeTokenURI();
             this.currentUserURI = webserviceURIService.getCurrentUserRequestURI();
@@ -186,7 +263,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         @Override
         public boolean isLoggedIn() {
-            final OAuth2AccessToken accessToken = this.restTemplate.getOAuth2ClientContext().getAccessToken();
+            CharSequence accessToken = this.restTemplate.getAccessToken();
             if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
                 return false;
             }
@@ -210,7 +287,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         @Override
         public CharSequence getUserPassword() {
             if (isLoggedIn()) {
-                return this.resource.getPassword();
+                return this.clientSettingsProvider.getPassword();
             }
             return null;
         }
@@ -226,8 +303,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 return false;
             }
 
-            this.resource.setUsername(username);
-            this.resource.setPassword(Utils.toString(password));
+            this.clientSettingsProvider.setUsername(username);
+            this.clientSettingsProvider.setPassword(Utils.toString(password));
 
             log.debug("Trying to login for user: {}", username);
 
@@ -246,9 +323,11 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 }
                 // call log login on webservice API
                 try {
-                    final ResponseEntity<Void> response = this.restTemplate.postForEntity(
+                    final ResponseEntity<Void> response = this.restTemplate.exchange(
                             this.loginLogURI,
+                            HttpMethod.POST,
                             null,
+                            new HttpHeaders(),
                             Void.class);
                     if (response.getStatusCode() != HttpStatus.OK) {
                         log.error("Failed to log login: {}", response.getStatusCode());
@@ -258,7 +337,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 }
 
                 return true;
-            } catch (final OAuth2AccessDeniedException | AccessDeniedException e) {
+            } catch (AccessDeniedException e) {
                 log.info("Access Denied for user: {}", username);
                 return false;
             }
@@ -266,90 +345,99 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         @Override
         public boolean autoLogin(final String oneTimeToken) {
-            try {
-
-                // Create ad-hoc RestTemplate and call token verification
-                final RestTemplate verifyTemplate = new RestTemplate(this.clientHttpRequestFactory);
-                final HttpHeaders httpHeaders = new HttpHeaders();
-                httpHeaders.set("ONE_TIME_TOKEN_TO_VERIFY", oneTimeToken);
-                httpHeaders.setBasicAuth(resource.getClientId(), resource.getClientSecret());
-
-                final ResponseEntity<TokenLoginInfo> response = verifyTemplate.exchange(
-                        this.jwtTokenVerificationURI,
-                        HttpMethod.POST,
-                        new HttpEntity<TokenLoginInfo>(null, httpHeaders),
-                        TokenLoginInfo.class);
-
-                if (response.getStatusCodeValue() != HttpStatus.OK.value()) {
-                    log.warn("Autologin failed due to error response: {}", response);
-                    return false;
-                }
-
-                final TokenLoginInfo loginInfo = response.getBody();
-                this.resource.setUsername(loginInfo.username);
-                this.resource.setPassword(loginInfo.userUUID);
-                this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
-
-                loginForward = loginInfo.login_forward;
-                return this.isLoggedIn();
-            } catch (final Exception e) {
-                log.warn("Autologin failed due to unexpected error: {}", e.getMessage());
-                return false;
-            }
+            return false;
+//            try {
+//
+//                // Create ad-hoc RestTemplate and call token verification
+//                final RestTemplate verifyTemplate = new RestTemplate(this.clientHttpRequestFactory);
+//                final HttpHeaders httpHeaders = new HttpHeaders();
+//                httpHeaders.set("ONE_TIME_TOKEN_TO_VERIFY", oneTimeToken);
+//                httpHeaders.setBasicAuth(resource.getClientId(), resource.getClientSecret());
+//
+//                final ResponseEntity<TokenLoginInfo> response = verifyTemplate.exchange(
+//                        this.jwtTokenVerificationURI,
+//                        HttpMethod.POST,
+//                        new HttpEntity<TokenLoginInfo>(null, httpHeaders),
+//                        TokenLoginInfo.class);
+//
+//                if (response.getStatusCodeValue() != HttpStatus.OK.value()) {
+//                    log.warn("Autologin failed due to error response: {}", response);
+//                    return false;
+//                }
+//
+//                final TokenLoginInfo loginInfo = response.getBody();
+//                this.resource.setUsername(loginInfo.username);
+//                this.resource.setPassword(loginInfo.userUUID);
+//                this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
+//
+//                loginForward = loginInfo.login_forward;
+//                return this.isLoggedIn();
+//            } catch (final Exception e) {
+//                log.warn("Autologin failed due to unexpected error: {}", e.getMessage());
+//                return false;
+//            }
         }
 
         @Override
         public boolean logout() {
-            // call log logout on webservice API
-            try {
-                final ResponseEntity<Void> response = this.restTemplate.postForEntity(
-                        this.logoutLogURI,
-                        null,
-                        Void.class);
-                if (response.getStatusCode() != HttpStatus.OK) {
-                    log.warn("Failed to log logout: {}", response.getStatusCode());
-                }
-            } catch (final Exception e) {
-                log.warn("Failed to log logout: {}", e.getMessage());
-            }
-
-            // set this context invalid to force creation of a new context on next request
-            this.valid = false;
-            this.loggedInUser = null;
-            if (this.restTemplate.getAccessToken() != null) {
-                // delete the access-token (and refresh-token) on authentication server side
-                this.restTemplate.delete(this.revokeTokenURI);
-                // delete the access-token within the RestTemplate
-                this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
-            }
-            // mark the RestTemplate as disposed
-            this.restTemplate.enabled = false;
+            restTemplate.clearToken();
             return true;
+//            // call log logout on webservice API
+//            try {
+//                final ResponseEntity<Void> response = this.restTemplate.postForEntity(
+//                        this.logoutLogURI,
+//                        null,
+//                        Void.class);
+//                if (response.getStatusCode() != HttpStatus.OK) {
+//                    log.warn("Failed to log logout: {}", response.getStatusCode());
+//                }
+//            } catch (final Exception e) {
+//                log.warn("Failed to log logout: {}", e.getMessage());
+//            }
+//
+//            // set this context invalid to force creation of a new context on next request
+//            this.valid = false;
+//            this.loggedInUser = null;
+//            if (this.restTemplate.getAccessToken() != null) {
+//                // delete the access-token (and refresh-token) on authentication server side
+//                this.restTemplate.delete(this.revokeTokenURI);
+//                // delete the access-token within the RestTemplate
+//                this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
+//            }
+//            // mark the RestTemplate as disposed
+//            this.restTemplate.enabled = false;
+//            return true;
         }
 
         @Override
-        public RestTemplate getRestTemplate() {
+        public OAuthRestTemplate getRestTemplate() {
             return this.restTemplate;
         }
 
         @Override
         public void refreshUser(final UserInfo userInfo) {
-            // delete the access-token (and refresh-token) on authentication server side
-            this.restTemplate.delete(this.revokeTokenURI);
-            // delete the access-token within the RestTemplate
-            this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
-            // check if username has changed
+            restTemplate.clearToken();
             if (!userInfo.username.equals(getLoggedInUser().get().username)) {
                 // Set new username to be able to request new access token
-                this.resource.setUsername(userInfo.username);
+                this.clientSettingsProvider.setUsername(userInfo.username);
             }
-
-            // and request new access token
-            this.restTemplate.getAccessToken();
-            // and reset logged in user by getting actual one from webservice
-            this.loggedInUser = null;
-            getLoggedInUser()
-                    .getOrThrow();
+            restTemplate.getAccessToken();
+//            // delete the access-token (and refresh-token) on authentication server side
+//            this.restTemplate.delete(this.revokeTokenURI);
+//            // delete the access-token within the RestTemplate
+//            this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
+//            // check if username has changed
+//            if (!userInfo.username.equals(getLoggedInUser().get().username)) {
+//                // Set new username to be able to request new access token
+//                this.resource.setUsername(userInfo.username);
+//            }
+//
+//            // and request new access token
+//            this.restTemplate.getAccessToken();
+//            // and reset logged in user by getting actual one from webservice
+//            this.loggedInUser = null;
+//            getLoggedInUser()
+//                    .getOrThrow();
         }
 
         @Override
@@ -363,8 +451,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             try {
                 if (isValid() && isLoggedIn()) {
                     final ResponseEntity<UserInfo> response =
-                            this.restTemplate
-                                    .getForEntity(this.currentUserURI, UserInfo.class);
+                            this.restTemplate.getForEntity(this.currentUserURI, UserInfo.class);
                     if (response.getStatusCode() == HttpStatus.OK) {
                         this.loggedInUser = Result.of(response.getBody());
                         return this.loggedInUser;
@@ -377,7 +464,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                     return Result.ofError(
                             new IllegalStateException("Logged in User requested on invalid or not logged in "));
                 }
-            } catch (final AccessDeniedException | OAuth2AccessDeniedException ade) {
+            } catch (final AccessDeniedException ade) {
                 log.error("Acccess denied while trying to request logged in User from API", ade);
                 return Result.ofError(ade);
             } catch (final Exception e) {
@@ -398,21 +485,21 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                             .contains(role.name());
         }
 
-        private static final class ErrorHandler extends OAuth2ErrorHandler {
-            private ErrorHandler(final OAuth2ProtectedResourceDetails resource) {
-                super(resource);
-            }
-
-            @Override
-            public boolean hasError(final ClientHttpResponse response) throws IOException {
-                try {
-                    final HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
-                    return (statusCode != null && statusCode.series().equals(HttpStatus.Series.SERVER_ERROR));
-                } catch (final Exception e) {
-                    log.error("Unexpected: ", e);
-                    return super.hasError(response);
-                }
-            }
-        }
+//        private static final class ErrorHandler extends OAuth2ErrorHandler {
+//            private ErrorHandler(final OAuth2ProtectedResourceDetails resource) {
+//                super(resource);
+//            }
+//
+//            @Override
+//            public boolean hasError(final ClientHttpResponse response) throws IOException {
+//                try {
+//                    final HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
+//                    return (statusCode != null && statusCode.series().equals(HttpStatus.Series.SERVER_ERROR));
+//                } catch (final Exception e) {
+//                    log.error("Unexpected: ", e);
+//                    return super.hasError(response);
+//                }
+//            }
+//        }
     }
 }

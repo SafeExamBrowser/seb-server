@@ -8,8 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;

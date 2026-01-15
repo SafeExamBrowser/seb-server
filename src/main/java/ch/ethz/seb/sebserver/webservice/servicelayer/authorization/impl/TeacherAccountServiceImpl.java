@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl;
 
+import java.nio.file.AccessDeniedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.*;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
@@ -28,7 +30,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -36,13 +37,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserException;
-import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.stereotype.Service;
 
 @Lazy
@@ -59,26 +56,31 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     private final ScreenProctoringService screenProctoringService;
     private final ExamDAO examDAO;
     private final Cryptor cryptor;
-    final TokenEndpoint tokenEndpoint;
-    private final AdminAPIClientDetails adminAPIClientDetails;
+    private final WebserviceInfo webserviceInfo;
     protected final AuthorizationService authorizationService;
+
+    private final String clientId;
+    private final String clientSecret;
 
     public TeacherAccountServiceImpl(
             final UserDAO userDAO,
             final ScreenProctoringService screenProctoringService,
             final ExamDAO examDAO,
             final Cryptor cryptor,
-            final TokenEndpoint tokenEndpoint,
-            final AdminAPIClientDetails adminAPIClientDetails, 
-            final AuthorizationService authorizationService) {
+            final WebserviceInfo webserviceInfo,
+            final AuthorizationService authorizationService,
+            @Value("${sebserver.webservice.api.admin.clientId}") final String clientId,
+            @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret) {
 
         this.userDAO = userDAO;
         this.screenProctoringService = screenProctoringService;
         this.examDAO = examDAO;
         this.cryptor = cryptor;
-        this.tokenEndpoint = tokenEndpoint;
-        this.adminAPIClientDetails = adminAPIClientDetails;
+        this.webserviceInfo = webserviceInfo;
         this.authorizationService = authorizationService;
+
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
     }
 
     @Override
@@ -164,7 +166,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             try {
                 claims = checkJWTValid(loginToken);
             } catch (final Exception e) {
-                throw new UnauthorizedUserException("Invalid One Time JWT", e);
+                log.warn("Invalid One Time JWT received. Root exception: ", e);
+                throw new AccessDeniedException("Invalid One Time JWT");
             }
             final String userId = claims.get(USER_CLAIM, String.class);
 
@@ -173,19 +176,26 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     .byModelId(userId)
                     .getOrThrow(error -> new BadCredentialsException("Unknown user claim", error));
 
+
+
             // login the user by getting access token
-            final Map<String, String> params = new HashMap<>();
-            params.put(Constants.OAUTH2_GRANT_TYPE, Constants.OAUTH2_GRANT_TYPE_PASSWORD);
-            params.put(Constants.OAUTH2_USER_NAME, user.username);
-            params.put(Constants.OAUTH2_GRANT_TYPE_PASSWORD, claims.get(SUBJECT_CLAIM_NAME, String.class));
-            final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                    new UsernamePasswordAuthenticationToken(
-                            this.adminAPIClientDetails.getClientId(),
-                            "N/A",
-                            Collections.emptyList());
-            final ResponseEntity<OAuth2AccessToken> accessToken =
-                    this.tokenEndpoint.postAccessToken(usernamePasswordAuthenticationToken, params);
-            final OAuth2AccessToken token = accessToken.getBody();
+//            final Map<String, String> params = new HashMap<>();
+//            params.put(Constants.OAUTH2_GRANT_TYPE, Constants.OAUTH2_GRANT_TYPE_PASSWORD);
+//            params.put(Constants.OAUTH2_USER_NAME, user.username);
+//            params.put(Constants.OAUTH2_GRANT_TYPE_PASSWORD, claims.get(SUBJECT_CLAIM_NAME, String.class));
+//            final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+//                    new UsernamePasswordAuthenticationToken(
+//                            this.adminAPIClientDetails.getClientId(),
+//                            "N/A",
+//                            Collections.emptyList());
+//            final ResponseEntity<OAuth2AccessToken> accessToken =
+//                    this.tokenEndpoint.postAccessToken(usernamePasswordAuthenticationToken, params);
+//            final OAuth2AccessToken token = accessToken.getBody();
+
+            // TODO try to use OAuth2PasswordGrantAuthenticationProvider to create a valid access and refresh token
+            //      without using the users password (we do not have that for ad-hoc users
+
+            final String accessToken = "TODO JWT Token";
 
             final String examId = claims.get(EXAM_ID_CLAIM, String.class);
             final EntityKey key = (StringUtils.isNotBlank(examId))
@@ -195,7 +205,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     key,
                     "MONITOR_EXAM_FROM_LIST");
 
-            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, token);
+            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, accessToken);
         });
     }
 

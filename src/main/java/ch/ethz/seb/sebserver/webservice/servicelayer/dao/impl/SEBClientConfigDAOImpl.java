@@ -59,7 +59,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundExcepti
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint.RevokeExamTokenEvent;
 
 @Lazy
 @Component

@@ -1,6 +1,6 @@
 package ch.ethz.seb.sebserver.gbl.api;
 
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 @Generated(value="org.mybatis.generator.api.MyBatisGenerator",comments="ch.ethz.seb.sebserver.gen.DomainModelNameReferencePlugin",date="2025-03-24T13:22:45.840+01:00")
 public enum EntityType {

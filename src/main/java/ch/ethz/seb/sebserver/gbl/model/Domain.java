@@ -1,6 +1,6 @@
 package ch.ethz.seb.sebserver.gbl.model;
 
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 /** Defines the global names of the domain model and domain model fields.
 * This shall be used as a static overall domain model names reference within SEB Server Web-Service as well as within the integrated GUI

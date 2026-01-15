@@ -21,10 +21,8 @@ import org.cryptonode.jncryptor.JNCryptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
 
 @Configuration
 public class WebserviceConfig {
@@ -40,10 +38,10 @@ public class WebserviceConfig {
         return aes256jnCryptor;
     }
 
-    @Bean
-    public TokenStore tokenStore(final DataSource dataSource) {
-        return new CachableJdbcTokenStore(dataSource);
-    }
+//    @Bean
+//    public TokenStore tokenStore(final DataSource dataSource) {
+//        return new CachableJdbcTokenStore(dataSource);
+//    }
 
     @Bean
     public OpenAPI customOpenAPI() {

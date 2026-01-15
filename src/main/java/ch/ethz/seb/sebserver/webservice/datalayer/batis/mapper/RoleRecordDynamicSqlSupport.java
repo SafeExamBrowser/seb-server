@@ -1,7 +1,7 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper;
 
 import java.sql.JDBCType;
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 

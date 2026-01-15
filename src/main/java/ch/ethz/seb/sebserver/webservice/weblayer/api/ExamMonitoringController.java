@@ -14,8 +14,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.session.*;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;

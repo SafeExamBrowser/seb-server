@@ -14,13 +14,14 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplateFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -30,10 +31,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -73,8 +70,8 @@ public class ScreenProctoringAPIBinding {
     private final ProctoringSettingsDAO proctoringSettingsDAO;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
-    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final WebserviceInfo webserviceInfo;
+    private final OAuthRestTemplateFactory oAuthRestTemplateFactory;
 
     ScreenProctoringAPIBinding(
             final UserDAO userDAO,
@@ -85,8 +82,8 @@ public class ScreenProctoringAPIBinding {
             final ProctoringSettingsDAO proctoringSettingsDAO,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final ScreenProctoringGroupDAO screenProctoringGroupDAO,
-            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            final WebserviceInfo webserviceInfo) {
+            final WebserviceInfo webserviceInfo,
+            OAuthRestTemplateFactory oAuthRestTemplateFactory) {
 
         this.userDAO = userDAO;
         this.clientGroupDAO = clientGroupDAO;
@@ -96,8 +93,8 @@ public class ScreenProctoringAPIBinding {
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
-        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.webserviceInfo = webserviceInfo;
+        this.oAuthRestTemplateFactory = oAuthRestTemplateFactory;
     }
 
     Result<Void> testConnection(final SPSAPIAccessData spsAPIAccessData) {
@@ -1466,24 +1463,15 @@ public class ScreenProctoringAPIBinding {
     }
 
     private static List<String> getSupporterIds(final Exam exam) {
-        final Set<String> supporterIds = new HashSet<>(exam.supporter);
-        if (exam.owner != null && !UserService.LMS_INTEGRATION_CLIENT_UUID.equals(exam.owner)) {
-            supporterIds.add(exam.owner);
-        }
-        return new ArrayList<>(supporterIds);
+        return null;
     }
 
-    OAuth2RestTemplate getOAuth2RestTemplate(final ResourceOwnerPasswordResourceDetails resource) {
+    public OAuthRestTemplate getOAuth2RestTemplate(
+            String spsServiceURL,
+            String tokenEndpoint,
+            OAuthRestTemplate.ClientSettingsProvider clientSettingsProvider) {
 
-        final Result<ClientHttpRequestFactory> clientHttpRequestFactoryRequest = this.clientHttpRequestFactoryService
-                .getClientHttpRequestFactory();
-        ClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        if (!clientHttpRequestFactoryRequest.hasError()) {
-            requestFactory = clientHttpRequestFactoryRequest.get();
-        }
-
-        final OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(resource);
-        oAuth2RestTemplate.setRequestFactory(requestFactory);
-        return oAuth2RestTemplate;
+        return oAuthRestTemplateFactory.getOAuth2RestTemplate(spsServiceURL, tokenEndpoint, clientSettingsProvider);
     }
+
 }

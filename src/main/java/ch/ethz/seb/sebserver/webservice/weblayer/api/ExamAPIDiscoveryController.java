@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Arrays;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;

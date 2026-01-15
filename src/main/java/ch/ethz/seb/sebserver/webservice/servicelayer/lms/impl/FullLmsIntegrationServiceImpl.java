@@ -50,16 +50,15 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Lazy
 @Service
@@ -84,17 +83,17 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private final WebserviceInfo webserviceInfo;
     private final String lmsAPIEndpoint;
     private final UserService userService;
-    private final ClientCredentialsResourceDetails resource;
     private final SEBRestrictionService sebRestrictionService;
-    private final OAuth2RestTemplate restTemplate;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+
+    private final OAuthRestTemplate.DefaultClientSettingsProvider clientSettingsProvider;
+    private OAuthRestTemplate restTemplate;
 
     public FullLmsIntegrationServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
             final UserActivityLogDAO userActivityLogDAO,
-            final UserDAO userDAO,
             final SEBClientConfigDAO sebClientConfigDAO,
-            final ScreenProctoringService screenProctoringService,
             final ConnectionConfigurationService connectionConfigurationService,
             final DeleteExamAction deleteExamAction,
             final ExamConfigurationValueService examConfigurationValueService,
@@ -130,22 +129,14 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.clientConnectionDAO = clientConnectionDAO;
         this.sebRestrictionService = sebRestrictionService;
         this.additionalAttributesDAO = additionalAttributesDAO;
-
-        resource = new ClientCredentialsResourceDetails();
-        resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
-        resource.setClientId(clientId);
-        resource.setClientSecret(clientSecret);
-        resource.setGrantType(API.GRANT_TYPE_CLIENT);
-        //resource.setScope(API.RW_SCOPES);
-
-        this.restTemplate = new OAuth2RestTemplate(resource);
-        clientHttpRequestFactoryService
-                .getClientHttpRequestFactory()
-                .onSuccess(this.restTemplate::setRequestFactory)
-                .onError(error -> log.warn("Failed to set HTTP request factory: ", error));
-        this.restTemplate
-                .getMessageConverters()
-                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.clientSettingsProvider = new OAuthRestTemplate.DefaultClientSettingsProvider(
+                clientId,
+                clientSecret,
+                null,
+                null,
+                ""
+        );
     }
 
     @Override
@@ -300,14 +291,21 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             // reset old token to get actual one
             String accessToken = null;
             try {
-                resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
-                restTemplate.getOAuth2ClientContext().setAccessToken(null);
-                accessToken = restTemplate.getAccessToken().getValue();
+
+
+//                resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
+//                restTemplate.getOAuth2ClientContext().setAccessToken(null);
+//                accessToken = restTemplate.getAccessToken().getValue();
+
+            clientSettingsProvider.setScopes(String.valueOf(lmsSetupId));
+            OAuthRestTemplate rest = getRestTemplate(false);
+            accessToken = restTemplate.getAccessToken().toString();
+
             } catch (final Exception e) {
                 log.error("Failed to get SEB webservice access token for Moodle on: {} client: {} scope: {} for LMSSetup: {}",
-                        restTemplate.getResource().getAccessTokenUri(),
-                        restTemplate.getResource().getClientId(),
-                        restTemplate.getResource().getScope(),
+                        webserviceInfo.getOAuthTokenURI(),
+                        clientSettingsProvider.getClientId(),
+                        clientSettingsProvider.getScopes(),
                         lmsSetup);
                 throw new RuntimeException("Failed to get SEB webservice access token for Moodle...");
             }
@@ -565,7 +563,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
             if (StringUtils.isNotBlank(quitPassword)) {
                 // check new quit password has no invalid trailing chars
-                if (quitPassword != null && !Objects.equals(quitPassword, StringUtils.trim(quitPassword))) {
+                if (!Objects.equals(quitPassword, StringUtils.trim(quitPassword))) {
                     throw new IllegalArgumentException("quit password has invalid trailing characters!");
                 }
 
@@ -837,6 +835,33 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         "Failed to log exam deletion from LMS: {}",
                         error.getMessage()));
         return exam;
+    }
+
+    private OAuthRestTemplate getRestTemplate(boolean clear) {
+        if (clear) {
+            this.restTemplate = null;
+        }
+
+        if (this.restTemplate != null) {
+            return restTemplate;
+        }
+
+        final RestTemplate restTemplateDelegate = new RestTemplate();
+        clientHttpRequestFactoryService
+                .getClientHttpRequestFactory()
+                .onSuccess(restTemplateDelegate::setRequestFactory)
+                .onError(error -> log.warn("Failed to set HTTP request factory: ", error));
+        restTemplateDelegate
+                .getMessageConverters()
+                .addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+        this.restTemplate = new OAuthRestTemplate(
+                webserviceInfo.getExternalServerURL(),
+                API.OAUTH_TOKEN_ENDPOINT,
+                clientSettingsProvider,
+                restTemplateDelegate);
+
+        return this.restTemplate;
     }
 
 }

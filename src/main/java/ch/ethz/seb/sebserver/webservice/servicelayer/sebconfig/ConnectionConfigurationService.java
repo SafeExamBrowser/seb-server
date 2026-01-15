@@ -14,11 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.oauth2.provider.ClientDetails;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
 public interface ConnectionConfigurationService {
 
@@ -54,7 +54,7 @@ public interface ConnectionConfigurationService {
             cacheNames = EXAM_CLIENT_DETAILS_CACHE,
             key = "#clientName",
             unless = "#result.hasError()")
-    Result<ClientDetails> getClientConfigDetails(String clientName);
+    Result<RegisteredClient> getClientConfigDetails(String clientName);
 
     /** Internally used to check OAuth2 access for a active SEBClientConfig.
      *

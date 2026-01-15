@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.assertNotNull;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 import ch.ethz.seb.sebserver.gui.api.RestCall;
 import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
