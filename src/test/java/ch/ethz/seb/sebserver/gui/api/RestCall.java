@@ -18,6 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -222,7 +223,7 @@ public abstract class RestCall<T> {
 
     public class RestCallBuilder {
 
-        private RestTemplate restTemplate;
+        private OAuthRestTemplate restTemplate;
         private UriComponentsBuilder uriComponentsBuilder;
         private final HttpHeaders httpHeaders;
         private String body = null;
@@ -232,7 +233,7 @@ public abstract class RestCall<T> {
         private final MultiValueMap<String, String> queryParams;
         private final Map<String, String> uriVariables;
 
-        protected RestCallBuilder(final RestTemplate restTemplate, final UriComponentsBuilder uriComponentsBuilder) {
+        protected RestCallBuilder(final OAuthRestTemplate restTemplate, final UriComponentsBuilder uriComponentsBuilder) {
             this.restTemplate = restTemplate;
             this.uriComponentsBuilder = uriComponentsBuilder;
             this.httpHeaders = new HttpHeaders();
@@ -253,7 +254,7 @@ public abstract class RestCall<T> {
             this.uriVariables = new HashMap<>(builder.uriVariables);
         }
 
-        public RestTemplate getRestTemplate() {
+        public OAuthRestTemplate getRestTemplate() {
             return this.restTemplate;
         }
 
@@ -266,7 +267,7 @@ public abstract class RestCall<T> {
             return this.responseExtractor;
         }
 
-        public RestCallBuilder withRestTemplate(final RestTemplate restTemplate) {
+        public RestCallBuilder withRestTemplate(final OAuthRestTemplate restTemplate) {
             this.restTemplate = restTemplate;
             return this;
         }

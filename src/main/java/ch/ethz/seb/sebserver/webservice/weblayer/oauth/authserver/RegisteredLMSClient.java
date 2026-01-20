@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Collections;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 @Lazy
@@ -40,6 +41,10 @@ public class RegisteredLMSClient {
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret,
             @Value("${sebserver.webservice.lms.api.accessTokenValiditySeconds:-1}") final Integer accessTokenValiditySeconds) {
 
+
+        Duration duration = (accessTokenValiditySeconds != null && accessTokenValiditySeconds > 0)
+                ? Duration.of(accessTokenValiditySeconds, SECONDS)
+                : Duration.of(365, DAYS);
 
         final String joinIds = StringUtils.join(
                 lmsSetupDAO.allIdsFullIntegration().getOrThrow(),
@@ -57,7 +62,7 @@ public class RegisteredLMSClient {
                 .scope(joinIds)
                 .tokenSettings(TokenSettings
                         .builder()
-                        .accessTokenTimeToLive(Duration.of(accessTokenValiditySeconds, SECONDS))
+                        .accessTokenTimeToLive(duration)
                         .build())
                 .build();
     }

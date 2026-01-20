@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.api;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ch.ethz.seb.sebserver.gui.api.RestCall.CallType;
@@ -34,7 +35,7 @@ public interface RestService {
     /** Get Spring's RestTemplate that is used within this service.
      *
      * @return Spring's RestTemplate that is used within this service. */
-    RestTemplate getWebserviceAPIRestTemplate();
+    OAuthRestTemplate getWebserviceAPIRestTemplate();
 
     /** Get Spring's UriComponentsBuilder that is used within this service.
      *

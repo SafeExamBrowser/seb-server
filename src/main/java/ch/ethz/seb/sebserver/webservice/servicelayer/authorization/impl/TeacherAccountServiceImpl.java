@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -30,6 +31,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplateFactory;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -54,6 +57,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     private final UserDAO userDAO;
     private final ScreenProctoringService screenProctoringService;
+    private final OAuthRestTemplateFactory oAuthRestTemplateFactory;
     private final ExamDAO examDAO;
     private final Cryptor cryptor;
     private final WebserviceInfo webserviceInfo;
@@ -65,6 +69,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     public TeacherAccountServiceImpl(
             final UserDAO userDAO,
             final ScreenProctoringService screenProctoringService,
+            final OAuthRestTemplateFactory oAuthRestTemplateFactory,
             final ExamDAO examDAO,
             final Cryptor cryptor,
             final WebserviceInfo webserviceInfo,
@@ -74,6 +79,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
         this.userDAO = userDAO;
         this.screenProctoringService = screenProctoringService;
+        this.oAuthRestTemplateFactory = oAuthRestTemplateFactory;
         this.examDAO = examDAO;
         this.cryptor = cryptor;
         this.webserviceInfo = webserviceInfo;
@@ -176,6 +182,20 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     .byModelId(userId)
                     .getOrThrow(error -> new BadCredentialsException("Unknown user claim", error));
 
+            OAuthRestTemplate.DefaultClientSettingsProvider clientSettings = new OAuthRestTemplate.DefaultClientSettingsProvider(
+                    this.clientId,
+                    this.clientSecret,
+                    user.username,
+                    claims.get(SUBJECT_CLAIM_NAME, String.class),
+                    null
+            );
+
+            OAuthRestTemplate oAuth2RestTemplate = oAuthRestTemplateFactory.getOAuth2RestTemplate(
+                    webserviceInfo.getExternalServerURL(),
+                    API.OAUTH_TOKEN_ENDPOINT,
+                    clientSettings);
+
+            CharSequence accessToken = oAuth2RestTemplate.getAccessToken();
 
 
             // login the user by getting access token
@@ -192,11 +212,6 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 //                    this.tokenEndpoint.postAccessToken(usernamePasswordAuthenticationToken, params);
 //            final OAuth2AccessToken token = accessToken.getBody();
 
-            // TODO try to use OAuth2PasswordGrantAuthenticationProvider to create a valid access and refresh token
-            //      without using the users password (we do not have that for ad-hoc users
-
-            final String accessToken = "TODO JWT Token";
-
             final String examId = claims.get(EXAM_ID_CLAIM, String.class);
             final EntityKey key = (StringUtils.isNotBlank(examId))
                     ? new EntityKey(examId, EntityType.EXAM)
@@ -205,7 +220,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     key,
                     "MONITOR_EXAM_FROM_LIST");
 
-            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, accessToken);
+            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, accessToken.toString());
         });
     }
 

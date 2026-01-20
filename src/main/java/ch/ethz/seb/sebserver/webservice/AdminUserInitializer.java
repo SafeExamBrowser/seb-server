@@ -60,7 +60,7 @@ class AdminUserInitializer {
             final InstitutionDAO institutionDAO,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final Environment environment,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder passwordEncoder,
+            final PasswordEncoder passwordEncoder,
             @Value("${sebserver.init.adminaccount.gen-on-init:false}") final boolean initializeAdmin,
             @Value("${sebserver.init.adminaccount.username:seb-server-admin}") final String adminName,
             @Value("${sebserver.init.organisation.name:[SET_ORGANIZATION_NAME]}") final String orgName) {

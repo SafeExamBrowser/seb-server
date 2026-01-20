@@ -38,11 +38,6 @@ public class WebserviceConfig {
         return aes256jnCryptor;
     }
 
-//    @Bean
-//    public TokenStore tokenStore(final DataSource dataSource) {
-//        return new CachableJdbcTokenStore(dataSource);
-//    }
-
     @Bean
     public OpenAPI customOpenAPI() {
 

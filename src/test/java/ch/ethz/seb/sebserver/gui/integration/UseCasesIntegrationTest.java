@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -2473,7 +2474,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_TYPE, ExportType.CSV.name())
                 .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_EXAMS, "true")
                 .withResponseExtractor(response -> {
-                    final HttpStatus statusCode = response.getStatusCode();
+                    final HttpStatusCode statusCode = response.getStatusCode();
                     assertEquals("200 OK", statusCode.toString());
                     final String csvExport = IOUtils.toString(response.getBody());
                     assertTrue(StringUtils.isNotBlank(csvExport));

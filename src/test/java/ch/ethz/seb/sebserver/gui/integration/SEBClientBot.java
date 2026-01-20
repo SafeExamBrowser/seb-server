@@ -8,10 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.integration;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,24 +17,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -44,6 +32,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
+import org.springframework.web.client.RestTemplate;
 
 public class SEBClientBot {
 
@@ -143,7 +132,7 @@ public class SEBClientBot {
     private final class ConnectionBot implements Runnable {
 
         private final String name;
-        private final OAuth2RestTemplate restTemplate;
+        private final OAuthRestTemplate restTemplate;
 
         private final String handshakeURI = SEBClientBot.this.webserviceAddress +
                 SEBClientBot.this.apiPath + "/" +
@@ -188,7 +177,7 @@ public class SEBClientBot {
                 log.info("ConnectionBot {} : Try to request access-token; attempt: {}", this.name, attempt);
                 try {
 
-                    final OAuth2AccessToken accessToken = this.restTemplate.getAccessToken();
+                    CharSequence accessToken = this.restTemplate.getAccessToken();
                     log.info("ConnectionBot {} : Got access token: {}", this.name, accessToken);
                     connectionToken = createConnection();
 
@@ -279,10 +268,9 @@ public class SEBClientBot {
                         this.handshakeURI,
                         HttpMethod.POST,
                         this.connectBody,
-                        new ParameterizedTypeReference<String>() {
-                        });
+                        String.class);
 
-                final HttpStatus statusCode = exchange.getStatusCode();
+                final HttpStatusCode statusCode = exchange.getStatusCode();
                 if (statusCode.isError()) {
                     throw new RuntimeException("Webservice answered with error: " + exchange.getBody());
                 }
@@ -306,8 +294,7 @@ public class SEBClientBot {
         }
 
         public boolean getConfig(final MultiValueMap<String, String> headers) {
-            final HttpEntity<?> configHeader = new HttpEntity<>(headers);
-
+            //final HttpEntity<?> configHeader = new HttpEntity<>(headers);
             log.info("ConnectionBot {} : get SEB Configuration", this.name);
 
             try {
@@ -316,11 +303,11 @@ public class SEBClientBot {
                                 FORM_URL_ENCODED_NAME_VALUE_SEPARATOR +
                                 SEBClientBot.this.examId,
                         HttpMethod.GET,
-                        configHeader,
-                        new ParameterizedTypeReference<byte[]>() {
-                        });
+                        null,
+                        new HttpHeaders(headers),
+                        byte[].class);
 
-                final HttpStatus statusCode = exchange.getStatusCode();
+                final HttpStatusCode statusCode = exchange.getStatusCode();
                 if (statusCode.isError()) {
                     throw new RuntimeException("Webservice answered with error: " + exchange.getBody());
                 }
@@ -376,10 +363,9 @@ public class SEBClientBot {
                         this.handshakeURI,
                         HttpMethod.PUT,
                         configHeader,
-                        new ParameterizedTypeReference<String>() {
-                        });
+                        String.class);
 
-                final HttpStatus statusCode = exchange.getStatusCode();
+                final HttpStatusCode statusCode = exchange.getStatusCode();
                 if (statusCode.isError()) {
                     throw new RuntimeException("Webservice answered with error: " + exchange.getBody());
                 }
@@ -400,8 +386,7 @@ public class SEBClientBot {
                         this.pingURI,
                         HttpMethod.POST,
                         pingHeader,
-                        new ParameterizedTypeReference<String>() {
-                        });
+                        String.class);
 
                 if (exchange.hasBody() && exchange.getBody().contains("SEB_QUIT")) {
                     log.info("SEB_QUIT client {}, response: {}",
@@ -420,12 +405,7 @@ public class SEBClientBot {
         private boolean sendEvent(final HttpEntity<String> eventHeader) {
             try {
 
-                this.restTemplate.exchange(
-                        this.eventURI,
-                        HttpMethod.POST,
-                        eventHeader,
-                        new ParameterizedTypeReference<String>() {
-                        });
+                this.restTemplate.exchange(this.eventURI, HttpMethod.POST, eventHeader, String.class);
 
                 return true;
             } catch (final Exception e) {
@@ -438,7 +418,6 @@ public class SEBClientBot {
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
             headers.set(EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
-            final HttpEntity<?> configHeader = new HttpEntity<>(headers);
 
             log.info("ConnectionBot {} : Trying to delete SEB client connection", this.name);
 
@@ -447,11 +426,10 @@ public class SEBClientBot {
                 final ResponseEntity<String> exchange = this.restTemplate.exchange(
                         this.handshakeURI,
                         HttpMethod.DELETE,
-                        configHeader,
-                        new ParameterizedTypeReference<String>() {
-                        });
+                        null,
+                        new HttpHeaders(headers));
 
-                final HttpStatus statusCode = exchange.getStatusCode();
+                final HttpStatusCode statusCode = exchange.getStatusCode();
                 if (statusCode.isError()) {
                     throw new RuntimeException("Webservice answered with error: " + exchange.getBody());
                 }
@@ -466,41 +444,68 @@ public class SEBClientBot {
         }
     }
 
-    private OAuth2RestTemplate createRestTemplate(final String scopes) {
-        final ClientCredentialsResourceDetails clientCredentialsResourceDetails =
-                new ClientCredentialsResourceDetails();
-        clientCredentialsResourceDetails
-                .setAccessTokenUri(this.webserviceAddress + this.accessTokenEndpoint);
-        clientCredentialsResourceDetails.setClientId(this.clientId);
-        clientCredentialsResourceDetails.setClientSecret(this.clientSecret);
-        if (StringUtils.isBlank(scopes)) {
-            clientCredentialsResourceDetails.setScope(this.scopes);
-        } else {
-            clientCredentialsResourceDetails.setScope(
-                    Arrays.asList(StringUtils.split(scopes, LIST_SEPARATOR)));
-        }
-
-        final OAuth2RestTemplate restTemplate = new OAuth2RestTemplate(clientCredentialsResourceDetails);
-        restTemplate.setErrorHandler(new OAuth2ErrorHandler(clientCredentialsResourceDetails) {
-
-            @Override
-            public void handleError(final ClientHttpResponse response) throws IOException {
-                System.out.println("********************** handleError: " + response.getStatusCode());
-                super.handleError(response);
-            }
-
-        });
-        restTemplate
-                .getMessageConverters()
-                .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
-        //restTemplate.setRetryBadAccessTokens(true);
+    private OAuthRestTemplate createRestTemplate(final String scopes) {
 
         final SimpleClientHttpRequestFactory simpleClientHttpRequestFactory = new SimpleClientHttpRequestFactory();
         simpleClientHttpRequestFactory.setReadTimeout(30000);
-        simpleClientHttpRequestFactory.setOutputStreaming(false);
-        restTemplate.setRequestFactory(simpleClientHttpRequestFactory);
+        //simpleClientHttpRequestFactory.setOutputStreaming(false);
 
-        return restTemplate;
+        final RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(simpleClientHttpRequestFactory);
+        restTemplate
+                .getMessageConverters()
+                .addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+        final OAuthRestTemplate.DefaultClientSettingsProvider clientSettings = new OAuthRestTemplate.DefaultClientSettingsProvider(
+                this.clientId,
+                this.clientSecret,
+                null,
+                null,
+                scopes
+        );
+
+        final OAuthRestTemplate oAuthRestTemplate = new OAuthRestTemplate(
+                this.webserviceAddress,
+                this.accessTokenEndpoint,
+                clientSettings,
+                restTemplate
+        );
+
+        return oAuthRestTemplate;
+//        final ClientCredentialsResourceDetails clientCredentialsResourceDetails =
+//                new ClientCredentialsResourceDetails();
+//        clientCredentialsResourceDetails
+//                .setAccessTokenUri(this.webserviceAddress + this.accessTokenEndpoint);
+//        clientCredentialsResourceDetails.setClientId(this.clientId);
+//        clientCredentialsResourceDetails.setClientSecret(this.clientSecret);
+//        if (StringUtils.isBlank(scopes)) {
+//            clientCredentialsResourceDetails.setScope(this.scopes);
+//        } else {
+//            clientCredentialsResourceDetails.setScope(
+//                    Arrays.asList(StringUtils.split(scopes, LIST_SEPARATOR)));
+//        }
+//
+//        final OAuth2RestTemplate restTemplate = new OAuth2RestTemplate(clientCredentialsResourceDetails);
+//        restTemplate.setErrorHandler(new OAuth2ErrorHandler(clientCredentialsResourceDetails) {
+//
+//            @Override
+//            public void handleError(final ClientHttpResponse response) throws IOException {
+//                System.out.println("********************** handleError: " + response.getStatusCode());
+//                super.handleError(response);
+//            }
+//
+//        });
+//        restTemplate
+//                .getMessageConverters()
+//                .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+//        //restTemplate.setRetryBadAccessTokens(true);
+//
+//        final SimpleClientHttpRequestFactory simpleClientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+//        simpleClientHttpRequestFactory.setReadTimeout(30000);
+//        simpleClientHttpRequestFactory.setOutputStreaming(false);
+//        restTemplate.setRequestFactory(simpleClientHttpRequestFactory);
+//
+//        return restTemplate;
     }
 
     private static class PingEntity extends HttpEntity<String> {

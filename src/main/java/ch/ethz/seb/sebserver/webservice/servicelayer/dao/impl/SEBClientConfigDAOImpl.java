@@ -27,7 +27,6 @@ import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +67,6 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     private final ClientCredentialService clientCredentialService;
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
     private final DAOUserServcie daoUserServcie;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final CacheManager cacheManager;
 
     protected SEBClientConfigDAOImpl(
@@ -76,14 +74,12 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             final ClientCredentialService clientCredentialService,
             final AdditionalAttributesDAOImpl additionalAttributesDAO,
             final DAOUserServcie daoUserServcie,
-            final ApplicationEventPublisher applicationEventPublisher,
             final CacheManager cacheManager) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.daoUserServcie = daoUserServcie;
-        this.applicationEventPublisher = applicationEventPublisher;
         this.cacheManager = cacheManager;
     }
 
@@ -709,13 +705,14 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             final SebClientConfigRecord rec = recordById(pk)
                     .getOrThrow();
 
-            // revoke token
-            try {
-                this.applicationEventPublisher
-                        .publishEvent(new RevokeExamTokenEvent(rec.getClientName()));
-            } catch (final Exception e) {
-                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", pk, e);
-            }
+            // NOTE: ther is no token to revoke anymore since 3.0
+//            // revoke token
+//            try {
+//                this.applicationEventPublisher
+//                        .publishEvent(new RevokeExamTokenEvent(rec.getClientName()));
+//            } catch (final Exception e) {
+//                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", pk, e);
+//            }
 
             // clear cache
             this.cacheManager

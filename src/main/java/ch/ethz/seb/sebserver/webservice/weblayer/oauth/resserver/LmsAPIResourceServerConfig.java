@@ -38,7 +38,7 @@ public class LmsAPIResourceServerConfig {
 
     @Bean
     @Order(4)
-    SecurityFilterChain adminResourceSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain lmsResourceSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http.securityMatcher(lmsAPIEndpoint + "/**")
                 .authorizeHttpRequests((requests) -> requests
@@ -55,7 +55,7 @@ public class LmsAPIResourceServerConfig {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new LmsAPIResourceServerConfig.LmsAPIJwtGrantedAuthoritiesConverter());
         http
                 .oauth2ResourceServer(resServer -> resServer
-                        .authenticationEntryPoint(new UnauthorizedRequestHandler("AdminAPIResourceServerConfig"))
+                        .authenticationEntryPoint(new UnauthorizedRequestHandler("LmsAPIResourceServerConfig"))
                         .jwt(jwt -> jwt.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter))
                 );
 

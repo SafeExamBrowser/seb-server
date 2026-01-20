@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.WebDataBinder;
@@ -130,23 +130,20 @@ public class UserServiceImpl implements UserService {
     @Component
     public static class DefaultUserExtractStrategy implements ExtractUserFromAuthenticationStrategy {
 
+        final UserDAO userDAO;
+
+        DefaultUserExtractStrategy(UserDAO userDAO) {
+            this.userDAO = userDAO;
+        }
+
         @Override
         public SEBServerUser extract(final Principal principal) {
-            if (principal instanceof OAuth2Authentication) {
-                final Authentication userAuthentication = ((OAuth2Authentication) principal).getUserAuthentication();
-                if (userAuthentication == null) {
-                    // check if lms integration client
-                    return isLMSIntegrationClient(principal);
-                }
-                //if (userAuthentication instanceof UsernamePasswordAuthenticationToken) {
-                    final Object userPrincipal = userAuthentication.getPrincipal();
-                    if (userPrincipal instanceof SEBServerUser) {
-                        return (SEBServerUser) userPrincipal;
-                    }
-                //}
-            }
-
-            return null;
+            String name = principal.getName();
+            // TODO check performance, is this called on every request or only on login?
+            System.out.println("******************** extract user: " + name);
+            return userDAO.sebServerUserByUsername(name)
+                    .onError(error -> log.warn("Failed to find user for token authentication: {}", name))
+                    .getOr(null);
         }
     }
 

@@ -26,7 +26,7 @@ import java.util.Map;
 public class ZoomProctoringService implements RemoteProctoringService {
     @Override
     public ProctoringServiceSettings.ProctoringServerType getType() {
-        throw new UnsupportedOperationException();
+        return ProctoringServiceSettings.ProctoringServerType.ZOOM;
     }
 
     @Override

@@ -98,7 +98,7 @@ public abstract class GuiIntegrationTest {
             @Override
             public SEBServerAuthorizationContext getAuthorizationContext() {
                 if (this.authContext == null || !this.authContext.isValid()) {
-                    this.authContext = super.getAuthorizationContext(sessionMock);
+                    this.authContext = super.getAuthorizationContext();
                 }
                 return this.authContext;
             }

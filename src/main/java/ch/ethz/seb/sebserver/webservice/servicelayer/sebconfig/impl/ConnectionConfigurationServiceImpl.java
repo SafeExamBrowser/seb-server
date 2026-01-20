@@ -26,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
@@ -44,7 +43,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
@@ -179,7 +177,7 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
             final ZipService zipService,
             final WebserviceInfo webserviceInfo,
             final CertificateDAO certificateDAO,
-            @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
+            final PasswordEncoder clientPasswordEncoder,
             @Value("${sebserver.webservice.api.exam.defaultPingInterval:1000}") final long defaultPingInterval,
             @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}") final int examAPITokenValiditySeconds) {
 

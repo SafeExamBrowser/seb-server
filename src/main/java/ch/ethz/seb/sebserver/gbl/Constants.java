@@ -13,8 +13,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.RGBA;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.core.ParameterizedTypeReference;
@@ -167,10 +165,6 @@ public final class Constants {
     public static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
     public static final String HMAC_ALGORITHM = "HmacSHA256";
     public static final String KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA1";
-
-    public static final RGB WHITE_RGB = new RGB(255, 255, 255);
-    public static final RGB BLACK_RGB = new RGB(0, 0, 0);
-    public static final RGBA GREY_DISABLED = new RGBA(150, 150, 150, 50);
 
     public static final Collator DEFAULT_ENGLISH_COLLATOR = Collator.getInstance(Locale.ENGLISH);
 

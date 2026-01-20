@@ -252,6 +252,9 @@ public class POSTMapper {
             return Collections.emptyList();
         }
 
+        // TODO check if colors are correct, they have changed since 3.0
+        System.out.println("*************** get Thresholds from Request: " + thresholdStrings);
+
         return thresholdStrings
                 .stream()
                 .map(ts -> {
@@ -265,7 +268,7 @@ public class POSTMapper {
                         }
                         return new Threshold(
                                 val,
-                                (split.length > 1) ? Utils.parseColorString(Utils.parseRGB(split[1])) : null,
+                                (split.length > 1) ? split[1] : null,
                                 (split.length > 2 && "null".equals(split[2])) ? split[2] : null);
                     } catch (final Exception e) {
                         return null;

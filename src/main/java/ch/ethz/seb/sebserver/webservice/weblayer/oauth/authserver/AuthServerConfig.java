@@ -57,7 +57,7 @@ public class AuthServerConfig {
     private WebServiceUserDetails webServiceUserDetails;
     @Autowired
     private UserDAO userDAO;
-    @Value("${sps.http.redirect}")
+    @Value("${sebserver.webservice.http.redirect.gui}")
     private String unauthorizedRedirect;
     
     

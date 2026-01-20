@@ -33,7 +33,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
-import org.eclipse.swt.graphics.RGB;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
@@ -581,22 +580,6 @@ public final class Utils {
         return millis / 1000;
     }
 
-    public static RGB toRGB(final String rgbString) {
-        if (StringUtils.isNotBlank(rgbString)) {
-
-            final String rgbVal = (rgbString.startsWith(Constants.HASH_TAG_STRING))
-                    ? rgbString.substring(1)
-                    : rgbString;
-
-            return new RGB(
-                    Integer.parseInt(rgbVal.substring(0, 2), 16),
-                    Integer.parseInt(rgbVal.substring(2, 4), 16),
-                    Integer.parseInt(rgbVal.substring(4, 6), 16));
-        } else {
-            return new RGB(255, 255, 255);
-        }
-    }
-
     public static MultiValueMap<String, String> createJsonContentHeader() {
         final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.set(
@@ -612,44 +595,25 @@ public final class Utils {
         return e.getCause().getClass().getName() + " : " + e.getCause().getMessage();
     }
 
-    /** Indicates if a dark background or contrast color must be used for the given text or foreground color.
-     *
-     * @param rgb foreground or text color
-     * @return true of the background color for given foreground color shall be dark or false if it shall be light */
-    public static boolean darkColorContrast(final RGB rgb) {
-        if (rgb == null) {
-            return true;
-        }
-        return rgb.red + rgb.green + rgb.blue > DARK_COLOR_THRESHOLD;
-    }
 
-    public static String parseColorString(final RGB color) {
-        if (color == null) {
-            return null;
-        }
+//    public static String parseColorString(final String colorString) {
+//        if (StringUtils.isBlank(colorString)) {
+//            return null;
+//        }
+//
+//        final int r = Integer.parseInt(colorString.substring(0, 2), 16);
+//        final int g = Integer.parseInt(colorString.substring(2, 4), 16);
+//        final int b = Integer.parseInt(colorString.substring(4, 6), 16);
+//
+//        return toColorFractionString(r)
+//                + toColorFractionString(g)
+//                + toColorFractionString(b);
+//    }
 
-        return toColorFractionString(color.red)
-                + toColorFractionString(color.green)
-                + toColorFractionString(color.blue);
-    }
-
-    public static RGB parseRGB(final String colorString) {
-        try {
-
-            final int r = Integer.parseInt(colorString.substring(0, 2), 16);
-            final int g = Integer.parseInt(colorString.substring(2, 4), 16);
-            final int b = Integer.parseInt(colorString.substring(4, 6), 16);
-
-            return new RGB(r, g, b);
-        } catch (final Exception e) {
-            return null;
-        }
-    }
-
-    public static String toColorFractionString(final int fraction) {
-        final String hexString = Integer.toHexString(fraction);
-        return (hexString.length() < 2) ? "0" + hexString : hexString;
-    }
+//    public static String toColorFractionString(final int fraction) {
+//        final String hexString = Integer.toHexString(fraction);
+//        return (hexString.length() < 2) ? "0" + hexString : hexString;
+//    }
 
     public static String toAppFormUrlEncodedBody(final MultiValueMap<String, String> attributes) {
         if (attributes == null) {

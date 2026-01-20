@@ -56,14 +56,12 @@ public class RegisterUserController {
     private final boolean autoActivation;
 
     protected RegisterUserController(
-            final InstitutionDAO institutionDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final UserDAO userDAO,
             final BeanValidationService beanValidationService,
             final RateLimitService rateLimitService,
             final WebserviceInfo webserviceInfo,
-            final ScreenProctoringService screenProctoringService,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final ScreenProctoringService screenProctoringService) {
         
         final Map<String, Boolean> features = webserviceInfo.configuredFeatures();
         this.userActivityLogDAO = userActivityLogDAO;

@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 
 public class TokenLoginInfo {
     @JsonProperty("username")

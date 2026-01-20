@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
+import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -124,7 +125,7 @@ public abstract class AdministrationAPIIntegrationTester {
         private final Map<String, String> queryAttrs = new HashMap<>();
         private String accessToken;
         private HttpStatus expectedStatus;
-        private HttpMethod httpMethod = HttpMethod.GET;
+        private HttpMethod httpMethod = GET;
         private MediaType contentType = MediaType.APPLICATION_FORM_URLENCODED;
         private String body = null;
 
@@ -197,26 +198,39 @@ public abstract class AdministrationAPIIntegrationTester {
 
         private RequestBuilder requestBuilder() {
             MockHttpServletRequestBuilder builder = get(getFullPath());
-            switch (this.httpMethod) {
-                case GET:
-                    builder = get(getFullPath());
-                    break;
-                case POST:
-                    builder = post(getFullPath());
-                    break;
-                case PUT:
-                    builder = put(getFullPath());
-                    break;
-                case DELETE:
-                    builder = delete(getFullPath());
-                    break;
-                case PATCH:
-                    builder = patch(getFullPath());
-                    break;
-                default:
-                    get(getFullPath());
-                    break;
+            if (this.httpMethod == GET) {
+                builder = get(getFullPath());
+            } else  if (this.httpMethod == POST) {
+                builder = post(getFullPath());
+            } else if (this.httpMethod == PUT) {
+                builder = put(getFullPath());
+            } else if (this.httpMethod == DELETE) {
+                builder = delete(getFullPath());
+            } else if (this.httpMethod == PATCH) {
+                builder = patch(getFullPath());
+            } else {
+                get(getFullPath());
             }
+//                switch (this.httpMethod) {
+//                case GET:
+//                    builder = get(getFullPath());
+//                    break;
+//                case POST:
+//                    builder = post(getFullPath());
+//                    break;
+//                case PUT:
+//                    builder = put(getFullPath());
+//                    break;
+//                case DELETE:
+//                    builder = delete(getFullPath());
+//                    break;
+//                case PATCH:
+//                    builder = patch(getFullPath());
+//                    break;
+//                default:
+//                    get(getFullPath());
+//                    break;
+//            }
             builder.header("Authorization", "Bearer " + this.accessToken);
 
             if (this.contentType != null) {

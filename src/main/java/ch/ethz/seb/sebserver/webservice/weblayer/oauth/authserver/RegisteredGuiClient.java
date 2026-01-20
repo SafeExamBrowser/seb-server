@@ -37,11 +37,9 @@ public class RegisteredGuiClient {
             @Value("${sebserver.webservice.api.admin.clientId}") final String clientId,
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret,
             @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}") final Integer accessTokenValiditySeconds,
-            @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:-1}") final Integer refreshTokenValiditySeconds) {
+            @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:86400}") final Integer refreshTokenValiditySeconds) {
 
-            Duration refreshTokenValDuration = (refreshTokenValiditySeconds == null || refreshTokenValiditySeconds.longValue() < 0)
-                    ? Duration.of(1, YEARS)
-                    : Duration.of(refreshTokenValiditySeconds, SECONDS);
+            final Duration refreshTokenValDuration = Duration.of(refreshTokenValiditySeconds, SECONDS);
 
             client = RegisteredClient
                     .withId(clientId)

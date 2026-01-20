@@ -23,10 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -240,7 +237,8 @@ public class CurrentUser {
                                         .path(API.PRIVILEGES_ENDPOINT)
                                         .toUriString(),
                                 HttpMethod.GET,
-                                HttpEntity.EMPTY,
+                                null,
+                                new HttpHeaders(),
                                 Constants.TYPE_REFERENCE_PRIVILEGES);
 
                 if (exchange.getStatusCodeValue() == HttpStatus.OK.value()) {

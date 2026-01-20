@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.integration.api.exam;
 
 import java.util.Set;
 
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,11 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.v1}")
 public class ExamAPITestController {
 
-    @RequestMapping(value = "/hello", method = RequestMethod.GET)
-    public String helloFromWebService(final OAuth2Authentication principal) {
-        final Set<String> scope = principal.getOAuth2Request().getScope();
-        System.out.println("OAuth 2 exam client scope is: " + scope);
-        return "Hello From Exam-Web-Service";
-    }
+    // TODO what is this?
+//    @RequestMapping(value = "/hello", method = RequestMethod.GET)
+//    public String helloFromWebService(final OAuth2Authentication principal) {
+//        final Set<String> scope = principal.getOAuth2Request().getScope();
+//        System.out.println("OAuth 2 exam client scope is: " + scope);
+//        return "Hello From Exam-Web-Service";
+//    }
 
 }

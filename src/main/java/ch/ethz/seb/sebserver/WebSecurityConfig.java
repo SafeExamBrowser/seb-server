@@ -8,9 +8,13 @@
 
 package ch.ethz.seb.sebserver;
 
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,10 +32,10 @@ public class WebSecurityConfig {
     @Value("${sebserver.webservice.api.admin.endpoint}")
     private String adminAPIEndpoint;
 
-    /** Spring bean name of user password encoder */
-    public static final String USER_PASSWORD_ENCODER_BEAN_NAME = "userPasswordEncoder";
-    /** Spring bean name of client (application) password encoder */
-    public static final String CLIENT_PASSWORD_ENCODER_BEAN_NAME = "clientPasswordEncoder";
+//    /** Spring bean name of user password encoder */
+//    public static final String USER_PASSWORD_ENCODER_BEAN_NAME = "userPasswordEncoder";
+//    /** Spring bean name of client (application) password encoder */
+//    public static final String CLIENT_PASSWORD_ENCODER_BEAN_NAME = "clientPasswordEncoder";
 
 //    @Bean
 //    public FilterRegistrationBean<CharacterEncodingFilter> filterRegistrationBean() {
@@ -43,17 +47,25 @@ public class WebSecurityConfig {
 //        return registrationBean;
 //    }
 
-    /** Password encoder used for user passwords (stronger protection) */
-    @Bean(USER_PASSWORD_ENCODER_BEAN_NAME)
-    public PasswordEncoder userPasswordEncoder() {
-        return new BCryptPasswordEncoder(8);
+    @Lazy
+    @Bean
+    @Primary
+    public JSONMapper jsonMapper() {
+        return new JSONMapper();
     }
 
-    /** Password encode used for client (application) passwords */
-    @Bean(CLIENT_PASSWORD_ENCODER_BEAN_NAME)
-    public PasswordEncoder clientPasswordEncoder() {
-        return new BCryptPasswordEncoder(4);
+    /** Password encoder used for user passwords (stronger protection) */
+    //@Bean(USER_PASSWORD_ENCODER_BEAN_NAME)
+    @Bean
+    public PasswordEncoder userPasswordEncoder() {
+        return new BCryptPasswordEncoder();
     }
+
+//    /** Password encode used for client (application) passwords */
+//    @Bean(CLIENT_PASSWORD_ENCODER_BEAN_NAME)
+//    public PasswordEncoder clientPasswordEncoder() {
+//        return new BCryptPasswordEncoder(4);
+//    }
 
 //    @RequestMapping(API.CHECK_PATH)
 //    public void check() throws IOException {

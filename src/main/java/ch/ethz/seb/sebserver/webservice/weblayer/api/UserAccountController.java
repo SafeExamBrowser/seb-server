@@ -82,7 +82,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final WebserviceInfo webserviceInfo,
             final FeatureService featureService,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final PasswordEncoder userPasswordEncoder) {
 
         super(authorization,
                 bulkActionService,
@@ -226,20 +226,21 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(this.authorization::checkModify)
                 .map(ui -> checkPasswordChange(ui, passwordChange))
                 .flatMap(e -> this.userDAO.changePassword(modelId, passwordChange.getNewPassword()))
-                .flatMap(this::revokeAccessToken)
+               // .flatMap(this::revokeAccessToken)
                 .flatMap(e -> this.userActivityLogDAO.log(UserLogActivityType.PASSWORD_CHANGE, e))
                 .map(this::synchronizeUserWithSPS)
                 .map(this::removeInitialAdminPasswordFromDB)
                 .getOrThrow();
     }
 
-    private Result<UserInfo> revokeAccessToken(final UserInfo userInfo) {
-        return Result.tryCatch(() -> {
-            this.applicationEventPublisher.publishEvent(
-                    new RevokeTokenEndpoint.RevokeTokenEvent(userInfo, userInfo.username));
-            return userInfo;
-        });
-    }
+    // NOTE: there is no revoke token possibility anymore since 3.0
+//    private Result<UserInfo> revokeAccessToken(final UserInfo userInfo) {
+//        return Result.tryCatch(() -> {
+//            this.applicationEventPublisher.publishEvent(
+//                    new RevokeTokenEndpoint.RevokeTokenEvent(userInfo, userInfo.username));
+//            return userInfo;
+//        });
+//    }
 
     private <T extends UserAccount> Result<UserMod> passwordMatch(final UserMod userInfo) {
         if (!userInfo.newPasswordMatch()) {

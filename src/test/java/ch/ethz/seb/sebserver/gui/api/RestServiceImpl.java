@@ -13,6 +13,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gui.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.api.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.api.auth.WebserviceURIService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -47,7 +48,7 @@ public class RestServiceImpl implements RestService {
     }
 
     @Override
-    public final RestTemplate getWebserviceAPIRestTemplate() {
+    public final OAuthRestTemplate getWebserviceAPIRestTemplate() {
         return this.authorizationContextHolder
                 .getAuthorizationContext()
                 .getRestTemplate();

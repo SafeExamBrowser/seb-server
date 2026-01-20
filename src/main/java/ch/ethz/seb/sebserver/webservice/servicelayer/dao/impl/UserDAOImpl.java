@@ -75,7 +75,7 @@ public class UserDAOImpl implements UserDAO {
             final RoleRecordMapper roleRecordMapper,
             final EntityPrivilegeRecordMapper entityPrivilegeRecordMapper,
             final FeaturePrivilegeRecordMapper featurePrivilegeRecordMapper,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final PasswordEncoder userPasswordEncoder) {
 
         this.userRecordMapper = userRecordMapper;
         this.roleRecordMapper = roleRecordMapper;

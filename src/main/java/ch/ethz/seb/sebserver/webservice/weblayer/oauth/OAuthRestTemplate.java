@@ -5,14 +5,19 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 
 public class OAuthRestTemplate {
 
@@ -77,6 +82,41 @@ public class OAuthRestTemplate {
         return restTemplate.exchange(url, HttpMethod.GET, tokenReqEntity, type);
     }
 
+    public Boolean execute(
+            String url,
+            HttpMethod httpMethod,
+            RequestCallback callback,
+            ResponseExtractor<Boolean> responseExtractor,
+            Map<String, String> uriVariables) {
+
+        return restTemplate.execute(url, httpMethod, callback, responseExtractor, uriVariables);
+    }
+
+    public <T> ResponseEntity<T> exchange(
+            final String url,
+            final HttpMethod method,
+            final HttpEntity<?> entity,
+            final Class<T> type,
+            final Map<String, String> uriVariables) {
+
+        // set auth header with access token
+        entity.getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenResponse.access_token);
+        // delegate to restTemplate
+        return restTemplate.exchange(url, method, entity, type, uriVariables);
+    }
+
+    public <T> ResponseEntity<T> exchange(
+            final String url,
+            final HttpMethod method,
+            final HttpEntity<?> entity,
+            final Class<T> type) {
+
+        // set auth header with access token
+        entity.getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenResponse.access_token);
+        // delegate to restTemplate
+        return restTemplate.exchange(url, method, entity, type);
+    }
+
     public <T> ResponseEntity<T> exchange(
             final String url,
             final HttpMethod method,
@@ -89,6 +129,20 @@ public class OAuthRestTemplate {
         final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
         // delegate to restTemplate
         return restTemplate.exchange(url, method, reqEntity, type);
+    }
+
+    public <T> ResponseEntity<T> exchange(
+            final String url,
+            final HttpMethod method,
+            final Object body,
+            final HttpHeaders httpHeaders,
+            final ParameterizedTypeReference<T> responseType) {
+
+        // set auth header with access token
+        httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " +  tokenResponse.access_token);
+        final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
+        // delegate to restTemplate
+        return restTemplate.exchange(url, method, reqEntity, responseType);
     }
 
     public ResponseEntity<String>  exchange(
@@ -130,7 +184,7 @@ public class OAuthRestTemplate {
 
             if (response.getStatusCode() != HttpStatus.OK) {
                 log.error("Error Response on access token request: {}", response);
-                throw new RuntimeException("Error Response on access token request: " + response.getStatusCode());
+                throw new OAuthClientException("Error Response on access token request: " + response.getStatusCode());
             }
 
             this.tokenResponse = jsonMapper.readValue(response.getBody(), TokenResponse.class);
@@ -142,7 +196,7 @@ public class OAuthRestTemplate {
 
         } catch (final Exception e) {
             log.error("Failed to gain OAUth access token at: {}", this.apiURL, e);
-            throw new RuntimeException("Failed to gain access token for OAUth API at: " +
+            throw new OAuthClientException("Failed to gain access token for OAUth API at: " +
                     this.apiURL + " cause: " + e.getMessage());
         }
 
@@ -157,8 +211,6 @@ public class OAuthRestTemplate {
         }
     }
 
-
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class TokenResponse {
         public final String access_token;
@@ -169,11 +221,11 @@ public class OAuthRestTemplate {
 
         @JsonCreator
         public TokenResponse(
-                String accessToken,
-                String refreshToken,
-                String scope,
-                String tokenType,
-                Long expiresIn) {
+                @JsonProperty("access_token") String accessToken,
+                @JsonProperty("refresh_token") String refreshToken,
+                @JsonProperty("scope") String scope,
+                @JsonProperty("token_type") String tokenType,
+                @JsonProperty("expires_in") Long expiresIn) {
 
             access_token = accessToken;
             refresh_token = refreshToken;
