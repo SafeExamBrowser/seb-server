@@ -37,7 +37,6 @@ public class UserServiceImpl implements UserService {
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserDAO userDAO;
 
-
     public interface ExtractUserFromAuthenticationStrategy {
         SEBServerUser extract(Principal principal);
     }
@@ -130,20 +129,15 @@ public class UserServiceImpl implements UserService {
     @Component
     public static class DefaultUserExtractStrategy implements ExtractUserFromAuthenticationStrategy {
 
-        final UserDAO userDAO;
+        final UserCacheService userCacheService;
 
-        DefaultUserExtractStrategy(UserDAO userDAO) {
-            this.userDAO = userDAO;
+        DefaultUserExtractStrategy(UserCacheService userCacheService) {
+            this.userCacheService = userCacheService;
         }
 
         @Override
         public SEBServerUser extract(final Principal principal) {
-            String name = principal.getName();
-            // TODO check performance, is this called on every request or only on login?
-            System.out.println("******************** extract user: " + name);
-            return userDAO.sebServerUserByUsername(name)
-                    .onError(error -> log.warn("Failed to find user for token authentication: {}", name))
-                    .getOr(null);
+            return userCacheService.serverUserByName( principal.getName());
         }
     }
 

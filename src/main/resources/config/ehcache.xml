@@ -126,4 +126,15 @@
         </resources>
     </cache>
 
+    <cache alias="SERVER_USER_CACHE">
+        <key-type>java.lang.String</key-type>
+        <value-type>ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser</value-type>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache>
+
 </config>

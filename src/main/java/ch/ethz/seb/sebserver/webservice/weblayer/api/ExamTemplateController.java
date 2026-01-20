@@ -146,63 +146,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
-    @Override
-    protected Result<ExamTemplate> validForCreate(final ExamTemplate entity) {
-        return super.validForCreate(entity)
-                .map(this::applyQuitPasswordIfNeeded);
-    }
-
-    @Override
-    protected Result<ExamTemplate> validForSave(final ExamTemplate entity) {
-        return super.validForSave(entity)
-                .map(this::applyQuitPasswordIfNeeded);
-    }
-
-    @Override
-    protected Result<ExamTemplate> notifyCreated(final ExamTemplate entity) {
-        return notifyExamTemplateChange(entity, ExamTemplateChangeEvent.ChangeState.CREATED);
-    }
-
-    @Override
-    protected Result<ExamTemplate> notifySaved(final ExamTemplate entity) {
-        return notifyExamTemplateChange(entity, ExamTemplateChangeEvent.ChangeState.MODIFIED);
-    }
-
-    @Override
-    protected Result<Pair<ExamTemplate, EntityProcessingReport>> notifyDeleted(final Pair<ExamTemplate, EntityProcessingReport> pair) {
-        notifyExamTemplateChange(pair.a, ExamTemplateChangeEvent.ChangeState.DELETED);
-        return super.notifyDeleted(pair);
-    }
-
-    private ExamTemplate applyQuitPasswordIfNeeded(final ExamTemplate entity) {
-        if (entity.configTemplateId != null) {
-            try {
-                final String quitPassword = this.examConfigurationValueService
-                        .getQuitPasswordFromConfigTemplate(entity.configTemplateId);
-                final HashMap<String, String> attributes = new HashMap<>(entity.examAttributes);
-                attributes.put(ExamTemplate.ATTR_QUIT_PASSWORD, quitPassword);
-                return new ExamTemplate(
-                        entity.id,
-                        entity.institutionId,
-                        entity.name,
-                        entity.description,
-                        entity.examType,
-                        entity.supporter,
-                        entity.configTemplateId,
-                        entity.institutionalDefault,
-                        entity.lmsIntegration,
-                        entity.clientConfigurationId,
-                        entity.indicatorTemplates,
-                        entity.clientGroupTemplates,
-                        attributes
-                );
-            } catch (final Exception e) {
-                log.error("Failed to apply quit password to Exam Template.", e);
-            }
-        }
-        return entity;
-    }
-
     @RequestMapping(
             path = API.EXAM_TEMPLATE_FULL_CREATE,
             method = RequestMethod.POST,
@@ -244,6 +187,34 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .byPK(created.id)
                 .map(this::applySPSData)
                 .getOrThrow();
+    }
+
+    @Override
+    protected Result<ExamTemplate> validForCreate(final ExamTemplate entity) {
+        return super.validForCreate(entity)
+                .map(this::applyQuitPasswordIfNeeded);
+    }
+
+    @Override
+    protected Result<ExamTemplate> validForSave(final ExamTemplate entity) {
+        return super.validForSave(entity)
+                .map(this::applyQuitPasswordIfNeeded);
+    }
+
+    @Override
+    protected Result<ExamTemplate> notifyCreated(final ExamTemplate entity) {
+        return notifyExamTemplateChange(entity, ExamTemplateChangeEvent.ChangeState.CREATED);
+    }
+
+    @Override
+    protected Result<ExamTemplate> notifySaved(final ExamTemplate entity) {
+        return notifyExamTemplateChange(entity, ExamTemplateChangeEvent.ChangeState.MODIFIED);
+    }
+
+    @Override
+    protected Result<Pair<ExamTemplate, EntityProcessingReport>> notifyDeleted(final Pair<ExamTemplate, EntityProcessingReport> pair) {
+        notifyExamTemplateChange(pair.a, ExamTemplateChangeEvent.ChangeState.DELETED);
+        return super.notifyDeleted(pair);
     }
 
     // ****************************************************************************
@@ -760,6 +731,35 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 examTemplate.clientGroupTemplates,
                 examAttributes
         );
+    }
+
+    private ExamTemplate applyQuitPasswordIfNeeded(final ExamTemplate entity) {
+        if (entity.configTemplateId != null) {
+            try {
+                final String quitPassword = this.examConfigurationValueService
+                        .getQuitPasswordFromConfigTemplate(entity.configTemplateId);
+                final HashMap<String, String> attributes = new HashMap<>(entity.examAttributes);
+                attributes.put(ExamTemplate.ATTR_QUIT_PASSWORD, quitPassword);
+                return new ExamTemplate(
+                        entity.id,
+                        entity.institutionId,
+                        entity.name,
+                        entity.description,
+                        entity.examType,
+                        entity.supporter,
+                        entity.configTemplateId,
+                        entity.institutionalDefault,
+                        entity.lmsIntegration,
+                        entity.clientConfigurationId,
+                        entity.indicatorTemplates,
+                        entity.clientGroupTemplates,
+                        attributes
+                );
+            } catch (final Exception e) {
+                log.error("Failed to apply quit password to Exam Template.", e);
+            }
+        }
+        return entity;
     }
 
 }

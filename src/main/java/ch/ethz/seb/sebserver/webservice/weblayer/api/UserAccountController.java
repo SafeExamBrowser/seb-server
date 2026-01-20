@@ -99,7 +99,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.featureService = featureService;
     }
 
-    @RequestMapping(path = API.CURRENT_USER_PATH_SEGMENT, method = RequestMethod.GET)
+    @RequestMapping(
+            path = API.CURRENT_USER_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public UserInfo loggedInUser() {
         return this.authorization
                 .getUserService()

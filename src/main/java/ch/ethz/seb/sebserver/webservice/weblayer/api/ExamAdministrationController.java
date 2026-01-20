@@ -121,23 +121,16 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.cryptor = cryptor;
         this.fullLmsIntegrationService = fullLmsIntegrationService;
     }
-    @Override
-    protected Result<Collection<Exam>> getAll(final FilterMap filterMap) {
-        // If current user has only supporter role, put user UUID to filter to get correct page result from DB
-        final String supporterId = authorization.getSupporterOnlyUUID();
-        if (StringUtils.isNotBlank(supporterId)) {
-            filterMap.putIfAbsent(FilterMap.ATTR_SUPPORTER_USER_ID, supporterId);
-        }
 
-        // add users time zone for Exam start time search
-        filterMap.putIfAbsent(
-                FilterMap.ATTR_USER_TIME_ZONE,
-                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
 
-        return this.entityDAO.allMatching(
-                filterMap,
-                this::hasReadAccess);
-    }
+//    @Override
+//    protected Result<Collection<Exam>> getAll(final FilterMap filterMap) {
+//
+//
+//        return this.entityDAO.allMatching(
+//                filterMap,
+//                this::hasReadAccess);
+//    }
 
     @Override
     protected SqlTable getSQLTableOfEntity() {
@@ -797,6 +790,17 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         if (sort != null && sort.contains(Domain.EXAM.ATTR_LMS_SETUP_ID)) {
             filterMap.putIfAbsent(FilterMap.ATTR_ADD_LMS_SETUP_JOIN, Constants.TRUE_STRING);
         }
+
+        // If current user has only supporter role, put user UUID to filter to get correct page result from DB
+        final String supporterId = authorization.getSupporterOnlyUUID();
+        if (StringUtils.isNotBlank(supporterId)) {
+            filterMap.putIfAbsent(FilterMap.ATTR_SUPPORTER_USER_ID, supporterId);
+        }
+
+        // add users time zone for Exam start time search
+        filterMap.putIfAbsent(
+                FilterMap.ATTR_USER_TIME_ZONE,
+                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
     }
 
     @Override

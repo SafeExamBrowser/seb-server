@@ -1463,7 +1463,11 @@ public class ScreenProctoringAPIBinding {
     }
 
     private static List<String> getSupporterIds(final Exam exam) {
-        return null;
+        final Set<String> supporterIds = new HashSet<>(exam.supporter);
+        if (exam.owner != null && !UserService.LMS_INTEGRATION_CLIENT_UUID.equals(exam.owner)) {
+            supporterIds.add(exam.owner);
+        }
+        return new ArrayList<>(supporterIds);
     }
 
     public OAuthRestTemplate getOAuth2RestTemplate(
