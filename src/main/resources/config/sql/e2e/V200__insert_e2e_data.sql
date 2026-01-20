@@ -12,24 +12,24 @@ INSERT IGNORE INTO institution VALUES
 -- Users
 INSERT IGNORE INTO user VALUES
 -- main accounts
-    (1000,1,'create-tests','2019-01-01','Create','Tests', 'createtests','$2a$08$Dzh71858PJsv6mlU3DBkpudWXgA2YWz8YLq4RmAgUZqbrgvEAM5S.','create-tests@alreadyexists.ch','en','UTC',1,1,1),
-    (1001,1,'test-main','2019-01-01','Test','Main', 'testmain','$2a$08$5Y8viI2/TH9jy13Uo1Jq8Oj7.xw.8kQaMPXnCutnet6eqdBaJGQiG','test-main@main.nomail','en','UTC',1,1,1),
+    (1000,11,'create-tests','2019-01-01','Create','Tests', 'createtests','$2a$08$Dzh71858PJsv6mlU3DBkpudWXgA2YWz8YLq4RmAgUZqbrgvEAM5S.','create-tests@alreadyexists.ch','en','UTC',1,1,1),
+    (1001,11,'test-main','2019-01-01','Test','Main', 'testmain','$2a$08$5Y8viI2/TH9jy13Uo1Jq8Oj7.xw.8kQaMPXnCutnet6eqdBaJGQiG','test-main@main.nomail','en','UTC',1,1,1),
 
 -- active tests accounts
-    (1002,1,'seb-inst-admin-inactive','2019-01-01','Institutional','', 'admininactive','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive@nomail.nomail','de','UTC',0,1,1),
-    (1003,1,'seb-inst-admin-active','2019-01-01','Institutional','', 'adminactive','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active@nomail.nomail','en','UTC',1,1,1),
+    (1002,11,'seb-inst-admin-inactive','2019-01-01','Institutional','', 'admininactive','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive@nomail.nomail','de','UTC',0,1,1),
+    (1003,11,'seb-inst-admin-active','2019-01-01','Institutional','', 'adminactive','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active@nomail.nomail','en','UTC',1,1,1),
 
 -- accounts for other institutions
-    (1004,2,'testinst-exam-admin','2019-01-01','Admin','Admin', 'testinstitutionadmin','$2a$08$zBpW9dadK.C3kOjbowKYVOFmWIiqsZMWeWjYqLZxzG8FEliRuOHnC','exam-admin@testinst.nomail','de','UTC',1,1,1),
-    (1005,3,'ethz-exam-admin','2019-01-01','Admin','Admin', 'ethzadmin','$2a$08$6.hUxPZ5rV7jReAitJgakOz/8LfhiUuVKa6.T3Vi5BuHW4oWgvsx6','exam-admin@testinst.nomail','de','UTC',1,1,1),
+    (1004,12,'testinst-exam-admin','2019-01-01','Admin','Admin', 'testinstitutionadmin','$2a$08$zBpW9dadK.C3kOjbowKYVOFmWIiqsZMWeWjYqLZxzG8FEliRuOHnC','exam-admin@testinst.nomail','de','UTC',1,1,1),
+    (1005,13,'ethz-exam-admin','2019-01-01','Admin','Admin', 'ethzadmin','$2a$08$6.hUxPZ5rV7jReAitJgakOz/8LfhiUuVKa6.T3Vi5BuHW4oWgvsx6','exam-admin@testinst.nomail','de','UTC',1,1,1),
 
 
 -- developer accounts
-    (1006,1,'andrei.dev','2019-01-01','Andrei','Mititelu', 'amititelu','$2a$08$TF22iN3Bo7fW4xzUH8DBM.OSXEMq9/ajdivZYJvOAAbr2ntj.7Owa','andrei@nomail.ch','en','Europe/Zurich',1,1,1),
-    (1007,1,'andreas.dev','2019-01-01','Andreas','Hefti', 'ahefti','$2a$08$wQn0mMwbjKaY3OGHK8PBP.iShNZI4Mg5Vumsj7JMyGgd3dcfwqUHK','andreas@nomail.ch','de','Europe/Zurich',1,1,1),
-    (1008,1,'kristina.dev','2019-01-01','Kristina','Isacson', 'kisacson','$2a$08$C6byU6wh0GMI8LXJtGtUu.gXaJr8GqtQ2utz7bT9J2jOUXUxJ1hD6','kristina@nomail.ch','de','Europe/Zurich',1,1,1),
-    (1009,1,'ensar.dev','2019-01-01','Ensar','Mersini', 'emersini','$2a$08$yVMkKbzimIqXD4v9rmT9d.huPtqmDa6HQLu8CLw4jJvWjp6IzdU82','ensar@nomail.ch','de','Europe/Zurich',1,1,1),
-    (1010,1,'risvin.dev','2019-01-01','Risvin','Thambiah', 'rthambiah','$2a$08$dYVkRSYFgYIHoUSGQe7S..jpDCYmwNoaoYf7soxpXJnQhsP2qyw9O','risvin@nomail.ch','de','Europe/Zurich',1,1,1);
+    (1006,11,'andrei.dev','2019-01-01','Andrei','Mititelu', 'amititelu','$2a$08$TF22iN3Bo7fW4xzUH8DBM.OSXEMq9/ajdivZYJvOAAbr2ntj.7Owa','andrei@nomail.ch','en','Europe/Zurich',1,1,1),
+    (1007,11,'andreas.dev','2019-01-01','Andreas','Hefti', 'ahefti','$2a$08$wQn0mMwbjKaY3OGHK8PBP.iShNZI4Mg5Vumsj7JMyGgd3dcfwqUHK','andreas@nomail.ch','de','Europe/Zurich',1,1,1),
+    (1008,11,'kristina.dev','2019-01-01','Kristina','Isacson', 'kisacson','$2a$08$C6byU6wh0GMI8LXJtGtUu.gXaJr8GqtQ2utz7bT9J2jOUXUxJ1hD6','kristina@nomail.ch','de','Europe/Zurich',1,1,1),
+    (1009,11,'ensar.dev','2019-01-01','Ensar','Mersini', 'emersini','$2a$08$yVMkKbzimIqXD4v9rmT9d.huPtqmDa6HQLu8CLw4jJvWjp6IzdU82','ensar@nomail.ch','de','Europe/Zurich',1,1,1),
+    (1010,11,'risvin.dev','2019-01-01','Risvin','Thambiah', 'rthambiah','$2a$08$dYVkRSYFgYIHoUSGQe7S..jpDCYmwNoaoYf7soxpXJnQhsP2qyw9O','risvin@nomail.ch','de','Europe/Zurich',1,1,1);
 
 
 -- User Roles
