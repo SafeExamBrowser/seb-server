@@ -32,7 +32,11 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 @Component
 public class RegisteredLMSClient {
 
-    public final RegisteredClient client;
+    private final PasswordEncoder clientPasswordEncoder;
+    private final String clientId;
+    private final String clientSecret;
+    private final Duration accessTokenValiditySeconds;
+    private final LmsSetupDAO lmsSetupDAO;
 
     public RegisteredLMSClient(
             final PasswordEncoder clientPasswordEncoder,
@@ -41,40 +45,45 @@ public class RegisteredLMSClient {
             @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret,
             @Value("${sebserver.webservice.lms.api.accessTokenValiditySeconds:-1}") final Integer accessTokenValiditySeconds) {
 
-
-        Duration duration = (accessTokenValiditySeconds != null && accessTokenValiditySeconds > 0)
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.accessTokenValiditySeconds = (accessTokenValiditySeconds != null && accessTokenValiditySeconds > 0)
                 ? Duration.of(accessTokenValiditySeconds, SECONDS)
                 : Duration.of(365, DAYS);
+        this.lmsSetupDAO = lmsSetupDAO;
+        this.clientPasswordEncoder = clientPasswordEncoder;
+    }
 
+    public String getClientId() {
+        return this.clientId;
+    }
+
+    public RegisteredClient getRegisteredClient() {
         final String joinIds = StringUtils.join(
                 lmsSetupDAO.allIdsFullIntegration().getOrThrow(),
                 Constants.LIST_SEPARATOR
         );
 
-        client = RegisteredClient
+        return RegisteredClient
                 .withId(clientId)
                 .clientId(clientId)
                 .clientSecret(clientPasswordEncoder.encode(clientSecret))
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-               // .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                // .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .clientSecretExpiresAt(null)
                 .scope(joinIds)
                 .tokenSettings(TokenSettings
                         .builder()
-                        .accessTokenTimeToLive(duration)
+                        .accessTokenTimeToLive(accessTokenValiditySeconds)
                         .build())
                 .build();
-    }
-
-    public String getClientId() {
-        return client.getClientId();
     }
     
     public UserDetails getUserDetails() {
         return new User(
-                client.getClientId(),
-                client.getClientSecret(),
+                clientId,
+                clientSecret,
                 Collections.emptyList());
     }
 }

@@ -311,7 +311,6 @@ public abstract class ExamAPIIntegrationTester {
     @Autowired
     ConnectionConfigurationService sebConnectionConfigurationService;
     @Autowired
-    @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
     private PasswordEncoder clientPasswordEncoder;
 
 }

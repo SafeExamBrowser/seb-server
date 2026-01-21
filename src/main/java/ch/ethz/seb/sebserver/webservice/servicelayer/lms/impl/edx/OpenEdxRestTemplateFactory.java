@@ -139,18 +139,14 @@ final class OpenEdxRestTemplateFactory {
                     .getOrThrow();
 
             return new OAuthRestTemplate(
-                    lmsSetup.lmsApiUrl,
                     accessToken,
                     restTemplate);
         }
+
         final CharSequence plainClientId = credentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService
                 .getPlainClientSecret(credentials)
                 .getOrThrow();
-
-
-
-
 
 
         return new OAuthRestTemplate(

@@ -15,10 +15,12 @@ import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import org.springframework.test.context.jdbc.Sql;
 
 public class SEBServerAuthorizationContextTest extends GuiIntegrationTest {
 
     @Test
+
     public void testLoginLogoutAsSEBAdmin() {
 
         final SEBServerAuthorizationContext authorizationContext = getAuthorizationContext();

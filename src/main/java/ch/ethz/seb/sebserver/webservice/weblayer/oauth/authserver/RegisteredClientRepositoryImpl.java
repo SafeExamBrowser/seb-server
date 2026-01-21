@@ -55,7 +55,7 @@ public class RegisteredClientRepositoryImpl implements RegisteredClientRepositor
         
         // check if it is valid LMS client
         if (clientId.equals(this.registeredLMSClient.getClientId())) {
-            return this.registeredLMSClient.client;
+            return this.registeredLMSClient.getRegisteredClient();
         }
 
         // check if it is valid SEB client

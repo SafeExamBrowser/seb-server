@@ -291,7 +291,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     applyScreenProctoring(_examId, newStatus),
                     null,
-                    applyProctoring(_examId, newStatus),
+                    false,
                     null,
                     signatureHash,
                     null);
@@ -382,7 +382,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     applyScreenProctoring(_examId, newStatus),
                     null,
-                    applyProctoring(_examId, newStatus),
+                    false,
                     null,
                     getSignatureHash(appSignatureKey, connectionToken, _examId),
                     null);
@@ -950,17 +950,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 !clientConnection.userSessionId.equals(clientConnection.clientAddress) &&
                 !clientConnection.userSessionId.equals(clientConnection.sebClientUserId) &&
                 !clientConnection.userSessionId.equals(clientConnection.sebMachineName);
-    }
-
-    private boolean applyProctoring(final Long examId, final ConnectionStatus status) {
-        if (examId == null) {
-            return false;
-        }
-        final Exam exam = this.examSessionCacheService.getRunningExam(examId);
-        final boolean proctoringEnabled = exam != null && BooleanUtils.toBoolean(
-                exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
-
-        return isApplyProctoring(status, exam) && proctoringEnabled;
     }
 
     private boolean applyScreenProctoring(final Long examId, final ConnectionStatus status) {

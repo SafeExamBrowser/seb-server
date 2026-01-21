@@ -106,13 +106,11 @@ public class QuizController {
                 authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
         
         // add UUIDs of already imported quizzes to filter SEBSERV-632
-        Long lmsSetupId = filterMap.getLmsSetupId();
-        if (lmsSetupId != null) {
-            filterMap.putIfAbsent(
-                    QuizData.FILTER_ATTR_IMPORTED_EXAMS,
-                    examDAO.getImportedQuizUUIDs(lmsSetupId)
-                            .getOr(null));
-        }
+        filterMap.putIfAbsent(
+                QuizData.FILTER_ATTR_IMPORTED_EXAMS,
+                examDAO.getImportedQuizUUIDs(filterMap.getLmsSetupId())
+                        .getOr(null));
+
 
         return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)

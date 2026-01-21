@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
@@ -17,11 +19,16 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+
+import static org.apache.commons.lang3.ArrayUtils.addFirst;
 
 public class OAuthRestTemplate {
 
     private static final Logger log = LoggerFactory.getLogger(OAuthRestTemplate.class);
+    public static final String BEARER_HEADER_PREFIX = "Bearer ";
 
     private final String apiURL;
     private final String tokenPath;
@@ -43,10 +50,17 @@ public class OAuthRestTemplate {
         this.clientSettingsProvider = clientSettingsProvider;
         this.restTemplate = restTemplate;
         this.jsonMapper = new JSONMapper();
+
+        // inject our JSON mapper to the JSON response message converter to support special types
+        List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
+        for (HttpMessageConverter<?> c : messageConverters) {
+            if (c instanceof MappingJackson2HttpMessageConverter) {
+                ((MappingJackson2HttpMessageConverter) c).setObjectMapper(jsonMapper);
+            }
+        }
     }
 
     public OAuthRestTemplate(
-            String lmsApiUrl,
             CharSequence accessToken,
             RestTemplate restTemplate) {
 
@@ -76,7 +90,7 @@ public class OAuthRestTemplate {
     public <T> ResponseEntity<T> getForEntity(String url, Class<T> type) {
         // set auth header with access token
         final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " +  tokenResponse.access_token);
+        httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX +  tokenResponse.access_token);
         final HttpEntity<?> tokenReqEntity = new HttpEntity<>(httpHeaders);
         // delegate to restTemplate
         return restTemplate.exchange(url, HttpMethod.GET, tokenReqEntity, type);
@@ -100,7 +114,7 @@ public class OAuthRestTemplate {
             final Map<String, String> uriVariables) {
 
         // set auth header with access token
-        entity.getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenResponse.access_token);
+        entity.getHeaders().set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
         // delegate to restTemplate
         return restTemplate.exchange(url, method, entity, type, uriVariables);
     }
@@ -112,7 +126,7 @@ public class OAuthRestTemplate {
             final Class<T> type) {
 
         // set auth header with access token
-        entity.getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenResponse.access_token);
+        entity.getHeaders().set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
         // delegate to restTemplate
         return restTemplate.exchange(url, method, entity, type);
     }
@@ -125,7 +139,7 @@ public class OAuthRestTemplate {
             final Class<T> type) {
 
         // set auth header with access token
-        httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " +  tokenResponse.access_token);
+        httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
         final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
         // delegate to restTemplate
         return restTemplate.exchange(url, method, reqEntity, type);
@@ -139,7 +153,7 @@ public class OAuthRestTemplate {
             final ParameterizedTypeReference<T> responseType) {
 
         // set auth header with access token
-        httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " +  tokenResponse.access_token);
+        httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
         final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
         // delegate to restTemplate
         return restTemplate.exchange(url, method, reqEntity, responseType);
@@ -154,7 +168,7 @@ public class OAuthRestTemplate {
         checkAccessToken();
 
         // set auth header with access token
-        httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " +  tokenResponse.access_token);
+        httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
         final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
         // delegate to restTemplate
         return restTemplate.exchange(url, method, reqEntity, String.class);
@@ -195,9 +209,9 @@ public class OAuthRestTemplate {
             }
 
         } catch (final Exception e) {
-            log.error("Failed to gain OAUth access token at: {}", this.apiURL, e);
+            log.error("Failed to gain OAUth access token at: {}", this.apiURL + this.tokenPath, e);
             throw new OAuthClientException("Failed to gain access token for OAUth API at: " +
-                    this.apiURL + " cause: " + e.getMessage());
+                    this.apiURL + this.tokenPath + " cause: " + e.getMessage());
         }
 
     }

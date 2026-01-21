@@ -329,7 +329,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             } catch (final RuntimeException re) {
                 log.warn("Failed to Moodle API access: {}", re.getMessage());
                 throw re;
-            } catch (final Exception e) {
+            } catch (final Throwable e) {
                 log.warn("Failed to Moodle API access: {}", e.getMessage());
                 throw new RuntimeException("Failed to test Moodle rest API: ", e);
             }

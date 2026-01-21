@@ -68,6 +68,9 @@ public class WebServiceSecurityConfig implements WebMvcConfigurer {
             API.OAUTH_REVOKE_TOKEN_ENDPOINT,
     };
 
+    @Value("${sebserver.webservice.api.admin.endpoint}")
+    private String adminAPIEndpoint;
+
     /** Used to get real remote IP address by using "X-Forwarded-For" and "X-Forwarded-Proto" header.
      * https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html
      *

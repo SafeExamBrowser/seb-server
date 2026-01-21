@@ -89,15 +89,15 @@ public class AuthServerConfig {
                     converters.add(new OAuth2RefreshTokenAuthenticationConverter());
                     converters.add(new OAuth2ClientCredentialsAuthenticationConverter());
                 }));
-        http
-                // Redirect to the login page when not authenticated from the
-                // authorization endpoint
-                .exceptionHandling((exceptions) -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint(unauthorizedRedirect),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                        )
-                );
+//        http
+//                // Redirect to the login page when not authenticated from the
+//                // authorization endpoint
+//                .exceptionHandling((exceptions) -> exceptions
+//                        .defaultAuthenticationEntryPointFor(
+//                                new LoginUrlAuthenticationEntryPoint(unauthorizedRedirect),
+//                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+//                        )
+//                );
         
         DefaultSecurityFilterChain result = http.build();
         

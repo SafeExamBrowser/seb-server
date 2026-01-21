@@ -263,11 +263,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         @Override
         public boolean isLoggedIn() {
-            CharSequence accessToken = this.restTemplate.getAccessToken();
-            if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
-                return false;
-            }
-
             try {
                 final ResponseEntity<String> forEntity =
                         this.restTemplate.getForEntity(this.currentUserURI, String.class);
@@ -299,7 +294,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
         @Override
         public boolean login(final String username, final CharSequence password) {
-            if (!this.valid || this.isLoggedIn()) {
+            if (!this.valid) {
                 return false;
             }
 
@@ -382,31 +377,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         public boolean logout() {
             restTemplate.clearToken();
             return true;
-//            // call log logout on webservice API
-//            try {
-//                final ResponseEntity<Void> response = this.restTemplate.postForEntity(
-//                        this.logoutLogURI,
-//                        null,
-//                        Void.class);
-//                if (response.getStatusCode() != HttpStatus.OK) {
-//                    log.warn("Failed to log logout: {}", response.getStatusCode());
-//                }
-//            } catch (final Exception e) {
-//                log.warn("Failed to log logout: {}", e.getMessage());
-//            }
-//
-//            // set this context invalid to force creation of a new context on next request
-//            this.valid = false;
-//            this.loggedInUser = null;
-//            if (this.restTemplate.getAccessToken() != null) {
-//                // delete the access-token (and refresh-token) on authentication server side
-//                this.restTemplate.delete(this.revokeTokenURI);
-//                // delete the access-token within the RestTemplate
-//                this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
-//            }
-//            // mark the RestTemplate as disposed
-//            this.restTemplate.enabled = false;
-//            return true;
         }
 
         @Override
@@ -422,22 +392,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 this.clientSettingsProvider.setUsername(userInfo.username);
             }
             restTemplate.getAccessToken();
-//            // delete the access-token (and refresh-token) on authentication server side
-//            this.restTemplate.delete(this.revokeTokenURI);
-//            // delete the access-token within the RestTemplate
-//            this.restTemplate.getOAuth2ClientContext().setAccessToken(null);
-//            // check if username has changed
-//            if (!userInfo.username.equals(getLoggedInUser().get().username)) {
-//                // Set new username to be able to request new access token
-//                this.resource.setUsername(userInfo.username);
-//            }
-//
-//            // and request new access token
-//            this.restTemplate.getAccessToken();
-//            // and reset logged in user by getting actual one from webservice
-//            this.loggedInUser = null;
-//            getLoggedInUser()
-//                    .getOrThrow();
         }
 
         @Override

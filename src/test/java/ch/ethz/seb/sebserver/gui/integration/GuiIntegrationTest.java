@@ -27,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -46,6 +47,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public abstract class GuiIntegrationTest {
 
     @Value("${sebserver.webservice.api.admin.clientId}")

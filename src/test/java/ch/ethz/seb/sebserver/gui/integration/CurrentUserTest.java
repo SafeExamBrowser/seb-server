@@ -17,6 +17,7 @@ import org.junit.Test;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import org.springframework.test.context.jdbc.Sql;
 
 
 public class CurrentUserTest extends GuiIntegrationTest {
