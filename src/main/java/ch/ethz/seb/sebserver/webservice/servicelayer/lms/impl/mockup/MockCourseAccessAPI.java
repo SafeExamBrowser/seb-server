@@ -197,7 +197,6 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
             }
             if (this.simulateLatency) {
                 final int seconds = this.random.nextInt(5);
-                System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
                 Utils.sleep(seconds * 1000);
             }
             asyncQuizFetchBuffer.buffer.add(quizData);

@@ -109,7 +109,7 @@ public class ExamSEBSettingsController {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
         
-        System.out.println("******** value: " + value);
+        //System.out.println("******** value: " + value);
 
         return sebSettingsService
                 .saveSingleValueForExam(examId, valueId, value)
@@ -194,8 +194,10 @@ public class ExamSEBSettingsController {
     public Exam publish(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
-        
-        System.out.println("************* publish SEB Settings");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Publish SEB Settings changes for exam: {}", examId);
+        }
 
         return sebSettingsService
                 .applySettingsForExam(examId)
@@ -213,7 +215,9 @@ public class ExamSEBSettingsController {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
 
-        System.out.println("************* undo SEB Setting changes");
+        if (log.isDebugEnabled()) {
+            log.debug("Undo SEB Settings changes for exam: {}", examId);
+        }
 
         return sebSettingsService
                 .undoSettingsForExam(examId)

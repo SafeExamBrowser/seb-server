@@ -41,7 +41,7 @@ public class AsyncBlockingTest {
         final String reduce = features.stream()
                 .map(this::getFromFuture)
                 .reduce("", (s1, s2) -> s1 + s2);
-        //System.out.println(reduce);
+
         final int countMatches = StringUtils.countMatches(reduce, "DONE");
         assertEquals(TASKS, countMatches);
 
@@ -49,7 +49,7 @@ public class AsyncBlockingTest {
         final String reduce2 = features.stream()
                 .map(this::getFromFuture)
                 .reduce("", (s1, s2) -> s1 + s2);
-        //System.out.println(reduce2);
+
         final int countMatches2 = StringUtils.countMatches(reduce2, "DONE");
         assertEquals(TASKS, countMatches2);
     }

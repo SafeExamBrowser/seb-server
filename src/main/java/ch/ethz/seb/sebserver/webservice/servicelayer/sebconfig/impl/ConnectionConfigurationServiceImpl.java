@@ -200,12 +200,8 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
 
     @Override
     public Result<RegisteredClient> getClientConfigDetails(final String clientName) {
-        System.out.println("******************** get SEB Client for: " + clientName);
         return this.getEncodedClientConfigSecret(clientName)
                 .map(pwd -> {
-
-                    System.out.println("******************** found SEB Client for: " + clientName);
-
                     return RegisteredClient
                             .withId(clientName)
                             .clientId(clientName)
@@ -222,24 +218,6 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
                                     .build())
                             .clientSecret(Utils.toString(pwd))
                             .build();
-
-//                    final BaseClientDetails baseClientDetails = new BaseClientDetails(
-//                            Utils.toString(clientName),
-//                            WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
-//                            null,
-//                            Constants.OAUTH2_GRANT_TYPE_CLIENT_CREDENTIALS,
-//                            StringUtils.EMPTY);
-//
-//                    baseClientDetails.setScope(Collections.emptySet());
-//                    baseClientDetails.setClientSecret(Utils.toString(pwd));
-//                    baseClientDetails.setAccessTokenValiditySeconds(this.examAPITokenValiditySeconds);
-//                    baseClientDetails.setRefreshTokenValiditySeconds(-1); // not used, not expiring
-//
-//                    if (log.isDebugEnabled()) {
-//                        log.debug("Created new BaseClientDetails for id: {}", clientName);
-//                    }
-//
-//                    return baseClientDetails;
                 });
     }
 

@@ -27,7 +27,11 @@ public class UserCacheService {
             key = "#name",
             unless = "#result == null")
     public SEBServerUser serverUserByName(String name) {
-        System.out.println("*************** load server user: " + name);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Load user for auth: {}", name );
+        }
+
         return userDAO.sebServerUserByUsername(name)
                 .onError(error -> log.error("Failed to get SEBServerUser by name: {} cause: {}", name, error.getMessage()))
                 .getOr(null);

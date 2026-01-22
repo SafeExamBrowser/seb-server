@@ -198,7 +198,10 @@ public class OAuthRestTemplate {
             final String body = this.clientSettingsProvider.getOAuthBody();
             final HttpEntity<String> tokenReqEntity = new HttpEntity<>(body, headers);
 
-            System.out.println("************************* request to:  " + this.apiURL + this.tokenPath + " with: " + tokenReqEntity);
+            if (log.isDebugEnabled()) {
+                log.debug("Request Access Token at: {} with: {}", this.apiURL + this.tokenPath, tokenReqEntity);
+            }
+
             final ResponseEntity<String> response = restTemplate.exchange(
                     this.apiURL + this.tokenPath,
                     HttpMethod.POST,
