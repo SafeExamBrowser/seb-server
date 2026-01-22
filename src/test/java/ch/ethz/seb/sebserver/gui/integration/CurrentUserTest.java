@@ -23,6 +23,7 @@ import org.springframework.test.context.jdbc.Sql;
 public class CurrentUserTest extends GuiIntegrationTest {
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void testCurrentUserLoginAndGet() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = getAuthorizationContextHolder();
 
@@ -50,6 +51,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
     }
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void testCurrentUserPrivileges() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = getAuthorizationContextHolder();
 
@@ -64,6 +66,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
     }
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void testCurrentUserLogin() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = login("admin", "admin");
         final CurrentUser currentUser = new CurrentUser(authorizationContextHolder, null);

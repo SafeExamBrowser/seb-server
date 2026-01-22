@@ -839,16 +839,17 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
             getExamAdmin1();
             fail("AssertionError expected here");
         } catch (final AssertionError e) {
-            assertEquals("Status expected:<200> but was:<400>", e.getMessage());
+            assertEquals("Status expected:<200> but was:<401>", e.getMessage());
         }
 
         // it should also not be possible to use an old token again after password change
+        // NOTE: it is since the tokens are not stored anymore
         this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/me")
                 .header("Authorization", "Bearer " + examAdminToken1))
-                .andExpect(status().isUnauthorized())
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        // but it should be possible to get a new access token and request again
+        // it should be possible to get a new access token and request again
         final String examAdminToken2 = obtainAccessToken("examAdmin1", "newPassword");
         this.mockMvc.perform(get(this.endpoint + API.USER_ACCOUNT_ENDPOINT + "/me")
                 .header("Authorization", "Bearer " + examAdminToken2))
@@ -968,8 +969,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc
                         .perform(
                                 get(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT
-                                        + "/?user=user1&from=" + timeNow)
-                                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                        + "?user=user1&from=" + timeNow)
                                                 .header("Authorization", "Bearer " + sebAdminToken))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),

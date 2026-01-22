@@ -122,7 +122,8 @@ public abstract class ExamAPIIntegrationTester {
                 .with(httpBasic(clientId, clientSecret))
                 .accept(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                ;
 
         final String resultString = result.andReturn().getResponse().getContentAsString();
 

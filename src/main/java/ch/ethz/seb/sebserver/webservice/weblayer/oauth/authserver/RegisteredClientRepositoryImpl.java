@@ -44,6 +44,7 @@ public class RegisteredClientRepositoryImpl implements RegisteredClientRepositor
 
     @Override
     public RegisteredClient findByClientId(String clientId) {
+        System.out.println("******************** findByClientId for: " + clientId);
         if (clientId == null) {
             return null;
         }

@@ -214,11 +214,13 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         return getDependencies(bulkAction, selectionFunction);
     }
 
+    // TODO: this transaction takes to long and produces a leak on prod for 2.2.x
+    //       Try to simplify it or brake down in multiple transactions
     @Override
-    @Transactional
     public Result<ConfigurationNode> createNew(final ConfigurationNode data) {
         return this.configurationDAOBatchService
-                .createNewConfiguration(data)
+                .createNewConfiguration(data, daoUserServcie.getCurrentUserUUID())
+                .flatMap(this.configurationDAOBatchService::createInitialConfiguration)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -248,7 +250,6 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     }
 
     @Override
-    @Transactional
     public Result<ConfigurationNode> createCopy(
             final Long institutionId,
             final String newOwner,
@@ -257,7 +258,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         return this.configurationDAOBatchService.createCopy(
                 institutionId,
                 newOwner,
-                copyInfo);
+                copyInfo,
+                daoUserServcie.getCurrentUserUUID());
     }
 
     @Override

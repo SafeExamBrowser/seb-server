@@ -46,7 +46,6 @@ public class AdminAPIResourceServerConfig {
     @Bean
     @Order(3)
     SecurityFilterChain adminResourceSecurityFilterChain(HttpSecurity http) throws Exception {
-        
         http.securityMatcher(adminAPIEndpoint + "/**")
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(

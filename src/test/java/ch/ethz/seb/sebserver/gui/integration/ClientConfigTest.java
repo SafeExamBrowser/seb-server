@@ -130,8 +130,9 @@ public class ClientConfigTest extends GuiIntegrationTest {
 
         assertTrue(valError.hasError());
         final Throwable error = valError.getError();
-        assertTrue(error.getMessage().contains("confirm_encrypt_secret"));
-        assertTrue(error.getMessage().contains("password.mismatch"));
+        String message = error.getCause().getMessage();
+        assertTrue(message.contains("confirm_encrypt_secret"));
+        assertTrue(message.contains("password.mismatch"));
 
         // save with new password
         final SEBClientConfig newConfig = restService.getBuilder(SaveClientConfig.class)

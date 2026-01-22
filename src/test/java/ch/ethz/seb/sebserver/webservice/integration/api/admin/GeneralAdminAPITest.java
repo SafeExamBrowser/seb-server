@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.UnsupportedEncodingException;
 
 import org.junit.Test;
+import org.springframework.test.context.jdbc.Sql;
 
 public class GeneralAdminAPITest extends AdministrationAPIIntegrationTester {
 
@@ -25,6 +26,7 @@ public class GeneralAdminAPITest extends AdministrationAPIIntegrationTester {
     }
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void getHello_givenToken_thenOK() throws UnsupportedEncodingException, Exception {
         final String accessToken = obtainAccessToken("admin", "admin");
         final String contentAsString = this.mockMvc.perform(get(this.endpoint + "/hello")
@@ -36,18 +38,20 @@ public class GeneralAdminAPITest extends AdministrationAPIIntegrationTester {
     }
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void accessGrantedForActiveUser() throws Exception {
         final String obtainAccessToken = obtainAccessToken("user1", "test");
         assertNotNull(obtainAccessToken);
     }
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void accessDeniedForInactiveUser() throws Exception {
         try {
             obtainAccessToken("deactivatedUser", "test");
             fail("AssertionError expected here");
         } catch (final AssertionError e) {
-            assertEquals("Status expected:<200> but was:<400>", e.getMessage());
+            assertEquals("Status expected:<200> but was:<401>", e.getMessage());
         }
     }
 

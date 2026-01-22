@@ -13,12 +13,16 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -130,41 +134,61 @@ public class UserServiceImpl implements UserService {
     public static class DefaultUserExtractStrategy implements ExtractUserFromAuthenticationStrategy {
 
         final UserCacheService userCacheService;
+        final String lmsClientId;
+        final boolean testing;
 
-        DefaultUserExtractStrategy(UserCacheService userCacheService) {
+        DefaultUserExtractStrategy(
+                UserCacheService userCacheService,
+                final Environment env,
+                @Value("${sebserver.webservice.lms.api.clientId}") final String lmsClientId) {
+
             this.userCacheService = userCacheService;
+            this.lmsClientId = lmsClientId;
+
+            HashSet<String> profiles = new HashSet<>(Arrays.asList(env.getActiveProfiles()));
+            this.testing = profiles.contains("test");
         }
 
         @Override
         public SEBServerUser extract(final Principal principal) {
-            return userCacheService.serverUserByName( principal.getName());
-        }
-    }
+            String name = principal.getName();
+            if (testing) {
+                userCacheService.evictServerUserByName(name);
+            }
+            SEBServerUser sebServerUser = userCacheService.serverUserByName(name);
+            if (sebServerUser != null) {
+                return sebServerUser;
+            }
 
-    private static SEBServerUser isLMSIntegrationClient(final Principal principal) {
-        final String name = principal.getName();
-        if ("lmsClient".equals(name)) {
-            return new SEBServerUser(
-                    -1L,
-                    new UserInfo(
-                            LMS_INTEGRATION_CLIENT_UUID,
-                            -1L,
-                            null,
-                            LMS_INTEGRATION_CLIENT_NAME,
-                            LMS_INTEGRATION_CLIENT_NAME,
-                            LMS_INTEGRATION_CLIENT_NAME, null,
-                            false,
-                            false,
-                            true,
-                            null, null,
-                            Arrays.stream(UserRole.values())
-                                    .map(Enum::name)
-                                    .collect(Collectors.toSet()),
-                            Collections.emptyList(),
-                            Collections.emptyList()),
-                    null);
+            return isLMSIntegrationClient(principal);
         }
-        return null;
+
+        private SEBServerUser isLMSIntegrationClient(final Principal principal) {
+            final String name = principal.getName();
+            if (lmsClientId.equals(name)) {
+                return new SEBServerUser(
+                        -1L,
+                        new UserInfo(
+                                LMS_INTEGRATION_CLIENT_UUID,
+                                -1L,
+                                null,
+                                LMS_INTEGRATION_CLIENT_NAME,
+                                LMS_INTEGRATION_CLIENT_NAME,
+                                LMS_INTEGRATION_CLIENT_NAME, null,
+                                false,
+                                false,
+                                true,
+                                null, null,
+                                Arrays.stream(UserRole.values())
+                                        .map(Enum::name)
+                                        .collect(Collectors.toSet()),
+                                Collections.emptyList(),
+                                Collections.emptyList()),
+                        null);
+            }
+            return null;
+        }
+
     }
 
     // 2. Separated thread strategy

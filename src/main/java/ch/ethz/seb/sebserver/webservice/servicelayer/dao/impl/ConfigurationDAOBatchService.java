@@ -60,6 +60,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitService;
+import org.springframework.transaction.annotation.Transactional;
 
 /** This service is internally used to implement MyBatis batch functionality for the most
  * intensive write operation on Configuration domain. */
@@ -78,10 +79,8 @@ public class ConfigurationDAOBatchService {
     private final ConfigurationRecordMapper batchConfigurationRecordMapper;
     private final ExamConfigInitService examConfigInitService;
     private final SqlSessionTemplate batchSqlSessionTemplate;
-    private final DAOUserServcie daoUserServcie;
 
     protected ConfigurationDAOBatchService(
-            final DAOUserServcie daoUserServcie,
             @Qualifier(BatisConfig.SQL_BATCH_SESSION_TEMPLATE) final SqlSessionTemplate batchSqlSessionTemplate,
             final ExamConfigInitService examConfigInitService) {
 
@@ -117,12 +116,17 @@ public class ConfigurationDAOBatchService {
         this.batchConfigurationRecordMapper =
                 batchSqlSessionTemplate.getMapper(ConfigurationRecordMapper.class);
         this.batchSqlSessionTemplate = batchSqlSessionTemplate;
-        this.daoUserServcie = daoUserServcie;
     }
 
-    Result<ConfigurationNode> createNewConfiguration(final ConfigurationNode data) {
+    @Transactional
+    public Result<ConfigurationNode> createNewConfiguration(
+            final ConfigurationNode data,
+            final String currentUserUUID) {
+
         return Result.tryCatch(() -> {
 
+            // TODO this might be slow when there are a lot if config nodes!?!?
+            //      but should not
             final Long count = this.batchConfigurationNodeRecordMapper.countByExample()
                     .where(
                             ConfigurationNodeRecordDynamicSqlSupport.name,
@@ -150,14 +154,13 @@ public class ConfigurationDAOBatchService {
                     data.type.name(),
                     (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name(),
                     Utils.getMillisecondsNow(),
-                    this.daoUserServcie.getCurrentUserUUID());
+                    currentUserUUID);
 
             this.batchConfigurationNodeRecordMapper.insert(newRecord);
             this.batchSqlSessionTemplate.flushStatements();
             return newRecord;
         })
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
-                .flatMap(this::createInitialConfiguration);
+                .flatMap(ConfigurationNodeDAOImpl::toDomainModel);
     }
 
     Result<ConfigurationTableValues> saveNewTableValues(final ConfigurationTableValues value) {
@@ -349,10 +352,12 @@ public class ConfigurationDAOBatchService {
                 .flatMap(ConfigurationDAOImpl::toDomainModel);
     }
 
-    Result<ConfigurationNode> createCopy(
+    @Transactional
+    public Result<ConfigurationNode> createCopy(
             final Long institutionId,
             final String newOwner,
-            final ConfigCreationInfo copyInfo) {
+            final ConfigCreationInfo copyInfo,
+            final String currentUserUUID) {
 
         return Result.tryCatch(() -> {
 
@@ -380,7 +385,7 @@ public class ConfigurationDAOBatchService {
                 throw new IllegalArgumentException("Institution integrity violation");
             }
 
-            return this.copyNodeRecord(sourceNode, newOwner, copyInfo);
+            return this.copyNodeRecord(sourceNode, newOwner, copyInfo, currentUserUUID);
         })
                 .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -389,7 +394,8 @@ public class ConfigurationDAOBatchService {
     private ConfigurationNodeRecord copyNodeRecord(
             final ConfigurationNodeRecord nodeRec,
             final String newOwner,
-            final ConfigCreationInfo copyInfo) {
+            final ConfigCreationInfo copyInfo,
+            final String currentUserUUID) {
 
         final ConfigurationNodeRecord newNodeRec = new ConfigurationNodeRecord(
                 null,
@@ -401,7 +407,7 @@ public class ConfigurationDAOBatchService {
                 copyInfo.configurationType.name(),
                 ConfigurationStatus.CONSTRUCTION.name(),
                 Utils.getMillisecondsNow(),
-                this.daoUserServcie.getCurrentUserUUID());
+                currentUserUUID);
 
         this.batchConfigurationNodeRecordMapper.insert(newNodeRec);
         this.batchSqlSessionTemplate.flushStatements();
@@ -658,7 +664,8 @@ public class ConfigurationDAOBatchService {
      * from the default values or from template values if defined.
      * Then a follow-up Configuration is created with the same values to follow-up user input
      */
-    private Result<ConfigurationNode> createInitialConfiguration(final ConfigurationNode config) {
+    @Transactional
+    public Result<ConfigurationNode> createInitialConfiguration(final ConfigurationNode config) {
         return Result.tryCatch(() -> {
 
             final ConfigurationRecord initConfig = new ConfigurationRecord(

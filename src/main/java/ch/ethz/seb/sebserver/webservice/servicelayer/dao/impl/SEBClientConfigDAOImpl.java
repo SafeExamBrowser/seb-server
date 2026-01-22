@@ -162,17 +162,22 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<SEBClientConfig> byClientName(final String clientName) {
-        return Result.tryCatch(() -> this.sebClientConfigRecordMapper
-                .selectByExample()
-                .where(
-                        SebClientConfigRecordDynamicSqlSupport.clientName,
-                        isEqualTo(clientName))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Utils.toSingleton()));
+        return Result.tryCatch(() -> {
+            List<SebClientConfigRecord> execute = this.sebClientConfigRecordMapper
+                    .selectByExample()
+                    .where(
+                            SebClientConfigRecordDynamicSqlSupport.clientName,
+                            isEqualTo(clientName))
+                    .build()
+                    .execute();
+
+
+            return execute.stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Utils.toSingleton());
+
+        });
     }
 
     @Override

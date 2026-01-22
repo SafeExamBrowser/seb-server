@@ -200,8 +200,11 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
 
     @Override
     public Result<RegisteredClient> getClientConfigDetails(final String clientName) {
+        System.out.println("******************** get SEB Client for: " + clientName);
         return this.getEncodedClientConfigSecret(clientName)
                 .map(pwd -> {
+
+                    System.out.println("******************** found SEB Client for: " + clientName);
 
                     return RegisteredClient
                             .withId(clientName)

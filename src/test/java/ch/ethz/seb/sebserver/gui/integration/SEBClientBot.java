@@ -152,6 +152,14 @@ public class SEBClientBot {
         protected ConnectionBot(final String name) {
             this.name = name;
             this.restTemplate = createRestTemplate(null);
+//            try {
+//                CharSequence accessToken = restTemplate.getAccessToken();
+//                if (accessToken == null) {
+//                    throw new RuntimeException("No Access Token");
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
             this.connectBody = new HttpEntity<>(PARAM_INSTITUTION_ID +

@@ -42,13 +42,20 @@ public class SEBClientResourceServerConfig {
     private JwtDecoder jwtDecoder;
     @Value("${sebserver.webservice.api.exam.endpoint}")
     private String sessionAPIEndpoint;
+    @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
+    private String examAPIDiscoveryEndpoint;
 
     @Bean
     @Order(2)
     SecurityFilterChain sebClientResourceFilterChain(HttpSecurity http) throws Exception {
-        
+
         http.securityMatcher(sessionAPIEndpoint + "/**")
                 .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers(
+                                this.examAPIDiscoveryEndpoint,
+                                this.examAPIDiscoveryEndpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT,
+                                this.examAPIDiscoveryEndpoint + API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT + API.PASSWORD_PATH_SEGMENT
+                        ).permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

@@ -28,20 +28,12 @@ public class GeneralExamAPITest extends ExamAPIIntegrationTester {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
-    public void get_same_token_for_same_scope() throws Exception {
-        final String accessToken1 = obtainAccessToken("test", "test", "testScope");
-        final String accessToken2 = obtainAccessToken("test", "test", "testScope");
-
-        assertEquals(accessToken1, accessToken2);
-    }
 
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
-    public void get_different_tokens_for_different_scopes() throws Exception {
-        final String accessToken1 = obtainAccessToken("test", "test", "testScope1");
-        final String accessToken2 = obtainAccessToken("test", "test", "testScope2");
+    public void get_different_tokens_for_different_token_requests() throws Exception {
+        final String accessToken1 = obtainAccessToken("test", "test", "");
+        final String accessToken2 = obtainAccessToken("test", "test", "");
 
         assertNotEquals(accessToken1, accessToken2);
     }
@@ -49,7 +41,7 @@ public class GeneralExamAPITest extends ExamAPIIntegrationTester {
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
     public void getHello_givenToken_thenOK() throws UnsupportedEncodingException, Exception {
-        final String accessToken = obtainAccessToken("test", "test", "testScope");
+        final String accessToken = obtainAccessToken("test", "test", "");
         final String contentAsString = this.mockMvc.perform(get(this.endpoint + "/hello")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())

@@ -47,7 +47,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public abstract class GuiIntegrationTest {
 
     @Value("${sebserver.webservice.api.admin.clientId}")

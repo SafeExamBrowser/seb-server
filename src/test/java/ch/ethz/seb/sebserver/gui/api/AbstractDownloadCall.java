@@ -10,9 +10,11 @@ package ch.ethz.seb.sebserver.gui.api;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.util.LinkedMultiValueMap;
 
 public class AbstractDownloadCall extends RestCall<Boolean> {
 
@@ -26,16 +28,17 @@ public class AbstractDownloadCall extends RestCall<Boolean> {
 
     @Override
     protected Result<Boolean> exchange(final RestCallBuilder builder) {
-
+        LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_OCTET_STREAM_VALUE);
         return Result.tryCatch(() -> builder
                 .getRestTemplate()
                 .execute(
                         builder.buildURI(),
                         this.httpMethod,
-                        (final ClientHttpRequest requestCallback) -> {
-                        },
                         builder.getResponseExtractor(),
-                        builder.getURIVariables()));
+                        headers,
+                        builder.getURIVariables(),
+                        Boolean.class));
     }
 
 }
