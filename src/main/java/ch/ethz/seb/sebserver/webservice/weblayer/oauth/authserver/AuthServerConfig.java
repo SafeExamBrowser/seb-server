@@ -14,11 +14,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.authserver.pwdgrant.OAuth2PasswordGrantAuthenticationConverter;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.authserver.pwdgrant.OAuth2PasswordGrantAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,9 +35,7 @@ import org.springframework.security.oauth2.server.authorization.web.authenticati
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -57,8 +53,6 @@ public class AuthServerConfig {
     private WebServiceUserDetails webServiceUserDetails;
     @Autowired
     private UserDAO userDAO;
-    @Value("${sebserver.webservice.http.redirect.gui}")
-    private String unauthorizedRedirect;
     
     
     @Bean
@@ -78,8 +72,8 @@ public class AuthServerConfig {
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .authorizationEndpoint(c -> c.authenticationProviders( providers -> {
                     providers.clear();
-                    providers.add(0, oAuth2ClientCredentialsGrantProvider);
-                    providers.add(0, oAuth2PasswordGrantAuthenticationProvider);
+                    providers.addFirst(oAuth2ClientCredentialsGrantProvider);
+                    providers.addFirst(oAuth2PasswordGrantAuthenticationProvider);
                 }));
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
@@ -89,15 +83,6 @@ public class AuthServerConfig {
                     converters.add(new OAuth2RefreshTokenAuthenticationConverter());
                     converters.add(new OAuth2ClientCredentialsAuthenticationConverter());
                 }));
-//        http
-//                // Redirect to the login page when not authenticated from the
-//                // authorization endpoint
-//                .exceptionHandling((exceptions) -> exceptions
-//                        .defaultAuthenticationEntryPointFor(
-//                                new LoginUrlAuthenticationEntryPoint(unauthorizedRedirect),
-//                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-//                        )
-//                );
         
         DefaultSecurityFilterChain result = http.build();
         
@@ -106,7 +91,6 @@ public class AuthServerConfig {
         // we have to initialize the custom providers after the chain has been built
         oAuth2PasswordGrantAuthenticationProvider.init(http);
         oAuth2ClientCredentialsGrantProvider.init(http);
-        //autoLoginService.init(oAuth2PasswordGrantAuthenticationProvider);
         
         return result;
     }
@@ -128,11 +112,6 @@ public class AuthServerConfig {
                 .passwordEncoder(this.userPasswordEncoder);
         return authenticationManagerBuilder.build();
     }
-    
-//    @Bean
-//    public BearerTokenResolver customBearerTokenResolver() {
-//        return new CustomBearerTokenResolver();
-//    }
 
     @Bean
     public UserDetailsManager userDetailsManager() {
@@ -160,19 +139,5 @@ public class AuthServerConfig {
                 .tokenRevocationEndpoint(API.OAUTH_REVOKE_TOKEN_ENDPOINT)
                 .build();
     }
-    
-//    private static final class CustomBearerTokenResolver implements BearerTokenResolver {
-//        private final DefaultBearerTokenResolver delegate = new DefaultBearerTokenResolver();
-//
-//        @Override
-//        public String resolve(HttpServletRequest request) {
-//            String token = delegate.resolve(request);
-//            if (token != null) {
-//                return token;
-//            }
-//
-//            return request.getParameter(API.OAUTH_JWTTOKEN_QUERY_PARAM);
-//        }
-//    }
 
 }
