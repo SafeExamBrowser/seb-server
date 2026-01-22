@@ -20,11 +20,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.commons.lang3.ArrayUtils.addFirst;
+import java.util.function.Supplier;
 
 public class OAuthRestTemplate {
 
@@ -89,12 +87,15 @@ public class OAuthRestTemplate {
     }
 
     public <T> ResponseEntity<T> getForEntity(String url, Class<T> type) {
-        // set auth header with access token
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX +  tokenResponse.access_token);
-        final HttpEntity<?> tokenReqEntity = new HttpEntity<>(httpHeaders);
-        // delegate to restTemplate
-        return restTemplate.exchange(url, HttpMethod.GET, tokenReqEntity, type);
+
+        return executeAPICall(() -> {
+            // set auth header with access token
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
+            final HttpEntity<?> tokenReqEntity = new HttpEntity<>(httpHeaders);
+            // delegate to restTemplate
+            return restTemplate.exchange(url, HttpMethod.GET, tokenReqEntity, type);
+        });
     }
 
     public Boolean execute(
@@ -105,11 +106,13 @@ public class OAuthRestTemplate {
             Map<String, String> uriVariables,
             Class<?> type) {
 
-        LinkedMultiValueMap<String, String> h = new LinkedMultiValueMap<>(headers);
-        h.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
-        RequestCallback requestCallback = restTemplate.httpEntityCallback( new HttpEntity<>(h), type);
+        return executeAPICall(() -> {
+            LinkedMultiValueMap<String, String> h = new LinkedMultiValueMap<>(headers);
+            h.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
+            RequestCallback requestCallback = restTemplate.httpEntityCallback(new HttpEntity<>(h), type);
 
-        return restTemplate.execute(url, httpMethod, requestCallback, responseExtractor, uriVariables);
+            return restTemplate.execute(url, httpMethod, requestCallback, responseExtractor, uriVariables);
+        });
     }
 
     public <T> ResponseEntity<T> exchange(
@@ -119,11 +122,13 @@ public class OAuthRestTemplate {
             final Class<T> type,
             final Map<String, String> uriVariables) {
 
-        // set auth header with access token
-        LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>(entity.getHeaders());
-        headers.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
-        // delegate to restTemplate
-        return restTemplate.exchange(url, method, new HttpEntity<>(entity.getBody(), headers), type, uriVariables);
+        return executeAPICall(() -> {
+            // set auth header with access token
+            LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>(entity.getHeaders());
+            headers.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
+            // delegate to restTemplate
+            return restTemplate.exchange(url, method, new HttpEntity<>(entity.getBody(), headers), type, uriVariables);
+        });
     }
 
     public <T> ResponseEntity<T> exchange(
@@ -132,10 +137,12 @@ public class OAuthRestTemplate {
             final HttpEntity<?> entity,
             final Class<T> type) {
 
-        LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>(entity.getHeaders());
-        headers.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
-        // delegate to restTemplate
-        return restTemplate.exchange(url, method, new HttpEntity<>(entity.getBody(), headers), type);
+        return executeAPICall(() -> {
+            LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>(entity.getHeaders());
+            headers.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
+            // delegate to restTemplate
+            return restTemplate.exchange(url, method, new HttpEntity<>(entity.getBody(), headers), type);
+        });
     }
 
     public <T> ResponseEntity<T> exchange(
@@ -145,12 +152,14 @@ public class OAuthRestTemplate {
             final HttpHeaders httpHeaders,
             final Class<T> type) {
 
-        // set auth header with access token
-        LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>(httpHeaders);
-        headers.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
-        final HttpEntity<?> reqEntity = new HttpEntity<>(body, headers);
-        // delegate to restTemplate
-        return restTemplate.exchange(url, method, reqEntity, type);
+        return executeAPICall(() -> {
+            // set auth header with access token
+            LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>(httpHeaders);
+            headers.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
+            final HttpEntity<?> reqEntity = new HttpEntity<>(body, headers);
+            // delegate to restTemplate
+            return restTemplate.exchange(url, method, reqEntity, type);
+        });
     }
 
     public <T> ResponseEntity<T> exchange(
@@ -160,11 +169,13 @@ public class OAuthRestTemplate {
             final HttpHeaders httpHeaders,
             final ParameterizedTypeReference<T> responseType) {
 
-        // set auth header with access token
-        httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
-        final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
-        // delegate to restTemplate
-        return restTemplate.exchange(url, method, reqEntity, responseType);
+        return executeAPICall(() -> {
+            // set auth header with access token
+            httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
+            final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
+            // delegate to restTemplate
+            return restTemplate.exchange(url, method, reqEntity, responseType);
+        });
     }
 
     public ResponseEntity<String>  exchange(
@@ -173,13 +184,26 @@ public class OAuthRestTemplate {
             final Object body,
             final HttpHeaders httpHeaders) {
 
+        return executeAPICall(() -> {
+            // set auth header with access token
+            httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
+            final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
+            // delegate to restTemplate
+            return restTemplate.exchange(url, method, reqEntity, String.class);
+        });
+    }
+
+    private <T> T executeAPICall(Supplier<T> supplier) {
+
         checkAccessToken();
 
-        // set auth header with access token
-        httpHeaders.set(HttpHeaders.AUTHORIZATION, BEARER_HEADER_PREFIX + tokenResponse.access_token);
-        final HttpEntity<?> reqEntity = new HttpEntity<>(body, httpHeaders);
-        // delegate to restTemplate
-        return restTemplate.exchange(url, method, reqEntity, String.class);
+        try {
+            return supplier.get();
+        } catch (Exception e) {
+            log.warn("Failed to make API call due to: {} ... update Access Token and try again", e.getMessage());
+            requestAccessToken();
+            return supplier.get();
+        }
     }
 
     private void checkAccessToken() {

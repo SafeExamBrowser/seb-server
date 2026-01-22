@@ -264,6 +264,10 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         @Override
         public boolean isLoggedIn() {
             try {
+                if (!valid) {
+                    return false;
+                }
+
                 final ResponseEntity<String> forEntity =
                         this.restTemplate.getForEntity(this.currentUserURI, String.class);
                 
@@ -341,41 +345,12 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         @Override
         public boolean autoLogin(final String oneTimeToken) {
             return false;
-//            try {
-//
-//                // Create ad-hoc RestTemplate and call token verification
-//                final RestTemplate verifyTemplate = new RestTemplate(this.clientHttpRequestFactory);
-//                final HttpHeaders httpHeaders = new HttpHeaders();
-//                httpHeaders.set("ONE_TIME_TOKEN_TO_VERIFY", oneTimeToken);
-//                httpHeaders.setBasicAuth(resource.getClientId(), resource.getClientSecret());
-//
-//                final ResponseEntity<TokenLoginInfo> response = verifyTemplate.exchange(
-//                        this.jwtTokenVerificationURI,
-//                        HttpMethod.POST,
-//                        new HttpEntity<TokenLoginInfo>(null, httpHeaders),
-//                        TokenLoginInfo.class);
-//
-//                if (response.getStatusCodeValue() != HttpStatus.OK.value()) {
-//                    log.warn("Autologin failed due to error response: {}", response);
-//                    return false;
-//                }
-//
-//                final TokenLoginInfo loginInfo = response.getBody();
-//                this.resource.setUsername(loginInfo.username);
-//                this.resource.setPassword(loginInfo.userUUID);
-//                this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
-//
-//                loginForward = loginInfo.login_forward;
-//                return this.isLoggedIn();
-//            } catch (final Exception e) {
-//                log.warn("Autologin failed due to unexpected error: {}", e.getMessage());
-//                return false;
-//            }
         }
 
         @Override
         public boolean logout() {
             restTemplate.clearToken();
+            valid = false;
             return true;
         }
 

@@ -98,7 +98,7 @@ public class CurrentUser {
 
     private UserInfo handleIllegalSessionState() {
         log.warn("Current user requested but no user is currently logged in");
-        this.logout();
+        //this.logout();
         throw new IllegalUserSessionStateException("User not logged in");
     }
 
