@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.remote.webservice.auth;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import javax.servlet.http.HttpSession;
 
@@ -272,10 +273,12 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         public boolean autoLogin(final String oneTimeToken) {
             try {
 
+                System.out.println("******************** oneTimeToken: " + oneTimeToken);
+
                 // Create ad-hoc RestTemplate and call token verification
                 final RestTemplate verifyTemplate = new RestTemplate(this.clientHttpRequestFactory);
                 final HttpHeaders httpHeaders = new HttpHeaders();
-                httpHeaders.set("ONE_TIME_TOKEN_TO_VERIFY", oneTimeToken);
+                httpHeaders.set("one_time_token_to_verify", oneTimeToken);
                 httpHeaders.setBasicAuth(resource.getClientId(), resource.getClientSecret());
 
                 final ResponseEntity<TokenLoginInfo> response = verifyTemplate.exchange(
