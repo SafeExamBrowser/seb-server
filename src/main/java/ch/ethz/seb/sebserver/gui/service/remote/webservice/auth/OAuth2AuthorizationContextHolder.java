@@ -163,9 +163,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
             this.clientHttpRequestFactory = clientHttpRequestFactory;
             this.resource = new ResourceOwnerPasswordResourceDetails();
-            String oAuthTokenURI = webserviceURIService.getOAuthTokenURI();
-            System.out.println("******************** oAuthTokenURI: " + oAuthTokenURI + " guiClientId: " + guiClientId + " guiClientSecret: " + guiClientSecret);
-            this.resource.setAccessTokenUri(oAuthTokenURI);
+            this.resource.setAccessTokenUri(webserviceURIService.getOAuthTokenURI());
             this.resource.setClientId(guiClientId);
             this.resource.setClientSecret(guiClientSecret);
             this.resource.setGrantType(API.GRANT_TYPE_PASSWORD);
@@ -265,7 +263,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
                 return true;
             } catch (final OAuth2AccessDeniedException | AccessDeniedException e) {
-                log.info("Access Denied for user: {}", username, e);
+                log.info("Access Denied for user: {}", username);
                 return false;
             }
         }
