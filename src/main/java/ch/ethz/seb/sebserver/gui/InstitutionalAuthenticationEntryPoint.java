@@ -135,7 +135,10 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             }
 
             if (authorizationContext.autoLogin(jwt)) {
-                final String redirect = guiServiceInfo.getExternalServerURIBuilder().toUriString();
+                String redirect = guiServiceInfo.getExternalServerURIBuilder().toUriString();
+                if (redirect.contains("/") && !redirect.endsWith("/")) {
+                    redirect = redirect + "/";
+                }
                 log.info("Autologin successful, redirect to: {}", redirect);
                 response.setStatus(HttpStatus.TEMPORARY_REDIRECT.value());
                 response.setHeader(HttpHeaders.LOCATION, redirect);
