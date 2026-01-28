@@ -217,6 +217,8 @@ public class FileUploadSelection extends Composite {
                 throw new IllegalStateException("InputReceiver already in use");
             }
 
+            System.out.println("**************** file Upload: " + details);
+
             this.pIn = new PipedInputStream();
             this.pOut = new PipedOutputStream(this.pIn);
 
