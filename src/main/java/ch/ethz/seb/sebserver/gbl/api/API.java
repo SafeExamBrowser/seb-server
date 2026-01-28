@@ -67,6 +67,7 @@ public final class API {
     public static final String OAUTH_JWT_TOKEN_VERIFY_ENDPOINT = OAUTH_JWT_TOKEN_ENDPOINT + "/verify";
     public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token";
     public static final String SPS_OAUTH_JWT_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/jwttoken";
+    public static final String ONE_TIME_TOKEN_TO_VERIFY = "one-time-token-to-verify";
 
     public static final String GRANT_TYPE_PASSWORD = "password";
     public static final String GRANT_TYPE_CLIENT = "client_credentials";
