@@ -52,10 +52,12 @@ public class AdminJWTAccess {
             throw new TooManyRequests();
         }
 
+        List<String> headerNames = Collections.list(request.getHeaderNames());
+
+        System.out.println("************* headerNames: " + headerNames);
         System.out.println("************* one_time_token_to_verify: " + request.getHeader("one_time_token_to_verify"));
         System.out.println("************* ONE_TIME_TOKEN_TO_VERIFY: " + request.getHeader("ONE_TIME_TOKEN_TO_VERIFY"));
 
-        List<String> headerNames = Collections.list(request.getHeaderNames());
         String loginToken = null;
         if (headerNames.contains("one_time_token_to_verify")) {
             loginToken = request.getHeader("one_time_token_to_verify");
