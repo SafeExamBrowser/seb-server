@@ -157,7 +157,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> Remote-Host name: {}", this.webserviceInfo.getLoopbackHostName());
 
         SEBServerInit.INIT_LOGGER.info("---->");
-        SEBServerInit.INIT_LOGGER.info("----> Context Path: {}", this.webserviceInfo.getContextPath());
         SEBServerInit.INIT_LOGGER.info("----> External-Host URL: {}", this.webserviceInfo.getExternalServerURL());
         SEBServerInit.INIT_LOGGER.info("----> Autologin URL: {}", this.webserviceInfo.getGUIAutologinURL());
         SEBServerInit.INIT_LOGGER.info("----> LMS-External-Address-Alias: {}",

@@ -144,7 +144,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             final Attributes attributes) {
 
         if (log.isDebugEnabled()) {
-            log.debug("start element: {}", qName);
+            log.trace("start element: {}", qName);
         }
 
         final Type type = Type.getType(qName);
@@ -425,7 +425,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
         if (configurationValue != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Put value: {} : {}", name, configurationValue);
+                log.trace("Put value: {} : {}", name, configurationValue);
             }
 
             this.valueConsumer.accept(configurationValue);

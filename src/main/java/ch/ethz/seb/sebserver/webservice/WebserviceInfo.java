@@ -42,6 +42,8 @@ public class WebserviceInfo {
     private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.external.servername";
     private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.external.scheme";
     private static final String WEB_SERVICE_HTTP_PORT = "sebserver.webservice.http.external.port";
+    private static final String WEB_SERVICE_HTTP_SUBPATH = "sebserver.webservice.http.external.subpath";
+
     private static final String WEB_SERVICE_HOST_ADDRESS_KEY = "server.address";
     private static final String WEB_SERVICE_SERVER_PORT_KEY = "server.port";
     private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
@@ -51,6 +53,7 @@ public class WebserviceInfo {
     public static final String SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT = "sebserver.webservice.autologin.endpoint";
     public static final String WEB_SERVICE_GUI_AUTOLOGIN_URL_KEY = "sebserver.webservice.autologin.url";
 
+
     private final String sebServerVersion;
     private final String testProperty;
     private final String httpScheme;
@@ -59,7 +62,7 @@ public class WebserviceInfo {
     private final String serverPort; // internal
     private final String webserverPort; // external
     private final String discoveryEndpoint;
-    private final String contextPath;
+    private final String subPath;
 
     private final String autoLoginEndpoint;
 
@@ -104,7 +107,7 @@ public class WebserviceInfo {
         this.serverPort = environment.getRequiredProperty(WEB_SERVICE_SERVER_PORT_KEY);
         this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
-        this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
+        this.subPath = environment.getProperty(WEB_SERVICE_HTTP_SUBPATH, "");
         this.webserviceUUID = UUID.randomUUID().toString()
                 + Constants.UNDERLINE
                 + this.sebServerVersion;
@@ -132,8 +135,8 @@ public class WebserviceInfo {
         if (StringUtils.isNotBlank(this.webserverPort)) {
             builder.port(this.webserverPort);
         }
-        if (StringUtils.isNotBlank(this.contextPath) && !this.contextPath.equals("/")) {
-            builder.path(this.contextPath);
+        if (StringUtils.isNotBlank(this.subPath)) {
+            builder.path(this.subPath);
         }
         this.serverURLPrefix = builder.toUriString();
         String guiAutologinURL = environment.getProperty(WEB_SERVICE_GUI_AUTOLOGIN_URL_KEY, builder.toUriString());
@@ -239,10 +242,6 @@ public class WebserviceInfo {
 
     public String getServerExternalPort() {
         return this.webserverPort;
-    }
-
-    public Object getContextPath() {
-        return this.contextPath;
     }
 
     public String getDiscoveryEndpoint() {
