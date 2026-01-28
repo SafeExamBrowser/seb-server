@@ -18,8 +18,16 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import io.github.bucket4j.local.LocalBucket;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.javassist.tools.web.BadHttpRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 
 @RestController
 @WebServiceProfile
@@ -39,10 +47,25 @@ public class AdminJWTAccess {
             path = API.OAUTH_JWT_TOKEN_VERIFY_ENDPOINT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public TokenLoginInfo verifyJWTToken(@RequestHeader(name = "one_time_token_to_verify") final String loginToken) {
-
+    public TokenLoginInfo verifyJWTToken(final HttpServletRequest request) {
         if (!this.requestRateLimitBucket.tryConsume(1)) {
             throw new TooManyRequests();
+        }
+
+        System.out.println("************* one_time_token_to_verify: " + request.getHeader("one_time_token_to_verify"));
+        System.out.println("************* ONE_TIME_TOKEN_TO_VERIFY: " + request.getHeader("ONE_TIME_TOKEN_TO_VERIFY"));
+
+        List<String> headerNames = Collections.list(request.getHeaderNames());
+        String loginToken = null;
+        if (headerNames.contains("one_time_token_to_verify")) {
+            loginToken = request.getHeader("one_time_token_to_verify");
+        } else if (headerNames.contains("ONE_TIME_TOKEN_TO_VERIFY")) {
+            loginToken = request.getHeader("ONE_TIME_TOKEN_TO_VERIFY");
+        }
+
+        if (StringUtils.isBlank(loginToken)) {
+            throw new APIMessage.APIMessageException(
+                    APIMessage.ErrorMessage.BAD_REQUEST.of("No One Time Token found in Request"));
         }
 
         final Result<TokenLoginInfo> tokenLoginInfoResult = teacherAccountService
