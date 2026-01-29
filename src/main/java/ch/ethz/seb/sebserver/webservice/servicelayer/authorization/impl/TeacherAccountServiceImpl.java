@@ -197,7 +197,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     key,
                     "MONITOR_EXAM_FROM_LIST");
 
-            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, token);
+            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, token.getValue());
         });
     }
 
