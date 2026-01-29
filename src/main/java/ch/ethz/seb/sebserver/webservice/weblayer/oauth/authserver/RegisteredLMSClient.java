@@ -62,10 +62,10 @@ public class RegisteredLMSClient {
     }
 
     public RegisteredClient getRegisteredClient() {
-        final String joinIds = StringUtils.join(
-                lmsSetupDAO.allIdsFullIntegration().getOrThrow(),
-                Constants.SPACE
-        );
+//        final String joinIds = StringUtils.join(
+//                lmsSetupDAO.allIdsFullIntegration().getOrThrow(),
+//                Constants.SPACE
+//        );
 
         return RegisteredClient
                 .withId(clientId)
@@ -75,7 +75,7 @@ public class RegisteredLMSClient {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 // .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .clientSecretExpiresAt(null)
-                .scope(joinIds)
+                .scope("SEB-LMS-API")
                 .tokenSettings(TokenSettings
                         .builder()
                         .accessTokenTimeToLive(accessTokenValiditySeconds)
