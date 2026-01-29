@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth.authserver;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,7 +76,7 @@ public class RegisteredLMSClient {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 // .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .clientSecretExpiresAt(null)
-                .scope("SEB-LMS-API")
+                .scope(API.LMS_API_SCOPE_NAME)
                 .tokenSettings(TokenSettings
                         .builder()
                         .accessTokenTimeToLive(accessTokenValiditySeconds)

@@ -297,7 +297,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 //                restTemplate.getOAuth2ClientContext().setAccessToken(null);
 //                accessToken = restTemplate.getAccessToken().getValue();
 
-            clientSettingsProvider.setScopes("SEB-LMS-API");
+            clientSettingsProvider.setScopes(API.LMS_API_SCOPE_NAME);
             OAuthRestTemplate rest = getRestTemplate(false);
             accessToken = restTemplate.getAccessToken().toString();
 

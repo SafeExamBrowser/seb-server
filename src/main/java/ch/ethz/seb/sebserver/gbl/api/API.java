@@ -21,6 +21,7 @@ public final class API {
     public static final String WRITE_SCOPE_NAME = "write";
     public static final String WEB_API_SCOPE_NAME = "web-api";
     public static final String SEB_API_SCOPE_NAME = "seb-api";
+    public static final String LMS_API_SCOPE_NAME = "lms-api";
 
     public enum BulkActionType {
         HARD_DELETE,
