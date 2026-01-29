@@ -47,6 +47,7 @@ public class WebServiceSecurityConfig implements WebMvcConfigurer {
 
     private static String[] OPEN_ENDPOINTS = new String[] {
             API.OAUTH_REVOKE_TOKEN_ENDPOINT,
+            API.OAUTH_JWT_TOKEN_ENDPOINT + "/**"
     };
 
     @Value("${sebserver.webservice.api.admin.endpoint}")

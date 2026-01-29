@@ -63,11 +63,6 @@ public class RegisteredLMSClient {
     }
 
     public RegisteredClient getRegisteredClient() {
-//        final String joinIds = StringUtils.join(
-//                lmsSetupDAO.allIdsFullIntegration().getOrThrow(),
-//                Constants.SPACE
-//        );
-
         return RegisteredClient
                 .withId(clientId)
                 .clientId(clientId)
