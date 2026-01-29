@@ -193,11 +193,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         @Override
         public boolean isLoggedIn() {
             final OAuth2AccessToken accessToken = this.restTemplate.getOAuth2ClientContext().getAccessToken();
-            //OAuth2AccessToken accessToken1 = this.restTemplate.getAccessToken();
-
-            System.out.println("************* accessToken: " + accessToken);
-            //System.out.println("************* accessToken1: " + accessToken1);
-
             if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
                 return false;
             }
@@ -305,8 +300,6 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 System.out.println("************* OTT loginInfo: " + loginInfo);
 
                 DefaultOAuth2AccessToken accessToken = new DefaultOAuth2AccessToken(loginInfo.token);
-
-                System.out.println("************* accessToken: " + accessToken);
 
                 this.resource.setUsername(loginInfo.username);
                 this.resource.setPassword(loginInfo.userUUID);
