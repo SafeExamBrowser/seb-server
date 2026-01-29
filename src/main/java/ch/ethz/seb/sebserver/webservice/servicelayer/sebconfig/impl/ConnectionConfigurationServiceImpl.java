@@ -202,6 +202,9 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
     public Result<RegisteredClient> getClientConfigDetails(final String clientName) {
         return this.getEncodedClientConfigSecret(clientName)
                 .map(pwd -> {
+
+                    System.out.println("*************** pwd: " + pwd);
+
                     return RegisteredClient
                             .withId(clientName)
                             .clientId(clientName)
@@ -596,6 +599,7 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
                 .map(cipher -> this.clientPasswordEncoder
                         .encode(this.clientCredentialService
                                 .decrypt(cipher)
+                                .onError(error -> log.error("Failed to decrypt cipher: ", error))
                                 .getOrThrow()));
     }
 
