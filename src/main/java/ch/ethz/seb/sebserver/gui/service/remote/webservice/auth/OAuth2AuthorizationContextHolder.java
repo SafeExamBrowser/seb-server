@@ -273,6 +273,8 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         public boolean autoLogin(final String oneTimeToken) {
             try {
 
+                System.out.println("************* autoLogin with OTT: " + oneTimeToken);
+
                 // Create ad-hoc RestTemplate and call token verification
                 final RestTemplate verifyTemplate = new RestTemplate(this.clientHttpRequestFactory);
                 final HttpHeaders httpHeaders = new HttpHeaders();
@@ -285,12 +287,17 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                         new HttpEntity<TokenLoginInfo>(null, httpHeaders),
                         TokenLoginInfo.class);
 
+                System.out.println("************* verify OTT: " + response);
+
                 if (response.getStatusCodeValue() != HttpStatus.OK.value()) {
                     log.warn("Autologin failed due to error response: {}", response);
                     return false;
                 }
 
                 final TokenLoginInfo loginInfo = response.getBody();
+
+                System.out.println("************* OTT loginInfo: " + loginInfo);
+
                 this.resource.setUsername(loginInfo.username);
                 this.resource.setPassword(loginInfo.userUUID);
                 this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.login);
