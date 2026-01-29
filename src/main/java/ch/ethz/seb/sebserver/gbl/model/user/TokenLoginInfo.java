@@ -35,4 +35,14 @@ public class TokenLoginInfo {
         this.login = login;
     }
 
+
+    @Override
+    public String toString() {
+        return "TokenLoginInfo{" +
+                "username='" + username + '\'' +
+                ", userUUID='" + userUUID + '\'' +
+                ", login_forward=" + login_forward +
+                ", login=" + login +
+                '}';
+    }
 }
