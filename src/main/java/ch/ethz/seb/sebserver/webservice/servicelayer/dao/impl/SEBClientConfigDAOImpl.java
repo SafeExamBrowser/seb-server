@@ -20,12 +20,14 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -68,19 +70,22 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
     private final DAOUserServcie daoUserServcie;
     private final CacheManager cacheManager;
+    private final Cryptor cryptor;
 
     protected SEBClientConfigDAOImpl(
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
             final ClientCredentialService clientCredentialService,
             final AdditionalAttributesDAOImpl additionalAttributesDAO,
             final DAOUserServcie daoUserServcie,
-            final CacheManager cacheManager) {
+            final CacheManager cacheManager,
+            final Cryptor cryptor) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.daoUserServcie = daoUserServcie;
         this.cacheManager = cacheManager;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -370,11 +375,14 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     @Transactional(readOnly = true)
     public Result<ClientCredentials> getSEBClientCredentials(final String modelId) {
         return recordByModelId(modelId)
+                .map(this::fixIssue_SEBSERV_858)
                 .map(rec -> new ClientCredentials(
                         rec.getClientName(),
                         rec.getClientSecret(),
                         null));
     }
+
+
 
     @Override
     @Transactional(readOnly = true)
@@ -710,15 +718,6 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             final SebClientConfigRecord rec = recordById(pk)
                     .getOrThrow();
 
-            // NOTE: ther is no token to revoke anymore since 3.0
-//            // revoke token
-//            try {
-//                this.applicationEventPublisher
-//                        .publishEvent(new RevokeExamTokenEvent(rec.getClientName()));
-//            } catch (final Exception e) {
-//                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", pk, e);
-//            }
-
             // clear cache
             this.cacheManager
                     .getCache(ConnectionConfigurationService.EXAM_CLIENT_DETAILS_CACHE)
@@ -729,5 +728,47 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         }
 
         return pk;
+    }
+
+    // NOTE: this a in code fix needed at Spring Boot update to 3.x. This fixes ISSUE SEBSERV-858
+    // Check if clientId or clientSecret of the record still has percentage character in it
+    // if so, create new clientId and clientSecret for the Connection Configuration and work with that
+    // Log when changing. Changing will also invalidate all existing Connection Configuration
+    // that were downloaded prior to when this fix was applied
+    private SebClientConfigRecord fixIssue_SEBSERV_858(SebClientConfigRecord sebClientConfigRecord) {
+        try {
+
+            String clientName = sebClientConfigRecord.getClientName();
+            String clientSecret = cryptor.decrypt(sebClientConfigRecord.getClientSecret()).getOrThrow().toString();
+
+            if (clientName.contains(Constants.PERCENTAGE_STRING) || clientSecret.contains(Constants.PERCENTAGE_STRING)) {
+
+                log.info("Found '%' in clientName or clientSecret of Connection Configuration. Try to apply fix SEBSERV-858 and create new credentials without special chars");
+
+                ClientCredentials newCredentials = this.clientCredentialService
+                        .generatedClientCredentials().getOrThrow();
+
+                UpdateDSL.updateWithMapper(
+                                this.sebClientConfigRecordMapper::update,
+                                SebClientConfigRecordDynamicSqlSupport.sebClientConfigRecord)
+                        .set(SebClientConfigRecordDynamicSqlSupport.clientName).equalTo(newCredentials.clientIdAsString())
+                        .set(SebClientConfigRecordDynamicSqlSupport.clientSecret).equalTo(newCredentials.secretAsString())
+                        .where(SebClientConfigRecordDynamicSqlSupport.id, isEqualTo(sebClientConfigRecord.getId()))
+                        .build()
+                        .execute();
+
+                SebClientConfigRecord newRec = recordById(sebClientConfigRecord.getId()).getOrThrow();
+
+                log.info("successfully repaired Connection Configuration: {}", newRec);
+
+                return newRec;
+            }
+
+            return sebClientConfigRecord;
+
+        } catch (Exception e) {
+            log.error("Failed to apply fix SEBSERV-858 to record: {}", sebClientConfigRecord, e);
+            return sebClientConfigRecord;
+        }
     }
 }

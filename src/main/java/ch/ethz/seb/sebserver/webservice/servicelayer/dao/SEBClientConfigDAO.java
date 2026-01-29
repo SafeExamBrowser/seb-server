@@ -40,7 +40,7 @@ public interface SEBClientConfigDAO extends
 
     /** Get the stored encrypted configuration password from a specified SEB client configuration.
      * The SEB client configuration password is used to encrypt a SEB Client Configuration.
-     *
+     * <p>
      * The SEB client configuration must be active otherwise a error is returned
      *
      * @param clientName the client name

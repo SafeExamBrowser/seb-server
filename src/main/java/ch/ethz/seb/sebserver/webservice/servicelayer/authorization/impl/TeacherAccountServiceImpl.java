@@ -197,21 +197,6 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
             CharSequence accessToken = oAuth2RestTemplate.getAccessToken();
 
-
-            // login the user by getting access token
-//            final Map<String, String> params = new HashMap<>();
-//            params.put(Constants.OAUTH2_GRANT_TYPE, Constants.OAUTH2_GRANT_TYPE_PASSWORD);
-//            params.put(Constants.OAUTH2_USER_NAME, user.username);
-//            params.put(Constants.OAUTH2_GRANT_TYPE_PASSWORD, claims.get(SUBJECT_CLAIM_NAME, String.class));
-//            final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-//                    new UsernamePasswordAuthenticationToken(
-//                            this.adminAPIClientDetails.getClientId(),
-//                            "N/A",
-//                            Collections.emptyList());
-//            final ResponseEntity<OAuth2AccessToken> accessToken =
-//                    this.tokenEndpoint.postAccessToken(usernamePasswordAuthenticationToken, params);
-//            final OAuth2AccessToken token = accessToken.getBody();
-
             final String examId = claims.get(EXAM_ID_CLAIM, String.class);
             final EntityKey key = (StringUtils.isNotBlank(examId))
                     ? new EntityKey(examId, EntityType.EXAM)

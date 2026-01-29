@@ -202,9 +202,6 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
     public Result<RegisteredClient> getClientConfigDetails(final String clientName) {
         return this.getEncodedClientConfigSecret(clientName)
                 .map(pwd -> {
-
-                    System.out.println("*************** pwd: " + pwd);
-
                     return RegisteredClient
                             .withId(clientName)
                             .clientId(clientName)
@@ -349,6 +346,8 @@ public class ConnectionConfigurationServiceImpl implements ConnectionConfigurati
         final CharSequence plainClientSecret = this.clientCredentialService
                 .getPlainClientSecret(sebClientCredentials)
                 .getOrThrow();
+
+
 
         final String plainTextConfig = String.format(
                 SEB_CLIENT_CONFIG_TEMPLATE_XML,
