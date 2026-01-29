@@ -71,6 +71,9 @@ public class LmsAPIResourceServerConfig {
         public Collection<GrantedAuthority> convert(final Jwt source) {
             try {
                 final List<String> scopes = source.getClaim("scope");
+
+                System.out.println("******************** scopes: " + scopes);
+
                 if (!scopes.contains(API.WEB_API_SCOPE_NAME)) {
                     throw new InvalidBearerTokenException("Invalid scope");
                 }
