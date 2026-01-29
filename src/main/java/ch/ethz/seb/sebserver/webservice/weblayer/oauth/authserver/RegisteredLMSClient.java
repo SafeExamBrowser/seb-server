@@ -23,7 +23,10 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -61,7 +64,7 @@ public class RegisteredLMSClient {
     public RegisteredClient getRegisteredClient() {
         final String joinIds = StringUtils.join(
                 lmsSetupDAO.allIdsFullIntegration().getOrThrow(),
-                Constants.LIST_SEPARATOR
+                Constants.SPACE
         );
 
         return RegisteredClient
