@@ -19,20 +19,20 @@ public class TokenLoginInfo {
     public final String userUUID;
     @JsonProperty("redirect")
     public final LoginForward login_forward;
-    @JsonProperty("login")
-    public final OAuth2AccessToken login;
+    @JsonProperty("token")
+    public final OAuth2AccessToken token;
 
     @JsonCreator
     public TokenLoginInfo(
             @JsonProperty("username") final String username,
             @JsonProperty("userUUID") final String userUUID,
             @JsonProperty("redirect") final LoginForward login_forward,
-            @JsonProperty("login") final OAuth2AccessToken login) {
+            @JsonProperty("login") final OAuth2AccessToken token) {
 
         this.username = username;
         this.userUUID = userUUID;
         this.login_forward = login_forward;
-        this.login = login;
+        this.token = token;
     }
 
 
@@ -42,7 +42,7 @@ public class TokenLoginInfo {
                 "username='" + username + '\'' +
                 ", userUUID='" + userUUID + '\'' +
                 ", login_forward=" + login_forward +
-                ", login=" + login +
+                ", login=" + token +
                 '}';
     }
 }
