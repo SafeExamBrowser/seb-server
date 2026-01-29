@@ -20,14 +20,14 @@ public class TokenLoginInfo {
     @JsonProperty("redirect")
     public final LoginForward login_forward;
     @JsonProperty("token")
-    public final OAuth2AccessToken token;
+    public final String token;
 
     @JsonCreator
     public TokenLoginInfo(
             @JsonProperty("username") final String username,
             @JsonProperty("userUUID") final String userUUID,
             @JsonProperty("redirect") final LoginForward login_forward,
-            @JsonProperty("login") final OAuth2AccessToken token) {
+            @JsonProperty("login") final String token) {
 
         this.username = username;
         this.userUUID = userUUID;

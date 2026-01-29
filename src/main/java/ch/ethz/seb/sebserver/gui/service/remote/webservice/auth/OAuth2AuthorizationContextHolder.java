@@ -37,6 +37,7 @@ import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedExc
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
 import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
@@ -303,9 +304,13 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
                 System.out.println("************* OTT loginInfo: " + loginInfo);
 
+                DefaultOAuth2AccessToken accessToken = new DefaultOAuth2AccessToken(loginInfo.token);
+
+                System.out.println("************* accessToken: " + accessToken);
+
                 this.resource.setUsername(loginInfo.username);
                 this.resource.setPassword(loginInfo.userUUID);
-                this.restTemplate.getOAuth2ClientContext().setAccessToken(loginInfo.token);
+                this.restTemplate.getOAuth2ClientContext().setAccessToken(accessToken);
 
                 loginForward = loginInfo.login_forward;
                 return this.isLoggedIn();
