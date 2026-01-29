@@ -197,7 +197,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             System.out.println("************* accessToken: " + accessToken);
             System.out.println("************* accessToken1: " + accessToken1);
 
-            if (accessToken1 == null || StringUtils.isEmpty(accessToken1.toString())) {
+            if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
                 return false;
             }
 
