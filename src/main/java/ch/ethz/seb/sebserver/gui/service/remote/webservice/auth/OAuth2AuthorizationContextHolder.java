@@ -192,10 +192,10 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         @Override
         public boolean isLoggedIn() {
             final OAuth2AccessToken accessToken = this.restTemplate.getOAuth2ClientContext().getAccessToken();
-            OAuth2AccessToken accessToken1 = this.restTemplate.getAccessToken();
+            //OAuth2AccessToken accessToken1 = this.restTemplate.getAccessToken();
 
             System.out.println("************* accessToken: " + accessToken);
-            System.out.println("************* accessToken1: " + accessToken1);
+            //System.out.println("************* accessToken1: " + accessToken1);
 
             if (accessToken == null || StringUtils.isEmpty(accessToken.toString())) {
                 return false;
