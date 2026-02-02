@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -156,7 +157,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     }
 
     private String convertValueRead(final Long attrId, final String value)  {
-        if (attrId == null || value == null) {
+        if (attrId == null || StringUtils.isBlank(value)) {
             return value;
         }
         
