@@ -35,8 +35,6 @@ public class UnauthorizedRequestHandler implements AuthenticationEntryPoint {
         try {
             String bearerTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-            System.out.println("****************** bearerTokenHeader: " + bearerTokenHeader);
-
             if (bearerTokenHeader != null) {
                 bearerTokenHeader = bearerTokenHeader.replace("Bearer ", "");
             }
