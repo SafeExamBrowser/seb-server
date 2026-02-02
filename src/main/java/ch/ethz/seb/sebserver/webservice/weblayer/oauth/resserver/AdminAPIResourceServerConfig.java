@@ -79,6 +79,9 @@ public class AdminAPIResourceServerConfig {
         
         @Override
         public Collection<GrantedAuthority> convert(final Jwt source) {
+
+            System.out.println("************** JWT: " + source);
+
             try {
                 final List<String> scopes = source.getClaim("scope");
                 if (!scopes.contains(API.WEB_API_SCOPE_NAME)) {
