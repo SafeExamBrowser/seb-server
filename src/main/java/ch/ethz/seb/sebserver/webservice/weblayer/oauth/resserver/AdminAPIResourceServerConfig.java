@@ -80,6 +80,9 @@ public class AdminAPIResourceServerConfig {
         @Override
         public Collection<GrantedAuthority> convert(final Jwt source) {
             try {
+
+                System.out.println("***************** Token: " + source.getTokenValue());
+
                 final List<String> scopes = source.getClaim("scope");
                 if (!scopes.contains(API.WEB_API_SCOPE_NAME)) {
                     throw new InvalidBearerTokenException("Invalid scope");

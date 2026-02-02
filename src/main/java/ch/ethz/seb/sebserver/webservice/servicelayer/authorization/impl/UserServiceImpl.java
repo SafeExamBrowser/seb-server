@@ -26,6 +26,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.WebDataBinder;
@@ -152,19 +153,23 @@ public class UserServiceImpl implements UserService {
         @Override
         public SEBServerUser extract(final Principal principal) {
             String name = principal.getName();
+            SEBServerUser lmsIntegrationClient = isLMSIntegrationClient(name);
+            if (lmsIntegrationClient != null) {
+                return lmsIntegrationClient;
+            }
+
             if (testing) {
                 userCacheService.evictServerUserByName(name);
             }
             SEBServerUser sebServerUser = userCacheService.serverUserByName(name);
-            if (sebServerUser != null) {
-                return sebServerUser;
+            if (sebServerUser == null) {
+                throw new UsernameNotFoundException("User for name: " + name + " not found");
             }
 
-            return isLMSIntegrationClient(principal);
+            return sebServerUser;
         }
 
-        private SEBServerUser isLMSIntegrationClient(final Principal principal) {
-            final String name = principal.getName();
+        private SEBServerUser isLMSIntegrationClient(final String name) {
             if (lmsClientId.equals(name)) {
                 return new SEBServerUser(
                         -1L,
