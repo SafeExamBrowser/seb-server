@@ -50,6 +50,13 @@ public class POSTMapper {
                 ? new LinkedMultiValueMap<>(params)
                 : new LinkedMultiValueMap<>();
 
+        // Workaround support sent arrays for new GUI
+        (new LinkedMultiValueMap<>(this.params)).forEach((name, values) -> {
+            if (name.endsWith("[]")) {
+                this.params.put(name.replace("[]", ""), values);
+            }
+        });
+
         if (uriQueryString != null) {
             handleEncodedURIParams(uriQueryString);
         }

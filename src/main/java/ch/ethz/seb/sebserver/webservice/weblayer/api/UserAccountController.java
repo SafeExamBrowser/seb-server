@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -44,7 +43,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
