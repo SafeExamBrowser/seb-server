@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientIndicatorValueMapper;
@@ -44,7 +44,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientIndicatorRec
 
 @Lazy
 @Component
-@WebServiceProfile
 /** This service is only needed within a distributed setup where more then one webservice works
  * simultaneously within one SEB Server and one persistent storage.
  * </p>
@@ -112,10 +111,10 @@ public class DistributedIndicatorValueService {
             SEBServerInit.INIT_LOGGER.info("------> with taskScheduler: {}", taskScheduler);
 
             try {
-
+                
                 taskScheduler.scheduleAtFixedRate(
                         this::updateIndicatorValueCache,
-                        this.distributedUpdateInterval);
+                        Duration.ofMillis(this.distributedUpdateInterval));
 
                 SEBServerInit.INIT_LOGGER.info("------> distributed indicator value service successfully initialized!");
 
