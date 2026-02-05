@@ -30,7 +30,10 @@ public class UnauthorizedRequestHandler implements AuthenticationEntryPoint {
             final HttpServletResponse response,
             final AuthenticationException authenticationException) throws IOException {
 
-        log.warn("{}: Unauthorized Request on: {}", name, request.getRequestURI(), authenticationException);
+        log.warn("{}: Unauthorized Request on: {} cause: {}",
+                name,
+                request.getRequestURI(),
+                authenticationException.getMessage());
 
         try {
             String bearerTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
