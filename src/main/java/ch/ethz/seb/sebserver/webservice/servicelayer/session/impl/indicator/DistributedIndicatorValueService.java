@@ -16,15 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 import org.apache.ibatis.exceptions.TooManyResultsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
@@ -60,10 +57,11 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientIndicatorRec
  * queue to do not overflow other executor services when it comes to a leak on storing lot of ping times for example.
  * In this case some ping time updates will be just dropped and not go to the persistent store until the leak
  * is resolved. */
-public class DistributedIndicatorValueService implements DisposableBean {
+public class DistributedIndicatorValueService {
 
     private static final Logger log = LoggerFactory.getLogger(DistributedIndicatorValueService.class);
 
+    private final TaskScheduler taskScheduler;
     private final Executor indicatorValueUpdateExecutor;
     private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
     private final ClientIndicatorValueMapper clientIndicatorValueMapper;
@@ -71,16 +69,18 @@ public class DistributedIndicatorValueService implements DisposableBean {
     long distributedUpdateInterval = 2000;
     private long updateTolerance;
 
-    private ScheduledFuture<?> taskRef;
+    //private ScheduledFuture<?> taskRef;
     private final Map<Long, Long> indicatorValueCache = new ConcurrentHashMap<>();
     private long lastUpdate = 0L;
 
     public DistributedIndicatorValueService(
+            final TaskScheduler taskScheduler,
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME) final Executor pingUpdateExecutor,
             final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
             final ClientIndicatorValueMapper clientIndicatorValueMapper,
             final WebserviceInfo webserviceInfo) {
 
+        this.taskScheduler = taskScheduler;
         this.indicatorValueUpdateExecutor = pingUpdateExecutor;
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
         this.clientIndicatorValueMapper = clientIndicatorValueMapper;
@@ -97,14 +97,11 @@ public class DistributedIndicatorValueService implements DisposableBean {
      * @param initEvent the SEB Server webservice init event */
     @EventListener(SEBServerInitEvent.class)
     public void init(final SEBServerInitEvent initEvent) {
-        final ApplicationContext applicationContext = initEvent.webserviceInit.getApplicationContext();
-        final WebserviceInfo webserviceInfo = applicationContext.getBean(WebserviceInfo.class);
         if (webserviceInfo.isDistributed()) {
 
             SEBServerInit.INIT_LOGGER.info("------>");
             SEBServerInit.INIT_LOGGER.info("------> Activate distributed indicator value service:");
 
-            final TaskScheduler taskScheduler = applicationContext.getBean(TaskScheduler.class);
             this.distributedUpdateInterval = webserviceInfo.getDistributedUpdateInterval();
             this.updateTolerance = this.distributedUpdateInterval * 2 / 3;
 
@@ -116,7 +113,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
 
             try {
 
-                this.taskRef = taskScheduler.scheduleAtFixedRate(
+                taskScheduler.scheduleAtFixedRate(
                         this::updateIndicatorValueCache,
                         this.distributedUpdateInterval);
 
@@ -125,10 +122,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
             } catch (final Exception e) {
                 SEBServerInit.INIT_LOGGER.error("------> Failed to initialize distributed indicator value service:", e);
                 log.error("Failed to initialize distributed indicator value cache update task");
-                this.taskRef = null;
             }
-        } else {
-            this.taskRef = null;
         }
     }
 
@@ -233,7 +227,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
         }
     }
 
-    /** Deletes a existing SEB client indicator value record for a given SEB client connection identifier
+    /** Deletes an existing SEB client indicator value record for a given SEB client connection identifier
      * on the persistent storage.
      *
      * @param connectionId SEB client connection identifier */
@@ -310,7 +304,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
     /** Updates the internal indicator value cache by loading all actual SEB client indicators from persistent storage
      * and put it in the cache.
      * This is internally periodically scheduled by the task scheduler but also implements an execution drop if
-     * the last update was less then 2/3 of the schedule interval ago. This is to prevent task queue overflows
+     * the last update was less than 2/3 of the schedule interval ago. This is to prevent task queue overflows
      * and wait with update when there is a persistent storage leak or a lot of network latency. */
     private void updateIndicatorValueCache() {
         if (this.indicatorValueCache.isEmpty()) {
@@ -323,10 +317,6 @@ public class DistributedIndicatorValueService implements DisposableBean {
             return;
         }
 
-        if (log.isDebugEnabled()) {
-            log.trace("*** Update distributed indicator value cache: {}", this.indicatorValueCache);
-        }
-
         try {
 
             final Map<Long, Long> mapping = this.clientIndicatorValueMapper
@@ -336,16 +326,14 @@ public class DistributedIndicatorValueService implements DisposableBean {
                     .stream()
                     .collect(Collectors.toMap(entry -> entry.id, entry -> entry.indicatorValue));
 
-            if (mapping != null) {
-                this.indicatorValueCache.clear();
-                this.indicatorValueCache.putAll(mapping);
-                this.lastUpdate = millisecondsNow;
-            }
 
-            // System.out.println("*** Update distributed indicator value cache: " + this.indicatorValueCache);
+            this.indicatorValueCache.clear();
+            this.indicatorValueCache.putAll(mapping);
 
         } catch (final Exception e) {
-            log.error("Error while trying to update distributed indicator value cache: {}", this.indicatorValueCache,
+            log.error(
+                    "Error while trying to update distributed indicator value cache: {}",
+                    this.indicatorValueCache,
                     e);
         }
 
@@ -354,73 +342,47 @@ public class DistributedIndicatorValueService implements DisposableBean {
 
     /** Update last ping time on persistent storage asynchronously within a defines thread pool with no
      * waiting queue to skip further ping updates if all update threads are busy **/
-    // TODO: we need a better handling strategy here. Try to apply a batch update managed by SEBClientPingBatchService
     void updatePingAsync(final Long pingRecord) {
         try {
+
             this.indicatorValueUpdateExecutor
-                    .execute(() -> this.clientIndicatorValueMapper.updateIndicatorValue(
-                            pingRecord,
-                            Utils.getMillisecondsNow()));
+                    .execute(() -> this.clientIndicatorValueMapper
+                            .updateIndicatorValue(pingRecord, Utils.getMillisecondsNow()));
+
         } catch (final Exception e) {
-            if (log.isTraceEnabled()) {
-                log.warn("Failed to schedule ping task: {}" + e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.warn("Failed to schedule ping task: {}", e.getMessage());
             }
         }
     }
 
     /** Update indicator value on persistent storage asynchronously within a defined thread pool with no
      * waiting queue to skip further indicator value updates if all update threads are busy **/
-    // TODO: we need a better handling strategy here. Try to apply a batch update managed by SEBClientEventBatchStore
-    boolean updateIndicatorValueAsync(final Long pk, final Long value) {
+    void updateIndicatorValueAsync(final Long pk, final Long value) {
         try {
+
             this.indicatorValueUpdateExecutor
-                    .execute(() -> this.clientIndicatorValueMapper.updateIndicatorValue(pk, value));
-            return true;
+                    .execute(() -> this.clientIndicatorValueMapper
+                            .updateIndicatorValue(pk, value));
+
         } catch (final Exception e) {
             if (log.isDebugEnabled()) {
-                log.warn("Failed to schedule indicator update task: {}" + e.getMessage());
+                log.warn("Failed to schedule indicator update task: {}", e.getMessage());
             }
-            return false;
-        }
-    }
-
-    /** Update an indicator value within a transaction */
-    @Transactional
-    void updateIndicatorValue(final Long pk, final Long value) {
-        try {
-            this.clientIndicatorValueMapper.updateIndicatorValue(pk, value);
-        } catch (final Exception e) {
-            log.warn("Failed to update indicator value: {}" + e.getMessage());
         }
     }
 
     /** Simply increment a given indicator value */
-    void incrementIndicatorValue(final Long pk) {
+    void incrementIndicatorValueAsync(final Long pk) {
         try {
-            this.clientIndicatorValueMapper.incrementIndicatorValue(pk);
+
+            this.indicatorValueUpdateExecutor
+                    .execute(() -> this.clientIndicatorValueMapper.incrementIndicatorValue(pk));
+
         } catch (final Exception e) {
-            log.warn("Failed to increment indicator value: {}" + e.getMessage());
-        }
-    }
-
-    @Override
-    public void destroy() throws Exception {
-        if (this.taskRef != null) {
-
-            SEBServerInit.INIT_LOGGER.info("----> Shout down distributed indicator service...");
-
-            try {
-                final boolean cancel = this.taskRef.cancel(true);
-                if (!cancel) {
-                    log.warn("Failed to cancel distributed indicator cache update task");
-                }
-
-                SEBServerInit.INIT_LOGGER.info("----> Distributed indicator service down");
-
-            } catch (final Exception e) {
-                log.error("Failed to cancel distributed indicator cache update task: ", e);
+            if (log.isDebugEnabled()) {
+                log.warn("Failed to schedule increment indicator task: {}", e.getMessage());
             }
         }
     }
-
 }
