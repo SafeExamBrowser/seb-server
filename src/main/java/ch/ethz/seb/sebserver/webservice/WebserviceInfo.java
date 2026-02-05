@@ -73,6 +73,7 @@ public class WebserviceInfo {
     private final String guiAutologinURL;
 
     private final long distributedUpdateInterval;
+    private final long distributedWriteBatchInterval;
 
     private Map<String, String> lmsExternalAddressAlias;
     private final Set<String> activeProfiles;
@@ -118,6 +119,10 @@ public class WebserviceInfo {
                 "sebserver.webservice.distributed.updateInterval",
                 Long.class,
                 2000L);
+        this.distributedWriteBatchInterval = environment.getProperty(
+                "sebserver.webservice.distributed.writeInterval",
+                Long.class,
+                500L);
 
         this.activeProfiles = new HashSet<>(Arrays.asList(environment.getActiveProfiles()));
 
@@ -263,6 +268,10 @@ public class WebserviceInfo {
         return this.distributedUpdateInterval;
     }
 
+    public long getDistributedWriteBatchInterval() {
+        return this.distributedWriteBatchInterval;
+    }
+
     public ScreenProctoringServiceBundle getScreenProctoringServiceBundle() {
         return this.screenProctoringServiceBundle;
     }
@@ -346,29 +355,27 @@ public class WebserviceInfo {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("WebserviceInfo [testProperty=");
-        builder.append(this.testProperty);
-        builder.append(", httpScheme=");
-        builder.append(this.httpScheme);
-        builder.append(", hostAddress=");
-        builder.append(this.hostAddress);
-        builder.append(", webserverName=");
-        builder.append(this.webserverName);
-        builder.append(", serverPort=");
-        builder.append(this.serverPort);
-        builder.append(", webserverPort=");
-        builder.append(this.webserverPort);
-        builder.append(", discoveryEndpoint=");
-        builder.append(this.discoveryEndpoint);
-        builder.append(", serverURLPrefix=");
-        builder.append(this.serverURLPrefix);
-        builder.append(", isDistributed=");
-        builder.append(this.isDistributed);
-        builder.append(", lmsExternalAddressAlias=");
-        builder.append(this.lmsExternalAddressAlias);
-        builder.append("]");
-        return builder.toString();
+        return "WebserviceInfo [testProperty=" +
+                this.testProperty +
+                ", httpScheme=" +
+                this.httpScheme +
+                ", hostAddress=" +
+                this.hostAddress +
+                ", webserverName=" +
+                this.webserverName +
+                ", serverPort=" +
+                this.serverPort +
+                ", webserverPort=" +
+                this.webserverPort +
+                ", discoveryEndpoint=" +
+                this.discoveryEndpoint +
+                ", serverURLPrefix=" +
+                this.serverURLPrefix +
+                ", isDistributed=" +
+                this.isDistributed +
+                ", lmsExternalAddressAlias=" +
+                this.lmsExternalAddressAlias +
+                "]";
     }
 
     public static final class ScreenProctoringServiceBundle implements SPSAPIAccessData {
@@ -436,17 +443,15 @@ public class WebserviceInfo {
 
         @Override
         public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("ScreenProctoringServiceBundle [bundled=");
-            builder.append(this.bundled);
-            builder.append(", serviceURL=");
-            builder.append(this.serviceURL);
-            builder.append(", clientId=");
-            builder.append(this.clientId);
-            builder.append(", apiAccountName=");
-            builder.append(this.apiAccountName);
-            builder.append("]");
-            return builder.toString();
+            return "ScreenProctoringServiceBundle [bundled=" +
+                    this.bundled +
+                    ", serviceURL=" +
+                    this.serviceURL +
+                    ", clientId=" +
+                    this.clientId +
+                    ", apiAccountName=" +
+                    this.apiAccountName +
+                    "]";
         }
     }
 
