@@ -370,18 +370,4 @@ public class DistributedIndicatorValueService {
             }
         }
     }
-
-    /** Simply increment a given indicator value */
-    void incrementIndicatorValueAsync(final Long pk) {
-        try {
-
-            this.indicatorValueUpdateExecutor
-                    .execute(() -> this.clientIndicatorValueMapper.incrementIndicatorValue(pk));
-
-        } catch (final Exception e) {
-            if (log.isDebugEnabled()) {
-                log.warn("Failed to schedule increment indicator task: {}", e.getMessage());
-            }
-        }
-    }
 }
