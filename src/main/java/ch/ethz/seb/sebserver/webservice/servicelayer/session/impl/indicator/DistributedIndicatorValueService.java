@@ -30,6 +30,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
@@ -44,6 +46,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientIndicatorValueMapp
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientIndicatorRecord;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Lazy
 @Component
@@ -77,6 +80,7 @@ public class DistributedIndicatorValueService {
 
     // write batching
     private final long writeBatchInterval = 500;
+    private final TransactionTemplate transactionTemplate;
     private final ClientIndicatorValueMapper clientIndicatorValueMapperBatch;
     private final SqlSessionTemplate sqlSessionTemplate;
     private final Map<Long, Long> indicatorValueQueue = new ConcurrentHashMap<>();
@@ -84,6 +88,7 @@ public class DistributedIndicatorValueService {
 
     public DistributedIndicatorValueService(
             final TaskScheduler taskScheduler,
+            final PlatformTransactionManager transactionManager,
             final SqlSessionFactory sqlSessionFactory,
             final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
             final ClientIndicatorValueMapper clientIndicatorValueMapper,
@@ -93,6 +98,9 @@ public class DistributedIndicatorValueService {
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
         this.clientIndicatorValueMapper = clientIndicatorValueMapper;
         this.webserviceInfo = webserviceInfo;
+
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
         // create clientIndicatorValueMapperBatch
         this.sqlSessionTemplate = new SqlSessionTemplate(sqlSessionFactory, ExecutorType.BATCH);
@@ -177,6 +185,8 @@ public class DistributedIndicatorValueService {
                         type);
             } catch (final TooManyResultsException e) {
                 // There are already to many yet, select with limit to get first one and use this
+                // TODO This seems not to work properly and gives org.apache.ibatis.exceptions.TooManyResultsException
+                //      even with limit set (limit seems not to have an effect)
                 recId = this.clientIndicatorValueMapper.indicatorRecordIdByConnectionIdLimit(
                         connectionId,
                         type);
@@ -199,7 +209,7 @@ public class DistributedIndicatorValueService {
             this.clientIndicatorRecordMapper.insert(clientEventRecord);
 
             try {
-                // This also double-check by trying again. If we have more then one entry here
+                // This also double-check by trying again. If we have more than one entry here
                 // this will throw an exception that causes a rollback
                 return this.clientIndicatorValueMapper
                         .indicatorRecordIdByConnectionId(connectionId, type);
@@ -391,13 +401,15 @@ public class DistributedIndicatorValueService {
         }
     }
 
+    // TODO consider to use fixed size map where older entries were dropped
+    //      this would be a overload prevention mechanism just for live data
     private void processStoreUpdate(final Map<Long, Long> batchMap) {
         try {
 
             if (this.indicatorValueQueue.isEmpty()) {
                 return;
             }
-            long now = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
 
             // drain/copy the indicatorValueQueue into the local batchMap
             batchMap.clear();
@@ -406,10 +418,14 @@ public class DistributedIndicatorValueService {
                 this.indicatorValueQueue.clear();
             }
 
-            batchMap.forEach(clientIndicatorValueMapperBatch::updateIndicatorValue);
-            this.sqlSessionTemplate.flushStatements();
+            long copy = System.currentTimeMillis();
 
-            System.out.println("************* batchMap size: " + batchMap.size() + " took: " + (System.currentTimeMillis() - now));
+            this.transactionTemplate.executeWithoutResult(status -> {
+                batchMap.forEach(clientIndicatorValueMapperBatch::updateIndicatorValue);
+                this.sqlSessionTemplate.flushStatements();
+            });
+
+            System.out.println("************* batchMap size: " + batchMap.size() + " took: " + (System.currentTimeMillis() - start) + " update took: " + (System.currentTimeMillis() - copy));
 
         } catch (Exception e) {
             log.error("Failed write distributed indicator values to persistent store. Skip all. cause: {}", e.getMessage());
