@@ -16,8 +16,8 @@ INSERT IGNORE INTO user VALUES
     (1001,11,'test-main','2019-01-01','Test','Main', 'testmain','$2a$08$5Y8viI2/TH9jy13Uo1Jq8Oj7.xw.8kQaMPXnCutnet6eqdBaJGQiG','test-main@main.nomail','en','UTC',1,1,1),
 
 -- active tests accounts
-    (1002,11,'seb-inst-admin-inactive','2019-01-01','Institutional','', 'admininactive','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive@nomail.nomail','de','UTC',0,1,1),
-    (1003,11,'seb-inst-admin-active','2019-01-01','Institutional','', 'adminactive','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active@nomail.nomail','en','UTC',1,1,1),
+    (1002,11,'seb-inst-admin-inactive','2019-01-01','Institutional','testinactive', 'admininactive','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive@nomail.nomail','de','UTC',0,1,1),
+    (1003,11,'seb-inst-admin-active','2019-01-01','Institutional','testactive', 'adminactive','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active@nomail.nomail','en','UTC',1,1,1),
 
 -- accounts for other institutions
     (1004,12,'testinst-exam-admin','2019-01-01','Admin','Admin', 'testinstitutionadmin','$2a$08$zBpW9dadK.C3kOjbowKYVOFmWIiqsZMWeWjYqLZxzG8FEliRuOHnC','exam-admin@testinst.nomail','de','UTC',1,1,1),
