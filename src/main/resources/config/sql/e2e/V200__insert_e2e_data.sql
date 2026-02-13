@@ -30,19 +30,18 @@ INSERT IGNORE INTO user VALUES
 
 
 
--- Test User Accoints
--- activate/deactivte tests accounts: for 3 browsers!
-    -- chrome
+-- User Accounts 1.3.2 and 1.3.3 UPDATE Activate / Deactivate
     (1002,11,'seb-inst-admin-inactive-chromium','2019-01-01','Institutional','testinactive-chromium', 'admininactive-chromium','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive-chromium@nomail.nomail','de','UTC',0,1,1),
     (1003,11,'seb-inst-admin-active-chromium','2019-01-01','Institutional','testactive-chromium', 'adminactive-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-chromium@nomail.nomail','en','UTC',1,1,1),
-    -- firefox
     (996,11,'seb-inst-admin-inactive-webkit','2019-01-01','Institutional','testinactive-webkit', 'admininactive-webkit','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive-webkit@nomail.nomail','de','UTC',0,1,1),
     (997,11,'seb-inst-admin-active-webkit','2019-01-01','Institutional','testactive-webkit', 'adminactive-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-webkit@nomail.nomail','en','UTC',1,1,1),
-    -- webkit
     (998,11,'seb-inst-admin-inactive-firefox','2019-01-01','Institutional','testinactive-firefox', 'admininactive-firefox','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive-firefox@nomail.nomail','de','UTC',0,1,1),
-    (999,11,'seb-inst-admin-active-firefox','2019-01-01','Institutional','testactive-firefox', 'adminactive-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-firefox@nomail.nomail','en','UTC',1,1,1);
+    (999,11,'seb-inst-admin-active-firefox','2019-01-01','Institutional','testactive-firefox', 'adminactive-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-firefox@nomail.nomail','en','UTC',1,1,1),
 
-
+-- User Accounts 1.4.1 DELETE Remove
+    (1011,11,'seb-user-account-delete-chromium','2019-01-01','Institutional','testdelete-chromium', 'adminactive-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-chromium@nomail.nomail','en','UTC',1,1,1),
+    (1012,11,'seb-user-account-delete-webkit','2019-01-01','Institutional','testdelete-webkit', 'adminactive-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-webkit@nomail.nomail','en','UTC',1,1,1),
+    (1013,11,'seb-user-account-delete-firefox','2019-01-01','Institutional','testdelete-firefox', 'adminactive-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-firefox@nomail.nomail','en','UTC',1,1,1);
 
 
 -- User Roles
