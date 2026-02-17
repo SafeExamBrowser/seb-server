@@ -12,6 +12,7 @@ import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndi
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.apache.ibatis.annotations.Arg;
 import org.apache.ibatis.annotations.ConstructorArgs;
@@ -70,14 +71,18 @@ public interface ClientIndicatorValueMapper {
 
     default Long indicatorRecordIdByConnectionIdLimit(final Long connectionId, final IndicatorType indicatorType) {
         return SelectDSL.selectDistinctWithMapper(
-                this::selectPK,
-                id.as("id"))
+                        this::selectMany,
+                        id.as("id"))
                 .from(clientIndicatorRecord)
                 .where(clientConnectionId, isEqualTo(connectionId))
                 .and(type, isEqualTo(indicatorType.id))
                 .limit(1)
                 .build()
-                .execute();
+                .execute()
+                .stream()
+                .findFirst()
+                .map(rec -> rec.id)
+                .orElse(null);
     }
 
     default Long indicatorRecordIdByConnectionId(final Long connectionId, final IndicatorType indicatorType) {
