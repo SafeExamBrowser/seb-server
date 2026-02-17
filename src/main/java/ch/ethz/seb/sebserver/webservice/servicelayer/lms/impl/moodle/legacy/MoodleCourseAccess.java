@@ -9,18 +9,11 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MooldePluginLmsAPITemplateFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -359,9 +352,9 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                             c,
                             urlPrefix,
                             this.prependShortCourseName, false).stream())
-                    .filter(q -> exam.name.contains(q.name))
+                    .filter(q -> Objects.equals(exam.name, q.name))
                     .findFirst()
-                    .get();
+                    .orElseThrow();
         });
     }
 

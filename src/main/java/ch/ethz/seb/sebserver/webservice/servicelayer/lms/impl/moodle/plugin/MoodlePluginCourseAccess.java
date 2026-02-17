@@ -59,7 +59,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursesPlugin;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
-import io.micrometer.core.instrument.util.StringUtils;
 
 public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess implements CourseAccessAPI {
 
@@ -305,9 +304,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                                     c,
                                     urlPrefix,
                                     this.prependShortCourseName).stream())
-                            .filter(q -> exam.name.contains(q.name))
+                            .filter(q -> Objects.equals(exam.name, q.name))
                             .findFirst()
-                            .get();
+                            .orElseThrow();
         });
     }
 
