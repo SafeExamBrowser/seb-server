@@ -49,7 +49,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Lazy
 @Component
-/** This service is only needed within a distributed setup where more than one webservice works
+/* This service is only needed within a distributed setup where more than one webservice works
  * simultaneously within one SEB Server and one persistent storage.
  * </p>
  * This service handles the SEB client indicator updates within such a setup and implements functionality to
@@ -180,8 +180,6 @@ public class DistributedIndicatorValueService {
                         type);
             } catch (final TooManyResultsException e) {
                 // There are already to many yet, select with limit to get first one and use this
-                // TODO This seems not to work properly and gives org.apache.ibatis.exceptions.TooManyResultsException
-                //      even with limit set (limit seems not to have an effect)
                 recId = this.clientIndicatorValueMapper.indicatorRecordIdByConnectionIdLimit(
                         connectionId,
                         type);
