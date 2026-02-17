@@ -51,18 +51,15 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Lazy
 @Component
 @WebServiceProfile
-/** This service is only needed within a distributed setup where more then one webservice works
+/** This service is only needed within a distributed setup where more than one webservice works
  * simultaneously within one SEB Server and one persistent storage.
  * </p>
  * This service handles the SEB client indicator updates within such a setup and implements functionality to
  * efficiently store and load indicator values from and to shared store.
  * </p>
- * The update from the persistent store is done done periodically within a batch while the indicator value writes
- * are done individually per SEB client when they arrive. The update can be done within a dedicated task executor with
- * minimal task
- * queue to do not overflow other executor services when it comes to a leak on storing lot of ping times for example.
- * In this case some ping time updates will be just dropped and not go to the persistent store until the leak
- * is resolved. */
+ * There is a read batch that gets all indicator values from storage and put it to the cache.
+ * And there is a write batch that collects all indicators values coming in from SEB clients
+ * and makes a batch update on the storage table for every 500 milliseconds */
 public class DistributedIndicatorValueService {
 
     private static final Logger log = LoggerFactory.getLogger(DistributedIndicatorValueService.class);
@@ -73,13 +70,11 @@ public class DistributedIndicatorValueService {
     private final WebserviceInfo webserviceInfo;
 
     // read batching
-    private long readBatchInterval = 2000;
     private long updateTolerance;
     private final Map<Long, Long> indicatorValueCache = new ConcurrentHashMap<>();
     private long lastUpdate = 0L;
 
     // write batching
-    private final long writeBatchInterval = 500;
     private final TransactionTemplate transactionTemplate;
     private final ClientIndicatorValueMapper clientIndicatorValueMapperBatch;
     private final SqlSessionTemplate sqlSessionTemplate;
@@ -127,27 +122,29 @@ public class DistributedIndicatorValueService {
             SEBServerInit.INIT_LOGGER.info("------>");
             SEBServerInit.INIT_LOGGER.info("------> Activate distributed indicator value service:");
 
-            this.readBatchInterval = webserviceInfo.getDistributedUpdateInterval();
-            this.updateTolerance = this.readBatchInterval * 2 / 3;
+            // read batching
+            long readBatchInterval = webserviceInfo.getDistributedUpdateInterval();
+            long writeBatchInterval = webserviceInfo.getDistributedWriteBatchInterval();
+            this.updateTolerance = readBatchInterval * 2 / 3;
 
             SEBServerInit.INIT_LOGGER.info("------> with distributed read interval: {}",
-                    this.readBatchInterval);
+                    readBatchInterval);
             SEBServerInit.INIT_LOGGER.info("------> with distributed write interval : {}",
-                    this.writeBatchInterval);
+                    writeBatchInterval);
             SEBServerInit.INIT_LOGGER.info("------> with taskScheduler: {}", taskScheduler);
 
             try {
 
                 taskScheduler.scheduleAtFixedRate(
                         this::updateIndicatorValueCache,
-                        this.readBatchInterval);
+                        readBatchInterval);
 
                 SEBServerInit.INIT_LOGGER.info("------> distributed indicator value service successfully initialized!");
 
                 Map<Long, Long> batchMap1 = new HashMap<>();
                 taskScheduler.scheduleWithFixedDelay(
                         () -> processStoreUpdate(batchMap1),
-                        Duration.ofMillis(this.writeBatchInterval));
+                        Duration.ofMillis(writeBatchInterval));
 
             } catch (final Exception e) {
                 SEBServerInit.INIT_LOGGER.error("------> Failed to initialize distributed indicator value service:", e);
@@ -401,15 +398,14 @@ public class DistributedIndicatorValueService {
         }
     }
 
-    // TODO consider to use fixed size map where older entries were dropped
-    //      this would be a overload prevention mechanism just for live data
     private void processStoreUpdate(final Map<Long, Long> batchMap) {
         try {
 
             if (this.indicatorValueQueue.isEmpty()) {
                 return;
             }
-            long start = System.currentTimeMillis();
+
+            //long start = System.currentTimeMillis();
 
             // drain/copy the indicatorValueQueue into the local batchMap
             batchMap.clear();
@@ -418,14 +414,13 @@ public class DistributedIndicatorValueService {
                 this.indicatorValueQueue.clear();
             }
 
-            long copy = System.currentTimeMillis();
 
             this.transactionTemplate.executeWithoutResult(status -> {
                 batchMap.forEach(clientIndicatorValueMapperBatch::updateIndicatorValue);
                 this.sqlSessionTemplate.flushStatements();
             });
 
-            System.out.println("************* batchMap size: " + batchMap.size() + " took: " + (System.currentTimeMillis() - start) + " update took: " + (System.currentTimeMillis() - copy));
+            //System.out.println("************* batchMap size: " + batchMap.size() + " took: " + (System.currentTimeMillis() - start));
 
         } catch (Exception e) {
             log.error("Failed write distributed indicator values to persistent store. Skip all. cause: {}", e.getMessage());
