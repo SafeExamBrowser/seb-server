@@ -384,20 +384,6 @@ public class DistributedIndicatorValueService {
         return true;
     }
 
-    /** Simply increment a given indicator value */
-    void incrementIndicatorValue(final Long pk) {
-        if (pk == null) {
-            return;
-        }
-
-        Long indicatorValue = getIndicatorValue(pk);
-        if (indicatorValue != null) {
-            this.indicatorValueQueue.put(pk, indicatorValue + 1L);
-        } else {
-            log.warn("No Indicator Value found for: {}", pk);
-        }
-    }
-
     private void processStoreUpdate(final Map<Long, Long> batchMap) {
         try {
 
