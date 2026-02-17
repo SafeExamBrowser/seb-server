@@ -74,6 +74,7 @@ public class WebserviceInfo {
     private final String guiAutologinURL;
 
     private final long distributedUpdateInterval;
+    private final long distributedWriteBatchInterval;
 
     private Map<String, String> lmsExternalAddressAlias;
     private final Set<String> activeProfiles;
@@ -119,6 +120,10 @@ public class WebserviceInfo {
                 "sebserver.webservice.distributed.updateInterval",
                 Long.class,
                 2000L);
+        this.distributedWriteBatchInterval = environment.getProperty(
+                "sebserver.webservice.distributed.writeInterval",
+                Long.class,
+                500L);
 
         this.activeProfiles = new HashSet<>(Arrays.asList(environment.getActiveProfiles()));
 
@@ -258,6 +263,10 @@ public class WebserviceInfo {
 
     public long getDistributedUpdateInterval() {
         return this.distributedUpdateInterval;
+    }
+
+    public long getDistributedWriteBatchInterval() {
+        return this.distributedWriteBatchInterval;
     }
 
     public ScreenProctoringServiceBundle getScreenProctoringServiceBundle() {

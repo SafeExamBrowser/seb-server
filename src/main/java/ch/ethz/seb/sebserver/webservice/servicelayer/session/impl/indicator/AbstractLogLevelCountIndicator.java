@@ -39,14 +39,15 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     @Override
     public final void notifyValueChange(final String textValue, final double numValue) {
         if (this.tags == null || this.tags.length == 0 || hasTag(textValue)) {
-            this.currentValue = getValue() + 1d;
-            if (super.distributedIndicatorValueRecordId != null && !Double.isNaN(this.currentValue)) {
+            double value = getValue() + 1d;
+            if (super.distributedIndicatorValueRecordId != null && !Double.isNaN(value)) {
                 distributedIndicatorValueService.updateIndicatorValueAsync(
                         super.distributedIndicatorValueRecordId,
-                        (long) this.currentValue
+                        (long) value
                 );
+            } else {
+                currentValue = value;
             }
-
         }
     }
 

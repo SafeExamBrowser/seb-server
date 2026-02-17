@@ -42,15 +42,18 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     @Override
     public void notifyValueChange(final String textValue, final double numValue) {
         if (this.tags == null || this.tags.length == 0 || hasTag(textValue)) {
-
-            // Update distributed cache if needed
             if (super.distributedIndicatorValueRecordId != null) {
-                this.distributedIndicatorValueService.updateIndicatorValueAsync(
+                if (!this.distributedIndicatorValueService.updateIndicatorValueAsync(
                         this.distributedIndicatorValueRecordId,
-                        Double.valueOf(numValue).longValue());
+                        Double.valueOf(numValue).longValue())) {
 
+                    this.currentValue = computeValueAt(Utils.getMillisecondsNow());
+                } else {
+                    this.currentValue = numValue;
+                }
+            } else {
+                this.currentValue = numValue;
             }
-            this.currentValue = numValue;
         }
     }
 
@@ -69,7 +72,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
                     .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
                     .and(
                             ClientEventRecordDynamicSqlSupport.text,
-                            isLikeWhenPresent(getfirstTagSQL()),
+                            isLikeWhenPresent(getFirstTagSQL()),
                             getSubTagSQL())
                     .orderBy(ClientEventRecordDynamicSqlSupport.serverTime)
                     .build()
@@ -100,7 +103,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
         }
     }
 
-    private String getfirstTagSQL() {
+    private String getFirstTagSQL() {
         if (this.tags == null || this.tags.length == 0) {
             return null;
         }
