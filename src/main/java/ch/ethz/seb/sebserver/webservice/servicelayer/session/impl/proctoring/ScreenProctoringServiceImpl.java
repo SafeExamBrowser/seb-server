@@ -354,7 +354,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             return;
         }
 
-        this.screenProctoringAPIBinding.activateScreenProctoring(exam);
+        this.screenProctoringAPIBinding
+                .activateScreenProctoring(exam)
+                .onError(error -> log.error("Failed to activate SPS for started exam: {} cause:  {}", exam.name, error.getMessage()));
     }
 
     @Override
@@ -366,7 +368,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         if (event.exam.status != Exam.ExamStatus.UP_COMING) {
             this.screenProctoringAPIBinding
                     .deactivateScreenProctoring(event.exam)
-                    .onError(error -> log.warn("Failed to deactivate SPS on exam finishing: {}", error.getMessage()));
+                    .onError(error -> log.warn(
+                            "Failed to deactivate SPS on exam finishing for exam: {} cause: {}",
+                            event.exam.externalId,
+                            error.getMessage()));
             
             this.screenProctoringGroupDAO.resetAllForExam(event.exam.id);
         }
@@ -379,7 +384,12 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         if (event.exam.status != Exam.ExamStatus.UP_COMING) {
-            this.screenProctoringAPIBinding.activateScreenProctoring(event.exam);
+            this.screenProctoringAPIBinding
+                    .activateScreenProctoring(event.exam)
+                    .onError(error -> log.error(
+                            "Failed to reactivate SPS for exam: {} cause: {}",
+                            event.exam.externalId,
+                            error.getMessage()));
         }
     }
 
@@ -623,7 +633,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 this.screenProctoringAPIBinding.deleteExamOnScreenProctoring(exam);
             } else {
                 this.screenProctoringAPIBinding.deactivateScreenProctoring(exam)
-                        .onError(error -> log.error("Failed to deactivate screen proctoring for exam: {}", exam.name, error));
+                        .onError(error -> log.error(
+                                "Failed to deactivate screen proctoring for exam: {} cause: {}",
+                                exam.name,
+                                error.getMessage()));
             }
 
             return this.cleanupAllLocalGroups(exam);

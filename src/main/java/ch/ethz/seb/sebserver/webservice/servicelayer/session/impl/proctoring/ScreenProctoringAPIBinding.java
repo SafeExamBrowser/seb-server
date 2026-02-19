@@ -148,7 +148,9 @@ public class ScreenProctoringAPIBinding {
                     SPSData.class);
 
         } catch (final Exception e) {
-            log.warn("Failed to get local SPSData for exam: {}", examId);
+            if (log.isDebugEnabled()) {
+                log.warn("Failed to get local SPSData for exam: {}", examId);
+            }
             return null;
         }
     }
@@ -202,7 +204,8 @@ public class ScreenProctoringAPIBinding {
                 
                 // re-activate all needed entities on SPS side
                 if (exam.status == Exam.ExamStatus.RUNNING) {
-                    activateScreenProctoring(exam).getOrThrow();
+                    activateScreenProctoring(exam)
+                            .getOrThrow();
                 }
 
                 synchronizeUserAccounts(exam);
@@ -782,6 +785,10 @@ public class ScreenProctoringAPIBinding {
             }
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
+
+            // first ensure SEBSAccess, create new one if needed
+            ensureSEBAccess(exam, apiTemplate, spsData);
+            // SEB Access and Exam activation
             activation(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, true, apiTemplate);
             activation(EXAM_ENDPOINT, spsData.spsExamUUID, true, apiTemplate);
 
@@ -811,12 +818,7 @@ public class ScreenProctoringAPIBinding {
         synchronizeGroups(exam, spsData);
 
         // store encrypted spsData
-        final String spsDataJSON = this.jsonMapper.writeValueAsString(spsData);
-        this.additionalAttributesDAO.saveAdditionalAttribute(
-                EntityType.EXAM,
-                exam.id,
-                SPSData.ATTR_SPS_ACCESS_DATA,
-                this.cryptor.encrypt(spsDataJSON).getOrThrow().toString());
+        saveSPSData(exam, spsData);
 
         // mark successfully activated on SPS side
         this.additionalAttributesDAO.saveAdditionalAttribute(
@@ -857,16 +859,12 @@ public class ScreenProctoringAPIBinding {
             }
 
             spsData.spsExamUUID = examUUID;
+
             // store encrypted spsData
-            final String spsDataJSON = this.jsonMapper.writeValueAsString(spsData);
-            this.additionalAttributesDAO.saveAdditionalAttribute(
-                    EntityType.EXAM,
-                    exam.id,
-                    SPSData.ATTR_SPS_ACCESS_DATA,
-                    this.cryptor.encrypt(spsDataJSON).getOrThrow().toString());
+            saveSPSData(exam, spsData);
 
             // reactivate exam on SPS
-            this.activateScreenProctoring(exam);
+            this.activateScreenProctoring(exam).getOrThrow();
             // synchronize groups
             this.synchronizeGroups(exam, spsData);
             
@@ -1307,17 +1305,13 @@ public class ScreenProctoringAPIBinding {
                         if (content.size() == 1) {
                             final JsonNode sebConnection = content.get(0);
 
-                            // TODO remove when tested
                             final JsonNode uuidNode = sebConnection.get(SEB_ACCESS.ATTR_UUID);
                             final JsonNode sebClientNode = sebConnection.get(SEB_ACCESS.ATTR_CLIENT_NAME);
                             final JsonNode sebSecretNode = sebConnection.get(SEB_ACCESS.ATTR_CLIENT_SECRET);
-                            log.info(" uuidNode: {}", uuidNode);
-                            log.info(" sebClientNode: {}", sebClientNode);
-                            log.info(" sebSecretNode: {}", sebSecretNode);
-
                             spsData.spsSEBAccessUUID = uuidNode.textValue();
                             spsData.spsSEBAccessName = sebClientNode.textValue();
                             spsData.spsSEBAccessPWD = sebSecretNode.textValue();
+
                             return;
                         } else if (content.size() > 1) {
                             log.warn("Got more then 1 SEB Client Access object for query, create new one with name suffix...");
@@ -1478,4 +1472,42 @@ public class ScreenProctoringAPIBinding {
         return oAuthRestTemplateFactory.getOAuth2RestTemplate(spsServiceURL, tokenEndpoint, clientSettingsProvider);
     }
 
+    private void saveSPSData(Exam exam, SPSData spsData) throws JsonProcessingException {
+        // store encrypted spsData
+        final String spsDataJSON = this.jsonMapper.writeValueAsString(spsData);
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.EXAM,
+                exam.id,
+                SPSData.ATTR_SPS_ACCESS_DATA,
+                this.cryptor.encrypt(spsDataJSON).getOrThrow().toString());
+    }
+
+    private void ensureSEBAccess(
+            final Exam exam,
+            final ScreenProctoringServiceOAuthTemplate apiTemplate,
+            final SPSData spsData) {
+
+        try {
+            // check if SEB Access for Exam exists, if not, create new one and save SPSData
+            String name = SEB_SERVER_SCREEN_PROCTORING_SEB_ACCESS_PREFIX + exam.externalId;
+            String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(SEB_ACCESS_ENDPOINT)
+                    .queryParam(SEB_ACCESS.ATTR_NAME, name)
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> getResponse = apiTemplate.exchange(uri, HttpMethod.GET);
+            if (getResponse.getStatusCode() == HttpStatus.OK) {
+                return;
+            }
+
+            // create new SEB Access and save SPS Data
+            createSEBAccess(exam, apiTemplate, spsData);
+            saveSPSData(exam, spsData);
+
+        } catch (Exception e) {
+            log.error("Failed to ensure SEBAccess for exam: {} cause: {}", exam.externalId, e.getMessage());
+        }
+    }
 }
