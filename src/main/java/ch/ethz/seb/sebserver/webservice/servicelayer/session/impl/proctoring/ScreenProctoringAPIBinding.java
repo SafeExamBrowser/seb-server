@@ -149,7 +149,7 @@ public class ScreenProctoringAPIBinding {
 
         } catch (final Exception e) {
             if (log.isDebugEnabled()) {
-                log.warn("Failed to get local SPSData for exam: {}", examId);
+                log.info("No local SPSData for exam: {} found", examId);
             }
             return null;
         }
@@ -981,16 +981,16 @@ public class ScreenProctoringAPIBinding {
 
     void deleteExamOnScreenProctoring(final Exam exam) {
         try {
-            
-            log.info("Delete or deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(exam.id);
             final SPSData spsData = this.getSPSData(exam.id);
             
             if (spsData == null) {
-                log.info("There os no SPS data for this exam");
+                log.info("There is no SPS data for this exam");
                 return;
             }
+
+            log.info("Delete or deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
             
             deletion(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, apiTemplate);
             activation(EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
