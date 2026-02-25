@@ -36,6 +36,12 @@ INSERT IGNORE INTO user VALUES
     (998,11,'seb-inst-admin-inactive-firefox','2019-01-01','Institutional','testinactive-firefox', 'admininactive-firefox','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive-firefox@nomail.nomail','de','UTC',0,1,1),
     (999,11,'seb-inst-admin-active-firefox','2019-01-01','Institutional','testactive-firefox', 'adminactive-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-firefox@nomail.nomail','en','UTC',1,1,1),
 
+-- User Accounts 1.3.4 UPDATE Password
+    (1014,11,'seb-user-account-password-chromium','2019-01-01','Institutional','testpassword-chromium', 'adminpassword-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-password-chromium@nomail.nomail','en','UTC',1,1,1),
+    (1015,11,'seb-user-account-password-webkit','2019-01-01','Institutional','testpassword-webkit', 'adminpassword-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-password-webkit@nomail.nomail','en','UTC',1,1,1),
+    (1016,11,'seb-user-account-password-firefox','2019-01-01','Institutional','testpassword-firefox', 'adminpassword-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-password-firefox@nomail.nomail','en','UTC',1,1,1),
+
+
 -- User Accounts 1.4.1 DELETE Remove
     (1011,11,'seb-user-account-delete-chromium','2019-01-01','Institutional','testdelete-chromium', 'admindelete-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-delete-chromium@nomail.nomail','en','UTC',1,1,1),
     (1012,11,'seb-user-account-delete-webkit','2019-01-01','Institutional','testdelete-webkit', 'admindelete-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-delete-webkit@nomail.nomail','en','UTC',1,1,1),
