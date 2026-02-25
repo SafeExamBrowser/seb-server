@@ -196,12 +196,8 @@ public class CertificateController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestHeader(
-                    name = API.IMPORT_FILE_ATTR_NAME,
-                    required = true) final String fileName,
-            @RequestHeader(
-                    name = API.CERTIFICATE_ALIAS,
-                    required = false) final String alias,
+            @RequestHeader(name = API.IMPORT_FILE_ATTR_NAME, required = true) final String fileName,
+            @RequestHeader(name = API.CERTIFICATE_ALIAS, required = false) final String alias,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final CharSequence password,
             final HttpServletRequest request) {
 

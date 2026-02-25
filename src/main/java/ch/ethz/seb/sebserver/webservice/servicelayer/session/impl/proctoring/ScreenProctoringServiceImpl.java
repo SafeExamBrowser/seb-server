@@ -646,8 +646,15 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private Exam cleanupAllLocalGroups(final Exam exam) {
         return this.screenProctoringGroupDAO
                 .deleteGroups(exam.id)
-                .onSuccess(keys -> log.info("Deleted all screen proctoring groups for exam: {} groups: {}", exam, keys))
-                .onError(error -> log.error("Failed to delete all groups for exam: {}", exam, error))
+                .onSuccess(keys -> {
+                    if (keys != null && !keys.isEmpty()) {
+                        log.info("Deleted all screen proctoring groups for exam: {} groups: {}", exam.externalId, keys);
+                    } else {
+                        log.info("No screen proctoring groups delete for exam: {}", exam.externalId);
+                    }
+
+                })
+                .onError(error -> log.error("Failed to delete all groups for exam: {}", exam.externalId, error))
                 .map(x -> exam)
                 .getOrThrow();
     }
