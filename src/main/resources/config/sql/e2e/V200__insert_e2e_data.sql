@@ -28,6 +28,17 @@ INSERT IGNORE INTO user VALUES
     (1010,11,'risvin.dev','2019-01-01','Risvin','Thambiah', 'rthambiah','$2a$08$dYVkRSYFgYIHoUSGQe7S..jpDCYmwNoaoYf7soxpXJnQhsP2qyw9O','risvin@nomail.ch','de','Europe/Zurich',1,1,1),
 
 
+-- User Accounts 1.2.2 READ Get All (search/filter/sort/paging)
+    (1031,11,'seb-user-account-getall-active-chromium','2019-01-01','Institutional', '000-testgetall-chromium', 'getall-active-chromium', '$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-active-chromium@nomail.nomail','en','UTC',true,1,1),
+    (1032,11,'seb-user-account-getall-inactive-chromium','2019-01-01','Institutional', '000-testgetall-chromium', 'getall-inactive-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-inactive-chromium@nomail.nomail','en','UTC',false,1,1),
+
+    (1033,11,'seb-user-account-getall-active-webkit','2019-01-01','Institutional','000-testgetall-webkit', 'getall-active-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-active-webkit@nomail.nomail','en','UTC',true,1,1),
+    (1034,11,'seb-user-account-getall-inactive-webkit','2019-01-01','Institutional','000-testgetall-webkit', 'getall-inactive-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-inactive-webkit@nomail.nomail','en','UTC',false,1,1),
+
+    (1035,11,'seb-user-account-getall-active-firefox','2019-01-01','Institutional','000-testgetall-firefox', 'getall-active-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-active-firefox@nomail.nomail','en','UTC',true,1,1),
+    (1036,11,'seb-user-account-getall-inactive-firefox','2019-01-01','Institutional','000-testgetall-firefox', 'getall-inactive-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-inactive-firefox@nomail.nomail','en','UTC',false,1,1),
+
+
 -- User Accounts 1.3.2 and 1.3.3 UPDATE Activate / Deactivate
     (1002,11,'seb-inst-admin-inactive-chromium','2019-01-01','Institutional','testinactive-chromium', 'admininactive-chromium','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive-chromium@nomail.nomail','de','UTC',0,1,1),
     (1003,11,'seb-inst-admin-active-chromium','2019-01-01','Institutional','testactive-chromium', 'adminactive-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-active-chromium@nomail.nomail','en','UTC',1,1,1),
