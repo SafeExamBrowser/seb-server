@@ -274,6 +274,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
             ));
         });
 
+
         // create ScheduledDelete for SEB Server
         final ScheduledDelete sebServerDelete = scheduledDeleteDAO.createNew(
                 new ScheduledDelete(
