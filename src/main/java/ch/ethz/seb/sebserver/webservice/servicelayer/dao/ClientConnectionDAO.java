@@ -255,5 +255,6 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the list of deleted client connections or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
-    
+
+    Long numberOfConnectionsOfExam(Long examId);
 }

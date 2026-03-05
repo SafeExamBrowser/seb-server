@@ -327,4 +327,6 @@ public final class API {
     public static final String EXAM_TEMPLATE_FULL_CREATE = "/create";
     public static final String BATCH_ACTION_ENDPOINT = "/batch-action";
 
+    public static final String SCHEDULED_DELETE_ENDPOINT = "/scheduled-delete";
+
 }

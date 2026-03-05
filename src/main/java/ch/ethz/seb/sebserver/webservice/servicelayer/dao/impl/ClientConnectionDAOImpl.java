@@ -983,6 +983,20 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .onError(TransactionHandler::rollback);
     }
 
+    @Override
+    public Long numberOfConnectionsOfExam(final Long examId) {
+        try {
+            return clientConnectionRecordMapper
+                    .countByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(examId))
+                    .build()
+                    .execute();
+        } catch (Exception e) {
+            log.error("Failed to get number of connections for exam with id: {}", examId);
+            return -1L;
+        }
+    }
+
     private Result<ClientConnectionRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
 

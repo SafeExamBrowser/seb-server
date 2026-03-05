@@ -395,18 +395,24 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamDeletion(final ExamDeletionEvent event) {
-        event.ids
-                .stream()
-                .map(this::deleteForExam)
-                .forEach(result -> {
-                    if (result.hasError()) {
-                        log.error("Failed to dispose SPS entities for exam: ", result.getError());
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Successfully disposed SPS entities for exam: {}", result.get());
+        if (event.isScheduledDeletion) {
+            // this is a scheduled delete so all SPS data should already be deleted at this point
+            // TODO check if the exam on SPS still exists and if so report?
+        } else {
+            // this is not a scheduled deletion so we expect that there are still SPS data to delete
+            event.ids
+                    .stream()
+                    .map(this::deleteForExam)
+                    .forEach(result -> {
+                        if (result.hasError()) {
+                            log.error("Failed to dispose SPS entities for exam: ", result.getError());
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Successfully disposed SPS entities for exam: {}", result.get());
+                            }
                         }
-                    }
-                });
+                    });
+        }
     }
 
     @Override
@@ -417,7 +423,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 return;
             }
 
-            examDAO.allActiveForLMSSetup(Arrays.asList(event.getLmsSetup().id))
+            examDAO.allActiveForLMSSetup(Collections.singletonList(event.getLmsSetup().id))
                     .getOrThrow()
                     .forEach(exam -> {
                         if (screenProctoringAPIBinding.isSPSActive(exam)) {

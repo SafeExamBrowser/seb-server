@@ -53,6 +53,9 @@ interface SPS_API {
     String ACTIVE_PATH_SEGMENT = "active";
     String INACTIVE_PATH_SEGMENT = "inactive";
 
+    String SCHEDULED_DELETE_ENDPOINT = EXAM_ENDPOINT + "/scheduled-delete";
+    String SCHEDULED_DELETE_REQUEST_ENDPOINT = SCHEDULED_DELETE_ENDPOINT + "/request";
+
     /**
      * The screen proctoring service client-access API attribute names
      */
@@ -78,7 +81,7 @@ interface SPS_API {
         String ATTR_SUPPORTER = "supporter";
         String ATTR_START_TIME = "startTime";
         String ATTR_END_TIME = "endTime";
-        String ATTR_DELETION_TIME = "deletionTime";
+        String ATTR_INSTITUTION_ID = "institutionId";
     }
 
     /**
@@ -120,8 +123,8 @@ interface SPS_API {
         final Long startTime;
         @JsonProperty(EXAM.ATTR_END_TIME)
         final Long endTime;
-        @JsonProperty(EXAM.ATTR_DELETION_TIME)
-        final Long deletionTime;
+        @JsonProperty(EXAM.ATTR_INSTITUTION_ID)
+        final Long institutionId;
 
         public ExamUpdate(
                 final String name,
@@ -130,7 +133,7 @@ interface SPS_API {
                 final String type,
                 final Long startTime,
                 final Long endTime,
-                final Long deletionTime,
+                final Long institutionId,
                 final Collection<String> supporter) {
 
             this.name = name;
@@ -139,7 +142,7 @@ interface SPS_API {
             this.type = type;
             this.startTime = startTime;
             this.endTime = endTime;
-            this.deletionTime = deletionTime;
+            this.institutionId = institutionId;
             this.supporter = supporter;
         }
     }
@@ -257,17 +260,6 @@ interface SPS_API {
                     spsAPIAccessData.getSpsServiceURL(),
                     TOKEN_ENDPOINT,
                     clientSettingsProvider);
-
-//            final ResourceOwnerPasswordResourceDetails resource = new ResourceOwnerPasswordResourceDetails();
-//            resource.setAccessTokenUri(spsAPIAccessData.getSpsServiceURL() + TOKEN_ENDPOINT);
-//            resource.setClientId(clientCredentials.clientIdAsString());
-//            resource.setClientSecret(decryptedSecret.toString());
-//            resource.setGrantType(GRANT_TYPE);
-//            resource.setScope(SCOPES);
-//            resource.setUsername(userCredentials.clientIdAsString());
-//            resource.setPassword(decryptedSecret.toString());
-
-//            this.restTemplate = apiBinding.getOAuth2RestTemplate(resource);
         }
 
         ResponseEntity<String> testServiceConnection() {
@@ -369,11 +361,6 @@ interface SPS_API {
 
             final Result<ResponseEntity<String>> protectedRunResult = this.circuitBreaker.protectedRun(() -> {
 
-
-//                final HttpEntity<Object> httpEntity = (body != null)
-//                        ? new HttpEntity<>(body, httpHeaders)
-//                        : new HttpEntity<>(httpHeaders);
-
                 try {
 
                     final ResponseEntity<String> result = this.restTemplate.exchange(
@@ -381,12 +368,6 @@ interface SPS_API {
                             method,
                             body,
                             httpHeaders);
-
-//                    final ResponseEntity<String> result = this.restTemplate.exchange(
-//                            url,
-//                            method,
-//                            httpEntity,
-//                            String.class);
 
                     if (result.getStatusCode().value() >= 400) {
                         log.warn("Error response on SEB Screen Proctoring Service API call to {} response status: {}",

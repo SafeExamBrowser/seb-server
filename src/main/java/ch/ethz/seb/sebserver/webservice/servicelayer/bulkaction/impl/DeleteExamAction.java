@@ -8,16 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -34,7 +32,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @Lazy
@@ -50,6 +47,7 @@ public class DeleteExamAction implements BatchActionExec {
     private final IndicatorDAO indicatorDAO;
     private final AuthorizationService authorization;
     private final UserActivityLogDAO userActivityLogDAO;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public DeleteExamAction(
             final ExamDAO examDAO,
@@ -58,7 +56,8 @@ public class DeleteExamAction implements BatchActionExec {
             final ClientGroupDAO clientGroupDAO,
             final IndicatorDAO indicatorDAO,
             final AuthorizationService authorization,
-            final UserActivityLogDAO userActivityLogDAO) {
+            final UserActivityLogDAO userActivityLogDAO,
+            final ApplicationEventPublisher applicationEventPublisher) {
 
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
@@ -67,6 +66,7 @@ public class DeleteExamAction implements BatchActionExec {
         this.indicatorDAO = indicatorDAO;
         this.authorization = authorization;
         this.userActivityLogDAO = userActivityLogDAO;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -81,24 +81,49 @@ public class DeleteExamAction implements BatchActionExec {
     }
 
     @Override
-    @Transactional
     public Result<EntityKey> doSingleAction(final String modelId, final BatchAction batchAction) {
         return this.examDAO.byModelId(modelId)
                 .flatMap( exam -> this.checkWriteAccess(exam, batchAction.ownerId))
                 .flatMap(this::checkNoActiveSEBClientConnections)
+                .flatMap(this::notifyDeletion)
                 .flatMap(this::deleteExamDependencies)
                 .flatMap(this::deleteExamWithRefs)
                 .flatMap(exam -> logDeleted(exam, batchAction))
-                .map(Exam::getEntityKey)
-                .onError(TransactionHandler::rollback);
+                .map(Exam::getEntityKey);
     }
 
-    @Transactional
     public Result<EntityKey> deleteExamInternal(final Exam exam) {
-        return deleteExamDependencies(exam)
+        return notifyDeletion(exam)
+                .flatMap(this::deleteExamDependencies)
                 .flatMap(this::deleteExamWithRefs)
-                .map(Exam::getEntityKey)
-                .onError(TransactionHandler::rollback);
+                .map(Exam::getEntityKey);
+    }
+
+    public Result<EntityKey> scheduledDeleteExamInternal(final Exam exam) {
+
+        // TODO this is only for first tests...
+        log.info("Delete Exam called from ScheduledDelete, Exam --> {}", exam);
+        return Result.of(exam.getEntityKey());
+//        return notifyScheduledDeletion(exam)
+//                .flatMap(this::deleteExamDependencies)
+//                .flatMap(this::deleteExamWithRefs)
+//                .map(Exam::getEntityKey);
+    }
+
+    private Result<Exam> notifyDeletion(final Exam exam) {
+        return Result.tryCatch(() -> {
+            this.applicationEventPublisher.publishEvent(
+                    new ExamDeletionEvent(Collections.singletonList(exam.id), false));
+            return exam;
+        });
+    }
+
+    private Result<Exam> notifyScheduledDeletion(final Exam exam) {
+        return Result.tryCatch(() -> {
+            this.applicationEventPublisher.publishEvent(
+                    new ExamDeletionEvent(Collections.singletonList(exam.id), true));
+            return exam;
+        });
     }
 
     private Result<Exam> deleteExamDependencies(final Exam entity) {
@@ -127,7 +152,7 @@ public class DeleteExamAction implements BatchActionExec {
 
     private Result<Exam> deleteExamWithRefs(final Exam entity) {
         final Result<Collection<EntityKey>> delete =
-                this.examDAO.delete(new HashSet<>(Arrays.asList(entity.getEntityKey())));
+                this.examDAO.delete(new HashSet<>(Collections.singletonList(entity.getEntityKey())));
         if (delete.hasError()) {
             return Result.ofError(delete.getError());
         } else {

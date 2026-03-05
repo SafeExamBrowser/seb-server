@@ -338,7 +338,9 @@ public class DistributedIndicatorValueService {
 
         final long millisecondsNow = Utils.getMillisecondsNow();
         if (millisecondsNow - this.lastUpdate < this.updateTolerance) {
-            log.warn("Skip indicator value update schedule because the last one was less then 2 seconds ago");
+            if (log.isTraceEnabled()) {
+                log.trace("Skip indicator value update schedule because the last one was less then 2 seconds ago");
+            }
             return;
         }
 

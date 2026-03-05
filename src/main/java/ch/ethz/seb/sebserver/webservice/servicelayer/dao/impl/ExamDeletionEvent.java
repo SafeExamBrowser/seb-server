@@ -19,9 +19,11 @@ public class ExamDeletionEvent extends ApplicationEvent {
     private static final long serialVersionUID = -8910368901893082365L;
 
     public final List<Long> ids;
+    public final boolean isScheduledDeletion;
 
-    public ExamDeletionEvent(final List<Long> ids) {
+    public ExamDeletionEvent(final List<Long> ids, final boolean isScheduledDeletion) {
         super(ids);
+        this.isScheduledDeletion = isScheduledDeletion;
         this.ids = Utils.immutableListOf(ids);
     }
 
