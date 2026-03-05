@@ -38,6 +38,10 @@ INSERT IGNORE INTO user VALUES
     (1035,11,'seb-user-account-getall-active-firefox','2019-01-01','Institutional','000-testgetall-firefox', 'getall-active-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-active-firefox@nomail.nomail','en','UTC',true,1,1),
     (1036,11,'seb-user-account-getall-inactive-firefox','2019-01-01','Institutional','000-testgetall-firefox', 'getall-inactive-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-inactive-firefox@nomail.nomail','en','UTC',false,1,1),
 
+-- User Accounts 1.3.1 Edit User Accounts
+    (1037,11,'seb-user-account-edit-chromium','2019-01-01','Institutional','testedit-chromium', 'adminedit-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-chromium@nomail.nomail','en','UTC',1,1,1),
+    (1038,11,'seb-user-account-edit-webkit','2019-01-01','Institutional','testedit-webkit', 'adminedit-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-webkit@nomail.nomail','en','UTC',1,1,1),
+    (1039,11,'seb-user-account-edit-firefox','2019-01-01','Institutional','testedit-firefox', 'adminedit-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-firefox@nomail.nomail','en','UTC',1,1,1),
 
 -- User Accounts 1.3.2 and 1.3.3 UPDATE Activate / Deactivate
     (1002,11,'seb-inst-admin-inactive-chromium','2019-01-01','Institutional','testinactive-chromium', 'admininactive-chromium','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive-chromium@nomail.nomail','de','UTC',0,1,1),
@@ -120,17 +124,34 @@ INSERT IGNORE INTO user_role VALUES
     (1049, 1010, 'EXAM_SUPPORTER'),
     (1050, 1010, 'TEACHER'),
 
+-- User Accounts 1.2.2 READ Get All
+    (1051, 1031, 'EXAM_SUPPORTER'),
+    (1052, 1032, 'EXAM_SUPPORTER'),
+    (1053, 1033, 'EXAM_SUPPORTER'),
+    (1054, 1034, 'EXAM_SUPPORTER'),
+    (1055, 1035, 'EXAM_SUPPORTER'),
+    (1056, 1036, 'EXAM_SUPPORTER'),
+
+-- User Accounts 1.3.1 Edit User Accounts
+    (1057, 1037, 'EXAM_SUPPORTER'),
+    (1058, 1038, 'EXAM_SUPPORTER'),
+    (1059, 1039, 'EXAM_SUPPORTER'),
 
 -- User Accounts 1.3.2 and 1.3.3 UPDATE Activate / Deactivate
-    (1051, 1002, 'TEACHER'),
-    (1052, 1003, 'TEACHER'),
-    (1053, 996, 'TEACHER'),
-    (1054, 997, 'TEACHER'),
-    (1055, 998, 'TEACHER'),
-    (1056, 999, 'TEACHER'),
+    (1060, 1002, 'TEACHER'),
+    (1061, 1003, 'TEACHER'),
+    (1062, 996, 'TEACHER'),
+    (1063, 997, 'TEACHER'),
+    (1064, 998, 'TEACHER'),
+    (1065, 999, 'TEACHER'),
+
+-- User Accounts 1.3.4 UPDATE Password
+    (1066, 1014, 'EXAM_SUPPORTER'),
+    (1067, 1015, 'EXAM_SUPPORTER'),
+    (1068, 1016, 'EXAM_SUPPORTER'),
 
 -- User Accounts 1.4.1 DELETE Remove
-    (1057, 1011, 'TEACHER'),
-    (1058, 1013, 'TEACHER'),
-    (1059, 1013, 'TEACHER')
+    (1069, 1011, 'TEACHER'),
+    (1070, 1012, 'TEACHER'),
+    (1071, 1013, 'TEACHER')
 ;
