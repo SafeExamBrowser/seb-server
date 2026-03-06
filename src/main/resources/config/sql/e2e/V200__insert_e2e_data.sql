@@ -39,9 +39,17 @@ INSERT IGNORE INTO user VALUES
     (1036,11,'seb-user-account-getall-inactive-firefox','2019-01-01','Institutional','000-testgetall-firefox', 'getall-inactive-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','getall-inactive-firefox@nomail.nomail','en','UTC',false,1,1),
 
 -- User Accounts 1.3.1 Edit User Accounts
-    (1037,11,'seb-user-account-edit-chromium','2019-01-01','Institutional','testedit-chromium', 'adminedit-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-chromium@nomail.nomail','en','UTC',1,1,1),
-    (1038,11,'seb-user-account-edit-webkit','2019-01-01','Institutional','testedit-webkit', 'adminedit-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-webkit@nomail.nomail','en','UTC',1,1,1),
-    (1039,11,'seb-user-account-edit-firefox','2019-01-01','Institutional','testedit-firefox', 'adminedit-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-firefox@nomail.nomail','en','UTC',1,1,1),
+    (1037,11,'seb-user-account-edit-a-chromium','2019-01-01','Institutional','testedit-a-chromium', 'adminedit-a-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-a-chromium@nomail.nomail','en','UTC',1,1,1),
+    (1038,11,'seb-user-account-edit-a-webkit','2019-01-01','Institutional','testedit-a-webkit', 'adminedit-a-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-a-webkit@nomail.nomail','en','UTC',1,1,1),
+    (1039,11,'seb-user-account-edit-a-firefox','2019-01-01','Institutional','testedit-a-firefox', 'adminedit-a-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-a-firefox@nomail.nomail','en','UTC',1,1,1),
+
+    (1040,11,'seb-user-account-edit-b-chromium','2019-01-01','Institutional','testedit-b-chromium', 'adminedit-b-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-b-chromium@nomail.nomail','en','UTC',1,1,1),
+    (1041,11,'seb-user-account-edit-b-webkit','2019-01-01','Institutional','testedit-b-webkit', 'adminedit-b-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-b-webkit@nomail.nomail','en','UTC',1,1,1),
+    (1042,11,'seb-user-account-edit-b-firefox','2019-01-01','Institutional','testedit-b-firefox', 'adminedit-b-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-b-firefox@nomail.nomail','en','UTC',1,1,1),
+
+    (1043,11,'seb-user-account-edit-c-chromium','2019-01-01','Institutional','testedit-c-chromium', 'adminedit-c-chromium','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-c-chromium@nomail.nomail','en','UTC',1,1,1),
+    (1044,11,'seb-user-account-edit-c-webkit','2019-01-01','Institutional','testedit-c-webkit', 'adminedit-c-webkit','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-c-webkit@nomail.nomail','en','UTC',1,1,1),
+    (1045,11,'seb-user-account-edit-c-firefox','2019-01-01','Institutional','testedit-c-firefox', 'adminedit-c-firefox','$2a$08$lvYhunSE1uPNYTJa6wLeAeXaK7mI5Yf/xOVAVItBhMPs9T90Eda4C','inst-admin-edit-c-firefox@nomail.nomail','en','UTC',1,1,1),
 
 -- User Accounts 1.3.2 and 1.3.3 UPDATE Activate / Deactivate
     (1002,11,'seb-inst-admin-inactive-chromium','2019-01-01','Institutional','testinactive-chromium', 'admininactive-chromium','$2a$08$HW9A7NsGM8P0.L2JWBwUUeaCjuSZkVc3QLi7KK/nRfIiONnDnzbFW','inst-admin-inactive-chromium@nomail.nomail','de','UTC',0,1,1),
@@ -137,6 +145,14 @@ INSERT IGNORE INTO user_role VALUES
     (1058, 1038, 'EXAM_SUPPORTER'),
     (1059, 1039, 'EXAM_SUPPORTER'),
 
+    (1072, 1040, 'EXAM_SUPPORTER'),
+    (1073, 1041, 'EXAM_SUPPORTER'),
+    (1074, 1042, 'EXAM_SUPPORTER'),
+
+    (1075, 1043, 'EXAM_SUPPORTER'),
+    (1076, 1044, 'EXAM_SUPPORTER'),
+    (1077, 1045, 'EXAM_SUPPORTER'),
+
 -- User Accounts 1.3.2 and 1.3.3 UPDATE Activate / Deactivate
     (1060, 1002, 'TEACHER'),
     (1061, 1003, 'TEACHER'),
@@ -155,3 +171,5 @@ INSERT IGNORE INTO user_role VALUES
     (1070, 1012, 'TEACHER'),
     (1071, 1013, 'TEACHER')
 ;
+
+-- If add any more user accounts start from 1078 here --
