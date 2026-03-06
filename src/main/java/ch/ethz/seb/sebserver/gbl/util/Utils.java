@@ -191,11 +191,11 @@ public final class Utils {
                 : Collections.emptyMap();
     }
 
-    public static <T extends Enum<T>> Collection<Tuple<String>> createSelectionResource(final Class<T> enumClass) {
-        return Arrays.stream(enumClass.getEnumConstants())
-                .map(e -> new Tuple<>(e.name(), e.name())).
-                toList();
-    }
+//    public static <T extends Enum<T>> Collection<Tuple<String>> createSelectionResource(final Class<T> enumClass) {
+//        return Arrays.stream(enumClass.getEnumConstants())
+//                .map(e -> new Tuple<>(e.name(), e.name())).
+//                toList();
+//    }
 
     public static <T extends Enum<T>> T enumFromString(
             final String string,
@@ -209,43 +209,43 @@ public final class Utils {
         }
     }
 
-    public static Collection<String> getListOfLines(final String list) {
-        if (list == null) {
-            return Collections.emptyList();
-        }
+//    public static Collection<String> getListOfLines(final String list) {
+//        if (list == null) {
+//            return Collections.emptyList();
+//        }
+//
+//        return Arrays.asList(StringUtils.split(
+//                streamlineCarriageReturn(list),
+//                Constants.CARRIAGE_RETURN));
+//    }
+//
+//    public static String convertCarriageReturnToListSeparator(final String value) {
+//        if (value == null) {
+//            return null;
+//        }
+//
+//        return streamlineCarriageReturn(value.trim())
+//                .replace(Constants.CARRIAGE_RETURN, Constants.LIST_SEPARATOR_CHAR);
+//    }
+//
+//    public static String convertListSeparatorToCarriageReturn(final String value) {
+//        if (value == null) {
+//            return null;
+//        }
+//
+//        return value
+//                .trim()
+//                .replace(Constants.LIST_SEPARATOR_CHAR, Constants.CARRIAGE_RETURN);
+//    }
 
-        return Arrays.asList(StringUtils.split(
-                streamlineCarriageReturn(list),
-                Constants.CARRIAGE_RETURN));
-    }
-
-    public static String convertCarriageReturnToListSeparator(final String value) {
-        if (value == null) {
-            return null;
-        }
-
-        return streamlineCarriageReturn(value.trim())
-                .replace(Constants.CARRIAGE_RETURN, Constants.LIST_SEPARATOR_CHAR);
-    }
-
-    public static String convertListSeparatorToCarriageReturn(final String value) {
-        if (value == null) {
-            return null;
-        }
-
-        return value
-                .trim()
-                .replace(Constants.LIST_SEPARATOR_CHAR, Constants.CARRIAGE_RETURN);
-    }
-
-    public static String streamlineCarriageReturn(final String value) {
-        if (value == null) {
-            return null;
-        }
-
-        return value.replace('\r', '\n')
-                .replace("\r\n", "\n");
-    }
+//    public static String streamlineCarriageReturn(final String value) {
+//        if (value == null) {
+//            return null;
+//        }
+//
+//        return value.replace('\r', '\n')
+//                .replace("\r\n", "\n");
+//    }
 
     public static List<String> getListFromString(final String list) {
         return getListFromString(list, Constants.LIST_SEPARATOR);
@@ -284,21 +284,21 @@ public final class Utils {
                 .getOr(defaultValue);
     }
 
-    public static <M extends Map<K, V>, K, V> M mapPut(final M map, final K key, final V value) {
-        map.put(key, value);
-        return map;
-    }
-
-    public static <M extends Map<K, V>, K, V> M mapPutAll(final M map1, final M map2) {
-        map1.putAll(map2);
-        return map1;
-    }
-
-    public static <M extends Map<K, Collection<V>>, K, V> M mapCollect(final M map, final K key, final V value) {
-        final List<V> list = (List<V>) map.computeIfAbsent(key, k -> new ArrayList<>());
-        list.add(value);
-        return map;
-    }
+//    public static <M extends Map<K, V>, K, V> M mapPut(final M map, final K key, final V value) {
+//        map.put(key, value);
+//        return map;
+//    }
+//
+//    public static <M extends Map<K, V>, K, V> M mapPutAll(final M map1, final M map2) {
+//        map1.putAll(map2);
+//        return map1;
+//    }
+//
+//    public static <M extends Map<K, Collection<V>>, K, V> M mapCollect(final M map, final K key, final V value) {
+//        final List<V> list = (List<V>) map.computeIfAbsent(key, k -> new ArrayList<>());
+//        list.add(value);
+//        return map;
+//    }
 
     public static DateTime toDateTime(final String dateString) {
         if (StringUtils.isBlank(dateString)) {
@@ -378,47 +378,47 @@ public final class Utils {
         final DateTime dateTimeUTC = Utils.toDateTimeUTC(timePointUTC);
         // this is the users date with now time within the users time zone.
         final DateTime userDate = dateTimeUTC.withZone(userTimeZone);
-        // now we use stat and end of the users date and time perspective and map it to UTC time stamps
+        // now we use start and end of the users date and time perspective and map it to UTC time stamps
         final Long dayStart =  userDate.withTime(0, 0, 0, 0).getMillis();
         final Long dayEnd = userDate.withTime(23, 59, 59, 0).getMillis();
         
         return new Pair<>(dayStart, dayEnd);
     }
 
-    public static String toJsonArray(final String string) {
-        if (string == null) {
-            return null;
-        }
+//    public static String toJsonArray(final String string) {
+//        if (string == null) {
+//            return null;
+//        }
+//
+//        final List<String> asList = Arrays.asList(StringUtils.split(string, Constants.LIST_SEPARATOR_CHAR));
+//        try {
+//            return new ObjectMapper().writeValueAsString(asList);
+//        } catch (final JsonProcessingException e) {
+//            return string;
+//        }
+//    }
 
-        final List<String> asList = Arrays.asList(StringUtils.split(string, Constants.LIST_SEPARATOR_CHAR));
-        try {
-            return new ObjectMapper().writeValueAsString(asList);
-        } catch (final JsonProcessingException e) {
-            return string;
-        }
-    }
-
-    public static String formatHTMLLines(final String message) {
-        return (message != null)
-                ? message.replace("\n", "<br/>")
-                : null;
-    }
-
-    public static String formatHTMLLinesForceEscaped(final String message) {
-        return (message != null)
-                ? message.replace("\n", "<br/>").replace("\\n", "<br/>")
-                : null;
-    }
-
-    public static String formatLineBreaks(final String text) {
-        if (text == null) {
-            return null;
-        }
-
-        return text
-                .replace("<br/>", "\n")
-                .replace("<br></br>", "\n");
-    }
+//    public static String formatHTMLLines(final String message) {
+//        return (message != null)
+//                ? message.replace("\n", "<br/>")
+//                : null;
+//    }
+//
+//    public static String formatHTMLLinesForceEscaped(final String message) {
+//        return (message != null)
+//                ? message.replace("\n", "<br/>").replace("\\n", "<br/>")
+//                : null;
+//    }
+//
+//    public static String formatLineBreaks(final String text) {
+//        if (text == null) {
+//            return null;
+//        }
+//
+//        return text
+//                .replace("<br/>", "\n")
+//                .replace("<br></br>", "\n");
+//    }
 
     public static String encodeFormURL_UTF_8(final String value) {
         if (StringUtils.isBlank(value)) {
@@ -847,32 +847,32 @@ public final class Utils {
                     : id1.compareTo(id2)) * ((descending) ? -1 : 1);
     }
 
-    public static String toFileName(final String name) {
-        if (name == null) {
-            return null;
-        }
-
-        return name
-                .replace("ä", "ae")
-                .replace("ö", "oe")
-                .replace("ü", "ue")
-                .replace("Ä", "Ae")
-                .replace("Ö", "Oe")
-                .replace("Ü", "Ue")
-                .replace("è", "e")
-                .replace("é", "e")
-                .replace("à", "a")
-                .replace(" ", "_")
-                .replaceAll("[^A-Za-z0-9_]", "");
-    }
-
-    public static String createBasicAuthHeader(final String clientname, final CharSequence clientsecret) {
-        final String plainCreds = clientname + Constants.COLON + clientsecret;
-        final byte[] plainCredsBytes = plainCreds.getBytes();
-        final byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
-        final String base64Creds = new String(base64CredsBytes);
-        return "Basic " + base64Creds;
-    }
+//    public static String toFileName(final String name) {
+//        if (name == null) {
+//            return null;
+//        }
+//
+//        return name
+//                .replace("ä", "ae")
+//                .replace("ö", "oe")
+//                .replace("ü", "ue")
+//                .replace("Ä", "Ae")
+//                .replace("Ö", "Oe")
+//                .replace("Ü", "Ue")
+//                .replace("è", "e")
+//                .replace("é", "e")
+//                .replace("à", "a")
+//                .replace(" ", "_")
+//                .replaceAll("[^A-Za-z0-9_]", "");
+//    }
+//
+//    public static String createBasicAuthHeader(final String clientname, final CharSequence clientsecret) {
+//        final String plainCreds = clientname + Constants.COLON + clientsecret;
+//        final byte[] plainCredsBytes = plainCreds.getBytes();
+//        final byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
+//        final String base64Creds = new String(base64CredsBytes);
+//        return "Basic " + base64Creds;
+//    }
 
     public static Set<Long> getIdsFromString(final String idsString) {
         if (StringUtils.isBlank(idsString)) {
@@ -951,5 +951,45 @@ public final class Utils {
         }
 
         return false;
+    }
+
+    /** Use this to calculate the time of midnight regarding a given reference time zone.
+     * Returns a Unix Timestamp UTC in milliseconds at midnight related to the given referenceTimezone
+     *
+     * @param referenceTimeStampUTC Timestamp referencing the day on witch to shift up to midnight related to the given referenceTimezone
+     *                              If null this method uses now (time when the method is called)
+     * @param referenceTimezone The referencing time zone. Use UTC if this is null
+     * @return Unix Timestamp UTC in milliseconds at midnight related to the given referenceTimezone */
+    public static Long calcTimeToMidnight(
+            final Long referenceTimeStampUTC,
+            final DateTimeZone referenceTimezone) {
+
+        // prepare times...
+        // use either given referenceTimezone or UTC
+        final DateTimeZone refTimeZone = referenceTimezone != null ? referenceTimezone : DateTimeZone.UTC;
+        // use either given referenceTimezone or now UTC
+        final Long referenceTimeUTC = referenceTimeStampUTC != null
+                ? referenceTimeStampUTC
+                : getMillisecondsNow();
+
+        // convert referenceTimeUTC to reference time zone, shift to midnight and convert back to UTC
+        return new DateTime(referenceTimeUTC, DateTimeZone.UTC)
+                .toDateTime(referenceTimezone)          // shift to reference time zone
+                .plusDays(1)                          // add one day and...
+                .withTimeAtStartOfDay()                 // go back to start of day still in reference time zone
+                .toDateTime(DateTimeZone.UTC)           // now convert back to UTC
+                .getMillis();
+
+    }
+
+    public static Long calcTimeAtStartOfDay(
+            final Long referenceTimeStampUTC,
+            final DateTimeZone referenceTimezone) {
+
+        return new DateTime(referenceTimeStampUTC, DateTimeZone.UTC)
+                .toDateTime(referenceTimezone)          // shift to reference time zone
+                .withTimeAtStartOfDay()                 // go back to start of day still in reference time zone
+                .toDateTime(DateTimeZone.UTC)           // now convert back to UTC
+                .getMillis();
     }
 }

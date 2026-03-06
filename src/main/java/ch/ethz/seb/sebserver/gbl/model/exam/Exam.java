@@ -39,7 +39,7 @@ public final class Exam implements GrantEntity {
             -1L, -1L, -1L, Constants.EMPTY_NOTE, false, Constants.EMPTY_NOTE,
             null, null, ExamType.UNDEFINED, null, null, ExamStatus.FINISHED,
             null, Boolean.FALSE, null, Boolean.FALSE, null,
-            null, null, null, null);
+            null, null, null, Boolean.FALSE, null);
 
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
@@ -157,6 +157,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_FOLLOWUP_ID)
     public final Long followUpId;
 
+    @JsonProperty(EXAM.ATTR_EXCLUDE_FROM_DELETION)
+    public final Boolean excludeFromDeletion;
+
     @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
     @JsonSerialize(using = ExamAdditionalAttributeSerializer.class)
     public final Map<String, String> additionalAttributes;
@@ -188,6 +191,7 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
             @JsonProperty(EXAM.ATTR_LAST_MODIFIED) final Long lastModified,
             @JsonProperty(EXAM.ATTR_FOLLOWUP_ID) final Long followUpId,
+            @JsonProperty(EXAM.ATTR_EXCLUDE_FROM_DELETION) final Boolean excludeFromDeletion,
             @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
@@ -209,6 +213,7 @@ public final class Exam implements GrantEntity {
         this.examTemplateId = examTemplateId;
         this.lastModified = lastModified;
         this.followUpId = followUpId;
+        this.excludeFromDeletion = excludeFromDeletion;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
@@ -242,6 +247,7 @@ public final class Exam implements GrantEntity {
         this.examTemplateId = postMap.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
         this.lastModified = null;
         this.followUpId = postMap.getLong(EXAM.ATTR_FOLLOWUP_ID);
+        this.excludeFromDeletion = postMap.getBoolean(EXAM.ATTR_EXCLUDE_FROM_DELETION);
 
         final Map<String, String> additionalAttributes = new HashMap<>();
         if (postMap.contains(QuizData.QUIZ_ATTR_DESCRIPTION)) {
@@ -304,6 +310,7 @@ public final class Exam implements GrantEntity {
         this.examTemplateId = mapper.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
         this.lastModified = null;
         this.followUpId =  mapper.getLong(EXAM.ATTR_FOLLOWUP_ID);
+        this.excludeFromDeletion = mapper.getBoolean(EXAM.ATTR_EXCLUDE_FROM_DELETION);
         this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
 
         this.checkASK = BooleanUtils
@@ -483,6 +490,7 @@ public final class Exam implements GrantEntity {
         examTemplateId,
         lastModified,
         followUpId,
+        excludeFromDeletion,
         Collections.emptyMap());
     }
 

@@ -523,7 +523,8 @@ public class ExamRecordDAO {
                     exam.startTime,
                     exam.endTime,
                     BooleanUtils.toIntegerObject(true),
-                    exam.followUpId);
+                    exam.followUpId,
+                    BooleanUtils.toIntegerObject(exam.excludeFromDeletion));
 
             this.examRecordMapper.insert(examRecord);
             return examRecord;

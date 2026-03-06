@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -24,7 +25,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplateFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -719,7 +719,7 @@ public class ScreenProctoringAPIBinding {
                     exam.getType().name(),
                     exam.startTime != null ? exam.startTime.getMillis() : null,
                     exam.endTime != null ? exam.endTime.getMillis() : null,
-                    null,
+                    exam.institutionId,
                     supporterIds
             );
 
@@ -1058,6 +1058,114 @@ public class ScreenProctoringAPIBinding {
         }
     }
 
+    //******************************************************************************************************************
+    //**** Scheduled Delete API
+
+    public Result<ScheduledDelete> getScheduledDeleteById(final Long scheduledDeleteId) {
+        return Result.tryCatch(() -> {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(SCHEDULED_DELETE_ENDPOINT)
+                    .pathSegment(String.valueOf(scheduledDeleteId))
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri, HttpMethod.GET, null, apiTemplate.getHeaders());
+
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                throw new RuntimeException("Failed to get SPS ScheduledDelete with id: " + scheduledDeleteId + " cause: " + exchange.getStatusCode() );
+            }
+
+            return this.jsonMapper.readValue(
+                    exchange.getBody(),
+                    new TypeReference<>() {
+                    });
+        });
+    }
+
+    public Result<ScheduledDelete> requestScheduledDelete(
+            final Long deleteDueTimestamp,
+            final Long institutionId) {
+
+        return Result.tryCatch(() -> {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(SCHEDULED_DELETE_REQUEST_ENDPOINT)
+                    .queryParam(Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME, String.valueOf(deleteDueTimestamp))
+                    .queryParam(Domain.EXAM.ATTR_INSTITUTION_ID, String.valueOf(institutionId))
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri, HttpMethod.GET, null, apiTemplate.getHeaders());
+
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                throw new RuntimeException("Failed request SPS ScheduledDelete for deleteDueTimestamp: " + deleteDueTimestamp + " cause: " + exchange.getStatusCode());
+            }
+
+            return this.jsonMapper.readValue(
+                    exchange.getBody(),
+                    new TypeReference<>() {
+                    });
+        });
+    }
+
+    public Result<ScheduledDelete> createScheduledDelete(final ScheduledDelete scheduledDelete) {
+        return Result.tryCatch(() -> {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(SCHEDULED_DELETE_ENDPOINT)
+                    .build()
+                    .toUriString();
+
+            final String spsScheduledDeleteJSON = this.jsonMapper.writeValueAsString(scheduledDelete);
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri, HttpMethod.POST, spsScheduledDeleteJSON, apiTemplate.getHeadersJSONRequest());
+
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                throw new RuntimeException("Failed POST ScheduledDelete to SPS: " + scheduledDelete + " cause: " + exchange.getStatusCode());
+            }
+
+            return this.jsonMapper.readValue(
+                    exchange.getBody(),
+                    new TypeReference<>() {
+                    });
+        });
+    }
+
+    public Result<EntityKey> deleteScheduledDelete(final Long spsScheduledDeleteId) {
+        return Result.tryCatch(() -> {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(SCHEDULED_DELETE_ENDPOINT)
+                    .pathSegment(String.valueOf(spsScheduledDeleteId))
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri, HttpMethod.DELETE, null, apiTemplate.getHeaders());
+
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                throw new RuntimeException("Failed DELETE ScheduledDelete on SPS: " + spsScheduledDeleteId + " cause: " + exchange.getStatusCode());
+            }
+
+            return new EntityKey(spsScheduledDeleteId, EntityType.SCHEDULED_DELETE);
+        });
+    }
+
+    //**** Scheduled Delete API
+    //******************************************************************************************************************
+
+
     private void synchronizeUserAccount(
             final String userUUID,
             final ScreenProctoringServiceOAuthTemplate apiTemplate) {
@@ -1126,7 +1234,7 @@ public class ScreenProctoringAPIBinding {
 
         return new UserMod(
                 userInfo.uuid,
-                -1L,
+                userInfo.institutionId,
                 userInfo.name,
                 userInfo.surname,
                 userInfo.username,
@@ -1205,16 +1313,9 @@ public class ScreenProctoringAPIBinding {
                     .fromUriString(apiTemplate.spsServiceURL)
                     .path(EXAM_ENDPOINT)
                     .build().toUriString();
-            final ScreenProctoringSettings settings = this.proctoringSettingsDAO
-                    .getScreenProctoringSettings(new EntityKey(exam.id, EntityType.EXAM))
-                    .getOrThrow();
 
             final String uuid = createExamUUID(exam);
-            final MultiValueMap<String, String> params = createExamCreationParams(
-                    exam, 
-                    uuid,
-            /*settings.deletionTime */ null,
-            supporterIds);
+            final MultiValueMap<String, String> params = createExamCreationParams(exam, uuid, supporterIds);
             final String paramsFormEncoded = Utils.toAppFormUrlEncodedBody(params);
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
@@ -1248,11 +1349,11 @@ public class ScreenProctoringAPIBinding {
     private static MultiValueMap<String, String> createExamCreationParams(
             final Exam exam,
             final String uuid,
-            final DateTime deletionTime,
             final List<String> supporterIds) {
 
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(EXAM.ATTR_UUID, uuid);
+        params.add(EXAM.ATTR_INSTITUTION_ID, java.lang.String.valueOf(exam.institutionId));
         params.add(EXAM.ATTR_NAME, exam.name);
         if (exam.getDescription() != null) {
             params.add(EXAM.ATTR_DESCRIPTION, exam.getDescription());
@@ -1267,10 +1368,7 @@ public class ScreenProctoringAPIBinding {
         if (exam.endTime != null) {
             params.add(EXAM.ATTR_END_TIME, java.lang.String.valueOf(exam.endTime.getMillis()));
         }
-        
-        if (deletionTime != null) {
-            params.add(EXAM.ATTR_DELETION_TIME, java.lang.String.valueOf(deletionTime.getMillis()));
-        }
+
         return params;
     }
 
@@ -1421,7 +1519,6 @@ public class ScreenProctoringAPIBinding {
                     exam.externalId);
 
             deletion(EXAM_ENDPOINT, spsData.spsExamUUID, apiTemplate);
-
         }
 
         if (StringUtils.isNotBlank(spsData.spsSEBAccessUUID)) {

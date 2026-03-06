@@ -10,13 +10,14 @@ package ch.ethz.seb.sebserver.gbl.util;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Test;
 import org.springframework.util.LinkedMultiValueMap;
 
@@ -239,6 +240,49 @@ public class UtilsTest {
         assertTrue(Utils.isEqualsWithEmptyCheck("  ", " "));
 
         assertFalse(Utils.isEqualsWithEmptyCheck("  ", "a"));
+    }
+
+    @Test
+    public void testCalcTimeToMidnight() {
+        final DateTimeFormatter STANDARD_DATE_TIME_MILLIS_FORMATTER = DateTimeFormat
+                .forPattern(Constants.DEFAULT_DATE_TIME_MILLIS_FORMAT);
+
+        // using Zurich: 2026-03-04T08:53:40.419 millis: 1772610820419
+        DateTimeZone referenceTimeZone = DateTimeZone.forID("Europe/Zurich");
+        // get the millis at UTC of the above date
+        DateTime dateTime = new DateTime(1772610820419L, referenceTimeZone).toDateTime(DateTimeZone.UTC);
+        assertEquals("2026-03-04T07:53:40.419", dateTime.toString(STANDARD_DATE_TIME_MILLIS_FORMATTER));
+
+        long referenceTimeUTC = dateTime.getMillis();
+        System.out.println("*** date: " + dateTime.toString(STANDARD_DATE_TIME_MILLIS_FORMATTER) +   "  ***" +referenceTimeUTC);
+        // calc to midnight at the reference time zone Europe/Zurich
+        Long midnightTimestampUTC = Utils.calcTimeToMidnight(referenceTimeUTC, referenceTimeZone);
+        DateTime midnight = new DateTime(midnightTimestampUTC, referenceTimeZone);
+
+        // we have the start of the next day (midnight at date)
+        assertEquals("2026-03-05T00:00:00.000", midnight.toString(STANDARD_DATE_TIME_MILLIS_FORMATTER));
+        // this is equals to one hour earlier at UTC in wintertime's:
+        assertEquals("2026-03-04T23:00:00.000", midnight.toDateTime(DateTimeZone.UTC).toString(STANDARD_DATE_TIME_MILLIS_FORMATTER));
+    }
+
+    @Test
+    public void testCalcTimeAtStartOfDay() {
+        final DateTimeFormatter STANDARD_DATE_TIME_MILLIS_FORMATTER = DateTimeFormat
+                .forPattern(Constants.DEFAULT_DATE_TIME_MILLIS_FORMAT);
+
+        // using Zurich: 2026-03-04T08:53:40.419 millis: 1772610820419
+        DateTimeZone referenceTimeZone = DateTimeZone.forID("Europe/Zurich");
+        // get the millis at UTC of the above date
+        DateTime dateTime = new DateTime(1772610820419L, referenceTimeZone).toDateTime(DateTimeZone.UTC);
+        long referenceTimeUTC = dateTime.getMillis();
+        // calc to start of day at the reference time zone Europe/Zurich
+        Long midnightTimestampUTC = Utils.calcTimeAtStartOfDay(referenceTimeUTC, referenceTimeZone);
+        DateTime midnight = new DateTime(midnightTimestampUTC, referenceTimeZone);
+
+        // we have the start of this day in user time zone
+        assertEquals("2026-03-04T00:00:00.000", midnight.toString(STANDARD_DATE_TIME_MILLIS_FORMATTER));
+        // this is equals to one hour earlier at UTC in wintertime's:
+        assertEquals("2026-03-03T23:00:00.000", midnight.toDateTime(DateTimeZone.UTC).toString(STANDARD_DATE_TIME_MILLIS_FORMATTER));
     }
 
 }

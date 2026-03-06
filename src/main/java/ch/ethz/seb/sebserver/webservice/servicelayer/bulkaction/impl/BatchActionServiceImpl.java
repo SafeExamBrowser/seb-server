@@ -69,7 +69,6 @@ public class BatchActionServiceImpl implements BatchActionService {
 
         this.batchExecutions = new EnumMap<>(BatchActionType.class);
         batchExecutions
-                .stream()
                 .forEach(exec -> this.batchExecutions.putIfAbsent(exec.actionType(), exec));
     }
 

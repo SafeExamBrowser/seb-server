@@ -774,6 +774,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                             exam.examTemplateId,
                             exam.lastModified,
                             exam.followUpId,
+                            exam.excludeFromDeletion,
                             exam.additionalAttributes);
                 }
             }

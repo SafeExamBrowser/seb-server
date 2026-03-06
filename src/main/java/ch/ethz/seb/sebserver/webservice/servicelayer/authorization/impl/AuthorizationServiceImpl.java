@@ -241,6 +241,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .create();
+
+        // grants for scheduled deletions
+        addPrivilege(EntityType.SCHEDULED_DELETE)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .create();
     }
 
     @Override

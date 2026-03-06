@@ -30,9 +30,9 @@ import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Component;
@@ -66,7 +66,6 @@ public class ExamDAOImpl implements ExamDAO {
 
     private final ExamRecordMapper examRecordMapper;
     private final ExamRecordDAO examRecordDAO;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final JSONMapper jsonMapper;
     private final Cryptor cryptor;
@@ -74,14 +73,12 @@ public class ExamDAOImpl implements ExamDAO {
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamRecordDAO examRecordDAO,
-            final ApplicationEventPublisher applicationEventPublisher,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final JSONMapper jsonMapper,
             final Cryptor cryptor) {
 
         this.examRecordMapper = examRecordMapper;
         this.examRecordDAO = examRecordDAO;
-        this.applicationEventPublisher = applicationEventPublisher;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.jsonMapper = jsonMapper;
         this.cryptor = cryptor;
@@ -285,6 +282,62 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Collection<Exam>> possibleConsecutiveExams(final Exam exam, final DateTimeZone timeZone) {
         return this.examRecordDAO
                 .possibleConsecutiveExams(exam, timeZone)
+                .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> excludeFromDeletion(
+            final Collection<String> examUUIDs,
+            final boolean reset) {
+
+        return Result.tryCatch(() -> {
+            if (examUUIDs == null || examUUIDs.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            if (reset) {
+                log.debug("Mark following exams as excluded from deletion: {}", examUUIDs);
+            } else {
+                log.debug("Reset following exams as excluded from deletion: {}", examUUIDs);
+            }
+
+            Integer updated = UpdateDSL.updateWithMapper(this.examRecordMapper::update, examRecord)
+                    .set(excludeFromDeletion).equalTo(reset ? 0 : 1)
+                    .where(externalId, isIn(examUUIDs))
+                    .build()
+                    .execute();
+
+            if (examUUIDs.size() != updated) {
+                log.warn("There is a mismatch between requested excludeFromDeletion number of exams and processed number: {}", examUUIDs);
+            }
+
+            return examUUIDs
+                    .stream()
+                    .map(uuid -> new EntityKey(uuid, EntityType.EXAM))
+                    .collect(Collectors.toSet());
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Exam>> getExamsForScheduledDeletion(final Long deleteDueTimestampUTC) {
+        return Result.tryCatch(() -> {
+
+            final DateTime dateTime = new DateTime(deleteDueTimestampUTC, DateTimeZone.UTC);
+
+            log.info("getExamsForScheduledDeletion for due time UTC: {} timestamp: {}",
+                    dateTime.toString(Constants.STANDARD_DATE_TIME_MILLIS_FORMATTER),
+                    deleteDueTimestampUTC);
+
+            return this.examRecordMapper
+                    .selectByExample()
+                    .where(quizStartTime, isLessThanOrEqualTo(dateTime))
+                    .and(status, isEqualTo(ExamStatus.ARCHIVED.name()))
+                    //.and(excludeFromDeletion, isNull(), or(excludeFromDeletion, isEqualTo(0)))
+                    .build()
+                    .execute();
+        })
                 .flatMap(this::toDomainModel);
     }
 
@@ -671,11 +724,6 @@ public class ExamDAOImpl implements ExamDAO {
                 return Collections.emptyList();
             }
 
-            // notify exam deletion listener about following deletion, to clean up stuff before deletion
-            // TODO this is blocking and should never be done within this transaction
-            //      Move this up to be done before core deletion here
-            this.applicationEventPublisher.publishEvent(new ExamDeletionEvent(ids));
-
             this.examRecordMapper.deleteByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
@@ -782,7 +830,8 @@ public class ExamDAOImpl implements ExamDAO {
                             rec.getQuizStartTime(),
                             rec.getQuizEndTime(),
                             rec.getLmsAvailable(),
-                            rec.getFollowupId()));
+                            rec.getFollowupId(),
+                            rec.getExcludeFromDeletion()));
 
                     result.add(new EntityKey(rec.getId(), EntityType.EXAM));
                 } catch (final Exception e) {
@@ -950,6 +999,7 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getExamTemplateId(),
                     record.getLastModified(),
                     record.getFollowupId(),
+                    BooleanUtils.toBooleanObject(record.getExcludeFromDeletion()),
                     additionalAttributes);
         });
     }

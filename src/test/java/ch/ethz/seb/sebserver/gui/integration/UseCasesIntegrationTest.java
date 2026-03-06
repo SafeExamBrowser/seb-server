@@ -760,7 +760,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 false,
                 null,
                 true,
-                null, null, null, null, null);
+                null, null, null, null, Boolean.FALSE,null);
 
         final Result<Exam> savedExamResult = restService
                 .getBuilder(SaveExam.class)

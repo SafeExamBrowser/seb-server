@@ -16,6 +16,7 @@ import io.swagger.v3.oas.models.security.OAuthFlow;
 import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.apache.catalina.filters.RemoteIpFilter;
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.springframework.context.annotation.Bean;
@@ -36,6 +37,15 @@ public class WebserviceConfig {
         final AES256JNCryptor aes256jnCryptor = new AES256JNCryptor();
         aes256jnCryptor.setPBKDFIterations(Constants.JN_CRYPTOR_ITERATIONS);
         return aes256jnCryptor;
+    }
+
+    /** Used to get real remote IP address by using "X-Forwarded-For" and "X-Forwarded-Proto" header.
+     * https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html
+     *
+     * @return RemoteIpFilter instance */
+    @Bean
+    public RemoteIpFilter remoteIpFilter() {
+        return new RemoteIpFilter();
     }
 
     @Bean
