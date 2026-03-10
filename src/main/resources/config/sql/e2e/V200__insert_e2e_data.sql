@@ -189,7 +189,7 @@ VALUES
 
     (1005, 11, '000-testgetall-connection-configuration-webkit', NOW(), 'e2e-client', 'e2e-secret', NULL, 1, 1773070766921, 'test-main'),
     (1006, 11, '000-testgetall-connection-configuration-webkit', NOW(), 'e2e-client', 'e2e-secret', NULL, 0, 1773070766921, 'test-main'),
-    (1006, 11, 'create-connection-configuration', NOW(), 'e2e-client', 'e2e-secret', NULL, 0, 1773070766921, 'test-main');
+    (1007, 11, 'create-connection-configuration', NOW(), 'e2e-client', 'e2e-secret', NULL, 0, 1773070766921, 'test-main');
 
 
 INSERT INTO additional_attributes (entity_type, entity_id, name, value)
