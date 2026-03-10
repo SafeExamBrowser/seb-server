@@ -266,7 +266,7 @@ public class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate = getAPITemplate(null);
             synchronizeUserAccount(userUUID, apiTemplate);
         } catch (final Exception e) {
-            log.error("Failed to synchronize user account with SPS for user: {}", userUUID);
+            log.error("Failed to synchronize user account with SPS for user: {} cause: {}", userUUID, e.getMessage());
         }
     }
 
@@ -1221,7 +1221,7 @@ public class ScreenProctoringAPIBinding {
             }
 
         } catch (final Exception e) {
-            log.error("Failed to synchronize user account with SPS for user: {}", userUUID, e);
+            log.error("Failed to synchronize user account with SPS for user: {} cause: {}", userUUID, e.getMessage());
         }
     }
 

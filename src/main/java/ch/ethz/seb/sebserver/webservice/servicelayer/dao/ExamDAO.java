@@ -282,7 +282,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     Result<Collection<Exam>> possibleConsecutiveExams(Exam exam, DateTimeZone timeZone);
 
-    Result<Collection<EntityKey>> excludeFromDeletion(Collection<String> examUUIDs, boolean reset);
+    Result<Collection<EntityKey>> excludeFromDeletion(Collection<Long> examPKs, boolean reset);
 
     Result<Collection<Exam>> getExamsForScheduledDeletion(Long deleteDueTimestampUTC);
 }

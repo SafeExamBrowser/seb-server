@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.DeleteExamAction;
 import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
@@ -85,6 +86,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final SecurityKeyService securityKeyService;
     private final Cryptor cryptor;
     private final FullLmsIntegrationService fullLmsIntegrationService;
+    private final DeleteExamAction deleteExamAction;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -101,7 +103,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final SEBRestrictionService sebRestrictionService,
             final SecurityKeyService securityKeyService,
             final Cryptor cryptor,
-            final FullLmsIntegrationService fullLmsIntegrationService) {
+            final FullLmsIntegrationService fullLmsIntegrationService,
+            final DeleteExamAction deleteExamAction) {
 
         super(authorization,
                 bulkActionService,
@@ -120,17 +123,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.securityKeyService = securityKeyService;
         this.cryptor = cryptor;
         this.fullLmsIntegrationService = fullLmsIntegrationService;
+        this.deleteExamAction = deleteExamAction;
     }
-
-
-//    @Override
-//    protected Result<Collection<Exam>> getAll(final FilterMap filterMap) {
-//
-//
-//        return this.entityDAO.allMatching(
-//                filterMap,
-//                this::hasReadAccess);
-//    }
 
     @Override
     protected SqlTable getSQLTableOfEntity() {
@@ -198,6 +192,52 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.examAdminService::archiveExam)
                 .flatMap(super.userActivityLogDAO::logArchive)
                 .getOrThrow();
+    }
+
+    @Override
+    public EntityProcessingReport hardDelete(final String modelId, final boolean addIncludes, final List<String> includes) {
+        return forceHardDelete(modelId, addIncludes, includes);
+    }
+
+    @Override
+    public EntityProcessingReport hardDeleteAll(final List<String> ids, final boolean addIncludes, final List<String> includes, final Long institutionId) {
+        throw new UnsupportedOperationException("Bulk Delete is not supported anymore for Exams. Use ScheduledDelete");
+    }
+
+    @Override
+    public EntityProcessingReport forceHardDelete(final String modelId, final boolean addIncludes, final List<String> includes) {
+        // NOTE: for single Exam deletion we use DeleteExamAction now to process exam deletion always with DeleteExamAction
+        //        and not directly via DAO that is not emitting the ExamDeletionEvent anymore (executed not on transaction)
+
+        final List<EntityKey> dependencies = super.getDependencies(modelId, API.BulkActionType.HARD_DELETE, addIncludes, includes)
+                .stream()
+                .map(dep -> dep.self)
+                .toList();
+        final ArrayList<EntityKey> all = new ArrayList<>(dependencies);
+        all.add(new EntityKey(modelId, EntityType.EXAM));
+        final List<EntityKey> entityKeys = Collections.singletonList(new EntityKey(modelId, EntityType.EXAM));
+
+
+        return examDAO.byModelId(modelId)
+                .flatMap(this::checkWriteAccess)
+                .flatMap(this::logDelete)
+                .flatMap(deleteExamAction::deleteExamInternal)
+                .map( exam -> new EntityProcessingReport(
+                        entityKeys,
+                        all,
+                        Collections.emptyList(),
+                        API.BulkActionType.HARD_DELETE))
+                .onErrorDo(error -> {
+                    log.error("Failed to delete single Exam: {} cause: {}", modelId, error.getMessage());
+                    return new EntityProcessingReport(
+                            entityKeys,
+                            all,
+                            Collections.singletonList(new EntityProcessingReport.ErrorEntry(
+                                    entityKeys.getFirst(),
+                                    APIMessage.ErrorMessage.UNEXPECTED.of(error))),
+                            API.BulkActionType.HARD_DELETE
+                    );
+                }).getOrThrow();
     }
 
     // ****************************************************************************

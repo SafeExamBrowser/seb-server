@@ -26,8 +26,8 @@ public class ScheduledDeleteViewInfo {
     @JsonProperty("spsExamName")
     final String spsExamName;
 
-    @JsonProperty("spsGroupNames")
-    final Collection<String> spsGroupNames;
+    @JsonProperty("spsGroups")
+    final Collection<String> spsGroups;
 
     @JsonCreator
     public ScheduledDeleteViewInfo(
@@ -36,14 +36,14 @@ public class ScheduledDeleteViewInfo {
             @JsonProperty("examStartTime") final Long examStartTime,
             @JsonProperty("numberOfSessions") final String numberOfSessions,
             @JsonProperty("spsExamName") final String spsExamName,
-            @JsonProperty("spsGroupNames") final Collection<String> spsGroupNames) {
+            @JsonProperty("spsGroupNames") final Collection<String> spsGroups) {
 
         this.examUUID = examUUID;
         this.examName = examName;
         this.examStartTime = examStartTime;
         this.numberOfSessions = numberOfSessions;
         this.spsExamName = spsExamName;
-        this.spsGroupNames = spsGroupNames;
+        this.spsGroups = spsGroups;
     }
 
     public ScheduledDeleteViewInfo(
@@ -57,22 +57,20 @@ public class ScheduledDeleteViewInfo {
         this.examStartTime = examStartTime;
         this.numberOfSessions = numberOfSessions;
         this.spsExamName = null;
-        this.spsGroupNames = null;
+        this.spsGroups = null;
     }
 
     public ScheduledDeleteViewInfo(
             final String spsExamName,
-            final Collection<String> spsGroupNames) {
+            final Collection<String> spsGroups) {
 
         this.examUUID = null;
         this.examName = null;
         this.examStartTime = null;
         this.numberOfSessions = null;
         this.spsExamName = spsExamName;
-        this.spsGroupNames = spsGroupNames;
+        this.spsGroups = spsGroups;
     }
-
-
 
     public boolean hasSEBServerData() {
         return examUUID != null;

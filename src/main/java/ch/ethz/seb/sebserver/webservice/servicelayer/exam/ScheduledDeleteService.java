@@ -34,10 +34,10 @@ public interface ScheduledDeleteService {
 
     /** Marks all Exams for given Exam uuid's back to ready for deletion if they are in correct state (Archived)
      *
-     * @param examUUIDs List of Exam uuid's (external id's) to mark as ready for deletion
+     * @param examModelIds List of Exam uuid's (Pk's) to mark as ready for deletion
      * @param reset Indicates whether the exclusion for deletion shall be set or reset
      * @return Result containing all marked ExamKeys or an error when happened */
-    Result<Nullable<ScheduledDeleteReport>> applyExcludeForDeletion(Collection<String> examUUIDs, boolean reset);
+    Result<Nullable<ScheduledDeleteReport>> applyExcludeForDeletion(Collection<String> examModelIds, boolean reset);
 
     /** Use this to delete a scheduled deletion from SEB Server and also associated scheduled deletion on SPS if there is one
      *

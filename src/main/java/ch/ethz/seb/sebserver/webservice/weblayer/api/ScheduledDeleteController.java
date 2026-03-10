@@ -1,5 +1,6 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
@@ -21,10 +22,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -108,7 +113,7 @@ public class ScheduledDeleteController {
         return this.scheduledDeleteService
                 .createScheduledDelete(deleteDueTimestampUTC, null)
                 .map(report -> {
-                    userActivityLogDAO.logCreate(report.scheduledDelete());
+                    userActivityLogDAO.logCreate(new EntityKey(report.id(), EntityType.SCHEDULED_DELETE));
                     return report;
                 })
                 .getOrThrow();
@@ -125,12 +130,16 @@ public class ScheduledDeleteController {
 
         return this.scheduledDeleteService
                 .deleteScheduledDeletion(modelId)
+                .map(report -> {
+                    userActivityLogDAO.logDelete(report);
+                    return report;
+                })
                 .getOrThrow();
     }
 
     private ScheduledDeleteReport checkReadAccess(final ScheduledDeleteReport scheduledDeleteReport) {
         SEBServerUser currentUser = authorizationService.getUserService().getCurrentUser();
-        if (!Objects.equals(scheduledDeleteReport.scheduledDelete().institutionId(), currentUser.institutionId())) {
+        if (!Objects.equals(scheduledDeleteReport.institutionId(), currentUser.institutionId())) {
             throw new PermissionDeniedException(
                     EntityType.SCHEDULED_DELETE,
                     PrivilegeType.READ,
@@ -140,5 +149,40 @@ public class ScheduledDeleteController {
         return scheduledDeleteReport;
     }
 
+    @Operation(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
+    )
+    @RequestMapping(
+            path = API.SCHEDULED_DELETE_MARK_EXCLUDE + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ScheduledDeleteReport markExclude(@PathVariable final String modelId) {
+        return markExclude(modelId, false);
+    }
+
+    @Operation(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
+    )
+    @RequestMapping(
+            path = API.SCHEDULED_DELETE_UNMARK_INCLUDE + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ScheduledDeleteReport unmarkInclude(@PathVariable final String modelId) {
+        return markExclude(modelId, true);
+    }
+
+    private ScheduledDeleteReport markExclude(String modelId, boolean reset) {
+        final Long institutionId = authorizationService.getUserService().getCurrentUser().institutionId();
+        authorizationService.check(PrivilegeType.WRITE, EntityType.SCHEDULED_DELETE, institutionId);
+
+        return this.scheduledDeleteService
+                .applyExcludeForDeletion(Collections.singletonList(modelId), reset)
+                .getOrThrow()
+                .getElement();
+    }
 
 }

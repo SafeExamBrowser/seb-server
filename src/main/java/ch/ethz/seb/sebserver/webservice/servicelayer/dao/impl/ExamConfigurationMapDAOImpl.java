@@ -54,7 +54,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -67,20 +66,17 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     private final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ClientCredentialService clientCredentialService;
-    private final ExamDAO examDAO;
 
     protected ExamConfigurationMapDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper,
             final ConfigurationNodeRecordMapper configurationNodeRecordMapper,
-            final ClientCredentialService clientCredentialService,
-            final ExamDAO examDAO) {
+            final ClientCredentialService clientCredentialService) {
 
         this.examRecordMapper = examRecordMapper;
         this.examConfigurationMapRecordMapper = examConfigurationMapRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.clientCredentialService = clientCredentialService;
-        this.examDAO = examDAO;
     }
 
     @Override
@@ -380,7 +376,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     public Result<Collection<EntityKey>> deleteAllForExam(final Long examId) {
         return Result.<Collection<EntityKey>> tryCatch(() -> {
 
-            final List<Long> ids = this.examConfigurationMapRecordMapper.selectIdsByExample()
+            final List<Long> ids = this.examConfigurationMapRecordMapper
+                    .selectIdsByExample()
                     .where(ExamConfigurationMapRecordDynamicSqlSupport.examId, isEqualTo(examId))
                     .build()
                     .execute();
@@ -390,7 +387,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
             }
 
             // get all involved configurations
-            final List<Long> configIds = this.examConfigurationMapRecordMapper.selectByExample()
+            final List<Long> configIds = this.examConfigurationMapRecordMapper
+                    .selectByExample()
                     .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute()
@@ -398,7 +396,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .map(ExamConfigurationMapRecord::getConfigurationNodeId)
                     .collect(Collectors.toList());
 
-            this.examConfigurationMapRecordMapper.deleteByExample()
+            this.examConfigurationMapRecordMapper
+                    .deleteByExample()
                     .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
@@ -468,19 +467,17 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .selectByPrimaryKey(record.getConfigurationNodeId());
             final String status = config.getStatus();
 
-            final Exam exam = this.examDAO
-                    .byPK(record.getExamId())
-                    .getOr(null);
+            final ExamRecord exam = examRecordMapper.selectByPrimaryKey(record.getExamId());
 
             return new ExamConfigurationMap(
                     record.getId(),
                     record.getInstitutionId(),
                     record.getExamId(),
-                    (exam != null) ? exam.name : null,
-                    (exam != null) ? exam.getDescription() : null,
-                    (exam != null) ? exam.startTime : null,
-                    (exam != null) ? exam.type : ExamType.UNDEFINED,
-                    (exam != null) ? exam.status : null,
+                    (exam != null) ? exam.getQuizName() : null,
+                    (exam != null) ? exam.getQuizName() : null,
+                    (exam != null) ? exam.getQuizStartTime() : null,
+                    (exam != null) ? ExamType.valueOf(exam.getType()) : ExamType.UNDEFINED,
+                    (exam != null) ? Exam.ExamStatus.valueOf(exam.getStatus()) : null,
                     record.getConfigurationNodeId(),
                     record.getClientGroupId(),
                     record.getEncryptSecret(),

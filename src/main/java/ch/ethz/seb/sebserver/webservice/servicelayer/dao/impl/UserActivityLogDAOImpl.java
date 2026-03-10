@@ -106,6 +106,15 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
+    public Result<EntityKey> logCreate(EntityKey entityKey) {
+        return Result.tryCatch(() -> {
+            log(UserLogActivityType.CREATE, entityKey.entityType, entityKey.modelId, null);
+            return entityKey;
+        });
+    }
+
+    @Override
+    @Transactional
     public Result<UserAccount> logRegisterAccount(final UserAccount account) {
         return Result.tryCatch(() -> {
 
