@@ -82,7 +82,10 @@ public class ScheduledDeleteTask {
             return;
         }
 
-        log.info("Check for pending scheduled deletions to process...");
+        if (log.isDebugEnabled()) {
+            log.debug("Check for pending scheduled deletions to process...");
+        }
+
 
         scheduledDeleteDAO
                 .getPendingScheduledDelete()
@@ -183,23 +186,23 @@ public class ScheduledDeleteTask {
     void processOne(final ScheduledDeleteInfo delete) {
         try {
 
-            log.info("**** Start delete Exam: {}", delete.examUUID());
+            log.info("**** --> Start delete Exam: {}", delete.examUUID());
             scheduledDeleteDAO.startSingleDeletion(delete.id());
 
             examDAO
                     .byExternalIdLike(delete.examUUID())
                     .flatMap(deleteExamAction::scheduledDeleteExamInternal)
                     .onError(error -> {
-                        log.error("Failed to delete Exam for ScheduledDelete: {} cause:", delete, error);
+                        log.error("**** --> Failed to delete Exam for ScheduledDelete: {} cause:", delete, error);
                         scheduledDeleteDAO.endSingleDeletion(delete.id(), error.getMessage());
                     })
                     .onSuccess(exam -> scheduledDeleteDAO.endSingleDeletion(delete.id(), null));
 
-            log.info("**** Finished delete Exam: {}", delete.examUUID());
+            log.info("**** --> finished delete Exam: {}", delete.examUUID());
 
 
         } catch (Exception e) {
-            log.error("Failed to process scheduled single Exam delete: {} cause: {}", delete, e.getMessage());
+            log.error("**** --> Failed to process scheduled single Exam delete: {} cause: {}", delete, e.getMessage());
         }
     }
 }
