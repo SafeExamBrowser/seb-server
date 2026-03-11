@@ -288,35 +288,37 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional
     public Result<Collection<EntityKey>> excludeFromDeletion(
-            final Collection<String> examUUIDs,
+            final Collection<Long> examPKs,
             final boolean reset) {
 
-        return Result.tryCatch(() -> {
-            if (examUUIDs == null || examUUIDs.isEmpty()) {
+        Result<Collection<EntityKey>> tryCatch = Result.tryCatch(() -> {
+            if (examPKs == null || examPKs.isEmpty()) {
                 return Collections.emptyList();
             }
 
             if (reset) {
-                log.debug("Mark following exams as excluded from deletion: {}", examUUIDs);
+                log.debug("Mark following exams as excluded from deletion: {}", examPKs);
             } else {
-                log.debug("Reset following exams as excluded from deletion: {}", examUUIDs);
+                log.debug("Reset following exams as excluded from deletion: {}", examPKs);
             }
 
-            Integer updated = UpdateDSL.updateWithMapper(this.examRecordMapper::update, examRecord)
+            final Integer updated = UpdateDSL.updateWithMapper(this.examRecordMapper::update, examRecord)
                     .set(excludeFromDeletion).equalTo(reset ? 0 : 1)
-                    .where(externalId, isIn(examUUIDs))
+                    .where(id, isIn(examPKs))
                     .build()
                     .execute();
 
-            if (examUUIDs.size() != updated) {
-                log.warn("There is a mismatch between requested excludeFromDeletion number of exams and processed number: {}", examUUIDs);
+            if (examPKs.size() != updated) {
+                log.warn("There is a mismatch between requested excludeFromDeletion number of exams and processed number: {}", examPKs);
             }
 
-            return examUUIDs
+            return examPKs
                     .stream()
                     .map(uuid -> new EntityKey(uuid, EntityType.EXAM))
                     .collect(Collectors.toSet());
+
         });
+        return tryCatch.onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -330,14 +332,15 @@ public class ExamDAOImpl implements ExamDAO {
                     dateTime.toString(Constants.STANDARD_DATE_TIME_MILLIS_FORMATTER),
                     deleteDueTimestampUTC);
 
-            return this.examRecordMapper
-                    .selectByExample()
-                    .where(quizStartTime, isLessThanOrEqualTo(dateTime))
-                    .and(status, isEqualTo(ExamStatus.ARCHIVED.name()))
-                    //.and(excludeFromDeletion, isNull(), or(excludeFromDeletion, isEqualTo(0)))
-                    .build()
-                    .execute();
-        })
+                    final List<ExamRecord> all = this.examRecordMapper
+                            .selectByExample()
+                            .where(quizStartTime, isLessThanOrEqualTo(dateTime))
+                            .and(status, isEqualTo(ExamStatus.ARCHIVED.name()))
+                            .build()
+                            .execute();
+
+                    return all;
+                })
                 .flatMap(this::toDomainModel);
     }
 

@@ -42,6 +42,12 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> logCreate(E entity);
 
+    /** Create a user activity log entry for the current user of activity type CREATE
+     *
+     * @param entityKey the EntityKey
+     * @return Result of the Entity or referring to an Error if happened */
+    Result<EntityKey> logCreate(EntityKey entityKey);
+
     /** Create a user activity log entry for a user registration event
      *
      * @param account the UserAccount

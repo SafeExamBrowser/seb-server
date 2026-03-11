@@ -46,6 +46,7 @@ public class WebServiceSecurityConfig implements WebMvcConfigurer {
     private static final Logger log = LoggerFactory.getLogger(WebServiceSecurityConfig.class);
 
     private static String[] OPEN_ENDPOINTS = new String[] {
+            API.CHECK_PATH,
             API.OAUTH_REVOKE_TOKEN_ENDPOINT,
             API.OAUTH_JWT_TOKEN_ENDPOINT + "/**"
     };

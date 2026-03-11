@@ -1,19 +1,24 @@
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ScheduledDeleteReport(
-        @JsonProperty("scheduledDelete") ScheduledDelete scheduledDelete,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_ID) Long id,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_SPS_ID) Long spsId,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_STATE) ScheduledDelete.State state,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME) Long deleteDueTime,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_SCHEDULE_TIME) Long scheduleTime,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_START_TIME) Long startTime,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_END_TIME) Long endTime,
+        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_INSTITUTION_ID) Long institutionId,
         @JsonProperty("examDeletions") Collection<ScheduledDeleteViewInfo> examDeletions,
         @JsonProperty("spsOnlyDeletions") Collection<ScheduledDeleteViewInfo> spsOnlyDeletions) {
 
@@ -25,7 +30,13 @@ public record ScheduledDeleteReport(
     @Override
     public String toString() {
         return "ScheduledDeleteReport{" +
-                "scheduledDelete=" + scheduledDelete +
+                "id=" + id +
+                ", spsId=" + spsId +
+                ", state=" + state +
+                ", deleteDueTime=" + deleteDueTime +
+                ", scheduleTime=" + scheduleTime +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
                 ", examDeletions=" + examDeletions +
                 ", spsOnlyDeletions=" + spsOnlyDeletions +
                 '}';
@@ -76,16 +87,37 @@ public record ScheduledDeleteReport(
                     extractGroupNames(spsInfos)));
         });
 
-        return new ScheduledDeleteReport(scheduledDelete, sebServerDeletions, spsOnlyDeletions);
+        return new ScheduledDeleteReport(
+                scheduledDelete.id(),
+                scheduledDelete.spsId(),
+                scheduledDelete.state(),
+                scheduledDelete.deleteDueTime(),
+                scheduledDelete.scheduleTime(),
+                scheduledDelete.startTime(),
+                scheduledDelete.endTime(),
+                scheduledDelete.institutionId(),
+                sebServerDeletions,
+                spsOnlyDeletions);
     }
 
+
     private static Collection<String> extractGroupNames(final Map<String, String> spsInfos) {
-        return spsInfos.entrySet().stream()
-                .filter(entry -> {
-                    final String key = entry.getKey();
-                    return key != null && key.startsWith("group_") && key.endsWith("name");
-                })
-                .map(Map.Entry::getValue)
-                .toList();
+        final Set<String> groupKeys = spsInfos.keySet()
+                .stream()
+                .filter(key -> key.startsWith("group"))
+                .map(key -> key.substring(0, key.lastIndexOf("_")))
+                .collect(Collectors.toSet());
+
+        return groupKeys.stream().map( key -> {
+            try {
+                return spsInfos.get(key + "_name") + " / " + spsInfos.get(key + "_sessionCount");
+            } catch (Exception e) {
+                try {
+                    return spsInfos.get(key + "_name");
+                } catch (Exception ee) {
+                    return "";
+                }
+            }
+        } ).toList();
     }
 }

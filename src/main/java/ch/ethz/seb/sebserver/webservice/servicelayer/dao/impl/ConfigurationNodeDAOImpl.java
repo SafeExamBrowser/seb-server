@@ -214,8 +214,6 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         return getDependencies(bulkAction, selectionFunction);
     }
 
-    // TODO: this transaction takes to long and produces a leak on prod for 2.2.x
-    //       Try to simplify it or brake down in multiple transactions
     @Override
     public Result<ConfigurationNode> createNew(final ConfigurationNode data) {
         return this.configurationDAOBatchService

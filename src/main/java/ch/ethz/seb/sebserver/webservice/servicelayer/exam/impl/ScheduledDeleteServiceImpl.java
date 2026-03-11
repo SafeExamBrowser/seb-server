@@ -85,7 +85,9 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
             final DateTimeZone refTimeZone = referenceTimezone != null ? referenceTimezone : DateTimeZone.UTC;
 
             // used timestamps (UTC)
-            final Long scheduleTime = Utils.calcTimeToMidnight(scheduledTimestampUTC, referenceTimezone);
+            //final Long scheduleTime = Utils.calcTimeToMidnight(scheduledTimestampUTC, referenceTimezone);
+            // TODO this is just for testing
+            final Long scheduleTime = Utils.getMillisecondsNow() + (5 * Constants.MINUTE_IN_MILLIS);
             final Long deleteTimeUTCAtStartOfDay =Utils.calcTimeAtStartOfDay(scheduledTimestampUTC, referenceTimezone);
 
             log.info("Schedule delete for dueTime: {} -- UTC: {} at: {} -- UTC: {}",
@@ -130,13 +132,14 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
     @Override
     public Result<Nullable<ScheduledDeleteReport>> applyExcludeForDeletion(
-            final Collection<String> examUUIDs,
+            final Collection<String> examModelIds,
             final boolean reset) {
 
         return Result.tryCatch(() -> {
 
+            final List<Long> pks = examModelIds.stream().map(Long::valueOf).toList();
             final Collection<EntityKey> changedExams = examDAO
-                    .excludeFromDeletion(examUUIDs, reset)
+                    .excludeFromDeletion(pks, reset)
                     .getOrThrow();
 
             if (changedExams.isEmpty()) {
@@ -232,7 +235,9 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                 institutionId);
 
         // create Scheduled Delete for SPS
-        final ScheduledDelete spsDelete = screenProctoringAPIBinding
+        final boolean hasSPSDataToDelete = spsDeleteInfos != null && !spsDeleteInfos.isEmpty();
+        final ScheduledDelete spsDelete = hasSPSDataToDelete
+            ? screenProctoringAPIBinding
                 .createScheduledDelete(new ScheduledDelete(
                         null,
                         null,
@@ -245,7 +250,9 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                         institutionId,
                         spsDeleteInfos
                 ))
-                .getOrThrow();
+                .getOrThrow()
+            : null;
+
 
         // create Scheduled Delete info for SEB Server
         final List<ScheduledDeleteInfo> deleteInfos = new ArrayList<>();
@@ -279,7 +286,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
         final ScheduledDelete sebServerDelete = scheduledDeleteDAO.createNew(
                 new ScheduledDelete(
                         null,
-                        spsDelete.id(),
+                        hasSPSDataToDelete ? spsDelete.id() : null,
                         ScheduledDelete.State.PENDING,
                         deleteTimeUTCAtStartOfDay,
                         scheduleTime,
@@ -291,7 +298,9 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
         ).getOrThrow();
 
         // provide full report as result
-        return ScheduledDeleteReport.createFormInfos(sebServerDelete, spsDelete.info());
+        return ScheduledDeleteReport.createFormInfos(
+                sebServerDelete,
+                hasSPSDataToDelete ? spsDelete.info() : Collections.emptyList());
     }
 
     // This filters the given sourceSPSDeleteInfos on given includeExams and excludeExams
