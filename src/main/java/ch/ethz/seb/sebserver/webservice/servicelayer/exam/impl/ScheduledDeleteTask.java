@@ -30,6 +30,9 @@ public class ScheduledDeleteTask {
     private static final Logger log = LoggerFactory.getLogger(ScheduledDeleteTask.class);
     public static final Logger INIT_LOGGER = LoggerFactory.getLogger("SERVICE_INIT");
 
+    // TODO rest this to half an hour
+    private static final long TASK_INTERVAL = Constants.MINUTE_IN_MILLIS; //Constants.HOUR_IN_MILLIS / 2;
+
     private final TaskScheduler taskScheduler;
     private final WebserviceInfo webserviceInfo;
     private final Executor deletionExecutor;
@@ -67,8 +70,8 @@ public class ScheduledDeleteTask {
         // update triggered every hour...
         this.taskScheduler.scheduleAtFixedRate(
                 this::update,
-                Instant.now().plusMillis(Constants.HOUR_IN_MILLIS / 2),
-                Duration.ofMillis(Constants.HOUR_IN_MILLIS / 2));
+                Instant.now().plusMillis(TASK_INTERVAL),
+                Duration.ofMillis(TASK_INTERVAL));
 
     }
 
@@ -78,6 +81,8 @@ public class ScheduledDeleteTask {
         if (!webserviceInfo.isMaster()) {
             return;
         }
+
+        log.info("Check for pending scheduled deletions to process...");
 
         scheduledDeleteDAO
                 .getPendingScheduledDelete()
@@ -182,9 +187,12 @@ public class ScheduledDeleteTask {
             scheduledDeleteDAO.startSingleDeletion(delete.id());
 
             examDAO
-                    .byModelId(delete.examUUID())
-                    .map(deleteExamAction::scheduledDeleteExamInternal)
-                    .onError(error -> scheduledDeleteDAO.endSingleDeletion(delete.id(), error.getMessage()))
+                    .byExternalIdLike(delete.examUUID())
+                    .flatMap(deleteExamAction::scheduledDeleteExamInternal)
+                    .onError(error -> {
+                        log.error("Failed to delete Exam for ScheduledDelete: {} cause:", delete, error);
+                        scheduledDeleteDAO.endSingleDeletion(delete.id(), error.getMessage());
+                    })
                     .onSuccess(exam -> scheduledDeleteDAO.endSingleDeletion(delete.id(), null));
 
             log.info("**** Finished delete Exam: {}", delete.examUUID());

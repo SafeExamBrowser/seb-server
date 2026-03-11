@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -16,8 +17,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.filter.CharacterEncodingFilter;
+
+import java.io.IOException;
 
 /** This is the overall seb-server Spring web-configuration that is loaded for all profiles.
  * Defines some overall web-security beans needed on both -- web-service and web-gui -- profiles */
@@ -52,5 +56,9 @@ public class WebSecurityConfig {
         characterEncodingFilter.setEncoding("UTF-8");
         registrationBean.setFilter(characterEncodingFilter);
         return registrationBean;
+    }
+
+    @RequestMapping(API.CHECK_PATH)
+    public void check() throws IOException {
     }
 }

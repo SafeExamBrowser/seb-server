@@ -85,7 +85,9 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
             final DateTimeZone refTimeZone = referenceTimezone != null ? referenceTimezone : DateTimeZone.UTC;
 
             // used timestamps (UTC)
-            final Long scheduleTime = Utils.calcTimeToMidnight(scheduledTimestampUTC, referenceTimezone);
+            //final Long scheduleTime = Utils.calcTimeToMidnight(scheduledTimestampUTC, referenceTimezone);
+            // TODO this is just for testing
+            final Long scheduleTime = Utils.getMillisecondsNow() + (5 * Constants.MINUTE_IN_MILLIS);
             final Long deleteTimeUTCAtStartOfDay =Utils.calcTimeAtStartOfDay(scheduledTimestampUTC, referenceTimezone);
 
             log.info("Schedule delete for dueTime: {} -- UTC: {} at: {} -- UTC: {}",

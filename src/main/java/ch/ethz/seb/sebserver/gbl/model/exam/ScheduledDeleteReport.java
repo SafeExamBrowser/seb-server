@@ -104,6 +104,7 @@ public record ScheduledDeleteReport(
     private static Collection<String> extractGroupNames(final Map<String, String> spsInfos) {
         final Set<String> groupKeys = spsInfos.keySet()
                 .stream()
+                .filter(key -> key.startsWith("group"))
                 .map(key -> key.substring(0, key.lastIndexOf("_")))
                 .collect(Collectors.toSet());
 
