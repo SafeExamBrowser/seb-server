@@ -199,7 +199,13 @@ VALUES
     (1011, 11, 'testactive-connection-configuration-firefox', NOW(), 'e2e-client', 'e2e-secret', NULL, 1, 1773070766921, 'test-main'),
 
     (1012, 11, 'testinactive-connection-configuration-webkit', NOW(), 'e2e-client', 'e2e-secret', NULL, 0, 1773070766921, 'test-main'),
-    (1013, 11, 'testactive-connection-configuration-webkit', NOW(), 'e2e-client', 'e2e-secret', NULL, 1, 1773070766921, 'test-main');
+    (1013, 11, 'testactive-connection-configuration-webkit', NOW(), 'e2e-client', 'e2e-secret', NULL, 1, 1773070766921, 'test-main'),
+
+-- Connection Configurations 4.4.1 DELETE Remove
+    (1014, 11, 'testdelete-connection-configuration-chromium', NOW(), 'e2e-client', 'e2e-secret', NULL, 1, 1773070766921, 'test-main'),
+    (1015, 11, 'testdelete-connection-configuration-firefox', NOW(), 'e2e-client', 'e2e-secret', NULL, 1, 1773070766921, 'test-main'),
+    (1016, 11, 'testdelete-connection-configuration-webkit', NOW(), 'e2e-client', 'e2e-secret', NULL, 1, 1773070766921, 'test-main')
+;
 
 
 INSERT INTO additional_attributes (entity_type, entity_id, name, value)
@@ -240,6 +246,7 @@ VALUES
     ('SEB_CLIENT_CONFIGURATION', 1007, 'vdiSetup', 'NO'),
     ('SEB_CLIENT_CONFIGURATION', 1007, 'sebServerFallback', 'false'),
 
+    -- Connection Configurations 4.3.2 and 4.3.3 UPDATE Activate / Deactivate
     ('SEB_CLIENT_CONFIGURATION', 1008, 'sebConfigPurpose', 'START_EXAM'),
     ('SEB_CLIENT_CONFIGURATION', 1008, 'sebServerPingTime', '5000'),
     ('SEB_CLIENT_CONFIGURATION', 1008, 'vdiSetup', 'NO'),
@@ -268,7 +275,25 @@ VALUES
     ('SEB_CLIENT_CONFIGURATION', 1013, 'sebConfigPurpose', 'START_EXAM'),
     ('SEB_CLIENT_CONFIGURATION', 1013, 'sebServerPingTime', '5000'),
     ('SEB_CLIENT_CONFIGURATION', 1013, 'vdiSetup', 'NO'),
-    ('SEB_CLIENT_CONFIGURATION', 1013, 'sebServerFallback', 'false');
+    ('SEB_CLIENT_CONFIGURATION', 1013, 'sebServerFallback', 'false'),
+
+    -- Connection Configurations 4.4.1 DELETE Remove
+    ('SEB_CLIENT_CONFIGURATION', 1014, 'sebConfigPurpose', 'START_EXAM'),
+    ('SEB_CLIENT_CONFIGURATION', 1014, 'sebServerPingTime', '5000'),
+    ('SEB_CLIENT_CONFIGURATION', 1014, 'vdiSetup', 'NO'),
+    ('SEB_CLIENT_CONFIGURATION', 1014, 'sebServerFallback', 'false'),
+
+    ('SEB_CLIENT_CONFIGURATION', 1015, 'sebConfigPurpose', 'START_EXAM'),
+    ('SEB_CLIENT_CONFIGURATION', 1015, 'sebServerPingTime', '5000'),
+    ('SEB_CLIENT_CONFIGURATION', 1015, 'vdiSetup', 'NO'),
+    ('SEB_CLIENT_CONFIGURATION', 1015, 'sebServerFallback', 'false'),
+
+    ('SEB_CLIENT_CONFIGURATION', 1016, 'sebConfigPurpose', 'START_EXAM'),
+    ('SEB_CLIENT_CONFIGURATION', 1016, 'sebServerPingTime', '5000'),
+    ('SEB_CLIENT_CONFIGURATION', 1016, 'vdiSetup', 'NO'),
+    ('SEB_CLIENT_CONFIGURATION', 1016, 'sebServerFallback', 'false')
+;
+
 
 
 
