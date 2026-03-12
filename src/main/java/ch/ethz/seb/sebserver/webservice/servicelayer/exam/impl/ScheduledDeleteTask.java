@@ -30,8 +30,7 @@ public class ScheduledDeleteTask {
     private static final Logger log = LoggerFactory.getLogger(ScheduledDeleteTask.class);
     public static final Logger INIT_LOGGER = LoggerFactory.getLogger("SERVICE_INIT");
 
-    // TODO rest this to half an hour
-    private static final long TASK_INTERVAL = Constants.MINUTE_IN_MILLIS; //Constants.HOUR_IN_MILLIS / 2;
+    private static final long TASK_INTERVAL = Constants.HOUR_IN_MILLIS / 2;
 
     private final TaskScheduler taskScheduler;
     private final WebserviceInfo webserviceInfo;

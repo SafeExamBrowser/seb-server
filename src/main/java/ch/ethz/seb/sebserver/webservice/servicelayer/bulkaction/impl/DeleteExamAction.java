@@ -102,13 +102,12 @@ public class DeleteExamAction implements BatchActionExec {
 
     public Result<EntityKey> scheduledDeleteExamInternal(final Exam exam) {
 
-        // TODO this is only for first tests...
-        log.info("Delete Exam called from ScheduledDelete, Exam --> {}", exam);
-        return Result.of(exam.getEntityKey());
-//        return notifyScheduledDeletion(exam)
-//                .flatMap(this::deleteExamDependencies)
-//                .flatMap(this::deleteExamWithRefs)
-//                .map(Exam::getEntityKey);
+        log.info("Delete Exam called from ScheduledDelete, Exam --> {}", exam.externalId);
+
+        return notifyScheduledDeletion(exam)
+                .flatMap(this::deleteExamDependencies)
+                .flatMap(this::deleteExamWithRefs)
+                .map(Exam::getEntityKey);
     }
 
     private Result<Exam> notifyDeletion(final Exam exam) {

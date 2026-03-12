@@ -411,7 +411,15 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     public void notifyExamDeletion(final ExamDeletionEvent event) {
         if (event.isScheduledDeletion) {
             // this is a scheduled delete so all SPS data should already be deleted at this point
-            // TODO check if the exam on SPS still exists and if so report?
+            // we only have to delete the sps groups for this exam
+            event.ids
+                    .stream()
+                    .forEach(examId -> {
+                        screenProctoringGroupDAO
+                                .deleteGroups(examId)
+                                .onError(error -> log.error("Failed to delete screen proctoring for exam: {} cause: {}", examId, error.getMessage() ))
+                                .onSuccess(keys -> log.info("Deleted screen proctoring groups: {} for exam: {}", keys, examId));
+                    });
         } else {
             // this is not a scheduled deletion so we expect that there are still SPS data to delete
             event.ids

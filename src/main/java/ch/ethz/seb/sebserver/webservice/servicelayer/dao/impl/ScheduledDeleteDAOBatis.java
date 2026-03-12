@@ -298,12 +298,14 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
     public boolean endSingleDeletion(final Long infoId, final String errorInfo) {
         try {
 
+            final String error = Utils.truncateText(errorInfo, 4000);
+
             UpdateDSL.updateWithMapper(this.scheduledDeleteInfoRecordMapper::update, ScheduledDeleteInfoRecordDynamicSqlSupport.scheduledDeleteInfoRecord)
                     .set(ScheduledDeleteInfoRecordDynamicSqlSupport.state).equalTo(
-                            StringUtils.isBlank(errorInfo)
+                            StringUtils.isBlank(error)
                                 ? ScheduledDeleteInfo.State.DELETED.name()
                                 : ScheduledDeleteInfo.State.ERROR.name())
-                    .set(ScheduledDeleteInfoRecordDynamicSqlSupport.errorInfo).equalToWhenPresent(errorInfo)
+                    .set(ScheduledDeleteInfoRecordDynamicSqlSupport.errorInfo).equalToWhenPresent(error)
                     .where(ScheduledDeleteInfoRecordDynamicSqlSupport.id, isEqualTo(infoId))
                     .build()
                     .execute();
