@@ -220,7 +220,6 @@ interface SPS_API {
                 Arrays.asList("read", "write"));
 
         final String spsServiceURL;
-        final CircuitBreaker<ResponseEntity<String>> circuitBreaker;
         final OAuthRestTemplate restTemplate;
 
         ScreenProctoringServiceOAuthTemplate(
@@ -228,10 +227,6 @@ interface SPS_API {
                 final SPSAPIAccessData spsAPIAccessData) {
 
             this.spsServiceURL = spsAPIAccessData.getSpsServiceURL();
-            this.circuitBreaker = apiBinding.asyncService.createCircuitBreaker(
-                    2,
-                    10 * Constants.SECOND_IN_MILLIS,
-                    30 * Constants.SECOND_IN_MILLIS);
 
             final ClientCredentials clientCredentials = new ClientCredentials(
                     spsAPIAccessData.getSpsAPIKey(),
@@ -359,10 +354,8 @@ interface SPS_API {
                 final Object body,
                 final HttpHeaders httpHeaders) {
 
-            final Result<ResponseEntity<String>> protectedRunResult = this.circuitBreaker.protectedRun(() -> {
-
+            synchronized (this) {
                 try {
-
                     final ResponseEntity<String> result = this.restTemplate.exchange(
                             url,
                             method,
@@ -381,8 +374,7 @@ interface SPS_API {
                             .status(rce.getStatusCode())
                             .body(rce.getResponseBodyAsString());
                 }
-            });
-            return protectedRunResult.getOrThrow();
+           }
         }
     }
 }

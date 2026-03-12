@@ -113,11 +113,13 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * @param userUUID The UUID of the user account to synchronize with SPS service*/
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUser(final String userUUID);
-    
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void synchronizeSPSUserForExam(final Long examId);
+
+    // like synchronizeSPSUser but not async
+    void synchronizeSPSUserWait(final String userUUID);
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void deleteSPSUser(String userUUID);
 
+    /** Use this to test if SPS connection is available and ready to use */
+    boolean isAvailable();
 }

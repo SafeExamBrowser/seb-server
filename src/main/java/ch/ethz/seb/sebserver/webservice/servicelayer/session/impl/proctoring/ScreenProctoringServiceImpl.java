@@ -330,11 +330,13 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
-    public void synchronizeSPSUserForExam(final Long examId) {
-        this.examDAO
-                .byPK(examId)
-                .onSuccess(this.screenProctoringAPIBinding::synchronizeUserAccounts)
-                .onError(error -> log.error("Failed to synchronize SPS user accounts for exam: {}", examId, error));
+    public void synchronizeSPSUserWait(String userUUID) {
+        // is screen proctoring configured?
+        if (!webserviceInfo.getScreenProctoringServiceBundle().bundled) {
+            return;
+        }
+
+        this.screenProctoringAPIBinding.synchronizeUserAccount(userUUID);
     }
 
     @Override
@@ -345,6 +347,18 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         this.screenProctoringAPIBinding.deleteSPSUser(userUUID);
+    }
+
+    @Override
+    public boolean isAvailable() {
+        try {
+
+            return this.screenProctoringAPIBinding.isAvailable();
+
+        } catch (Exception e) {
+            log.error("Failed to test if SPS connection is available: ", e);
+            return false;
+        }
     }
 
     @Override
