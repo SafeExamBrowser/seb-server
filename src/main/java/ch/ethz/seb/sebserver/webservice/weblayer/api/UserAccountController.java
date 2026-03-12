@@ -102,16 +102,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UserInfo loggedInUser() {
-
-        log.info("**************** called /me ");
-
-        UserInfo userInfo = this.authorization
+        return this.authorization
                 .getUserService()
                 .getCurrentUser()
                 .getUserInfo();
-
-        log.info("**************** called /me responds user info: {}", userInfo);
-        return userInfo;
     }
 
     @RequestMapping(
