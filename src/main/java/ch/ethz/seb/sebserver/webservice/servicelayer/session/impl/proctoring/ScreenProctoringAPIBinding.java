@@ -117,6 +117,11 @@ public class ScreenProctoringAPIBinding {
         });
     }
 
+    boolean isAvailable() {
+        final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+        return apiTemplate.isValid();
+    }
+
     boolean isSPSActive(final Exam exam) {
         try {
             final String active = this.additionalAttributesDAO
@@ -266,7 +271,7 @@ public class ScreenProctoringAPIBinding {
             final ScreenProctoringServiceOAuthTemplate apiTemplate = getAPITemplate(null);
             synchronizeUserAccount(userUUID, apiTemplate);
         } catch (final Exception e) {
-            log.error("Failed to synchronize user account with SPS for user: {} cause: {}", userUUID, e.getMessage());
+            log.error("Failed to synchronize user account with SPS for user: {} cause: {}", userUUID, e.getMessage(), e);
         }
     }
 
@@ -1221,7 +1226,7 @@ public class ScreenProctoringAPIBinding {
             }
 
         } catch (final Exception e) {
-            log.error("Failed to synchronize user account with SPS for user: {} cause: {}", userUUID, e.getMessage());
+            log.error("Failed to synchronize user account with SPS for user: {} cause: {}", userUUID, e.getMessage(), e);
         }
     }
 
@@ -1607,4 +1612,5 @@ public class ScreenProctoringAPIBinding {
             log.error("Failed to ensure SEBAccess for exam: {} cause: {}", exam.externalId, e.getMessage());
         }
     }
+
 }

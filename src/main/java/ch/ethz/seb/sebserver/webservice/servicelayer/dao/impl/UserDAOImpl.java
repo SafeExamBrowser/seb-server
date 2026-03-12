@@ -398,11 +398,13 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    @Transactional()
     public Result<Collection<EntityKey>> deleteAdHocAccountsForLMS(
             final String adHocTeacherIdPrefix, 
             final Long lmsSetupId) {
         
-        return Result.tryCatch(() ->this.userRecordMapper.selectByExample()
+        return Result.tryCatch(() -> this.userRecordMapper
+                .selectByExample()
                 .where(uuid, isLike(adHocTeacherIdPrefix + Constants.PERCENTAGE))
                 .build()
                 .execute()
@@ -411,6 +413,23 @@ public class UserDAOImpl implements UserDAO {
                 .collect(Collectors.toSet())
         )
                 .flatMap(this::delete);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getAllActiveUsersUUID() {
+        return Result.tryCatch(() -> {
+
+            return this.userRecordMapper
+                    .selectByExample()
+                    .where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toIntegerObject(true)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(UserRecord::getUuid)
+                    .toList();
+
+        });
     }
 
     @Override
