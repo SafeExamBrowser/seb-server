@@ -172,7 +172,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     @RequestMapping(
             path = API.PATH_VAR_ACTIVE,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport activate(@PathVariable final String modelId) {
         return setActiveSingle(modelId, true)
@@ -192,7 +191,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     @RequestMapping(
             value = API.PATH_VAR_INACTIVE,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport deactivate(@PathVariable final String modelId) {
         return setActiveSingle(modelId, false)

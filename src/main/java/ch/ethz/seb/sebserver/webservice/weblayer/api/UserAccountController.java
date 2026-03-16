@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,7 +69,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     private final ScreenProctoringService screenProctoringService;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final WebserviceInfo webserviceInfo;
-
+    private final OAuth2AuthorizationService oAuth2AuthorizationService;
     private final FeatureService featureService;
 
     public UserAccountController(
@@ -80,7 +84,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final WebserviceInfo webserviceInfo,
             final FeatureService featureService,
-            final PasswordEncoder userPasswordEncoder) {
+            final PasswordEncoder userPasswordEncoder,
+            final OAuth2AuthorizationService oAuth2AuthorizationService) {
 
         super(authorization,
                 bulkActionService,
@@ -95,6 +100,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.webserviceInfo = webserviceInfo;
         this.featureService = featureService;
+        this.oAuth2AuthorizationService = oAuth2AuthorizationService;
     }
 
     @RequestMapping(
@@ -117,7 +123,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @RequestMapping(path = API.LOGIN_PATH_SEGMENT, method = RequestMethod.POST)
-    public void logLogin() {
+    public void login() {
         this.userActivityLogDAO.logLogin(this.authorization
                 .getUserService()
                 .getCurrentUser()
@@ -125,7 +131,18 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @RequestMapping(path = API.LOGOUT_PATH_SEGMENT, method = RequestMethod.POST)
-    public void logLogout() {
+    public void logout(final HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null) {
+                String tokenValue = authHeader.replace("Bearer", "").trim();
+                OAuth2Authorization byToken = oAuth2AuthorizationService.findByToken(tokenValue, OAuth2TokenType.ACCESS_TOKEN);
+                oAuth2AuthorizationService.remove(byToken);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to revoke access token: {}", e.getMessage());
+        }
+
         this.userActivityLogDAO.logLogout(this.authorization
                 .getUserService()
                 .getCurrentUser()

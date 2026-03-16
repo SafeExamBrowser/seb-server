@@ -67,7 +67,6 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     @RequestMapping(
             path = API.CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration saveToHistory(@PathVariable final Long modelId) {
 
@@ -82,7 +81,6 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     @RequestMapping(
             path = API.CONFIGURATION_UNDO_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration undo(@PathVariable final String modelId) {
 
@@ -96,7 +94,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     @RequestMapping(
             path = API.CONFIGURATION_RESTORE_FROM_HISTORY_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            //consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration restoreFormHistory(
             @PathVariable final String modelId,

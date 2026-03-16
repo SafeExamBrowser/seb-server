@@ -256,7 +256,6 @@ public class ExamMonitoringController {
             path = API.EXAM_MONITORING_TEST_RUN_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam toggleTestRunForExam(
             @RequestParam(

@@ -156,7 +156,6 @@ public class ScheduledDeleteController {
     @RequestMapping(
             path = API.SCHEDULED_DELETE_MARK_EXCLUDE + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ScheduledDeleteReport markExclude(@PathVariable final String modelId) {
         return markExclude(modelId, false);
@@ -169,7 +168,6 @@ public class ScheduledDeleteController {
     @RequestMapping(
             path = API.SCHEDULED_DELETE_UNMARK_INCLUDE + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ScheduledDeleteReport unmarkInclude(@PathVariable final String modelId) {
         return markExclude(modelId, true);
