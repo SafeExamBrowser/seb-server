@@ -436,7 +436,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         AdditionalAttributeRecord::getName,
                         Function.identity()));
 
-        additionalAttributes.get(SEBClientConfig.ATTR_CONFIG_PURPOSE);
+        final String fallback = getFallbackValue(additionalAttributes);
 
         return Result.tryCatch(() -> new SEBClientConfig(
                 record.getId(),
@@ -463,8 +463,8 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_VDI_ARGUMENTS)
                         ? additionalAttributes.get(SEBClientConfig.ATTR_VDI_ARGUMENTS).getValue()
                         : null,
-                additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK) &&
-                        BooleanUtils.toBoolean(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK).getValue()),
+                fallback != null &&
+                        BooleanUtils.toBoolean(fallback),
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_START_URL)
                         ? additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_START_URL).getValue()
                         : null,
@@ -500,6 +500,18 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         additionalAttributes.containsKey(SEBClientConfig.ATTR_EXAM_SELECTION)
                          ? additionalAttributes.get(SEBClientConfig.ATTR_EXAM_SELECTION).getValue()
                          : null)));
+    }
+
+    // NOTE: Deal with legacy data, see SEBSERV-760
+    private String getFallbackValue(Map<String, AdditionalAttributeRecord> additionalAttributes) {
+        if (additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK)) {
+            return additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK).getValue();
+        }
+        // this is the old legacy value with the space at the end.
+        if (additionalAttributes.containsKey("sebServerFallback ")) {
+            return additionalAttributes.get("sebServerFallback ").getValue();
+        }
+        return null;
     }
 
     private String getEncryptionPassword(final SEBClientConfig sebClientConfig) {
