@@ -71,10 +71,14 @@ public class WebServiceSecurityConfig implements WebMvcConfigurer {
                     if (apiDocEnabled) {
                         SEBServerInit.INIT_LOGGER.info("**** API DOCS V3 ENABLED!");
                         requests.requestMatchers(V_3_API_DOCS_ENDPOINT).permitAll();
+                    } else {
+                        SEBServerInit.INIT_LOGGER.info("xxxx API DOCS V3 NOT ENABLED!");
                     }
                     if (swaggerEnabled) {
-                        SEBServerInit.INIT_LOGGER.info("**** SWAGGER UI ENABLED!");
+
                         requests.requestMatchers(SWAGGER_UI_ENDPOINT).permitAll();
+                    } else {
+                        SEBServerInit.INIT_LOGGER.info("xxxx SWAGGER UI NOT ENABLED!");
                     }
                     requests.anyRequest().denyAll();
                 })

@@ -356,7 +356,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             return this.screenProctoringAPIBinding.isAvailable();
 
         } catch (Exception e) {
-            log.error("Failed to test if SPS connection is available: ", e);
+            log.error("Failed to test if SPS connection is available: {}", e.getMessage());
             return false;
         }
     }
