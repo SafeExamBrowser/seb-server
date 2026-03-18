@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
@@ -61,7 +62,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
-import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
@@ -984,6 +984,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Long numberOfConnectionsOfExam(final Long examId) {
         try {
             return clientConnectionRecordMapper
@@ -995,6 +996,18 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             log.error("Failed to get number of connections for exam with id: {}", examId);
             return -1L;
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnectionRecord>> getAllForUserSessionNameLike(String searchName) {
+        return Result.tryCatch(() -> {
+            return clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examUserSessionId, SqlBuilder.isLike(Utils.toSQLWildcard(searchName)))
+                    .build()
+                    .execute();
+        });
     }
 
     private Result<ClientConnectionRecord> recordById(final Long id) {

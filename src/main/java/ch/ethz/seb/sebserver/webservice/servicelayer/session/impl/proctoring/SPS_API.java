@@ -55,6 +55,7 @@ interface SPS_API {
 
     String SCHEDULED_DELETE_ENDPOINT = EXAM_ENDPOINT + "/scheduled-delete";
     String SCHEDULED_DELETE_REQUEST_ENDPOINT = SCHEDULED_DELETE_ENDPOINT + "/request";
+    String SESSION_DELETION_REQUEST_ENDPOINT = SESSION_ENDPOINT + "/request-deletion";
 
     /**
      * The screen proctoring service client-access API attribute names

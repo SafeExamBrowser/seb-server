@@ -9,6 +9,9 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDelete;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteInfo;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteReport;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Nullable;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -80,17 +83,14 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
             // prepare
             final SEBServerUser currentUser = userService.getCurrentUser();
-            final Long institutionId = currentUser.institutionId();
-            final DateTimeZone referenceTimezone = currentUser.getUserInfo().timeZone;
-            final DateTimeZone refTimeZone = referenceTimezone != null ? referenceTimezone : DateTimeZone.UTC;
+            final DateTimeZone userTimeZone = currentUser.getUserInfo().timeZone;
+            final DateTimeZone refTimeZone = userTimeZone != null ? userTimeZone : DateTimeZone.UTC;
 
             // used timestamps (UTC)
-            //final Long scheduleTime = Utils.calcTimeToMidnight(scheduledTimestampUTC, referenceTimezone);
-            // TODO this is just for testing
-            final Long scheduleTime = Utils.getMillisecondsNow() + (5 * Constants.MINUTE_IN_MILLIS);
-            final Long deleteTimeUTCAtStartOfDay =Utils.calcTimeAtStartOfDay(scheduledTimestampUTC, referenceTimezone);
+            final Long scheduleTime = Utils.calcTimeToMidnight(scheduledTimestampUTC, refTimeZone);
+            final Long deleteTimeUTCAtStartOfDay = Utils.calcTimeAtStartOfDay(deleteDueTimestampUTC, refTimeZone);
 
-            log.info("Schedule delete for dueTime: {} -- UTC: {} at: {} -- UTC: {}",
+            log.info("Schedule delete for dueTime: {} -- UTC: {} schedule at: {} -- UTC: {}",
                     Utils.formatDate(new DateTime(deleteTimeUTCAtStartOfDay, refTimeZone)),
                     Utils.formatDate(new DateTime(deleteTimeUTCAtStartOfDay, DateTimeZone.UTC)),
                     Utils.formatDate(new DateTime(scheduleTime,refTimeZone)),
@@ -203,6 +203,73 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
             return new EntityKey(pk, EntityType.SCHEDULED_DELETE);
         });
+    }
+
+
+
+    @Override
+    public Result<SessionDeletionReport> requestSessionDeletion(
+            final String searchName,
+            final Long deleteDueTimestampUTC) {
+
+        final Long deleteTimeUTCAtStartOfDayAtUserTime = getUserTime(deleteDueTimestampUTC);
+
+        return screenProctoringAPIBinding
+                .requestSessionDeletion(searchName, deleteTimeUTCAtStartOfDayAtUserTime)
+                .map(spsSessions -> {
+                    final List<SessionInfo> sessions = clientConnectionDAO
+                            .getAllForUserSessionNameLike(searchName)
+                            .map(s -> s
+                                    .stream()
+                                    .map(session -> {
+                                        if (deleteTimeUTCAtStartOfDayAtUserTime != null && session.getCreationTime() > deleteTimeUTCAtStartOfDayAtUserTime) {
+                                            return null;
+                                        }
+
+                                        boolean isClosed = true;
+                                        try {
+                                            ClientConnection.ConnectionStatus connectionStatus = ClientConnection.ConnectionStatus.valueOf(session.getStatus());
+                                            isClosed = !connectionStatus.clientActiveStatus;
+                                        } catch (Exception e) {
+                                            isClosed = false;
+                                        }
+
+                                        return new SessionInfo(
+                                                session.getConnectionToken(),
+                                                session.getExamUserSessionId(),
+                                                session.getClientAddress(),
+                                                session.getClientMachineName(),
+                                                session.getClientOsName(),
+                                                session.getClientVersion(),
+                                                session.getCreationTime(),
+                                                !isClosed ? session.getUpdateTime() : null
+                                        );
+                                    })
+                                    .filter(Objects::nonNull)
+                                    .toList())
+                            .getOrThrow();
+
+                    return new SessionDeletionReport(
+                            searchName,
+                            deleteTimeUTCAtStartOfDayAtUserTime,
+                            sessions,
+                            spsSessions);
+                });
+    }
+
+    private Long getUserTime(Long deleteDueTimestampUTC) {
+        if (deleteDueTimestampUTC != null) {
+            try {
+                final SEBServerUser currentUser = userService.getCurrentUser();
+                final DateTimeZone userTimeZone = currentUser.getUserInfo().timeZone;
+                final DateTimeZone refTimeZone = userTimeZone != null ? userTimeZone : DateTimeZone.UTC;
+                return Utils.calcTimeAtStartOfDay(deleteDueTimestampUTC, refTimeZone);
+            } catch (Exception e) {
+                log.error("Failed to get userTime for: {} cause: {}", deleteDueTimestampUTC, e.getMessage());
+                return null;
+            }
+        }
+        return null;
     }
 
     private ScheduledDeleteReport createScheduledDeleteInternal(

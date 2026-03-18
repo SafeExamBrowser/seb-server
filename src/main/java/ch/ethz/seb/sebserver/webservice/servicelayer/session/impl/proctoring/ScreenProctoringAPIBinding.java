@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionInfo;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -25,6 +27,7 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplateFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.optional.qual.OptionalBottom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -1164,6 +1167,33 @@ public class ScreenProctoringAPIBinding {
             }
 
             return new EntityKey(spsScheduledDeleteId, EntityType.SCHEDULED_DELETE);
+        });
+    }
+
+    public Result<Collection<SessionDeletionInfo>> requestSessionDeletion(
+            final String searchName,
+            final Long dueTimeUTC) {
+
+        return Result.tryCatch(() -> {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(SESSION_DELETION_REQUEST_ENDPOINT)
+                    .queryParam(SessionDeletionReport.ATTR_SEARCH_NAME, searchName)
+                    .queryParamIfPresent(SessionDeletionReport.ATTR_DELETE_DUE_TIME,Optional.of((dueTimeUTC != null) ? String.valueOf(dueTimeUTC) : null))
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.GET, null, apiTemplate.getHeaders());
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                throw new RuntimeException("Failed request SPS session deletion info: " + searchName + " cause: " + exchange.getStatusCode());
+            }
+
+            return this.jsonMapper.readValue(
+                    exchange.getBody(),
+                    new TypeReference<>() {
+                    });
         });
     }
 

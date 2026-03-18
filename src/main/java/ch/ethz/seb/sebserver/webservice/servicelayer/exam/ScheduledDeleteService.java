@@ -3,6 +3,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDelete;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteReport;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionInfo;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.util.Nullable;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -44,5 +46,7 @@ public interface ScheduledDeleteService {
      * @param modelId The id of the scheduled deletion to delete
      * @return Result with an EntityKey of the deleted ScheduledDelete or contains an error when happened*/
     Result<EntityKey> deleteScheduledDeletion(String modelId);
+
+    Result<SessionDeletionReport> requestSessionDeletion(String searchName, Long deleteDueTimestampUTC);
 
 }

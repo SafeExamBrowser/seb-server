@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.webservice.WebserviceInit;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.resserver.UnauthorizedRequestHandler;
 
 import org.apache.catalina.filters.RemoteIpFilter;
@@ -67,9 +69,11 @@ public class WebServiceSecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests((requests) -> {
                     requests.requestMatchers(OPEN_ENDPOINTS).permitAll();
                     if (apiDocEnabled) {
+                        SEBServerInit.INIT_LOGGER.info("**** API DOCS V3 ENABLED!");
                         requests.requestMatchers(V_3_API_DOCS_ENDPOINT).permitAll();
                     }
                     if (swaggerEnabled) {
+                        SEBServerInit.INIT_LOGGER.info("**** SWAGGER UI ENABLED!");
                         requests.requestMatchers(SWAGGER_UI_ENDPOINT).permitAll();
                     }
                     requests.anyRequest().denyAll();
