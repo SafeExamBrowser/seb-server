@@ -1169,9 +1169,49 @@ public class ScreenProctoringAPIBinding {
         });
     }
 
-    public Result<Collection<SessionDeletionInfo>> requestSessionDeletion(
+    public Result<Collection<SessionDeletionInfo>> requestSessionDeletionReport(
             final String searchName,
             final Long dueTimeUTC) {
+
+        return requestSessionDeletion(searchName, dueTimeUTC, true);
+    }
+
+    public Result<Collection<SessionDeletionInfo>> deleteSessions(
+            final String searchName,
+            final Long dueTimeUTC) {
+
+        return requestSessionDeletion(searchName, dueTimeUTC, false);
+    }
+
+    public Result<EntityKey> deleteSession(final String sessionUUID) {
+        return Result.tryCatch(() -> {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(SESSION_ENDPOINT)
+                    .pathSegment(sessionUUID)
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri,
+                    HttpMethod.DELETE,
+                    null,
+                    apiTemplate.getHeaders());
+
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                throw new RuntimeException("Failed to delete SPS Session: " + sessionUUID + " cause: " + exchange.getStatusCode());
+            }
+
+            return new EntityKey(sessionUUID, EntityType.CLIENT_CONNECTION);
+        });
+    }
+
+    private Result<Collection<SessionDeletionInfo>> requestSessionDeletion(
+            final String searchName,
+            final Long dueTimeUTC,
+            boolean readonly) {
 
         return Result.tryCatch(() -> {
 
@@ -1184,7 +1224,12 @@ public class ScreenProctoringAPIBinding {
                     .build()
                     .toUriString();
 
-            final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.GET, null, apiTemplate.getHeaders());
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri,
+                    readonly ? HttpMethod.GET : HttpMethod.POST,
+                    null,
+                    apiTemplate.getHeaders());
+
             if (exchange.getStatusCode() != HttpStatus.OK) {
                 throw new RuntimeException("Failed request SPS session deletion info: " + searchName + " cause: " + exchange.getStatusCode());
             }

@@ -3,13 +3,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDelete;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteReport;
-import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionInfo;
 import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.util.Nullable;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
 import java.util.Collection;
+import java.util.Set;
 
 public interface ScheduledDeleteService {
 
@@ -47,6 +47,27 @@ public interface ScheduledDeleteService {
      * @return Result with an EntityKey of the deleted ScheduledDelete or contains an error when happened*/
     Result<EntityKey> deleteScheduledDeletion(String modelId);
 
+    /** Use this to get a report of all SPS sessions and SEB Server sessions (client connections)
+     *  That get deleted with the given input name and due time
+     *
+     * @param searchName The session username search criteria. Is used wit wildcards on SQL
+     * @param deleteDueTimestampUTC the user selected due time for deletion (all that are older than)
+     *                              NOTE: this will be aligned with the users day start.
+     * @return Result with SessionDeletionReport with all user sessions that will be deleted (SEB Server and SPS)*/
     Result<SessionDeletionReport> requestSessionDeletion(String searchName, Long deleteDueTimestampUTC);
+
+    /** Use this to actually delete all SPS sessions and SEB Server sessions (client connections)
+     *  for the given input name and due time
+     *
+     * @param searchName The session username search criteria. Is used wit wildcards on SQL
+     * @param deleteDueTimestampUTC the user selected due time for deletion (all that are older than)
+     *                              NOTE: this will be aligned with the users day start.
+     * @param excludes If available defines all connection token ids that should be excluded.
+     *                                 The ids are also applied to SPS session uuids (same as connectionToken)
+     * @return Result with SessionDeletionReport with all user sessions has been deleted (SEB Server and SPS)*/
+    Result<SessionDeletionReport> deleteUserSessions(
+            String searchName,
+            Long deleteDueTimestampUTC,
+            Set<String> excludes);
 
 }

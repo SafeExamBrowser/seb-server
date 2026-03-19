@@ -16,4 +16,19 @@ public record SessionDeletionInfo(
 
     @JsonCreator
     public SessionDeletionInfo {}
+
+    public SessionDeletionInfo withError(final Exception e) {
+        if (e == null) {
+            return this;
+        }
+
+        return new SessionDeletionInfo(
+            this.sessionInfo.withError(e),
+            this.groupName,
+            this.examName,
+            this.examUUID,
+            this.institutionId,
+            this.numberOfScreenshots
+        );
+    }
 }

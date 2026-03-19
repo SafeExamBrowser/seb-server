@@ -11,10 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 import java.util.*;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import com.fasterxml.jackson.annotation.JsonCreator;

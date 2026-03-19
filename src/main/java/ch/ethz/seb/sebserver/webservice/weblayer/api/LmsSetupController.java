@@ -11,18 +11,12 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import jakarta.validation.Valid;
 
-import java.util.concurrent.Executor;
-
-import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import org.mybatis.dynamic.sql.SqlTable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,8 +52,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.LMS_SETUP_ENDPOINT)
 public class LmsSetupController extends ActivatableEntityController<LmsSetup, LmsSetup> {
-
-    private static final Logger log = LoggerFactory.getLogger(LmsSetupController.class);
 
     private final LmsAPIService lmsAPIService;
     private final LmsTestService lmsTestService;

@@ -330,5 +330,5 @@ public final class API {
     public static final String SCHEDULED_DELETE_ENDPOINT = "/scheduled-delete";
     public static final String SCHEDULED_DELETE_MARK_EXCLUDE  = "/mark-exclude";
     public static final String SCHEDULED_DELETE_UNMARK_INCLUDE  = "/unmark-exclude";
-
+    public static final String SESSION_DELETE_ENDPOINT = "/session-delete";
 }

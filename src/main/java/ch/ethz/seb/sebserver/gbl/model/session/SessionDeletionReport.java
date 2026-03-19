@@ -16,6 +16,7 @@ public record SessionDeletionReport(
 
     public static final String ATTR_SEARCH_NAME = "searchName";
     public static final String ATTR_DELETE_DUE_TIME = "deleteDueTime";
+    public static final String ATTR_EXCLUDE_LIST = "excludes";
 
     @JsonCreator
     public SessionDeletionReport {}

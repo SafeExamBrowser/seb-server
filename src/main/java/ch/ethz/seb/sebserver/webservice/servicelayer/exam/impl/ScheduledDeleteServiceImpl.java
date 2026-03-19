@@ -10,12 +10,14 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDelete;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteInfo;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteReport;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionInfo;
 import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.model.session.SessionInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Nullable;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
@@ -205,72 +207,190 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
         });
     }
 
-
-
     @Override
     public Result<SessionDeletionReport> requestSessionDeletion(
             final String searchName,
             final Long deleteDueTimestampUTC) {
 
-        final Long deleteTimeUTCAtStartOfDayAtUserTime = getUserTime(deleteDueTimestampUTC);
-
+        // align the given UTC due time to the users day start, if due time is available
+        final Long dueTime = getUserTime(deleteDueTimestampUTC);
         return screenProctoringAPIBinding
-                .requestSessionDeletion(searchName, deleteTimeUTCAtStartOfDayAtUserTime)
+                .requestSessionDeletionReport(searchName, dueTime)
                 .map(spsSessions -> {
                     final List<SessionInfo> sessions = clientConnectionDAO
                             .getAllForUserSessionNameLike(searchName)
                             .map(s -> s
                                     .stream()
-                                    .map(session -> {
-                                        if (deleteTimeUTCAtStartOfDayAtUserTime != null && session.getCreationTime() > deleteTimeUTCAtStartOfDayAtUserTime) {
-                                            return null;
-                                        }
-
-                                        boolean isClosed = true;
-                                        try {
-                                            ClientConnection.ConnectionStatus connectionStatus = ClientConnection.ConnectionStatus.valueOf(session.getStatus());
-                                            isClosed = !connectionStatus.clientActiveStatus;
-                                        } catch (Exception e) {
-                                            isClosed = false;
-                                        }
-
-                                        return new SessionInfo(
-                                                session.getConnectionToken(),
-                                                session.getExamUserSessionId(),
-                                                session.getClientAddress(),
-                                                session.getClientMachineName(),
-                                                session.getClientOsName(),
-                                                session.getClientVersion(),
-                                                session.getCreationTime(),
-                                                !isClosed ? session.getUpdateTime() : null
-                                        );
-                                    })
-                                    .filter(Objects::nonNull)
+                                    // filter out all that are newer than dueTime when dueTime is available
+                                    .filter(cc -> dueTime != null && cc.getCreationTime() > dueTime)
+                                    .map(this::toSessionInfoNoError)
                                     .toList())
                             .getOrThrow();
 
                     return new SessionDeletionReport(
                             searchName,
-                            deleteTimeUTCAtStartOfDayAtUserTime,
+                            dueTime,
                             sessions,
                             spsSessions);
                 });
     }
 
-    private Long getUserTime(Long deleteDueTimestampUTC) {
-        if (deleteDueTimestampUTC != null) {
-            try {
-                final SEBServerUser currentUser = userService.getCurrentUser();
-                final DateTimeZone userTimeZone = currentUser.getUserInfo().timeZone;
-                final DateTimeZone refTimeZone = userTimeZone != null ? userTimeZone : DateTimeZone.UTC;
-                return Utils.calcTimeAtStartOfDay(deleteDueTimestampUTC, refTimeZone);
-            } catch (Exception e) {
-                log.error("Failed to get userTime for: {} cause: {}", deleteDueTimestampUTC, e.getMessage());
-                return null;
-            }
-        }
-        return null;
+    @Override
+    public Result<SessionDeletionReport> deleteUserSessions(
+            final String searchName,
+            final Long deleteDueTimestampUTC,
+            final Set<String> excludes) {
+
+        // align the given UTC due time to the users day start, if due time is available
+        final Long dueTime = getUserTime(deleteDueTimestampUTC);
+        return requestSessionDeletion(searchName, dueTime)
+                .map(toDelete -> {
+
+                    log.info("**** Start to delete user session for search name: {}, dueTime: {}, excludes: {}",
+                            searchName,
+                            dueTime,
+                            (excludes != null && !excludes.isEmpty()) ? excludes : "NONE");
+
+                    // fist delete all SPS session. Exclude when needed and accumulate the infos
+                    List<SessionDeletionInfo> deletedSPSSessions = toDelete
+                            .spsDeletions()
+                            .stream()
+                            .filter(info -> {
+                                final String sessionUUID = info.sessionInfo().uuid();
+                                if (excludes != null && excludes.contains(sessionUUID)) {
+                                    log.info("**** --> Exclude session: {} from deletion since it is in the excludes", info);
+                                    return false;
+                                }
+                                return true;
+                            })
+                            .map(info -> {
+                                try {
+                                    final String sessionUUID = info.sessionInfo().uuid();
+                                    screenProctoringAPIBinding
+                                            .deleteSession(sessionUUID)
+                                            .getOrThrow();
+
+                                    log.info("**** ---> Deleted session on SPS: {}", info);
+                                    return info;
+
+                                } catch (Exception e) {
+                                    log.warn("**** ---> Session Deletion on SPS failed: {}", e.getMessage());
+                                    return info.withError(e);
+                                }
+                            })
+                            .toList();
+
+                    List<SessionInfo> deletedClientConnections = toDelete
+                            .sebServerDeletions()
+                            .stream()
+                            .filter(info -> {
+                                final String sessionUUID = info.uuid();
+                                if (excludes != null && excludes.contains(sessionUUID)) {
+                                    log.info("**** --> Exclude session: {} from deletion since it is in the excludes", info);
+                                    return false;
+                                }
+                                return true;
+                            })
+                            .map(info -> {
+                                try {
+                                    final String sessionUUID = info.uuid();
+                                    final ClientConnection connection = clientConnectionDAO
+                                            .byConnectionToken(sessionUUID).getOrThrow();
+
+                                    clientConnectionDAO
+                                            .delete(Collections.singleton(new EntityKey(connection.id, EntityType.CLIENT_CONNECTION)))
+                                            .getOrThrow();
+
+                                    log.info("**** ---> Deleted SEB Server session: {}", info);
+                                    return info;
+                                } catch (Exception e) {
+                                    log.warn("**** ---> Session Deletion on SEB Server failed: {}", e.getMessage());
+                                    return info.withError(e);
+                                }
+                            })
+                            .toList();
+
+                    log.info("**** Finished to delete user session for search name: {}, dueTime: {}, excludes: {}",
+                            searchName,
+                            dueTime,
+                            (excludes != null && !excludes.isEmpty()) ? excludes : "NONE");
+
+                    return new SessionDeletionReport(
+                            searchName,
+                            dueTime,
+                            deletedClientConnections,
+                            deletedSPSSessions
+                    );
+                });
     }
+
+    private SessionInfo toSessionInfoNoError(final ClientConnectionRecord session) {
+        return toSessionInfo(session, null);
+    }
+
+    private SessionInfo toSessionInfo(
+            final ClientConnectionRecord session,
+            final String error) {
+
+        boolean isClosed;
+        try {
+            ClientConnection.ConnectionStatus connectionStatus = ClientConnection.ConnectionStatus.valueOf(session.getStatus());
+            isClosed = !connectionStatus.clientActiveStatus;
+        } catch (Exception e) {
+            isClosed = false;
+        }
+
+        return new SessionInfo(
+                session.getConnectionToken(),
+                session.getExamUserSessionId(),
+                session.getClientAddress(),
+                session.getClientMachineName(),
+                session.getClientOsName(),
+                session.getClientVersion(),
+                session.getCreationTime(),
+                !isClosed ? session.getUpdateTime() : null,
+                error
+        );
+    }
+
+//    private SessionInfo applyDeletion(
+//            final ClientConnectionRecord session,
+//            final boolean doDelete) {
+//
+//        boolean isClosed;
+//        try {
+//            ClientConnection.ConnectionStatus connectionStatus = ClientConnection.ConnectionStatus.valueOf(session.getStatus());
+//            isClosed = !connectionStatus.clientActiveStatus;
+//        } catch (Exception e) {
+//            isClosed = false;
+//        }
+//
+//        if (!isClosed) {
+//            log.warn("An unclosed user session is about to be delete: {}", session);
+//        }
+//
+//        Exception error = null;
+//        if (doDelete) {
+//            // actually delete the session
+//            Result<Collection<EntityKey>> delete = clientConnectionDAO
+//                    .delete(Collections.singleton(new EntityKey(session.getId(), EntityType.CLIENT_CONNECTION)));
+//            if (delete.hasError()) {
+//                error = delete.getError();
+//            }
+//        }
+//
+//        return new SessionInfo(
+//                session.getConnectionToken(),
+//                session.getExamUserSessionId(),
+//                session.getClientAddress(),
+//                session.getClientMachineName(),
+//                session.getClientOsName(),
+//                session.getClientVersion(),
+//                session.getCreationTime(),
+//                !isClosed ? session.getUpdateTime() : null,
+//                error != null ? error.getMessage() : null
+//        );
+//    }
 
     private ScheduledDeleteReport createScheduledDeleteInternal(
             final Long deleteTimeUTCAtStartOfDay,
@@ -454,5 +574,20 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
         log.info("Filtered given SPS deletion infos to: {}", spsDeleteInfos);
 
         return spsDeleteInfos;
+    }
+
+    private Long getUserTime(Long deleteDueTimestampUTC) {
+        if (deleteDueTimestampUTC != null) {
+            try {
+                final SEBServerUser currentUser = userService.getCurrentUser();
+                final DateTimeZone userTimeZone = currentUser.getUserInfo().timeZone;
+                final DateTimeZone refTimeZone = userTimeZone != null ? userTimeZone : DateTimeZone.UTC;
+                return Utils.calcTimeAtStartOfDay(deleteDueTimestampUTC, refTimeZone);
+            } catch (Exception e) {
+                log.error("Failed to get userTime for: {} cause: {}", deleteDueTimestampUTC, e.getMessage());
+                return null;
+            }
+        }
+        return null;
     }
 }
