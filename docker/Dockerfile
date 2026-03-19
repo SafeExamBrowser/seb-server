@@ -35,7 +35,7 @@ CMD if [ "x${JMX_PORT}" = "x" ] ; \
         -Dcom.sun.management.jmxremote.password.file=/sebserver/jmxremote.password \
         -Dcom.sun.management.jmxremote.access.file=/sebserver/config/jmx/jmxremote.access \
         -jar "seb-server.jar" \
-        --spring.config.location=file:/sebserver/config/spring/,classpath:/config/; \
+        --spring.config.location=classpath:/config/,file:/sebserver/config/spring/; \
 fi
 
 EXPOSE $SERVER_PORT $JMX_PORT

@@ -60,8 +60,6 @@ public class WebServiceSecurityConfig implements WebMvcConfigurer {
     @Value("${springdoc.swagger-ui.enabled:false}")
     private boolean swaggerEnabled;
 
-
-
     @Bean
     @Order(5)
     public SecurityFilterChain baseFilterChain(HttpSecurity http) throws Exception {
@@ -75,7 +73,7 @@ public class WebServiceSecurityConfig implements WebMvcConfigurer {
                         SEBServerInit.INIT_LOGGER.info("xxxx API DOCS V3 NOT ENABLED!");
                     }
                     if (swaggerEnabled) {
-
+                        SEBServerInit.INIT_LOGGER.info("**** SWAGGER UI ENABLED!");
                         requests.requestMatchers(SWAGGER_UI_ENDPOINT).permitAll();
                     } else {
                         SEBServerInit.INIT_LOGGER.info("xxxx SWAGGER UI NOT ENABLED!");
