@@ -21,7 +21,7 @@ CMD if [ "x${JMX_PORT}" = "x" ] ; \
         -Xms${JAVA_HEAP_MIN} \
         -Xmx${JAVA_HEAP_MAX} \
         -jar "seb-server.jar" \
-        --spring.config.location=file:/sebserver/config/spring/,classpath:/config/; \
+        --spring.config.location=classpath:/config/,file:/sebserver/config/spring/; \
     else echo "admin ${SEBSERVER_SECRET}" > jmxremote.password && chown spring:spring /sebserver/jmxremote.password && chmod 400 /sebserver/jmxremote.password && exec java \
         -Xms${JAVA_HEAP_MIN} \
         -Xmx${JAVA_HEAP_MAX} \
