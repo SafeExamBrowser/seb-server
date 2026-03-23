@@ -43,7 +43,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public static final String ATTR_VDI_PATH = "vdiPath";
     public static final String ATTR_VDI_ARGUMENTS = "vdiArguments";
 
-    public static final String ATTR_FALLBACK = "sebServerFallback ";
+    public static final String ATTR_FALLBACK = "sebServerFallback";
     public static final String ATTR_FALLBACK_START_URL = "startURL";
     public static final String ATTR_FALLBACK_TIMEOUT = "sebServerFallbackTimeout";
     public static final String ATTR_FALLBACK_ATTEMPTS = "sebServerFallbackAttempts";
