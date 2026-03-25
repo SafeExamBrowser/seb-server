@@ -37,7 +37,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
     public static final String ATTR_COLLECTING_STRATEGY = "spsCollectingStrategy";
     public static final String ATTR_COLLECTING_GROUP_NAME = "spsCollectingGroupName";
     public static final String ATTR_COLLECTING_GROUP_SIZE = "spsCollectingGroupSize";
-    public static final String ATT_SEB_GROUPS_SELECTION = "spsSEBGroupsSelection";
+    public static final String ATTR_SEB_GROUPS_SELECTION = "spsSEBGroupsSelection";
 
     public static final String ATTR_SPS_BUNDLED = "bundled";
     public static final String ATTR_ADDITIONAL_ATTRIBUTE_STORE_NAME = "SCREEN_PROCTORING_SETTINGS";
@@ -76,7 +76,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
     @JsonProperty(ATTR_COLLECTING_GROUP_SIZE)
     public final Integer collectingGroupSize;
 
-    @JsonProperty(ATT_SEB_GROUPS_SELECTION)
+    @JsonProperty(ATTR_SEB_GROUPS_SELECTION)
     public final String sebGroupsSelection;
 
     @JsonProperty(ATTR_SPS_BUNDLED)
@@ -97,7 +97,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
             @JsonProperty(ATTR_COLLECTING_STRATEGY) final CollectingStrategy collectingStrategy,
             @JsonProperty(ATTR_COLLECTING_GROUP_NAME) final String collectingGroupName,
             @JsonProperty(ATTR_COLLECTING_GROUP_SIZE) final Integer collectingGroupSize,
-            @JsonProperty(ATT_SEB_GROUPS_SELECTION) final String sebGroupsSelection,
+            @JsonProperty(ATTR_SEB_GROUPS_SELECTION) final String sebGroupsSelection,
             @JsonProperty(ATTR_SPS_BUNDLED) final boolean bundled,
             @JsonProperty(ATTR_CHANGE_STRATEGY_CONFIRM) final boolean confirmChangeStrategy) {
 

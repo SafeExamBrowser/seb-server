@@ -21,6 +21,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
@@ -258,6 +259,42 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 newOwner,
                 copyInfo,
                 daoUserServcie.getCurrentUserUUID());
+    }
+
+    @Override
+    @Transactional
+    public Result<ConfigurationNode> updateConfigurationTemplate(
+            final Long configTemplateId,
+            final String name,
+            final String description) {
+
+        return Result.tryCatch(() -> {
+
+            ConfigurationNodeRecord record = recordById(configTemplateId).getOrThrow();
+            if (ConfigurationType.valueOf(record.getType()) != ConfigurationType.TEMPLATE) {
+                throw new APIMessage.APIMessageException(
+                        APIMessage.ErrorMessage.BAD_REQUEST.of(
+                                "ConfigurationNode is not of expected type TEMPLATE"));
+            }
+
+            final ConfigurationNodeRecord newRecord = new ConfigurationNodeRecord(
+                    record.getId(),
+                    null,
+                    null,
+                    null,
+                    name,
+                    description,
+                    null,
+                    null,
+                    Utils.getMillisecondsNow(),
+                    this.daoUserServcie.getCurrentUserUUID());
+
+            this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return this.configurationNodeRecordMapper.selectByPrimaryKey(newRecord.getId());
+
+         })
+                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

@@ -106,13 +106,16 @@ public class ExamTemplate implements GrantEntity {
         this.institutionalDefault = BooleanUtils.toBoolean(institutionalDefault);
         this.lmsIntegration = BooleanUtils.toBoolean(lmsIntegration);
         this.clientConfigurationId = clientConfigurationId;
-        if (examAttributes != null && examAttributes.containsKey(ATTR_CLIENT_GROUP_TEMPLATES)) {
-            final HashMap<String, String> attrs = new HashMap<>(examAttributes);
-            attrs.remove(ATTR_CLIENT_GROUP_TEMPLATES);
-            this.examAttributes = Utils.immutableMapOf(attrs);
-        } else {
-            this.examAttributes = Utils.immutableMapOf(examAttributes);
-        }
+        this.examAttributes = Utils.immutableMapOf(examAttributes);
+
+        // TODO check if this is still needed otherwise remove it
+//        if (examAttributes != null && examAttributes.containsKey(ATTR_CLIENT_GROUP_TEMPLATES)) {
+//            final HashMap<String, String> attrs = new HashMap<>(examAttributes);
+//            attrs.remove(ATTR_CLIENT_GROUP_TEMPLATES);
+//            this.examAttributes = Utils.immutableMapOf(attrs);
+//        } else {
+//            this.examAttributes = Utils.immutableMapOf(examAttributes);
+//        }
     }
 
     public ExamTemplate(

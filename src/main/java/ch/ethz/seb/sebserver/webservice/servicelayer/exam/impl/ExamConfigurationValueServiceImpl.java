@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -146,13 +147,8 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                 return examId;
             }
 
-            // check new quit password has no invalid trailing chars
-            if (quitSecret != null && !Objects.equals(quitSecret, StringUtils.trim(quitSecret))) {
-                // Note: this should never happen and the quit password should be validated and handled before this
-                //       If this is not the case do so, go up the stack of the particular case and handle it above
-                throw new IllegalArgumentException("quit password has invalid trailing characters!");
-            }
-            
+            Utils.checkPasswordTrailing(quitSecret);
+
             return saveSEBAttributeValueToConfig(
                     examId, 
                     CONFIG_ATTR_NAME_QUIT_SECRET, 
@@ -161,6 +157,8 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                                 : this.cryptor.encrypt(quitSecret).getOr(quitSecret).toString());
         });
     }
+
+
 
     @Override
     public Result<Long> applySPSEnabledToConfigs(final Long examId, final Boolean enabled) {
@@ -287,9 +285,18 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
             return examId;
         }
 
+        saveSEBAttributeValueToConfig(attrName, attrValue, configNodeId);
+        return examId;
+    }
+
+    private void saveSEBAttributeValueToConfig(
+            final String attrName,
+            final String attrValue,
+            final Long configNodeId) {
+
         final Long attrId = getAttributeId(attrName);
         if (attrId == null) {
-            return examId;
+            return;
         }
 
         final Configuration lastStable = this.configurationDAO
@@ -332,8 +339,5 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                             lastStable,
                             err));
         }
-
-        return examId;
     }
-
 }

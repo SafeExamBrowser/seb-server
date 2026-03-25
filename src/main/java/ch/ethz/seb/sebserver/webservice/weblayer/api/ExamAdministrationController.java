@@ -194,6 +194,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+
+
     @Override
     public EntityProcessingReport hardDelete(final String modelId, final boolean addIncludes, final List<String> includes) {
         return forceHardDelete(modelId, addIncludes, includes);
@@ -683,7 +685,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @RequestParam(value = ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
+            @RequestParam(value = ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO

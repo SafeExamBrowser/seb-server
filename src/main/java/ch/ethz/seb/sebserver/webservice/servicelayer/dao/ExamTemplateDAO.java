@@ -47,6 +47,8 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
      * @return Result refer to the EntityKey of the deleted IndicatorTemplate or to an error when happened */
     Result<EntityKey> deleteIndicatorTemplate(String examTemplateId, String indicatorTemplateId);
 
+    Result<Collection<ClientGroupTemplate>> getClientGroupTemplates(Long examTemplateId);
+
     /** Creates a new client group template
      *
      * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)

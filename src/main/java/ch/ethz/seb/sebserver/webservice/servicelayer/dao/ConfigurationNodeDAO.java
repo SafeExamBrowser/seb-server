@@ -12,6 +12,8 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public interface ConfigurationNodeDAO extends
         EntityDAO<ConfigurationNode, ConfigurationNode>,
@@ -28,4 +30,14 @@ public interface ConfigurationNodeDAO extends
             String newOwner,
             ConfigCreationInfo copyInfo);
 
+    /** Used to update the name and description of a Configuration Template that is used by an Exam Template
+     *
+     * @param configTemplateId The Configuration Template identifier
+     * @param name the name to update
+     * @param description the description to update
+     * @return Result refer to the updated ConfigurationNode or to an error when happened */
+    Result<ConfigurationNode> updateConfigurationTemplate(
+            Long configTemplateId,
+            String name,
+            String description);
 }

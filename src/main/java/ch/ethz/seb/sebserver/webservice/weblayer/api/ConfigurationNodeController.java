@@ -395,8 +395,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
-
-
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT + API.TEMPLATE_ATTRIBUTE_ENDPOINT,
             method = RequestMethod.GET,
