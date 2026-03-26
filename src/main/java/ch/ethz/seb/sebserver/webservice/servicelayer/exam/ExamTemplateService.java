@@ -12,6 +12,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -145,6 +146,10 @@ public interface ExamTemplateService {
             }
             return list;
         };
+    }
+
+    static String createNameForTemporaryConfigurationTemplate() {
+        return ConfigurationNodeDAO.TEMPORARY_TEMPLATE_PREFIX + UUID.randomUUID();
     }
 
 }

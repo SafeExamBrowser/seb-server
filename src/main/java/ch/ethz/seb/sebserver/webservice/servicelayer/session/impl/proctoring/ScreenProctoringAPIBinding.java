@@ -99,7 +99,7 @@ public class ScreenProctoringAPIBinding {
         this.oAuthRestTemplateFactory = oAuthRestTemplateFactory;
     }
 
-    Result<Void> testConnection(final SPSAPIAccessData spsAPIAccessData) {
+    public Result<Void> testConnection(final SPSAPIAccessData spsAPIAccessData) {
         return Result.tryCatch(() -> {
             final ScreenProctoringServiceOAuthTemplate newRestTemplate =
                     new ScreenProctoringServiceOAuthTemplate(this, spsAPIAccessData);

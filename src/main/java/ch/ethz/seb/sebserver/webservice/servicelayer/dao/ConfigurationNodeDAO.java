@@ -11,13 +11,18 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.Collection;
+
 public interface ConfigurationNodeDAO extends
         EntityDAO<ConfigurationNode, ConfigurationNode>,
         BulkActionSupportDAO<ConfigurationNode> {
+
+    String TEMPORARY_TEMPLATE_PREFIX = "[TEMPORARY_TEMPLATE]";
 
     /** Use this to create a copy from an existing configuration.
      *
@@ -40,4 +45,9 @@ public interface ConfigurationNodeDAO extends
             Long configTemplateId,
             String name,
             String description);
+
+    /** Get all ConfigurationNodeRecords that has a TEMPORARY_TEMPLATE_PREFIX prefix
+     *
+     * @return Result refer to th e list of ConfigurationNodeRecords or to an error when happened */
+    Result<Collection<ConfigurationNodeRecord>> getAllTemporary();
 }

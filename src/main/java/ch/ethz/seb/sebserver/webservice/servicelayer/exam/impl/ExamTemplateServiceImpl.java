@@ -16,7 +16,6 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -28,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -72,7 +72,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private final WebserviceInfo webserviceInfo;
     private final ProctoringAdminService proctoringServiceSettingsService;
     private final BeanValidationService beanValidationService;
-    private final ExamConfigurationValueService examConfigurationValueService;
 
     private final String defaultIndicatorName;
     private final String defaultIndicatorType;
@@ -93,7 +92,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final WebserviceInfo webserviceInfo,
             final ProctoringAdminService proctoringServiceSettingsService,
             final BeanValidationService beanValidationService,
-            final ExamConfigurationValueService examConfigurationValueService,
 
             @Value("${sebserver.webservice.api.exam.indicator.name:}") final String defaultIndicatorName,
             @Value("${sebserver.webservice.api.exam.indicator.type:}") final String defaultIndicatorType,
@@ -113,7 +111,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         this.webserviceInfo = webserviceInfo;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
         this.beanValidationService = beanValidationService;
-        this.examConfigurationValueService = examConfigurationValueService;
 
         this.defaultIndicatorName = defaultIndicatorName;
         this.defaultIndicatorType = defaultIndicatorType;
@@ -321,9 +318,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         return Result.tryCatch(() -> {
 
             // create group templates
-            examTemplate
+            final List<String> groupIdsWithSPS = examTemplate
                     .getClientGroupTemplates()
-                    .forEach(clientGroupTemplate -> {
+                    .stream()
+                    .map(clientGroupTemplate -> {
                         final ClientGroupTemplate newTemplate = new ClientGroupTemplate(
                                 null,
                                 createdTemplateId,
@@ -344,9 +342,18 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                                 .flatMap(this.examTemplateDAO::createNewClientGroupTemplate)
                                 .onError(error -> log.error("Failed to create ClientGroupTemplate: {}", clientGroupTemplate, error))
                                 .getOr(null);
-                    });
+
+                        return BooleanUtils.isTrue(newGroup.screenProctoringEnabled) ? newGroup.getModelId() : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
 
             // create SPS data if present and enabled
+            String groupSelection = examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION);
+            if (StringUtils.isBlank(groupSelection) && !groupIdsWithSPS.isEmpty()) {
+                groupSelection = StringUtils.join(groupIdsWithSPS, Constants.LIST_SEPARATOR);
+            }
+
             if (examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)) {
                 try {
                     final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle = webserviceInfo
@@ -363,7 +370,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                             CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)),
                             examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME),
                             null,
-                            examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION),
+                            groupSelection,
                             true,
                             false);
 
@@ -440,7 +447,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             // apply the name and description to the related Configuration Template
             this.updateConfigurationTemplate(examTemplate);
 
-            return examTemplate;
+            return examTemplateDAO.byPK(examTemplate.id).getOrThrow();
         }).flatMap(this::applyExamTemplateAdditionalData);
     }
 
@@ -478,7 +485,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             // apply SEB groups
             final String[] spsGroupIds = StringUtils.split(spsSettings.sebGroupsSelection, Constants.LIST_SEPARATOR_CHAR);
-            final Set<Long> spsGIds = spsGroupIds != null
+            final Set<Long> spsGIds = BooleanUtils.isTrue(spsSettings.enableScreenProctoring) && spsGroupIds != null
                     ? Arrays.stream(spsGroupIds).map(Long::parseLong).collect(Collectors.toSet())
                     : Collections.emptySet();
 
@@ -898,6 +905,39 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         vars.put(VAR_EXAM_TEMPLATE_NAME, examTemplate.name);
 
         return Utils.replaceAll(template, vars);
+    }
+
+    // TODO take hours instead of mins
+    @Scheduled(fixedRate = Constants.MINUTE_IN_MILLIS, initialDelay = Constants.MINUTE_IN_MILLIS)
+    private void cleanupTemporaryConfigurationTemplates() {
+        try {
+
+            log.info("Check for outdated temporary ConfigurationTemplate");
+
+            final long now = Utils.getMillisecondsNow();
+
+            configurationNodeDAO
+                    .getAllTemporary()
+                    .getOrThrow()
+                    .forEach(c -> {
+                        try {
+                            // TODO take hours instead of mins
+                            if (c.getLastUpdateTime() == null || now - c.getLastUpdateTime() > 24 * Constants.MINUTE_IN_MILLIS) {
+
+                                log.info("Delete outdated temporary ConfigurationTemplate: {}", c);
+
+                                configurationNodeDAO
+                                        .delete(Collections.singleton(new EntityKey(c.getId(), EntityType.CONFIGURATION_NODE)))
+                                        .getOrThrow();
+                            }
+                        } catch (Exception e) {
+                            log.error("Failed to cleanup temporary ConfigurationTemplate: {} ", c, e);
+                        }
+                    });
+
+        } catch (Exception e) {
+            log.error("Failed to cleanup temporary ConfigurationTemplates: ", e);
+        }
     }
 
 }

@@ -60,7 +60,6 @@ import static ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateSer
 public class ExamTemplateController extends EntityController<ExamTemplate, ExamTemplate> {
 
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateController.class);
-    public static final String TEMPORARY_TEMPLATE_PREFIX = "[TEMPORARY_TEMPLATE]";
 
     private final ExamTemplateDAO examTemplateDAO;
     private final ExamTemplateService examTemplateService;
@@ -194,15 +193,13 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getCurrentUser();
 
         final Long institutionId = currentUser.institutionId();
-        final String name = TEMPORARY_TEMPLATE_PREFIX + UUID.randomUUID();
-
         checkWritePrivilege(institutionId);
 
         final ConfigurationNode configurationNode = new ConfigurationNode(
                 null,
                 institutionId,
                 null,
-                name,
+                ExamTemplateService.createNameForTemporaryConfigurationTemplate(),
                 null,
                 ConfigurationNode.ConfigurationType.TEMPLATE,
                 currentUser.uuid(),

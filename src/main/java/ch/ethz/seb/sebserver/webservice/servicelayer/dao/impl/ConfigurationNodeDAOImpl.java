@@ -120,7 +120,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 return Collections.emptyList();
             }
 
-            return this.configurationNodeRecordMapper.selectByExample()
+            return this.configurationNodeRecordMapper
+                    .selectByExample()
                     .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
@@ -295,6 +296,17 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
          })
                 .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ConfigurationNodeRecord>> getAllTemporary() {
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper
+                .selectByExample()
+                .where(ConfigurationNodeRecordDynamicSqlSupport.name, isLike(Utils.toSQLWildcard(TEMPORARY_TEMPLATE_PREFIX)))
+                .build()
+                .execute()
+        );
     }
 
     @Override
