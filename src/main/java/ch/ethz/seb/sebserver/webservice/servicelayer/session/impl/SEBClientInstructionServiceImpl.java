@@ -58,7 +58,6 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
     private final ExamDAO examDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientInstructionDAO clientInstructionDAO;
-    private final ClientEventDAO clientEventDAO;
     private final JSONMapper jsonMapper;
 
     private final Map<String, SizedArrayNonBlockingQueue<ClientInstructionRecord>> instructions;
@@ -70,15 +69,13 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
             final WebserviceInfo webserviceInfo,
             final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final ClientInstructionDAO clientInstructionDAO, 
-            final ClientEventDAO clientEventDAO,
+            final ClientInstructionDAO clientInstructionDAO,
             final JSONMapper jsonMapper) {
 
         this.webserviceInfo = webserviceInfo;
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientInstructionDAO = clientInstructionDAO;
-        this.clientEventDAO = clientEventDAO;
         this.jsonMapper = jsonMapper;
         this.instructions = new ConcurrentHashMap<>();
     }
@@ -310,22 +307,11 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                     return;
                 }
 
-                // add SEB event log that SEB Server has automatically send quit instruction to SEB
-                final long now = Utils.getMillisecondsNow();
-                clientEventDAO.createNew(new ClientEvent(
-                                null,
-                                clientConnection.id,
-                                ClientEvent.EventType.WARN_LOG,
-                                now,
-                                now,
-                                null,
-                                "Automated SEB Client quit sent from SEB Server"))
-                        .onError(error -> log.error("Failed to put SEB Log about automated SEB quit for connection: {}", clientConnection.connectionToken));
-
                 _examId = clientConnection.examId;
             }
 
             if (_examId != null) {
+
 
                 log.info("Send automated quit instruction to SEB for connection token: {}", connectionToken);
 
@@ -337,6 +323,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                         false,
                         false
                 );
+
                 if (webserviceInfo.isDistributed()) {
                     loadInstructions();
                 }
