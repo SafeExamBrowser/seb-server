@@ -15,6 +15,10 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -353,6 +357,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
     @RequestMapping(
             path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -482,6 +488,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .orElseThrow(() -> new ResourceNotFoundException(EntityType.CLIENT_GROUP, parentModelId));
     }
 
+    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.POST,

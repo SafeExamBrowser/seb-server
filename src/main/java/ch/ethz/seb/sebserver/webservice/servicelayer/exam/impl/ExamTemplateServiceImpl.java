@@ -402,14 +402,18 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         ? CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY))
                         : currentSPSSettings.collectingStrategy;
 
-                // these two should not change here since this is only base data change and in base data change
-                // only the enable flag  and the collectingStrategy is changing.
-                // but if either SPS gets disabled or grouping strategy is set to one group only,
-                // sebGroupSelection will be reset to null.
-                //String fallbackGroupName = examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME);
-                String sebGroupSelection = spsEnabled && collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS
-                        ? currentSPSSettings.sebGroupsSelection
-                        : null;
+                // if we change to APPLY_SEB_GROUPS strategy and there are no sebGroupsSelection we set all SEB groups
+                // to avoid data inconsistency
+                String sebGroupsSelection = currentSPSSettings.sebGroupsSelection;
+                if (collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS && sebGroupsSelection == null) {
+                    sebGroupsSelection = examTemplateDAO
+                            .getClientGroupTemplates(examTemplate.id)
+                            .map(groups ->
+                                    StringUtils.join(groups.stream().map(
+                                            ClientGroupTemplate::getModelId).toList(),
+                                            Constants.LIST_SEPARATOR))
+                            .getOr(null);
+                }
 
                 final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
                         currentSPSSettings.examId,
@@ -422,7 +426,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         collectingStrategy,
                         currentSPSSettings.collectingGroupName,
                         null,
-                        sebGroupSelection,
+                        sebGroupsSelection,
                         true,
                         false);
 
@@ -437,7 +441,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             this.updateConfigurationTemplate(examTemplate);
 
             return examTemplate;
-        });
+        }).flatMap(this::applyExamTemplateAdditionalData);
     }
 
     @Override

@@ -260,9 +260,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                         value));
             }
 
-            return this.examTemplateRecordMapper.selectByPrimaryKey(data.id);
+            return data;
         })
-                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
