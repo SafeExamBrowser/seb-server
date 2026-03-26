@@ -52,7 +52,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 @SpringBootTest(
         properties = "file.encoding=UTF-8",
         classes = SEBServer.class,
-        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 public abstract class AdministrationAPIIntegrationTester {
