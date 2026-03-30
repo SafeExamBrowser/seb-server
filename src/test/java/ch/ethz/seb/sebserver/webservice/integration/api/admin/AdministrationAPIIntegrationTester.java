@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import org.springframework.web.util.UriBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -122,7 +125,7 @@ public abstract class AdministrationAPIIntegrationTester {
     protected class RestAPITestHelper {
 
         private String path = "";
-        private final Map<String, String> queryAttrs = new HashMap<>();
+        private final LinkedMultiValueMap<String, String> queryAttrs = new LinkedMultiValueMap<>();
         private String accessToken;
         private HttpStatus expectedStatus;
         private HttpMethod httpMethod = GET;
@@ -143,7 +146,7 @@ public abstract class AdministrationAPIIntegrationTester {
         }
 
         public RestAPITestHelper withAttribute(final String name, final String value) {
-            this.queryAttrs.put(name, value);
+            this.queryAttrs.add(name, value);
             return this;
         }
 
@@ -253,13 +256,24 @@ public abstract class AdministrationAPIIntegrationTester {
                         .stream()
                         .reduce(
                                 sb,
-                                (buffer, entry) -> buffer.append(entry.getKey()).append("=").append(entry.getValue())
-                                        .append("&"),
+                                (buffer, entry) -> buffer.append(getURIValue(entry.getKey(), entry.getValue())),
                                 (sb1, sb2) -> sb1.append(sb2));
                 sb.deleteCharAt(sb.length() - 1);
             }
             return sb.toString();
         }
+    }
+
+    private String getURIValue(final String key, final List<String> values) {
+        StringBuilder buffer = new StringBuilder();
+        if (values.size() == 1) {
+            return buffer.append(key).append("=").append(values.getFirst()).append("&").toString();
+        }
+
+        values.forEach(value -> {
+            buffer.append(key).append("=").append(value).append("&");
+        });
+        return buffer.toString();
     }
 
     protected String getOrderedUUIDs(final Collection<? extends Entity> list) {

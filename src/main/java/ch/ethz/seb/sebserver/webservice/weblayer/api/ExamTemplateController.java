@@ -156,7 +156,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 examTemplate.description,
                 examTemplate.examType,
                 examTemplate.supporter,
-                examTemplate.configTemplateId,
+                // Note: if no configuration template is assigned, we create a default one
+                examTemplate.configTemplateId != null
+                        ? examTemplate.configTemplateId
+                        : createTemporaryConfigurationTemplate().id,
                 examTemplate.institutionalDefault,
                 examTemplate.lmsIntegration,
                 examTemplate.clientConfigurationId,

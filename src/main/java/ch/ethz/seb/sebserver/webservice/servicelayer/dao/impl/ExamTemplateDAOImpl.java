@@ -240,14 +240,14 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     : null;
 
             UpdateDSL.updateWithMapper(examTemplateRecordMapper::update, examTemplateRecord)
-                .set(configurationTemplateId).equalTo(data.configTemplateId)
+                .set(configurationTemplateId).equalToWhenPresent(data.configTemplateId)
                 .set(name).equalTo(data.name)
                 .set(description).equalTo(data.description)
                 .set(examType).equalToWhenPresent((data.examType != null) ? data.examType.name() : null)
                 .set(ExamTemplateRecordDynamicSqlSupport.supporter).equalTo(supporter)
                 .set(institutionalDefault).equalTo(BooleanUtils.toInteger(data.institutionalDefault))
                 .set(lmsIntegration).equalTo(BooleanUtils.toInteger(data.lmsIntegration))
-                .set(clientConfigurationId).equalTo(data.clientConfigurationId)
+                .set(clientConfigurationId).equalToWhenPresent(data.clientConfigurationId)
                 .where(id, isEqualTo(data.id))
                 .build()
                 .execute();

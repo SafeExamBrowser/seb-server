@@ -559,8 +559,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     }
 
 
-
-
     private ClientGroupTemplate updateSPSGroups(final ClientGroupTemplate clientGroupTemplate) {
         try {
 
@@ -569,6 +567,27 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final ScreenProctoringSettings screenProctoringSettings = proctoringAdminService
                     .getScreenProctoringSettings(templateKey)
                     .getOrThrow();
+
+            // if sps is not enabled at all, ignore the group setting for SPS
+            if (!BooleanUtils.isTrue(screenProctoringSettings.enableScreenProctoring)) {
+                if (BooleanUtils.isTrue(clientGroupTemplate.screenProctoringEnabled)) {
+                    return new ClientGroupTemplate(
+                            clientGroupTemplate.id,
+                            clientGroupTemplate.examTemplateId,
+                            clientGroupTemplate.name,
+                            clientGroupTemplate.type,
+                            clientGroupTemplate.color,
+                            clientGroupTemplate.icon,
+                            clientGroupTemplate.ipRangeStart,
+                            clientGroupTemplate.ipRangeEnd,
+                            clientGroupTemplate.clientOS,
+                            clientGroupTemplate.nameRangeStartLetter,
+                            clientGroupTemplate.nameRangeEndLetter,
+                            false
+                    );
+                }
+                return clientGroupTemplate;
+            }
 
             final Set<String> spsGroupIds = new HashSet<>();
             final String sebGroupsSelection = screenProctoringSettings.sebGroupsSelection;
