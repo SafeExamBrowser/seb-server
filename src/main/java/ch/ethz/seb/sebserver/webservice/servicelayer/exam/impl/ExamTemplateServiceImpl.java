@@ -926,8 +926,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         return Utils.replaceAll(template, vars);
     }
 
-    // TODO take hours instead of mins
-    @Scheduled(fixedRate = Constants.MINUTE_IN_MILLIS, initialDelay = Constants.MINUTE_IN_MILLIS)
+    @Scheduled(fixedRate = 12 * Constants.HOUR_IN_MILLIS, initialDelay = Constants.MINUTE_IN_MILLIS)
     private void cleanupTemporaryConfigurationTemplates() {
         try {
 
@@ -940,8 +939,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .getOrThrow()
                     .forEach(c -> {
                         try {
-                            // TODO take hours instead of mins
-                            if (c.getLastUpdateTime() == null || now - c.getLastUpdateTime() > 24 * Constants.MINUTE_IN_MILLIS) {
+
+                            if (c.getLastUpdateTime() == null || now - c.getLastUpdateTime() > 24 * Constants.HOUR_IN_MILLIS) {
 
                                 log.info("Delete outdated temporary ConfigurationTemplate: {}", c);
 
