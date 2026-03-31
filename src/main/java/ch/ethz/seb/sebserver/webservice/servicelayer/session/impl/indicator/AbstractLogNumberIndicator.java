@@ -66,23 +66,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
 
         try {
 
-            final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
-                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
-                    .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
-                    .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
-                    .and(
-                            ClientEventRecordDynamicSqlSupport.text,
-                            isLikeWhenPresent(getFirstTagSQL()),
-                            getSubTagSQL())
-                    .orderBy(ClientEventRecordDynamicSqlSupport.serverTime)
-                    .build()
-                    .execute();
-
-            if (execute == null || execute.isEmpty()) {
-                return super.currentValue;
-            }
-
-            final BigDecimal numericValue = execute.get(execute.size() - 1).getNumericValue();
+            final BigDecimal numericValue = fetchValue(timestamp);
             if (numericValue != null) {
 
                 // update active indicator value record on persistent when caching is not enabled
@@ -101,6 +85,27 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
             log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
             return this.currentValue;
         }
+    }
+
+    protected BigDecimal fetchValue(final long timestamp) {
+
+        final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
+                .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
+                .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
+                //.and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.text,
+                        isLikeWhenPresent(getFirstTagSQL()),
+                        getSubTagSQL())
+                .orderBy(ClientEventRecordDynamicSqlSupport.serverTime)
+                .build()
+                .execute();
+
+        if (execute == null || execute.isEmpty()) {
+            return new BigDecimal(super.currentValue);
+        }
+
+        return  execute.getLast().getNumericValue();
     }
 
     private String getFirstTagSQL() {

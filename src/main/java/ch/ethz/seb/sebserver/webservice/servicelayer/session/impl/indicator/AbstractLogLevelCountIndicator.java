@@ -79,7 +79,7 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
                     .countByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
                     .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
-                    .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
+                 //   .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
                     .and(
                             ClientEventRecordDynamicSqlSupport.text,
                             isLikeWhenPresent(getfirstTagSQL()),
