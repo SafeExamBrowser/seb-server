@@ -1183,7 +1183,7 @@ public class ScreenProctoringAPIBinding {
         return requestSessionDeletion(searchName, dueTimeUTC, false);
     }
 
-    public Result<EntityKey> deleteSession(final String sessionUUID) {
+    public Result<EntityKey> secureDeleteSession(final String sessionUUID) {
         return Result.tryCatch(() -> {
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
@@ -1191,6 +1191,7 @@ public class ScreenProctoringAPIBinding {
                     .fromUriString(apiTemplate.spsServiceURL)
                     .path(SESSION_ENDPOINT)
                     .pathSegment(sessionUUID)
+                    .pathSegment(SESSION_SECURE_DELETE_ENDPOINT)
                     .build()
                     .toUriString();
 

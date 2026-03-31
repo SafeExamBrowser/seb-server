@@ -75,7 +75,7 @@ public class SessionDeletionController {
         return scheduledDeleteService
                 .deleteUserSessions(searchName, deleteDueTimestampUTC, ex)
                 .map(report -> {
-                    report.sebServerDeletions().stream().forEach(info -> {
+                    report.sebServerDeletions().forEach(info -> {
                         try {
                             userActivityLogDAO.log(UserLogActivityType.DELETE, EntityType.CLIENT_CONNECTION, info.uuid(), info.uuid());
                         } catch (Exception e) {

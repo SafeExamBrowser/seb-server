@@ -42,6 +42,8 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledDeleteServiceImpl.class);
 
+    private static final String OVERWRITE = "0000000000000000000000000000000000000000000";
+
     private final ScheduledDeleteDAO scheduledDeleteDAO;
     private final ScreenProctoringAPIBinding screenProctoringAPIBinding;
 
@@ -255,19 +257,13 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                     List<SessionDeletionInfo> deletedSPSSessions = toDelete
                             .spsDeletions()
                             .stream()
-                            .filter(info -> {
-                                final String sessionUUID = info.sessionInfo().uuid();
-                                if (excludes != null && excludes.contains(sessionUUID)) {
-                                    log.info("**** --> Exclude session: {} from deletion since it is in the excludes", info);
-                                    return false;
-                                }
-                                return true;
-                            })
+                            .filter(info ->  excludeFilter(excludes, info.sessionInfo().uuid()))
                             .map(info -> {
                                 try {
+
                                     final String sessionUUID = info.sessionInfo().uuid();
                                     screenProctoringAPIBinding
-                                            .deleteSession(sessionUUID)
+                                            .secureDeleteSession(sessionUUID)
                                             .getOrThrow();
 
                                     log.info("**** ---> Deleted session on SPS: {}", info);
@@ -283,20 +279,31 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                     List<SessionInfo> deletedClientConnections = toDelete
                             .sebServerDeletions()
                             .stream()
-                            .filter(info -> {
-                                final String sessionUUID = info.uuid();
-                                if (excludes != null && excludes.contains(sessionUUID)) {
-                                    log.info("**** --> Exclude session: {} from deletion since it is in the excludes", info);
-                                    return false;
-                                }
-                                return true;
-                            })
+                            .filter(info ->  excludeFilter(excludes, info.uuid()))
                             .map(info -> {
                                 try {
+
                                     final String sessionUUID = info.uuid();
                                     final ClientConnection connection = clientConnectionDAO
                                             .byConnectionToken(sessionUUID).getOrThrow();
 
+                                    // fist override the data for security. See: SEBSERV-885
+                                    clientConnectionDAO.save(new ClientConnection(
+                                            connection.id,
+                                            connection.institutionId,
+                                            connection.examId,
+                                            ClientConnection.ConnectionStatus.UNDEFINED,
+                                            connection.connectionToken,
+                                            OVERWRITE,
+                                            OVERWRITE,
+                                            "0.0.0.0",
+                                            OVERWRITE,
+                                            OVERWRITE,
+                                            false,
+                                            false
+                                    ));
+
+                                    // then delete it
                                     clientConnectionDAO
                                             .delete(Collections.singleton(new EntityKey(connection.id, EntityType.CLIENT_CONNECTION)))
                                             .getOrThrow();
@@ -324,14 +331,15 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                 });
     }
 
-    private SessionInfo toSessionInfoNoError(final ClientConnectionRecord session) {
-        return toSessionInfo(session, null);
+    private static boolean excludeFilter(final Set<String> excludes, final String sessionUUID) {
+        if (excludes != null && excludes.contains(sessionUUID)) {
+            log.info("**** --> Exclude session: {} from deletion since it is in the excludes", sessionUUID);
+            return false;
+        }
+        return true;
     }
 
-    private SessionInfo toSessionInfo(
-            final ClientConnectionRecord session,
-            final String error) {
-
+    private SessionInfo toSessionInfoNoError(final ClientConnectionRecord session) {
         boolean isClosed;
         try {
             ClientConnection.ConnectionStatus connectionStatus = ClientConnection.ConnectionStatus.valueOf(session.getStatus());
@@ -349,48 +357,9 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                 session.getClientVersion(),
                 session.getCreationTime(),
                 !isClosed ? session.getUpdateTime() : null,
-                error
+                null
         );
     }
-
-//    private SessionInfo applyDeletion(
-//            final ClientConnectionRecord session,
-//            final boolean doDelete) {
-//
-//        boolean isClosed;
-//        try {
-//            ClientConnection.ConnectionStatus connectionStatus = ClientConnection.ConnectionStatus.valueOf(session.getStatus());
-//            isClosed = !connectionStatus.clientActiveStatus;
-//        } catch (Exception e) {
-//            isClosed = false;
-//        }
-//
-//        if (!isClosed) {
-//            log.warn("An unclosed user session is about to be delete: {}", session);
-//        }
-//
-//        Exception error = null;
-//        if (doDelete) {
-//            // actually delete the session
-//            Result<Collection<EntityKey>> delete = clientConnectionDAO
-//                    .delete(Collections.singleton(new EntityKey(session.getId(), EntityType.CLIENT_CONNECTION)));
-//            if (delete.hasError()) {
-//                error = delete.getError();
-//            }
-//        }
-//
-//        return new SessionInfo(
-//                session.getConnectionToken(),
-//                session.getExamUserSessionId(),
-//                session.getClientAddress(),
-//                session.getClientMachineName(),
-//                session.getClientOsName(),
-//                session.getClientVersion(),
-//                session.getCreationTime(),
-//                !isClosed ? session.getUpdateTime() : null,
-//                error != null ? error.getMessage() : null
-//        );
-//    }
 
     private ScheduledDeleteReport createScheduledDeleteInternal(
             final Long deleteTimeUTCAtStartOfDay,

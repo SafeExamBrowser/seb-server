@@ -46,6 +46,7 @@ interface SPS_API {
     String GROUP_ENDPOINT = "/admin-api/v1/group";
     String GROUP_BY_EXAM_ENDPOINT =  GROUP_ENDPOINT + "/by-exam";
     String SESSION_ENDPOINT = "/admin-api/v1/session";
+    String SESSION_SECURE_DELETE_ENDPOINT = "/secure";
     String SESSION_ENCRYPTION_KEY_ENDPOINT = SESSION_ENDPOINT + "/encrypt-key";
     String SESSION_ENCRYPTION_KEY_REQUEST_HEADER = "seb_session_encrypt_key";
     String ACTIVE_PATH_SEGMENT = "active";
