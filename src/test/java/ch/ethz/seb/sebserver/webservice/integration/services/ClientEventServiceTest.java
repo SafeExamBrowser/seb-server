@@ -263,7 +263,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
 
         this.sebClientSessionService.notifyClientEvent(
                 "token3",
-                writeValueAsString(new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 40.0,
+                writeValueAsString(new ClientEvent(null, connection.id, EventType.INFO_LOG, 2L, 2L, 40.0,
                         "<battery> some info other")));
         waitForExecutor();
         assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));

@@ -57,7 +57,7 @@ public class BatteryStatusIndicator extends AbstractLogNumberIndicator {
         final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
                 .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
                 .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.INFO_LOG.id))
-                //.and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
+               // .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
                 .and(ClientEventRecordDynamicSqlSupport.text, isLike(Utils.toSQLWildcard(LOG_EVENT_TAG_BATTERY_STATUS)))
                 .orderBy(ClientEventRecordDynamicSqlSupport.serverTime.descending())
                 .limit(1)
