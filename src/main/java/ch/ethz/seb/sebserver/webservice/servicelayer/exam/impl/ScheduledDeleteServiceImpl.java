@@ -224,7 +224,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                             .map(s -> s
                                     .stream()
                                     // filter out all that are newer than dueTime when dueTime is available
-                                    .filter(cc -> dueTime != null && cc.getCreationTime() > dueTime)
+                                    .filter(cc -> dueTime == null || cc.getCreationTime() > dueTime)
                                     .map(this::toSessionInfoNoError)
                                     .toList())
                             .getOrThrow();

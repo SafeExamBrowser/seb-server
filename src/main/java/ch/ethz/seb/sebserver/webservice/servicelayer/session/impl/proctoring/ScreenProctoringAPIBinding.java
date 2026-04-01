@@ -1221,7 +1221,7 @@ public class ScreenProctoringAPIBinding {
                     .fromUriString(apiTemplate.spsServiceURL)
                     .path(SESSION_DELETION_REQUEST_ENDPOINT)
                     .queryParam(SessionDeletionReport.ATTR_SEARCH_NAME, searchName)
-                    .queryParamIfPresent(SessionDeletionReport.ATTR_DELETE_DUE_TIME,Optional.of((dueTimeUTC != null) ? String.valueOf(dueTimeUTC) : null))
+                    .queryParamIfPresent(SessionDeletionReport.ATTR_DELETE_DUE_TIME, dueTimeUTC != null ? Optional.of(String.valueOf(dueTimeUTC)) : Optional.empty())
                     .build()
                     .toUriString();
 
