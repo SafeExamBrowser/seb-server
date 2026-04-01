@@ -39,10 +39,15 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     @Override
     public final void notifyValueChange(final String textValue, final double numValue) {
         if (this.tags == null || this.tags.length == 0 || hasTag(textValue)) {
-            if (super.distributedIndicatorValueRecordId != null) {
-                this.distributedIndicatorValueService.incrementIndicatorValue(super.distributedIndicatorValueRecordId);
+            double value = getValue() + 1d;
+            if (super.distributedIndicatorValueRecordId != null && !Double.isNaN(value)) {
+                distributedIndicatorValueService.updateIndicatorValueAsync(
+                        super.distributedIndicatorValueRecordId,
+                        (long) value
+                );
+            } else {
+                currentValue = value;
             }
-            this.currentValue = getValue() + 1d;
         }
     }
 
@@ -84,7 +89,7 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
 
             // update active indicator value record on persistent when caching is not enabled
             if (this.active && this.distributedIndicatorValueRecordId != null) {
-                this.distributedIndicatorValueService.updateIndicatorValue(
+                this.distributedIndicatorValueService.updateIndicatorValueAsync(
                         this.distributedIndicatorValueRecordId,
                         numberOfLogs.longValue());
             }

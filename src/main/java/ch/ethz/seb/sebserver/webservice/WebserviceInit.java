@@ -133,6 +133,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         } else if (this.webserviceInfo.isLightSetup()) {
             SEBServerInit.INIT_LOGGER.info("----> ");
             SEBServerInit.INIT_LOGGER.info("----> SEB Server light setup enabled!");
+        } else {
+            SEBServerInit.INIT_LOGGER.info("----> ");
+            SEBServerInit.INIT_LOGGER.info("----> SEB Server single host setup!");
         }
 
         SEBServerInit.INIT_LOGGER.info("----> ");

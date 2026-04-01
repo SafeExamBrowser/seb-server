@@ -72,7 +72,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
                     .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
                     .and(
                             ClientEventRecordDynamicSqlSupport.text,
-                            isLikeWhenPresent(getfirstTagSQL()),
+                            isLikeWhenPresent(getFirstTagSQL()),
                             getSubTagSQL())
                     .orderBy(ClientEventRecordDynamicSqlSupport.serverTime)
                     .build()
@@ -87,7 +87,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
 
                 // update active indicator value record on persistent when caching is not enabled
                 if (this.active && this.distributedIndicatorValueRecordId != null) {
-                    this.distributedIndicatorValueService.updateIndicatorValue(
+                    this.distributedIndicatorValueService.updateIndicatorValueAsync(
                             this.distributedIndicatorValueRecordId,
                             numericValue.longValue());
                 }
@@ -103,7 +103,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
         }
     }
 
-    private String getfirstTagSQL() {
+    private String getFirstTagSQL() {
         if (this.tags == null || this.tags.length == 0) {
             return null;
         }

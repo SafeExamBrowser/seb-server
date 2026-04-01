@@ -12,7 +12,7 @@
             <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
-            <heap unit="entries">100</heap>
+            <heap unit="entries">200</heap>
         </resources>
     </cache>
 

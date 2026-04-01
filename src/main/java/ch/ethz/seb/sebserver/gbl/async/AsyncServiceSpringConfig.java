@@ -58,27 +58,10 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
         return executor;
     }
 
-    public static final String EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME = "examAPIPingThreadPoolTaskExecutor";
-
-    /** This ThreadPool is used for ping handling in a distributed setup and shall reject
-     * incoming ping requests as fast as possible if there is too much load on the DB.
-     * We prefer to lose a shared ping update and respond to the client in time over a client request timeout */
-    @Bean(name = EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME)
-    public Executor examAPIPingThreadPoolTaskExecutor() {
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(100);
-        executor.setQueueCapacity(0);
-        executor.setThreadNamePrefix("SEBPingService-");
-        executor.initialize();
-        executor.setWaitForTasksToCompleteOnShutdown(false);
-        return executor;
-    }
-
     @Bean
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
         final ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(10);
+        threadPoolTaskScheduler.setPoolSize(50);
         threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskScheduler.setThreadNamePrefix("SEB-Server-BgTask-");
         return threadPoolTaskScheduler;

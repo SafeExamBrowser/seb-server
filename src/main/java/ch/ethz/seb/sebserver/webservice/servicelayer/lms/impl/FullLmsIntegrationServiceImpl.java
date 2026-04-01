@@ -231,7 +231,11 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 this.examDAO
                         .allForLMSSetup(lmsSetup.id)
                         .getOrThrow()
-                        .forEach(exam -> applyExamData(exam, true));
+                        .forEach(exam -> {
+                            if (Objects.equals(exam.lmsSetupId, lmsSetup.id)) {
+                                applyExamData(exam, true);
+                            }
+                        });
                 
                 // delete full integration on Moodle side due to deactivation
                 this.teacherAccountService.deleteAllFromLMS(lmsSetup.id);
