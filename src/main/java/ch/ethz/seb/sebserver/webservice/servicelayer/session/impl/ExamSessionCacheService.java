@@ -278,15 +278,11 @@ public class ExamSessionCacheService {
     }
 
     private ClientConnection getClientConnectionByToken(final String connectionToken) {
-        final Result<ClientConnection> result = this.clientConnectionDAO
-                .byConnectionToken(connectionToken);
-
-        if (result.hasError()) {
-            log.error("Failed to find/load ClientConnection with connectionToken {}",
-                    connectionToken,
-                    result.getError());
-            return null;
-        }
-        return result.get();
+        return this.clientConnectionDAO
+                .byConnectionToken(connectionToken)
+                .onError(error -> log.error("Failed to find/load ClientConnection with connectionToken {}",
+                                connectionToken,
+                                error))
+                .getOr(null);
     }
 }

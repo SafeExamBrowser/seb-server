@@ -12,10 +12,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -78,6 +75,10 @@ public class DistributedIndicatorValueService {
     private final SqlSessionTemplate sqlSessionTemplate;
     private final Map<Long, Long> indicatorValueQueue = new ConcurrentHashMap<>();
 
+    // fetch batch
+    private final BlockingDeque<FetchIndicatorValue> fetchQueue = new LinkedBlockingDeque<>();
+    private final List<FetchIndicatorValue> fetchBatch = new ArrayList<>();
+
 
     public DistributedIndicatorValueService(
             final TaskScheduler taskScheduler,
@@ -133,21 +134,44 @@ public class DistributedIndicatorValueService {
 
             try {
 
+                // the cache read batch
                 taskScheduler.scheduleAtFixedRate(
                         this::updateIndicatorValueCache,
                         Duration.ofMillis(readBatchInterval));
 
                 SEBServerInit.INIT_LOGGER.info("------> distributed indicator value service successfully initialized!");
 
+                // the store update batch
                 Map<Long, Long> batchMap1 = new HashMap<>();
                 taskScheduler.scheduleWithFixedDelay(
                         () -> processStoreUpdate(batchMap1),
                         Duration.ofMillis(writeBatchInterval));
 
+
+
+
             } catch (final Exception e) {
                 SEBServerInit.INIT_LOGGER.error("------> Failed to initialize distributed indicator value service:", e);
                 log.error("Failed to initialize distributed indicator value cache update task");
             }
+        }
+
+        try {
+
+            final long batchFetchInterval = webserviceInfo.getDistributedWriteBatchInterval();
+
+            // only use the fetch batch for none distributed setups
+            SEBServerInit.INIT_LOGGER.info("------> with batched indicator value fetch interval : {}",
+                    batchFetchInterval);
+
+            // the value fetch batch
+            taskScheduler.scheduleAtFixedRate(
+                    this::fetchValues,
+                    Duration.ofMillis(batchFetchInterval));
+
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("------> Failed to initialize batched indicator value fetch interval:", e);
+            log.error("Failed to initialize batched indicator value fetch interval task");
         }
     }
 
@@ -409,6 +433,33 @@ public class DistributedIndicatorValueService {
         } catch (Exception e) {
             log.error("Failed write distributed indicator values to persistent store. Skip all. cause: {}", e.getMessage());
         }
+    }
+
+    public void addIndicatorValueFetch(final FetchIndicatorValue fetchIndicatorValue) {
+        fetchQueue.add(fetchIndicatorValue);
+    }
+
+    private void fetchValues() {
+        try {
+
+            fetchBatch.clear();
+            fetchQueue.drainTo(fetchBatch);
+
+            fetchBatch.forEach(fetcher -> {
+                try {
+
+                    fetcher.fetch();
+
+                } catch (Exception ee) {
+                    log.error("Failed to fetch single indicator value: {}. put it back to queue", ee.getMessage());
+                    fetchQueue.add(fetcher);
+                }
+            });
+
+        } catch (Exception e) {
+            log.error("Failed to batch fetch indicator values: {}", e.getMessage());
+        }
+
     }
 
 }
