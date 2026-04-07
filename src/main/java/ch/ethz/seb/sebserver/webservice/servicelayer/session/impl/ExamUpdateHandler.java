@@ -159,7 +159,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                                 try {
                                     final Exam exam = exams.get(quizId);
                                     if (exam.lmsSetupId != null && (exam.lmsAvailable == null || exam.isLmsAvailable())) {
-                                        this.examDAO.markLMSAvailability(quizId, false, updateId);
+                                        this.examDAO.markLMSAvailability(exam.lmsSetupId, quizId, false, updateId);
                                     }
                                 } catch (final Exception ee) {
                                     log.error("Failed to mark exam: {} as not connected to LMS", quizId, ee);
@@ -203,7 +203,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                                             updateQuizData.getError());
                                 } else {
                                     if (!exam.isLmsAvailable()) {
-                                        this.examDAO.markLMSAvailability(quiz.id, true, updateId);
+                                        this.examDAO.markLMSAvailability(exam.lmsSetupId, quiz.id, true, updateId);
                                         // delete attempts attribute
                                         this.additionalAttributesDAO.delete(
                                                 EntityType.EXAM,
@@ -222,7 +222,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
 
                             } else {
                                 if (!exam.isLmsAvailable()) {
-                                    this.examDAO.markLMSAvailability(quiz.id, true, updateId);
+                                    this.examDAO.markLMSAvailability(exam.lmsSetupId, quiz.id, true, updateId);
                                 }
                                 failedOrMissing.remove(quiz.id);
                             }
@@ -460,7 +460,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
             final Exam exam = exams.get(quizId);
             if (!lmsTemplate.getType().features.contains(Features.COURSE_RECOVERY)) {
                 if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
-                    this.examDAO.markLMSAvailability(quizId, false, updateId);
+                    this.examDAO.markLMSAvailability(exam.lmsSetupId, quizId, false, updateId);
                 }
                 throw new UnsupportedOperationException("No Course Recovery");
             }
@@ -513,7 +513,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                 .onError(error1 -> log.error("Failed to save new attempts: ", error1));
 
         if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
-            this.examDAO.markLMSAvailability(quizId, false, updateId);
+            this.examDAO.markLMSAvailability(exam.lmsSetupId, quizId, false, updateId);
         }
     }
 

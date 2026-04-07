@@ -113,7 +113,7 @@ public class ExamDAOImpl implements ExamDAO {
                 throw new IllegalStateException("To many exams found for external_id like" + internalQuizIdLike);
             }
 
-            return execute.get(0);
+            return execute.getFirst();
         }).flatMap(this::toDomainModel);
     }
 
@@ -225,7 +225,11 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    public void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId) {
+    public void markLMSAvailability(
+            final Long lmsSetupId,
+            final String externalQuizId,
+            final boolean available,
+            final String updateId) {
 
         if (!available) {
             log.info("Mark exam quiz data not available from LMS: {}", externalQuizId);
@@ -233,9 +237,9 @@ public class ExamDAOImpl implements ExamDAO {
             log.info("Mark exam quiz data back again from LMS: {}", externalQuizId);
         }
 
-        this.examRecordDAO.idByExternalQuizId(externalQuizId)
+        this.examRecordDAO.idByExternalQuizId(lmsSetupId, externalQuizId)
                 .flatMap(examId -> this.examRecordDAO.updateLmsNotAvailable(examId, available, updateId))
-                .onError(error -> log.error("Failed to mark LMS not available: {}", externalQuizId, error));
+                .onError(error -> log.error("Failed to mark LMS not available: {} cause: {}", externalQuizId, error.getMessage()));
     }
 
     @Override

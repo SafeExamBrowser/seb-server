@@ -258,10 +258,11 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     /** This is used by the internal update process to mark exams for which the LMS related data availability
      *
+     * @param lmsSetupId The LMS setup identifier
      * @param externalQuizId The exams external UUID or quiz id of the exam to mark
      * @param available The LMS availability flag to set
      * @param updateId The update identifier given by the update task */
-    void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
+    void markLMSAvailability(Long lmsSetupId, String externalQuizId, boolean available, String updateId);
 
     void updateQuitPassword(Exam exam, String quitPassword);
     

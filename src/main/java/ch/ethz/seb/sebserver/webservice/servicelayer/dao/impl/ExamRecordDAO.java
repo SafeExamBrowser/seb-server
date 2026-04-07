@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ExamUUIDMapper;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -49,10 +50,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DuplicateResourceException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
@@ -91,16 +88,24 @@ public class ExamRecordDAO {
     }
 
     @Transactional(readOnly = true)
-    public Result<Long> idByExternalQuizId(final String externalQuizId) {
+    public Result<Long> idByExternalQuizId(final Long lmsId, final String externalQuizId) {
         return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectIdsByExample()
+            List<Long> ids = this.examRecordMapper.selectIdsByExample()
                     .where(
-                            ExamRecordDynamicSqlSupport.externalId,
+                            externalId,
                             isEqualToWhenPresent(externalQuizId))
+                    .and(lmsSetupId, isEqualToWhenPresent(lmsId))
                     .build()
-                    .execute()
-                    .stream()
-                    .collect(Utils.toSingleton());
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                throw new NoResourceFoundException(EntityType.EXAM, "No Exam found for externalId: " + externalQuizId + " and lmsSetupId: " + lmsId);
+            }
+
+            if (ids.size() > 1) {
+                log.warn("Expected one Exam for external Id: {} but found: {}. Take first in the list and go on", externalQuizId ,ids);
+            }
+            return ids.getFirst();
         });
     }
 
