@@ -284,22 +284,6 @@ public final class Utils {
                 .getOr(defaultValue);
     }
 
-//    public static <M extends Map<K, V>, K, V> M mapPut(final M map, final K key, final V value) {
-//        map.put(key, value);
-//        return map;
-//    }
-//
-//    public static <M extends Map<K, V>, K, V> M mapPutAll(final M map1, final M map2) {
-//        map1.putAll(map2);
-//        return map1;
-//    }
-//
-//    public static <M extends Map<K, Collection<V>>, K, V> M mapCollect(final M map, final K key, final V value) {
-//        final List<V> list = (List<V>) map.computeIfAbsent(key, k -> new ArrayList<>());
-//        list.add(value);
-//        return map;
-//    }
-
     public static DateTime toDateTime(final String dateString) {
         if (StringUtils.isBlank(dateString)) {
             return null;

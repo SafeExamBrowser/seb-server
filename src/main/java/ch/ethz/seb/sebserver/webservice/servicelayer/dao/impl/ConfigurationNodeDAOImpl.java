@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
@@ -255,11 +257,14 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             final String newOwner,
             final ConfigCreationInfo copyInfo) {
 
-        return this.configurationDAOBatchService.createCopy(
-                institutionId,
-                newOwner,
-                copyInfo,
-                daoUserServcie.getCurrentUserUUID());
+        return this
+                .checkCorrectCopyName(copyInfo)
+                .flatMap(cInfo -> this.configurationDAOBatchService.createCopy(
+                        institutionId,
+                        newOwner,
+                        cInfo,
+                        daoUserServcie.getCurrentUserUUID())
+                );
     }
 
     @Override
@@ -479,6 +484,29 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 ConfigurationStatus.valueOf(record.getStatus()),
                 Utils.toDateTimeUTC(record.getLastUpdateTime()),
                 record.getLastUpdateUser()));
+    }
+
+    private Result<ConfigCreationInfo> checkCorrectCopyName(final ConfigCreationInfo copyInfo) {
+        return Result.tryCatch(() -> {
+            final Long count = this.configurationNodeRecordMapper.countByExample()
+                    .where(
+                            ConfigurationNodeRecordDynamicSqlSupport.name,
+                            isEqualTo(copyInfo.name))
+                    .build()
+                    .execute();
+
+            if (count > 0) {
+                return new ConfigCreationInfo(
+                        copyInfo.configurationNodeId,
+                        copyInfo.name + " " + Utils.formatDate(DateTime.now(DateTimeZone.UTC)),
+                        copyInfo.description,
+                        copyInfo.withHistory,
+                        copyInfo.configurationType
+                );
+            }
+
+            return copyInfo;
+        });
     }
 
 }
