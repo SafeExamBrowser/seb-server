@@ -17,7 +17,9 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ConfigCreationInfo", description = "Configuration creation information")
 public final class ConfigCreationInfo implements Entity {
 
     public static final String ATTR_COPY_WITH_HISTORY = "with-history";

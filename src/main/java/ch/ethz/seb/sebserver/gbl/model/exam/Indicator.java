@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -30,11 +32,13 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.THRESHOLD;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@Schema(name = "Indicator", description = "Monitoring indicator for client connection status")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Indicator implements Entity {
 
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
+    @Schema(description = "Type of indicator measurement")
     public enum IndicatorType {
         NONE(0, "UNKNOWN", false, false, false, false, false),
         LAST_PING(1, Names.LAST_PING, false, true, true, false, false),

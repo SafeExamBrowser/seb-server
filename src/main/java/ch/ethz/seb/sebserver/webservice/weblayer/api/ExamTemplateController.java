@@ -17,6 +17,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServe
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -55,6 +57,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 import static ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService.clientGroupTemplatePageSort;
 import static ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService.indicatorTemplatePageSort;
 
+@Tag(name = "Exam Template", description = "Exam template management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_TEMPLATE_ENDPOINT)
 public class ExamTemplateController extends EntityController<ExamTemplate, ExamTemplate> {

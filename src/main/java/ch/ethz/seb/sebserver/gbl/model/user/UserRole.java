@@ -18,8 +18,10 @@ import org.springframework.security.core.GrantedAuthority;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Defines the possible user roles of SEB Server users. */
+@Schema(description = "SEB Server user role")
 public enum UserRole implements Entity, GrantedAuthority {
     SEB_SERVER_ADMIN,
     INSTITUTIONAL_ADMIN,

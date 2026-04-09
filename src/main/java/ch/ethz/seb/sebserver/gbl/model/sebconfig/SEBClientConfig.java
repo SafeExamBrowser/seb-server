@@ -33,7 +33,9 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "SEBClientConfig", description = "SEB client connection configuration")
 public final class SEBClientConfig implements GrantEntity, Activatable {
 
     public static final String ATTR_CONFIG_PURPOSE = "sebConfigPurpose";
@@ -59,11 +61,13 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public static final String FILTER_ATTR_CREATION_DATE = "creation_date";
     public static final String ATTR_EXAM_SELECTION = "exam_selection";
 
+    @Schema(description = "Configuration purpose: start exam or configure client")
     public enum ConfigPurpose {
         START_EXAM,
         CONFIGURE_CLIENT
     }
 
+    @Schema(description = "VDI (Virtual Desktop Infrastructure) type")
     public enum VDIType {
         NO,
         VM_WARE(

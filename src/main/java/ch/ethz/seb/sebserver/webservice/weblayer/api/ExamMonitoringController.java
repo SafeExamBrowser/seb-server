@@ -65,8 +65,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Exam Monitoring", description = "Real-time exam monitoring")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_MONITORING_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -149,6 +154,10 @@ public class ExamMonitoringController {
      *            descending sort order
      * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering
      * @return Page of domain-model-entities of specified type */
+    @Operation(operationId = "getMonitoringRunningExams", summary = "Get a page of all currently running exams")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -208,6 +217,10 @@ public class ExamMonitoringController {
      *            descending sort order
      * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering
      * @return Page of domain-model-entities of specified type */
+    @Operation(operationId = "getMonitoringFinishedExams", summary = "Get a page of all currently finished exams")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_MONITORING_FINISHED_ENDPOINT,
             method = RequestMethod.GET,
@@ -252,6 +265,11 @@ public class ExamMonitoringController {
                 ExamAdministrationController.pageSort(sort));
     }
 
+    @Operation(operationId = "toggleTestRunForExam", summary = "Toggle test run mode for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_MONITORING_TEST_RUN_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT,
@@ -292,6 +310,11 @@ public class ExamMonitoringController {
      * @param institutionId the institution identifier from the user. If absent the system will get the one from logged in user
      * @param examId the exam identifier
      * @return ExamMonitoringOverviewData containing actual monitoring overview data for the particular exam.*/
+    @Operation(operationId = "getMonitoringOverview", summary = "Get monitoring overview data for a running exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.EXAM_MONITORING_OVERVIEW_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -317,6 +340,11 @@ public class ExamMonitoringController {
      * @param showIncidences comma separated list of indicator names to show incidents and warnings for (filter property)
      * @param showNotifications comma separated list of notification type names  to show (filter property)
      * @return MonitoringFullPageData with filtered live SEB connection data for the given running exam */
+    @Operation(operationId = "getMonitoringClientConnections", summary = "Get full monitoring page data with filtered SEB client connections for a running exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.EXAM_MONITORING_CONNECTIONS + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -358,6 +386,11 @@ public class ExamMonitoringController {
      * @param hiddenIssues Comma separated list of ConnectionIssueStatus names that are hidden from the filter and shall not be included
      * @return Filtered Collection of ClientConnectionData for exam monitoring display and update
      */
+    @Operation(operationId = "getMonitoringConnectionData", summary = "Get filtered client connection data for an exam (legacy endpoint)")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -395,6 +428,11 @@ public class ExamMonitoringController {
      * @param clientConnectionIds Comma separated list of ClientConnection ids (PKs not connectionTokens)
      * @return The MonitoringStaticClientData containing all static data of requested SEB Client connections
      */
+    @Operation(operationId = "getMonitoringStaticClientData", summary = "Get static SEB client connection data for specific connections in an exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_STATIC_CLIENT_DATA,
@@ -421,6 +459,11 @@ public class ExamMonitoringController {
                 .getOrThrow();
     }
     
+    @Operation(operationId = "getMonitoringFullPageData", summary = "Get full monitoring page data including screen proctoring info for a running exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_FULLPAGE,
@@ -455,6 +498,11 @@ public class ExamMonitoringController {
                 screenProctoringData);
     }
 
+    @Operation(operationId = "getMonitoringClientConnection", summary = "Get monitoring data for a single SEB client connection by token")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
@@ -475,6 +523,10 @@ public class ExamMonitoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "quitAllActiveSEBClients", summary = "Send quit instruction to all active SEB clients in an exam")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_QUIT_ALL,
@@ -502,6 +554,11 @@ public class ExamMonitoringController {
         }
     }
 
+    @Operation(operationId = "notifyClientInstruction", summary = "Register a SEB client instruction for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_INSTRUCTION_ENDPOINT,
@@ -529,6 +586,11 @@ public class ExamMonitoringController {
         this.sebClientInstructionService.registerInstructionAsync(clientInstruction);
     }
 
+    @Operation(operationId = "getMonitoringPendingNotifications", summary = "Get pending client notifications for a SEB connection in an exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
@@ -560,6 +622,11 @@ public class ExamMonitoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "confirmMonitoringNotification", summary = "Confirm a pending client notification for a SEB connection in an exam")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
@@ -587,6 +654,11 @@ public class ExamMonitoringController {
                 });
     }
 
+    @Operation(operationId = "disableMonitoringClientConnection", summary = "Disable one or more SEB client connections in a monitored exam")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT,
@@ -621,6 +693,11 @@ public class ExamMonitoringController {
         }
     }
 
+    @Operation(operationId = "getMonitoringAppSignatureKey", summary = "Get the app signature key for a SEB client connection")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +

@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "LoginForward", description = "Login forward redirect information")
 public final class LoginForward {
     @JsonProperty("entityKey")
     public final EntityKey entityKey;

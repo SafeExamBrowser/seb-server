@@ -54,9 +54,14 @@ import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.*;
 
+@Tag(name = "User Account", description = "User account management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.USER_ACCOUNT_ENDPOINT)
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
@@ -103,6 +108,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.oAuth2AuthorizationService = oAuth2AuthorizationService;
     }
 
+    @Operation(operationId = "getCurrentUser", summary = "Get the currently logged-in user account")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CURRENT_USER_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -114,6 +123,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getUserInfo();
     }
 
+    @Operation(operationId = "getCurrentUserFeatures", summary = "Get feature flags for the currently logged-in user")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CURRENT_USER_PATH_SEGMENT + API.FEATURES_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -122,6 +135,11 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         return this.featureService.getCurrentUserFeatures().getOrThrow();
     }
 
+    @Operation(operationId = "login", summary = "Log a login activity event for the current user")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(path = API.LOGIN_PATH_SEGMENT, method = RequestMethod.POST)
     public void login() {
         this.userActivityLogDAO.logLogin(this.authorization
@@ -130,6 +148,11 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getUserInfo());
     }
 
+    @Operation(operationId = "logout", summary = "Revoke the current access token and log a logout activity event")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(path = API.LOGOUT_PATH_SEGMENT, method = RequestMethod.POST)
     public void logout(final HttpServletRequest request) {
         try {
@@ -204,6 +227,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         return result;
     }
 
+    @Operation(operationId = "getSupporterNames", summary = "Get a list of active exam supporter user names for an institution")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.USER_ACCOUNT_ENDPOINT_SUPPORTER,
             method = RequestMethod.GET,
@@ -232,6 +259,11 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getOrThrow();
     }
 
+    @Operation(operationId = "changePassword", summary = "Change the password for a user account")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PASSWORD_PATH_SEGMENT,
             method = RequestMethod.PUT,

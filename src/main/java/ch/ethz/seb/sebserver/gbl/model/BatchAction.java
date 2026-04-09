@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -30,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.BATCH_ACTION;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@Schema(name = "BatchAction", description = "Batch action request and result")
 public class BatchAction implements GrantEntity {
 
     public static final String ATTR_FAILURES = "failures";

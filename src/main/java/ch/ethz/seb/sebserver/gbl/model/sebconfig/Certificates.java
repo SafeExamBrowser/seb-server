@@ -19,7 +19,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain.CERTIFICATE;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "Certificates", description = "Collection of certificates")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Certificates {
 

@@ -13,7 +13,9 @@ import java.util.Collection;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ExamMonitoringOverviewData", description = "Overview monitoring data for an exam")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ExamMonitoringOverviewData(
         @JsonProperty("clientStates") ClientStatesData clientStates,

@@ -8,7 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +30,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Institution", description = "Institution management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.INSTITUTION_ENDPOINT)
 public class InstitutionController extends ActivatableEntityController<Institution, Institution> {
@@ -54,6 +60,11 @@ public class InstitutionController extends ActivatableEntityController<Instituti
         return InstitutionRecordDynamicSqlSupport.institutionRecord;
     }
 
+    @Operation(operationId = "getOwnInstitution", summary = "Get the institution of the currently logged-in user")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(path = API.SELF_PATH_SEGMENT, method = RequestMethod.GET)
     public Institution getOwn() {
         final SEBServerUser currentUser = this.authorization

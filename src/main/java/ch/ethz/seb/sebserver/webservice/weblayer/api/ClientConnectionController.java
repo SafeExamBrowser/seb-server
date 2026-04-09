@@ -17,6 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
@@ -51,6 +53,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "SEB Client Connection", description = "SEB client connection data and monitoring")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONNECTION_ENDPOINT)
 public class ClientConnectionController extends ReadonlyEntityController<ClientConnection, ClientConnection> {
@@ -76,6 +79,10 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         this.sebClientSessionService = sebClientSessionService;
     }
 
+    @Operation(operationId = "getClientConnections", summary = "Get a page of ClientConnection entities")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @Override
     @RequestMapping(
             method = RequestMethod.GET,
@@ -101,6 +108,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
     }
 
     @Operation(
+            operationId = "getClientConnectionDataPage",
             summary = "Get a page of ClientConnectionData domain entity. Sorting and filtering is applied before paging",
             description = """
                     Sorting: the sort parameter to sort the list of entities before paging
@@ -136,6 +144,9 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                             required = false,
                             allowEmptyValue = false)
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.SEB_CLIENT_CONNECTION_DATA_ENDPOINT,
             method = RequestMethod.GET,
@@ -180,6 +191,11 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         }
     }
 
+    @Operation(operationId = "getClientConnectionData", summary = "Get ClientConnectionData for a specific client connection by model ID")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.SEB_CLIENT_CONNECTION_DATA_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,

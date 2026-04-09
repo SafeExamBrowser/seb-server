@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Batch Action", description = "Bulk entity operations")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.BATCH_ACTION_ENDPOINT)
 public class BatchActionController extends EntityController<BatchAction, BatchAction> {

@@ -17,7 +17,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientMonitoringData", description = "Real-time monitoring data for a client connection")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientMonitoringData implements ClientMonitoringDataView {
 

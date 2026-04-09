@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Strategy for collecting SEB connections")
 public enum CollectingStrategy {
     EXAM,
     APPLY_SEB_GROUPS,

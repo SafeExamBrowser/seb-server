@@ -16,12 +16,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.ExamAPIDiscovery;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 
+@Tag(name = "Exam API Discovery", description = "SEB exam API discovery endpoint")
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.discovery}")
 public class ExamAPIDiscoveryController {
@@ -77,6 +82,13 @@ public class ExamAPIDiscoveryController {
                                         "Bearer")))));
     }
 
+    @Operation(
+            operationId = "getExamAPIDiscovery",
+            summary = "Get Exam API discovery information",
+            description = "Returns the Exam API discovery document describing available API versions and endpoints.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)

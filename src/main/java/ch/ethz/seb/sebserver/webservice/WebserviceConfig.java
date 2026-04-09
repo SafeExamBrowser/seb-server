@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.OAuthFlow;
 import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
@@ -28,6 +29,7 @@ public class WebserviceConfig {
 
     public static final String SWAGGER_AUTH_SEB_API = "SEBOAuth";
     public static final String SWAGGER_AUTH_ADMIN_API = "oauth";
+    public static final String SWAGGER_AUTH_LMS_API = "LMSOAuth";
 
     @Lazy
     @Bean
@@ -50,6 +52,10 @@ public class WebserviceConfig {
     public OpenAPI customOpenAPI() {
 
         return new OpenAPI()
+                .info(new Info()
+                        .title("SEB Server API")
+                        .description("Safe Exam Browser Server REST API — Administration API (OAuth2 password grant) and Exam API (OAuth2 client credentials grant).")
+                        .version("2.2"))
                 .components(new Components()
                         .addSecuritySchemes(SWAGGER_AUTH_ADMIN_API, new SecurityScheme()
                                 .type(SecurityScheme.Type.OAUTH2)
@@ -65,6 +71,14 @@ public class WebserviceConfig {
                                 .flows(new OAuthFlows().clientCredentials(new OAuthFlow()
                                         .tokenUrl("/oauth/token")
                                         .scopes(new Scopes().addString("read", "read").addString("write", "write")))))
+
+                        .addSecuritySchemes(SWAGGER_AUTH_LMS_API, new SecurityScheme()
+                                .type(SecurityScheme.Type.OAUTH2)
+                                .scheme("basic")
+                                .in(SecurityScheme.In.HEADER)
+                                .flows(new OAuthFlows().clientCredentials(new OAuthFlow()
+                                        .tokenUrl("/oauth/token")
+                                        .scopes(new Scopes().addString("lms-api", "lms-api")))))
                 );
 
     }

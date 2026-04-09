@@ -34,6 +34,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -57,6 +61,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "SEB Client Configuration", description = "SEB client configuration management")
 @RestController
 @EnableAsync
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONFIG_ENDPOINT)
@@ -89,6 +94,11 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
         this.cryptor = cryptor;
     }
 
+    @Operation(operationId = "getSEBClientConfig", summary = "Get a single SEB client configuration by model ID")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -140,6 +150,11 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
                 config.selectedExams);
     }
 
+    @Operation(operationId = "getSEBClientConfigCredentials", summary = "Get the client credentials for a SEB client configuration")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.SEB_CLIENT_CONFIG_CREDENTIALS_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -159,6 +174,11 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
                 .getOrThrow();
     }
 
+    @Operation(operationId = "exportSEBClientConfig", summary = "Download and export the SEB client configuration file")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,

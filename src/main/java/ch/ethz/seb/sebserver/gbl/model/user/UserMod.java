@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -72,11 +73,13 @@ public final class UserMod implements UserAccount {
     public final String email;
 
     /** The users locale */
+    @Schema(type = "string", description = "BCP-47 language tag, e.g. \"en\" or \"de\"")
     @NotNull(message = "user:language:notNull")
     @JsonProperty(USER.ATTR_LANGUAGE)
     public final Locale language;
 
     /** The users time zone */
+    @Schema(type = "string", description = "IANA time zone ID, e.g. \"Europe/Zurich\"")
     @NotNull(message = "user:timeZone:notNull")
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;
@@ -87,11 +90,13 @@ public final class UserMod implements UserAccount {
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
+    @Schema(type = "string", minLength = 8, maxLength = 255, description = "New password (min 8 characters)")
     @NotNull(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD)
     private final CharSequence newPassword;
 
+    @Schema(type = "string", description = "Confirmation of the new password — must match newPassword")
     @NotNull(message = "user:confirmNewPassword:notNull")
     @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD)
     private final CharSequence confirmNewPassword;

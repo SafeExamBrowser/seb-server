@@ -16,10 +16,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@Schema(name = "LmsSetupTestResult", description = "Result of an LMS connection test")
 public final class LmsSetupTestResult {
 
     public static final String ATTR_ERROR_TYPE = "errorType";

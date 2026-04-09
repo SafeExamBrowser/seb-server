@@ -21,6 +21,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.IOUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.HttpStatus;
@@ -58,6 +61,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "SEB Client Event", description = "SEB client event logs and export")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_EVENT_ENDPOINT)
 public class ClientEventController extends ReadonlyEntityController<ClientEvent, ClientEvent> {
@@ -89,6 +93,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
     }
 
     @Operation(
+            operationId = "getExtendedClientEvents",
             summary = "Get a page of ExtendedClientEvent. Sorting and filtering is applied before paging",
             description = """
                     Sorting: the sort parameter to sort the list of entities before paging
@@ -122,6 +127,9 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                             required = false,
                             allowEmptyValue = false)
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -152,6 +160,11 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                 .getOrThrow();
     }
 
+    @Operation(operationId = "deleteClientEvents", summary = "Hard delete a set of client events by model ID list")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @Override
     @RequestMapping(
             method = RequestMethod.DELETE,
@@ -173,6 +186,10 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                 .getOrThrow();
     }
 
+    @Operation(operationId = "exportClientEvents", summary = "Export SEB client events as a file download")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.SEB_CLIENT_EVENT_EXPORT_PATH_SEGMENT,
             method = RequestMethod.GET,

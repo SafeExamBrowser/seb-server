@@ -16,6 +16,10 @@ import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
@@ -49,6 +53,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "LMS Setup", description = "LMS setup and connection management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.LMS_SETUP_ENDPOINT)
 public class LmsSetupController extends ActivatableEntityController<LmsSetup, LmsSetup> {
@@ -89,6 +94,11 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         this.cryptor = cryptor;
     }
 
+    @Operation(operationId = "getLmsSetupById", summary = "Get a single LMS setup by model ID, with secrets decrypted")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @Override
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
@@ -132,6 +142,11 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         return LmsSetupRecordDynamicSqlSupport.lmsSetupRecord;
     }
 
+    @Operation(operationId = "testLmsSetup", summary = "Test the LMS connection for a saved LMS setup")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -166,6 +181,11 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         return result;
     }
 
+    @Operation(operationId = "testLmsSetupAdHoc", summary = "Test an ad-hoc LMS connection without saving the setup")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.LMS_SETUP_TEST_AD_HOC_PATH_SEGMENT,
             method = RequestMethod.PUT,

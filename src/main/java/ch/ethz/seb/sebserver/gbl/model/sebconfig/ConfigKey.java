@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ConfigKey", description = "SEB configuration key")
 public final class ConfigKey {
 
     public static final String ATTR_KEY = "key";

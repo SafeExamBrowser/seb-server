@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "SecurityCheckResult", description = "Result of a security check")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SecurityCheckResult {
 

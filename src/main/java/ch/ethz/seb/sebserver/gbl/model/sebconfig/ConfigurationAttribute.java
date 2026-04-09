@@ -32,7 +32,9 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_ATTRIBUTE;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ConfigurationAttribute", description = "SEB configuration attribute definition")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationAttribute implements Entity, Comparable<ConfigurationAttribute> {
 

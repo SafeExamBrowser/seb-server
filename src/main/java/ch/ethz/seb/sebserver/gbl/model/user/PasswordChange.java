@@ -19,7 +19,9 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "PasswordChange", description = "Password change request")
 public class PasswordChange implements Entity {
 
     public static final String ATTR_NAME_PASSWORD = "password";

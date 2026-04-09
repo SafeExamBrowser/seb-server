@@ -18,8 +18,10 @@ import org.joda.time.DateTimeZone;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Defines a User-Account object */
+@Schema(name = "UserAccount", description = "User account data for creation and modification")
 public interface UserAccount extends GrantEntity, Activatable {
 
     /** The model id of the User-Account (UUID) */

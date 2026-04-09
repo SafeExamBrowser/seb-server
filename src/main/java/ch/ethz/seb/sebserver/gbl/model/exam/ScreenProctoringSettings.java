@@ -12,6 +12,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import java.util.Objects;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import org.hibernate.validator.constraints.URL;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 
+@Schema(name = "ScreenProctoringSettings", description = "Screen proctoring configuration")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -54,6 +55,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateSer
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Exam Configuration Mapping", description = "Exam to SEB configuration node mapping")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_CONFIGURATION_MAP_ENDPOINT)
 public class ExamConfigurationMappingController extends EntityController<ExamConfigurationMap, ExamConfigurationMap> {

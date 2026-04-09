@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ScheduledDeleteService
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.Objects;
 
+@Tag(name = "Scheduled Delete", description = "Scheduled data deletion management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SCHEDULED_DELETE_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)

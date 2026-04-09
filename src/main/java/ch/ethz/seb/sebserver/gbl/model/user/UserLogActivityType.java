@@ -8,7 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /** All activity types */
+@Schema(description = "Type of user activity logged in the audit log")
 public enum UserLogActivityType {
     REGISTER,
     CREATE,

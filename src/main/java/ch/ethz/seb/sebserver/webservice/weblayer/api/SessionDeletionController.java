@@ -9,7 +9,11 @@ import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ScheduledDeleteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -22,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Tag(name = "Session Deletion", description = "Exam session data deletion")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SESSION_DELETE_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -43,6 +48,10 @@ public class SessionDeletionController {
         this.userActivityLogDAO = userActivityLogDAO;
     }
 
+    @Operation(operationId = "getSessionDeletionReport", summary = "Get a session deletion report for the given search criteria")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)

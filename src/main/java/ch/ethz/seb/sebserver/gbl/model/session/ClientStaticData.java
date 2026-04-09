@@ -17,7 +17,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientStaticData", description = "Static data for a SEB client connection")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientStaticData {
 

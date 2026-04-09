@@ -22,6 +22,8 @@ import org.joda.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -30,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@Schema(name = "QuizData", description = "Quiz data from LMS")
 public final class QuizData implements GrantEntity {
 
     public static final String FILTER_ATTR_QUIZ_NAME = "quiz_name";

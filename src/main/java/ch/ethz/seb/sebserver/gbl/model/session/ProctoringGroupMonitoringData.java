@@ -11,7 +11,9 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ProctoringGroupMonitoringData", description = "Monitoring data for a proctoring group")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ProctoringGroupMonitoringData(
         @JsonProperty(Domain.SCREEN_PROCTORING_GROUP.ATTR_UUID) String uuid,

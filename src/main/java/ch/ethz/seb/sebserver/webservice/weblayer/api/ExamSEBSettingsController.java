@@ -21,11 +21,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Exam SEB Settings", description = "Exam-level SEB settings management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_SETTINGS_EXAM_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)

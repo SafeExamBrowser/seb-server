@@ -8,8 +8,11 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /** Defines page sort order ASCENDING or DESCENDING and the corresponding SEB Server API parameter encoding
  *  for the sort parameter. */
+@Schema(description = "Sort order for paginated results")
 public enum PageSortOrder {
     ASCENDING,
     DESCENDING;

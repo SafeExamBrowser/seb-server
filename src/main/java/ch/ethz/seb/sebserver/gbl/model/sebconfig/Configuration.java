@@ -21,7 +21,9 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "Configuration", description = "SEB configuration version")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Configuration implements GrantEntity {
 

@@ -18,7 +18,9 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.VIEW;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "View", description = "SEB configuration view definition")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class View implements Entity {
 

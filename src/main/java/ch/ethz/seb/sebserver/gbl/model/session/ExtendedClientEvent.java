@@ -12,7 +12,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ExtendedClientEvent", description = "Extended client event with additional context")
 public final class ExtendedClientEvent extends ClientEvent {
 
     public static final String FILTER_ATTRIBUTE_EXAM = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;

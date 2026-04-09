@@ -12,8 +12,11 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 
+@Schema(name = "AllowedSEBVersion", description = "Allowed SEB version specification")
 public class AllowedSEBVersion {
 
     public static final String OS_WINDOWS_IDENTIFIER = "Win";

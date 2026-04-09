@@ -15,7 +15,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ExamineeAccountDetails", description = "Account details for an exam examinee")
 public class ExamineeAccountDetails {
 
     public static final String ATTR_ID = "id";

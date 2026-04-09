@@ -3,9 +3,11 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Collection;
 
+@Schema(name = "ScheduledDeleteViewInfo", description = "View information for scheduled deletion")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ScheduledDeleteViewInfo {
 

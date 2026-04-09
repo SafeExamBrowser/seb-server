@@ -14,7 +14,9 @@ import java.util.Map;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "SEBSettingsView", description = "View for SEB settings")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SEBSettingsView(
         @JsonProperty(ATTR_VIEW_TYPE) ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView.ViewType viewType,

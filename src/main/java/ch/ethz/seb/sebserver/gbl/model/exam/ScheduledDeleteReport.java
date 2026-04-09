@@ -4,11 +4,13 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Schema(name = "ScheduledDeleteReport", description = "Report of a scheduled deletion")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ScheduledDeleteReport(
         @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_ID) Long id,

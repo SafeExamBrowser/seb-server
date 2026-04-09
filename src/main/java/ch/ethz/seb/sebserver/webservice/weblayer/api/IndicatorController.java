@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import org.mybatis.dynamic.sql.SqlTable;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +33,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Indicator", description = "Exam monitoring indicator management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_INDICATOR_ENDPOINT)
 public class IndicatorController extends EntityController<Indicator, Indicator> {

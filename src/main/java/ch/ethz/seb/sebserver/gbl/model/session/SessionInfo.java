@@ -3,7 +3,9 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "SessionInfo", description = "Session information")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SessionInfo (
         @JsonProperty("uuid") String uuid,

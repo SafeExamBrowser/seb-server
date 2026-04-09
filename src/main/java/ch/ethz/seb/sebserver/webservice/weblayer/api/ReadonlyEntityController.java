@@ -13,6 +13,7 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.MultiValueMap;
@@ -58,6 +59,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
                 beanValidationService);
     }
 
+    @Hidden
     @Override
     @RequestMapping(
             method = RequestMethod.PUT,
@@ -67,6 +69,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
         throw new AccessDeniedException(ONLY_READ_ACCESS);
     }
 
+    @Hidden
     @Override
     @RequestMapping(
             method = RequestMethod.POST,
@@ -83,6 +86,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
         throw new AccessDeniedException(ONLY_READ_ACCESS);
     }
 
+    @Hidden
     @Override
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
@@ -95,6 +99,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
         throw new AccessDeniedException(ONLY_READ_ACCESS);
     }
 
+    @Hidden
     @Override
     @RequestMapping(
             method = RequestMethod.DELETE,

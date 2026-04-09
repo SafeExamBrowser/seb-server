@@ -17,7 +17,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientMonitoringDataView", description = "View of client monitoring data")
 public interface ClientMonitoringDataView {
 
     String ATTR_STATUS = "st";

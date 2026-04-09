@@ -21,7 +21,9 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ConfigurationNode", description = "SEB configuration node (exam config or template)")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationNode implements GrantEntity {
 
@@ -32,11 +34,13 @@ public final class ConfigurationNode implements GrantEntity {
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
 
+    @Schema(description = "Configuration type: TEMPLATE or EXAM_CONFIG")
     public enum ConfigurationType {
         TEMPLATE,
         EXAM_CONFIG
     }
 
+    @Schema(description = "Configuration status lifecycle state")
     public enum ConfigurationStatus {
         CONSTRUCTION,
         READY_TO_USE,

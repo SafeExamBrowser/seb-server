@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Title orientation for configuration attribute display")
 public enum TitleOrientation {
     NONE,
     LEFT,

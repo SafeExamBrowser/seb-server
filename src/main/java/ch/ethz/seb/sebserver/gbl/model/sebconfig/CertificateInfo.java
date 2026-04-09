@@ -21,7 +21,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "CertificateInfo", description = "Certificate information")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CertificateInfo implements Entity {
 

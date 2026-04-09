@@ -33,8 +33,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Quiz", description = "LMS quiz discovery and listing")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.QUIZ_DISCOVERY_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -73,6 +78,13 @@ public class QuizController {
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
 
+    @Operation(
+            operationId = "getQuizzes",
+            summary = "Get quiz page",
+            description = "Returns a paginated list of quizzes from the LMS.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -126,6 +138,14 @@ public class QuizController {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "getQuizById",
+            summary = "Get quiz by model ID",
+            description = "Returns a single quiz by its model ID from the specified LMS setup.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,

@@ -18,7 +18,13 @@ import java.io.PipedOutputStream;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -34,8 +40,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "LMS Integration", description = "LMS integration API for full LMS course-exam lifecycle management")
 @RestController
 @RequestMapping("${sebserver.webservice.lms.api.endpoint}")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_LMS_API)
 public class LmsIntegrationController {
 
     private static final Logger log = LoggerFactory.getLogger(LmsIntegrationController.class);
@@ -51,6 +59,11 @@ public class LmsIntegrationController {
         this.webserviceInfo = webserviceInfo;
     }
 
+    @Operation(operationId = "createExamFromLms", summary = "Create and import an exam from an LMS course/quiz")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.LMS_FULL_INTEGRATION_EXAM_ENDPOINT,
             method = RequestMethod.POST,

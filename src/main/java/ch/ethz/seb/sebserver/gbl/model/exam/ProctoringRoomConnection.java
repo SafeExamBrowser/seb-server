@@ -12,9 +12,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 
+@Schema(name = "ProctoringRoomConnection", description = "Proctoring room connection details")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProctoringRoomConnection {
 

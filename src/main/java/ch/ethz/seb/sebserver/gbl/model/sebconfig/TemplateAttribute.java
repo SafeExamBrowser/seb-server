@@ -22,7 +22,9 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "TemplateAttribute", description = "Template attribute for SEB configuration")
 public final class TemplateAttribute implements Entity {
 
     public static final String ATTR_CONFIG_ATTRIBUTE = "configAttribute";

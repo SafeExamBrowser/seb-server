@@ -8,7 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /** Enumeration of known SEB configuration attribute value types */
+@Schema(description = "Value type of a configuration attribute")
 public enum AttributeValueType {
     /** Not defined or unknown */
     NONE,

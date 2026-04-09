@@ -25,10 +25,13 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientConnection", description = "SEB client connection state and metadata")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ClientConnection implements GrantEntity {
 
+    @Schema(description = "Connection status")
     public enum ConnectionStatus {
         UNDEFINED(0, false, false, false),
         CONNECTION_REQUESTED(1, true, false, false),

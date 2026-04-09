@@ -23,22 +23,27 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.ValidProctoringSettings;
 
+@Schema(name = "ProctoringServiceSettings", description = "Proctoring service configuration settings")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ValidProctoringSettings
 public class ProctoringServiceSettings implements Entity {
 
 
+    @Schema(description = "Type of proctoring server")
     public enum ProctoringServerType {
         JITSI_MEET,
         ZOOM
     }
 
+    @Schema(description = "Enabled proctoring feature")
     public enum ProctoringFeature {
         TOWN_HALL,
         ONE_TO_ONE,

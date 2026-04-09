@@ -13,9 +13,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
+@Schema(name = "EntityName", description = "Minimal entity reference with type, model ID and name")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityName extends EntityKey {
 

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Orientation", description = "SEB settings orientation management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.ORIENTATION_ENDPOINT)
 public class OrientationController extends EntityController<Orientation, Orientation> {

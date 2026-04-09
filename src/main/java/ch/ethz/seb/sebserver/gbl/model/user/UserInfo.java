@@ -19,6 +19,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -62,6 +63,7 @@ public final class UserInfo implements UserAccount, Serializable {
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
+    @Schema(type = "string", format = "date-time", description = "Account creation date in ISO-8601 format")
     @JsonProperty(USER.ATTR_CREATION_DATE)
     public final DateTime creationDate;
 
@@ -101,11 +103,13 @@ public final class UserInfo implements UserAccount, Serializable {
 
 
     /** The users locale */
+    @Schema(type = "string", description = "BCP-47 language tag, e.g. \"en\" or \"de\"")
     @NotNull(message = "user:language:notNull")
     @JsonProperty(USER.ATTR_LANGUAGE)
     public final Locale language;
 
     /** The users time zone */
+    @Schema(type = "string", description = "IANA time zone ID, e.g. \"Europe/Zurich\"")
     @NotNull(message = "user:timeZone:notNull")
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;

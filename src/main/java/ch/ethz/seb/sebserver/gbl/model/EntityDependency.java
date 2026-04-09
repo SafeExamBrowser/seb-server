@@ -11,8 +11,11 @@ package ch.ethz.seb.sebserver.gbl.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 
+@Schema(name = "EntityDependency", description = "Entity dependency reference")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityDependency implements Comparable<EntityDependency>, ModelIdAware {
 

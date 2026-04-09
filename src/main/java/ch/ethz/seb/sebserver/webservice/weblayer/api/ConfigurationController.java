@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -35,6 +39,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Configuration", description = "SEB configuration version management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_ENDPOINT)
 public class ConfigurationController extends ReadonlyEntityController<Configuration, Configuration> {
@@ -64,6 +69,11 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
         this.examConfigUpdateService = examConfigUpdateService;
     }
 
+    @Operation(operationId = "saveToHistory", summary = "Save the current configuration state to history")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -78,6 +88,11 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 .getOrThrow();
     }
 
+    @Operation(operationId = "undo", summary = "Undo the last configuration change")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CONFIGURATION_UNDO_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -91,6 +106,11 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 .getOrThrow();
     }
 
+    @Operation(operationId = "restoreConfiguration", summary = "Restore a configuration from a specific history version")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CONFIGURATION_RESTORE_FROM_HISTORY_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,

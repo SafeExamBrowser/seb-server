@@ -55,6 +55,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
@@ -135,6 +136,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @param filterCriteria a MultiValueMap of all request parameter that is used for filtering.
      * @return Page of domain-model-entities of specified type */
     @Operation(
+            operationId = "getPage",
             summary = "Get a page of the specific domain entity. Sorting and filtering is applied before paging",
             description = """
                     Sorting: the sort parameter to sort the list of entities before paging
@@ -168,6 +170,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             required = false,
                             allowEmptyValue = false)
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -204,6 +209,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ******************
 
     @Operation(
+            operationId = "getEntityNames",
             summary = "Get a filtered list of specific entity name keys.",
             description = """
                     An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity.\
@@ -225,6 +231,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             required = false,
                             allowEmptyValue = false)
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -262,6 +271,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ******************
 
     @Operation(
+            operationId = "getEntityDependencies",
             summary = "Get a list of dependency keys of all dependent entity objects for a "
                     + "specified source entity and bulk action.",
             description = """
@@ -289,6 +299,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -317,6 +330,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * GET (single)
     // ******************
     @Operation(
+            operationId = "getEntityById",
             summary = "Get a single entity by its modelId.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
@@ -326,6 +340,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             description = "The model identifier of the entity object to get.",
                             in = ParameterIn.PATH)
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -343,12 +361,16 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ******************
 
     @Operation(
+            operationId = "getEntitiesByIds",
             summary = "Get a list of entity objects by a given list of model identifiers of entities.",
             parameters = {
                     @Parameter(
                             name = API.PARAM_MODEL_ID_LIST,
                             description = "Comma separated list of model identifiers.")
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.LIST_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -370,6 +392,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ******************
 
     @Operation(
+            operationId = "createEntity",
             summary = "Create a new entity object of specifies type by using the given form parameter",
             description = "This expects " + MediaType.APPLICATION_FORM_URLENCODED_VALUE +
                     " format for the form parameter" +
@@ -390,6 +413,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             description = "The institution identifier of the request.\n"
                                     + "Default is the institution identifier of the institution of the current user"),
             })
+    @ApiResponse(responseCode = "200", description = "Created", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -423,6 +450,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ****************
 
     @Operation(
+            operationId = "updateEntity",
             summary = "Modifies an already existing entity object of the specific type.",
             description = "This expects " + MediaType.APPLICATION_JSON_VALUE +
                     " format for the response data and verifies consistencies " +
@@ -430,6 +458,11 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     "Missing (NULL) parameter that are not mandatory will be ignored and the original value will not be affected",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE) }))
+    @ApiResponse(responseCode = "200", description = "Updated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -447,6 +480,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * DELETE (hard-delete)
     // ************************
     @Operation(
+            operationId = "deleteEntity",
             summary = "Deletes a single entity (and all its dependencies) by its modelId.",
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
@@ -465,6 +499,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
@@ -485,6 +523,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     }
 
     @Operation(
+            operationId = "forceDeleteEntity",
             summary = "Force deletes a single entity (and all its dependencies) by its modelId.",
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
@@ -503,6 +542,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.FORCE_PATH_SEGMENT,
             method = RequestMethod.DELETE,
@@ -525,6 +568,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * DELETE ALL (hard-delete)
     // **************************
     @Operation(
+            operationId = "deleteEntities",
             summary = "Deletes all given entity (and all its dependencies) by a given list of model identifiers.",
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
@@ -543,6 +587,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,

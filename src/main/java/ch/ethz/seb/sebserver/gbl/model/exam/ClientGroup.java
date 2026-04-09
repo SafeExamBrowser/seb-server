@@ -21,12 +21,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CLIENT_GROUP;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@Schema(name = "ClientGroup", description = "Client group within an exam for categorizing connections")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
 

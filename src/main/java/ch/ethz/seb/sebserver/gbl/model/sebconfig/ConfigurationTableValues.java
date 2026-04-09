@@ -20,7 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_VALUE;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ConfigurationTableValues", description = "Table of SEB configuration values")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationTableValues implements GrantEntity {
 

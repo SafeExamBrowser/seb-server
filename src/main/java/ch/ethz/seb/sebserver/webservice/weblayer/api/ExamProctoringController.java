@@ -39,8 +39,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Exam Proctoring", description = "Exam proctoring room management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_PROCTORING_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -80,6 +85,10 @@ public class ExamProctoringController {
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
 
+    @Operation(operationId = "getProctoringCollectingRooms", summary = "Get all collecting proctoring rooms of a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_COLLECTING_ROOMS_SEGMENT,
@@ -98,6 +107,10 @@ public class ExamProctoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getScreenProctoringGroups", summary = "Get all screen proctoring groups of a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_SCREEN_PROCTORING_GROUPS_SEGMENT,
@@ -116,6 +129,11 @@ public class ExamProctoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getProctoringRoomConnection", summary = "Get proctor room connection data for a given exam and room")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -140,6 +158,11 @@ public class ExamProctoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "notifyProctoringRoomOpened", summary = "Notify the server that a proctoring room has been opened")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_NOTIFY_OPEN_ROOM_SEGMENT,
@@ -160,6 +183,10 @@ public class ExamProctoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getProctoringRoomConnections", summary = "Get all client connections in a given proctoring room")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT,
@@ -181,6 +208,11 @@ public class ExamProctoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "sendProctoringReconfigurationAttributes", summary = "Send reconfiguration attributes (audio/video/chat) to a proctoring room")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_RECONFIGURATION_ATTRIBUTES,

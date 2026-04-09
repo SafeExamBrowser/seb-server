@@ -18,6 +18,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -26,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  * This report is many used on bulk-action and defines the entity-keys of processing, entity-keys of all entities that
  * has dependencies to the given processing entities and a list of error entries that describes
  * errors if happened. */
+@Schema(name = "EntityProcessingReport", description = "Report of a bulk entity processing operation (delete, activate, etc.)")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityProcessingReport {
 

@@ -27,11 +27,16 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Tag(name = "Configuration Attribute", description = "SEB configuration attribute definitions")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_ATTRIBUTE_ENDPOINT)
 public class ConfigurationAttributeController extends EntityController<ConfigurationAttribute, ConfigurationAttribute> {
@@ -52,6 +57,10 @@ public class ConfigurationAttributeController extends EntityController<Configura
                 beanValidationService);
     }
 
+    @Operation(operationId = "getConfigAttributes", summary = "Get a list of configuration attributes, optionally filtered by IDs")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @Override
     @RequestMapping(
             path = API.LIST_PATH_SEGMENT,

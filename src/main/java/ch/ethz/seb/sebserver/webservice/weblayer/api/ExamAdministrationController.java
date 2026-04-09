@@ -29,6 +29,10 @@ import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,6 +74,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Exam Administration", description = "Exam administration and management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_ADMINISTRATION_ENDPOINT)
 public class ExamAdministrationController extends EntityController<Exam, Exam> {
@@ -131,6 +136,13 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
     
+    @Operation(
+            operationId = "checkExamImported",
+            summary = "Check whether a quiz has already been imported as an exam",
+            description = "Returns a list of institution entity keys for all institutions in which the quiz identified by modelId has been imported as an exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,
@@ -152,6 +164,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "checkExamConsistency",
+            summary = "Check the consistency of an exam",
+            description = "Performs a consistency check on the exam and returns any validation messages found.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT,
@@ -174,6 +194,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "archiveExam",
+            summary = "Archive an exam",
+            description = "Sets the exam status to ARCHIVED.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_ARCHIVE_PATH_SEGMENT,
@@ -245,6 +273,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     // ****************************************************************************
     // **** SEB Security Key and App Signature Key
 
+    @Operation(
+            operationId = "getExamAppSignatureKeyInfo",
+            summary = "Get app signature key information for an exam",
+            description = "Returns the app signature key info entries associated with the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT,
@@ -263,6 +299,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "saveExamAppSignatureKeySettings",
+            summary = "Save app signature key settings for an exam",
+            description = "Saves the signature key check enabled flag and numerical trust threshold for the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT,
@@ -287,6 +331,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "getExamSecurityKeyGrants",
+            summary = "Get security key grants for an exam",
+            description = "Returns all app signature key grant entries for the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT,
@@ -308,6 +360,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "grantExamAppSignatureKey",
+            summary = "Grant an app signature key for an exam",
+            description = "Grants the app signature key from the specified SEB client connection for the exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT +
@@ -335,6 +395,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "deleteExamSecurityKeyGrant",
+            summary = "Delete a security key grant for an exam",
+            description = "Removes the specified security key grant from the exam.")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT
@@ -370,6 +438,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     // ****************************************************************************
     // **** SEB Restriction
 
+    @Operation(
+            operationId = "checkExamSEBRestriction",
+            summary = "Check whether SEB restriction is active for an exam",
+            description = "Returns true if SEB restriction is currently applied on the LMS side for the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT,
@@ -389,6 +465,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOr(false);
     }
 
+    @Operation(
+            operationId = "getExamSEBRestriction",
+            summary = "Get the SEB restriction data for an exam",
+            description = "Retrieves the current SEB restriction settings stored for the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
@@ -408,6 +492,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "saveExamSEBRestriction",
+            summary = "Save SEB restriction data for an exam",
+            description = "Saves the provided SEB restriction settings to the exam and re-applies the restriction if already active.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
@@ -431,6 +523,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "applyExamSEBRestriction",
+            summary = "Apply (activate) SEB restriction on the LMS for an exam",
+            description = "Pushes the SEB restriction to the LMS, effectively restricting quiz access to SEB clients only.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
@@ -451,6 +551,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "deleteExamSEBRestriction",
+            summary = "Remove (deactivate) SEB restriction on the LMS for an exam",
+            description = "Releases the SEB restriction from the LMS, allowing access without SEB.")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
@@ -471,6 +579,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "getExamCourseChapters",
+            summary = "Get course chapters for an exam",
+            description = "Retrieves the available chapters/sections of the LMS course associated with the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT,
@@ -505,6 +621,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
      * @param examId The exam identifier of the exam to get all possible followup exams for
      * @return List if EntityName of all possible followup exams for the given exam
      */
+    @Operation(
+            operationId = "getFollowupExamCandidates",
+            summary = "Get possible follow-up exams for an exam",
+            description = "Returns a list of exams eligible to be used as a follow-up (consecutive) exam for the given exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_FOLLOWUP_PATH_SEGMENT,
@@ -543,6 +667,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     // ****************************************************************************
     // **** Proctoring
 
+    @Operation(
+            operationId = "getExamProctoringSettings",
+            summary = "Get proctoring service settings for an exam",
+            description = "Retrieves the proctoring service configuration for the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
@@ -562,6 +694,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "saveExamProctoringSettings",
+            summary = "Save proctoring service settings for an exam",
+            description = "Saves the provided proctoring service configuration for the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
@@ -598,6 +738,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     // ****************************************************************************
     // **** Screen Proctoring
 
+    @Operation(
+            operationId = "getExamScreenProctoringSettings",
+            summary = "Get screen proctoring settings for an exam",
+            description = "Retrieves the screen proctoring configuration for the specified exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
@@ -617,6 +765,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "saveExamScreenProctoringSettings",
+            summary = "Save screen proctoring settings for an exam",
+            description = "Saves the screen proctoring configuration for the specified exam and applies SPS-enabled state.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
@@ -648,6 +804,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "activateExamScreenProctoring",
+            summary = "Enable or disable screen proctoring for an exam",
+            description = "Enables or disables screen proctoring for the specified exam and flushes the exam session cache.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT
@@ -673,6 +837,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "applyExamScreenProctoringGroups",
+            summary = "Apply client groups to screen proctoring for an exam",
+            description = "Associates the specified SEB client groups with the screen proctoring service for the exam.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT

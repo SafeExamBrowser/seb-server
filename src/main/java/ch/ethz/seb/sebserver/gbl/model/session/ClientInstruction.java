@@ -19,10 +19,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientInstruction", description = "Instruction sent to a SEB client")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ClientInstruction {
 
+    @Schema(description = "Instruction command type")
     public enum InstructionType {
         SEB_QUIT,
         SEB_PROCTORING,

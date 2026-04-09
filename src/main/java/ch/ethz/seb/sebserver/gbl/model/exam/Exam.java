@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.*;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -114,9 +115,11 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_QUIZ_NAME)
     public final String name;
 
+    @Schema(type = "string", format = "date-time", description = "Exam start time in ISO-8601 format")
     @JsonProperty(EXAM.ATTR_QUIZ_START_TIME)
     public final DateTime startTime;
 
+    @Schema(type = "string", format = "date-time", description = "Exam end time in ISO-8601 format")
     @JsonProperty(EXAM.ATTR_QUIZ_END_TIME)
     public final DateTime endTime;
 

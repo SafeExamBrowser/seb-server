@@ -23,7 +23,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +59,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 
+@Tag(name = "Exam API v1", description = "SEB client exam API — handshake, configuration, ping and log events for running exams")
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.v1}")
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_SEB_API)
@@ -83,6 +90,20 @@ public class ExamAPI_V1_Controller {
         this.executor = executor;
     }
 
+    @Operation(
+            operationId = "sebHandshakeCreate",
+            summary = "Create SEB client connection (handshake step 1)",
+            description = "Initiates a new SEB client connection. Returns a list of running exams and sets the "
+                    + "connection token in the response header '" + API.EXAM_API_SEB_CONNECTION_TOKEN + "'.",
+            parameters = {
+                    @Parameter(name = API.PARAM_INSTITUTION_ID, description = "Institution identifier (optional, defaults to the institution of the OAuth2 client)"),
+                    @Parameter(name = API.EXAM_API_PARAM_EXAM_ID, description = "Exam identifier (optional, if known at connection time)"),
+                    @Parameter(name = API.EXAM_API_PARAM_CLIENT_ID, description = "SEB client identifier (optional)")
+            })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.POST,
@@ -167,6 +188,18 @@ public class ExamAPI_V1_Controller {
 
 
 
+    @Operation(
+            operationId = "sebHandshake",
+            summary = "Update SEB client connection (handshake step 2)",
+            description = "Updates client information (exam id, user session, SEB version/OS) before the connection is established. "
+                    + "Requires the connection token header '" + API.EXAM_API_SEB_CONNECTION_TOKEN + "'.",
+            parameters = {
+                    @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token from handshake step 1")
+            })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.PATCH,
@@ -212,6 +245,18 @@ public class ExamAPI_V1_Controller {
                 this.executor);
     }
 
+    @Operation(
+            operationId = "sebHandshakeEstablish",
+            summary = "Establish SEB client connection (handshake step 3)",
+            description = "Establishes the SEB client connection, transitioning it to ESTABLISHED state. "
+                    + "Requires the connection token header '" + API.EXAM_API_SEB_CONNECTION_TOKEN + "'.",
+            parameters = {
+                    @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token from handshake step 1")
+            })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.PUT,
@@ -258,6 +303,17 @@ public class ExamAPI_V1_Controller {
                 this.executor);
     }
 
+    @Operation(
+            operationId = "sebHandshakeDelete",
+            summary = "Close SEB client connection",
+            description = "Closes the SEB client connection. Should be called when SEB exits or the exam is finished. "
+                    + "Requires the connection token header '" + API.EXAM_API_SEB_CONNECTION_TOKEN + "'.",
+            parameters = {
+                    @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token")
+            })
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.DELETE,
@@ -290,6 +346,19 @@ public class ExamAPI_V1_Controller {
                 this.executor);
     }
 
+    @Operation(
+            operationId = "sebGetConfig",
+            summary = "Get exam SEB configuration",
+            description = "Streams the encrypted SEB configuration file for the running exam as an octet stream. "
+                    + "Requires the connection token header '" + API.EXAM_API_SEB_CONNECTION_TOKEN + "'.",
+            parameters = {
+                    @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token"),
+                    @Parameter(name = API.EXAM_API_PARAM_EXAM_ID, description = "Exam identifier (optional)")
+            })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
             method = RequestMethod.GET,
@@ -320,6 +389,19 @@ public class ExamAPI_V1_Controller {
                 this.executor);
     }
 
+    @Operation(
+            operationId = "sebHandshakePing",
+            summary = "Send SEB client ping",
+            description = "Notifies the server that the SEB client is alive. Returns an instruction if one is pending, "
+                    + "otherwise returns HTTP 204. Requires the '" + API.EXAM_API_SEB_CONNECTION_TOKEN + "' header.",
+            parameters = {
+                    @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token"),
+                    @Parameter(name = API.EXAM_API_PING_INSTRUCTION_CONFIRM, description = "Instruction confirm token to acknowledge a previously received instruction")
+            })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_API_PING_ENDPOINT,
             method = RequestMethod.POST,
@@ -345,6 +427,18 @@ public class ExamAPI_V1_Controller {
         }
     }
 
+    @Operation(
+            operationId = "sebSendEvents",
+            summary = "Send SEB client log events",
+            description = "Sends a batch of SEB client log events (as a JSON array) to the server. "
+                    + "Requires the '" + API.EXAM_API_SEB_CONNECTION_TOKEN + "' request header.",
+            parameters = {
+                    @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token")
+            })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_API_EVENT_ENDPOINT,
             method = RequestMethod.POST,

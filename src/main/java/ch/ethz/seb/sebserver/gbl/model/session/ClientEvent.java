@@ -21,7 +21,9 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientEvent", description = "Event emitted by a SEB client during an exam session")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientEvent implements Entity {
 
@@ -42,6 +44,7 @@ public class ClientEvent implements Entity {
     public static final String FILTER_ATTR_TEXT = Domain.CLIENT_EVENT.ATTR_TEXT;
     private static final Set<Integer> NOTIFICATION_EVENTS = new HashSet<>();
 
+    @Schema(description = "Type of client event")
     public enum EventType {
         UNKNOWN(0, false),
         DEBUG_LOG(1, false),

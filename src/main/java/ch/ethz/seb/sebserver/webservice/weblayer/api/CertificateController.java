@@ -53,8 +53,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Certificate", description = "TLS certificate management for SEB")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CERTIFICATE_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -117,6 +122,10 @@ public class CertificateController {
      *            descending sort order.
      * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering.
      * @return Page of domain-model-entities of specified type */
+    @Operation(operationId = "getCertificates", summary = "Get a page of certificate information")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -147,6 +156,10 @@ public class CertificateController {
 
     }
 
+    @Operation(operationId = "getCertificateNames", summary = "Get a list of certificate entity names")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -171,6 +184,11 @@ public class CertificateController {
                 .collect(Collectors.toList());
     }
 
+    @Operation(operationId = "getCertificate", summary = "Get a single certificate by alias")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -187,6 +205,11 @@ public class CertificateController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "importCertificate", summary = "Import a certificate from a file upload")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
@@ -227,6 +250,11 @@ public class CertificateController {
         }
     }
 
+    @Operation(operationId = "deleteCertificate", summary = "Delete one or more certificates by alias")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,

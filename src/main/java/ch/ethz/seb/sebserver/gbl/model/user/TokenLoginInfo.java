@@ -10,7 +10,9 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "TokenLoginInfo", description = "Token-based login information")
 public class TokenLoginInfo {
     @JsonProperty("username")
     public final String username;

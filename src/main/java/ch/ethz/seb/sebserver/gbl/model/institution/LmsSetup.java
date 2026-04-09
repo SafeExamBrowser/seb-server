@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -32,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
+@Schema(name = "LmsSetup", description = "LMS connection setup configuration")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class LmsSetup implements GrantEntity, Activatable {
 
@@ -39,6 +42,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public static final String FILTER_ATTR_LMS_TYPE = "lms_type";
 
     /** LMS binding and API features */
+    @Schema(description = "LMS type")
     public enum Features {
         /** The course API allows the application to securely connect to a LMS service
          * and request course or quiz data from that LMS as well as requesting some
@@ -60,6 +64,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
 
     /** Defines the supported types if LMS bindings.
      * Also defines the supports feature(s) for each type of LMS binding. */
+    @Schema(description = "LMS type")
     public enum LmsType {
         /** Mockup LMS type used to create test setups */
         MOCKUP(Features.COURSE_API, Features.SEB_RESTRICTION, Features.LMS_FULL_INTEGRATION),

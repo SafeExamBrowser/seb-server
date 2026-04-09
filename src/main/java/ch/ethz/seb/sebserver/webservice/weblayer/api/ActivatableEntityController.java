@@ -37,6 +37,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
  * by all entity types that has activation feature and can be activated or deactivated.
@@ -63,6 +64,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     }
 
     @Operation(
+            operationId = "getActiveEntities",
             summary = "Get a page of all specific domain entity that are currently active.",
             description = "Sorting: the sort parameter to sort the list of entities before paging\n"
                     + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
@@ -83,6 +85,9 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                             description = "The institution identifier of the request.\n"
                                     + "Default is the institution identifier of the institution of the current user"),
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.ACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -111,6 +116,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     }
 
     @Operation(
+            operationId = "getInactiveEntities",
             summary = "Get a page of all specific domain entity that are currently inactive.",
             description = "Sorting: the sort parameter to sort the list of entities before paging\n"
                     + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
@@ -132,6 +138,9 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                                     + "Default is the institution identifier of the institution of the current user"),
 
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.INACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,

@@ -19,7 +19,9 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.ORIENTATION;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "Orientation", description = "UI orientation for a configuration attribute")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Orientation implements Entity {
 

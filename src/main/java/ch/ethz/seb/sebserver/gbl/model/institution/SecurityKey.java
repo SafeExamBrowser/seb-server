@@ -16,12 +16,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_SECURITY_KEY_REGISTRY;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;;
 
+@Schema(name = "SecurityKey", description = "SEB security key")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SecurityKey implements GrantEntity {
 
@@ -30,6 +33,7 @@ public class SecurityKey implements GrantEntity {
     public static final String FILTER_ATTR_EXAM_TEMPLATE_ID = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID;
     public static final String FILTER_ATTR_TAG = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG;
 
+    @Schema(description = "Type of security key")
     public static enum KeyType {
         UNDEFINED,
         CONFIG_KEY,

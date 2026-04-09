@@ -15,7 +15,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ScreenProctoringGroup", description = "Screen proctoring group")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ScreenProctoringGroup {
 

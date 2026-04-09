@@ -22,6 +22,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +36,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+@Tag(name = "Light Config", description = "Lightweight SEB configuration (light setup only)")
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.discovery}")
 @ConditionalOnExpression("'${sebserver.webservice.light.setup}'.equals('true')")
@@ -54,6 +59,14 @@ public class LightController {
         this.executor = executor;
     }
 
+    @Operation(
+            operationId = "getLightConfig",
+            summary = "Get light SEB configuration",
+            description = "Streams the encrypted SEB configuration file for light setup as an octet stream.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path =  API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT,
             method = RequestMethod.GET,
@@ -75,6 +88,14 @@ public class LightController {
 
     }
 
+    @Operation(
+            operationId = "getLightAdminPassword",
+            summary = "Get initial admin credentials",
+            description = "Returns the initial admin username and password for the light setup.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path =  API.EXAM_API_CONFIGURATION_LIGHT_ENDPOINT + API.PASSWORD_PATH_SEGMENT,
             method = RequestMethod.GET,

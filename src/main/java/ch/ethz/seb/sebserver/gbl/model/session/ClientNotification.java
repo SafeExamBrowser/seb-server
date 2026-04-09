@@ -19,7 +19,9 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientNotification", description = "Notification from a SEB client")
 public class ClientNotification extends ClientEvent {
 
     public static enum NotificationType {

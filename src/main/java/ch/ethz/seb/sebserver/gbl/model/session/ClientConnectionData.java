@@ -27,7 +27,9 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "ClientConnectionData", description = "Full client connection data including monitoring values")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientConnectionData implements GrantEntity {
 

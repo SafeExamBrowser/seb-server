@@ -22,11 +22,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CLIENT_GROUP;
 
+@Schema(name = "ClientGroupTemplate", description = "Template for exam client group")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientGroupTemplate implements ClientGroupData {
 

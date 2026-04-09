@@ -5,7 +5,9 @@ import java.util.Objects;
 import ch.ethz.seb.sebserver.gbl.model.Domain.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "FeaturePrivilege", description = "Feature-level privilege")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FeaturePrivilege {
 

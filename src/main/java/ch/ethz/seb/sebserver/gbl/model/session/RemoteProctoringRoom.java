@@ -18,7 +18,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "RemoteProctoringRoom", description = "Remote proctoring room information")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RemoteProctoringRoom {
 

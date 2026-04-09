@@ -14,7 +14,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "RunningExamInfo", description = "Information about a currently running exam")
 public final class RunningExamInfo {
 
     public static final String ATTR_EXAM_ID = "examId";

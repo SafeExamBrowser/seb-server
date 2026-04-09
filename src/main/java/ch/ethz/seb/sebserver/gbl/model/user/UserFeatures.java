@@ -7,13 +7,16 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "UserFeatures", description = "Feature flags for a user")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserFeatures {
 
     public static final String ATTR_DEFAULT = "missingFeatureDefault";
     public static final String ATTR_FEATURE_PRIVILEGES = "featurePrivileges";
 
+    @Schema(description = "Feature flag identifier")
     public enum Feature {
         ADMIN_INSTITUTION("admin.institution"),
 

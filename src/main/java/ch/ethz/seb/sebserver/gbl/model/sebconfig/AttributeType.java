@@ -10,7 +10,10 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
 import static ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeValueType.*;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /** Enumeration of known SEB configuration attribute types */
+@Schema(description = "Type of configuration attribute UI element")
 public enum AttributeType {
     /** Single read-only label */
     LABEL(NONE),

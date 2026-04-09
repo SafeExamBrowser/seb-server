@@ -35,6 +35,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -68,6 +72,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplat
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
+@Tag(name = "Configuration Node", description = "SEB configuration node management")
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_NODE_ENDPOINT)
 public class ConfigurationNodeController extends EntityController<ConfigurationNode, ConfigurationNode> {
@@ -131,6 +136,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         return ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord;
     }
 
+    @Operation(operationId = "getFollowupConfiguration", summary = "Get the follow-up (editable) configuration for a configuration node")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -147,6 +157,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getSettingsPublished", summary = "Check whether the settings for a configuration node have been published")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SETTINGS_PUBLISHED_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -168,6 +183,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "resetToTemplateValues", summary = "Reset configuration values to the template defaults")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_RESET_TO_TEMPLATE_PATH_SEGMENT,
             method = RequestMethod.PATCH,
@@ -188,6 +208,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "copyConfiguration", summary = "Create a copy of an existing configuration node")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CONFIGURATION_COPY_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -222,6 +247,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "exportConfigKey", summary = "Generate and retrieve the SEB config key for a configuration node")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_CONFIG_KEY_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -247,6 +277,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         return new ConfigKey(configKey);
     }
 
+    @Operation(operationId = "exportConfiguration", summary = "Download the SEB configuration as a plain XML file")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SEB_SETTINGS_DOWNLOAD_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -283,6 +318,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         }
     }
 
+    @Operation(operationId = "importConfiguration", summary = "Import a SEB exam configuration from a file and create a new configuration node")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CONFIGURATION_IMPORT_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -341,6 +381,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "importConfigurationOnExisting", summary = "Import a SEB exam configuration from a file into an existing configuration node")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_IMPORT_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -376,6 +421,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "setQuitPassword", summary = "Set the quit password for a configuration node")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SET_QUIT_PWD_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -395,6 +445,10 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getTemplateAttributes", summary = "Get a paginated list of template attributes for a configuration template")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT + API.TEMPLATE_ATTRIBUTE_ENDPOINT,
             method = RequestMethod.GET,
@@ -451,6 +505,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 subList);
     }
 
+    @Operation(operationId = "getTemplateAttribute", summary = "Get a single template attribute by ID for a configuration template")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
@@ -475,6 +534,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "resetTemplateAttributeValues", summary = "Reset a template attribute's values to the defaults")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
@@ -501,6 +565,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "attachDefaultTemplateAttributeOrientation", summary = "Attach the default orientation to a template attribute")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
@@ -530,6 +599,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
+    @Operation(operationId = "removeTemplateAttributeOrientation", summary = "Remove the orientation from a template attribute")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
