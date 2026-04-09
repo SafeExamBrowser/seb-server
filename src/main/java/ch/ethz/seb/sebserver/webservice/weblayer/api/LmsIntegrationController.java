@@ -124,6 +124,11 @@ public class LmsIntegrationController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "deleteExam", summary = "Delete an exam that was previously imported from an LMS")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.LMS_FULL_INTEGRATION_EXAM_ENDPOINT,
             method = RequestMethod.DELETE,
@@ -142,6 +147,11 @@ public class LmsIntegrationController {
 
     }
 
+    @Operation(operationId = "getConnectionConfiguration", summary = "Get the SEB connection configuration for an LMS exam as a binary stream")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.LMS_FULL_INTEGRATION_CONNECTION_CONFIG_ENDPOINT,
             method = RequestMethod.POST,
@@ -189,6 +199,11 @@ public class LmsIntegrationController {
         }
     }
 
+    @Operation(operationId = "getOneTimeLoginToken", summary = "Get a one-time login token for a specific LMS user and exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.LMS_FULL_INTEGRATION_LOGIN_TOKEN_ENDPOINT,
             method = RequestMethod.POST,

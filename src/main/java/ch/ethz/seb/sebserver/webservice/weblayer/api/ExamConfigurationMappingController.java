@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -150,6 +153,14 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         return super.notifySaved(entity);
     }
 
+    @Operation(
+            operationId = "attachExamConfiguration",
+            summary = "Attach a SEB configuration to an exam",
+            description = "Creates a new mapping between an exam and a SEB configuration node.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @Override
     @RequestMapping(
             method = RequestMethod.POST,
@@ -179,6 +190,14 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "detachExamConfiguration",
+            summary = "Detach a SEB configuration from an exam",
+            description = "Removes the mapping between the specified exam and its SEB configuration node.")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @Override
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,

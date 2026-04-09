@@ -169,6 +169,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     }
 
     @Operation(
+            operationId = "activateEntity",
             summary = "Activate a single entity by its modelId.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
@@ -178,6 +179,10 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                             description = "The model identifier of the entity object to activate.",
                             in = ParameterIn.PATH)
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PATH_VAR_ACTIVE,
             method = RequestMethod.POST,
@@ -188,6 +193,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
     }
 
     @Operation(
+            operationId = "deactivateEntity",
             summary = "Dectivate a single entity by its modelId.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
@@ -197,6 +203,10 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                             description = "The model identifier of the entity object to deactivate.",
                             in = ParameterIn.PATH)
             })
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             value = API.PATH_VAR_INACTIVE,
             method = RequestMethod.POST,

@@ -69,7 +69,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
         this.examConfigUpdateService = examConfigUpdateService;
     }
 
-    @Operation(operationId = "saveToHistory", summary = "Save the current configuration state to history")
+    @Operation(operationId = "saveConfigurationToHistory", summary = "Save the current configuration state to history")
     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -88,7 +88,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
                 .getOrThrow();
     }
 
-    @Operation(operationId = "undo", summary = "Undo the last configuration change")
+    @Operation(operationId = "undoConfiguration", summary = "Undo the last configuration change")
     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")

@@ -20,6 +20,9 @@ import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -55,6 +58,11 @@ public class ExamSEBSettingsController {
         this.userActivityLogDAO = userActivityLogDAO;
     }
 
+    @Operation(operationId = "getExamSEBSettings", summary = "Get SEB settings view for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -70,6 +78,11 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getExamConfigMappings", summary = "Get all exam configuration mappings for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_EXAM_CONFIG_MAPPING,
             method = RequestMethod.GET,
@@ -84,6 +97,11 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getExamSEBSettingsTableValues", summary = "Get table attribute values for a given exam and attribute name")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -99,6 +117,11 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "saveExamSEBSettings", summary = "Save a single SEB settings value for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -118,6 +141,11 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "saveExamSEBSettingsTableRow", summary = "Save a table row of SEB settings values for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -135,9 +163,14 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "addExamSEBSettingsTableRow", summary = "Add a new table row for a given SEB settings attribute in an exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + 
-                    API.SEB_SETTINGS_TABLE_PATH_SEGMENT + 
+            path = API.MODEL_ID_VAR_PATH_SEGMENT +
+                    API.SEB_SETTINGS_TABLE_PATH_SEGMENT +
                     API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -153,9 +186,14 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "deleteExamSEBSettingsTableRow", summary = "Delete a table row for a given SEB settings attribute in an exam")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + 
-                    API.SEB_SETTINGS_TABLE_PATH_SEGMENT + 
+            path = API.MODEL_ID_VAR_PATH_SEGMENT +
+                    API.SEB_SETTINGS_TABLE_PATH_SEGMENT +
                     API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -175,6 +213,11 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "getExamActiveSEBClients", summary = "Get the number of active SEB clients for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_ACTIVE_SEB_CLIENTS,
             method = RequestMethod.GET,
@@ -188,6 +231,11 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "publishExamSEBSettings", summary = "Publish (apply) SEB settings changes for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT +
                     API.SEB_SETTINGS_PUBLISH,
@@ -208,6 +256,11 @@ public class ExamSEBSettingsController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "undoExamSEBSettingsChanges", summary = "Undo (revert) pending SEB settings changes for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT +
                     API.SEB_SETTINGS_UNDO,

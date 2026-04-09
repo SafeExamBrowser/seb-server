@@ -66,6 +66,7 @@ public final class Exam implements GrantEntity {
     /** The full LMS integration download link for the next quit if consecutive quiz is used */
     public static final String ADDITIONAL_ATTR_CONSECUTIVE_QUIZ_DOWNLOAD_LINK = "NEXT_QUIZ_DOWNLOAD_LINK";
             
+    @io.swagger.v3.oas.annotations.media.Schema(description = "Lifecycle status of an exam")
     public enum ExamStatus {
         UP_COMING,
         TEST_RUN,
@@ -74,6 +75,7 @@ public final class Exam implements GrantEntity {
         ARCHIVED
     }
 
+    @io.swagger.v3.oas.annotations.media.Schema(description = "Type of exam (managed by SEB Server, bring-your-own-device, or VDI)")
     public enum ExamType {
         UNDEFINED,
         MANAGED,

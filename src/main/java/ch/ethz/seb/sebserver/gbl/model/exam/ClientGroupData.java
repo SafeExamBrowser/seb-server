@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Overall interface for client group data used either for template or real client groups */
 public interface ClientGroupData extends Entity {
@@ -20,6 +21,7 @@ public interface ClientGroupData extends Entity {
     String ATTR_NAME_RANGE_END_LETTER = "nameRangeEndLetter";
 
     /** All known and implemented client group types */
+    @Schema(description = "Type of client grouping strategy")
     enum ClientGroupType {
         NONE,
         IP_V4_RANGE,
@@ -28,6 +30,7 @@ public interface ClientGroupData extends Entity {
     }
 
     /** All known and implemented SEB OS types */
+    @Schema(description = "SEB client operating system type")
     enum ClientOS {
         NONE(null),
         WINDOWS("Windows"),

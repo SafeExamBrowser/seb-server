@@ -101,6 +101,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
      *
      * @param modelId The model identifier of the ExamTemplate to get
      * @return ExamTemplate model with all additional data applied*/
+    @Operation(
+            operationId = "getExamTemplate",
+            summary = "Get a single exam template by model ID",
+            description = "Returns the ExamTemplate with all additional data applied.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -120,6 +128,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     /** Get the institutional default Exam Template with all additional data assigned.
      *
      * @return ExamTemplate with all additional data*/
+    @Operation(
+            operationId = "getDefaultExamTemplate",
+            summary = "Get the institutional default exam template",
+            description = "Returns the default ExamTemplate for the current user's institution with all additional data applied.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -138,6 +154,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
      * @param institutionId the institution id of the user
      * @param examTemplate ExamTemplate model with all data for creation
      * @return created ExamTemplate*/
+    @Operation(
+            operationId = "createExamTemplate",
+            summary = "Create a new exam template from a full model",
+            description = "Creates a complete ExamTemplate including all additional data in one request.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_FULL_CREATE,
             method = RequestMethod.POST,
@@ -188,6 +212,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
      *  of the Configuration Template will be changed to the name of the Exam Template as soon as the Exam Template
      *  gets stored.
      * @return ConfigurationNode model of the new created Configuration Template*/
+    @Operation(
+            operationId = "createTemporaryExamConfigTemplate",
+            summary = "Create a temporary configuration template for exam template wizard",
+            description = "Creates a placeholder Configuration Template used during the Exam Template wizard flow.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CREATE_TEMP_CONFIG_TEMPLATE,
             method = RequestMethod.POST,
@@ -222,6 +254,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
      *
      * @param modelId The model identifier of the existing ExamTemplate that should be copied.
      * @return Copy of existing ExamTemplate within the new ExamTemplate model.*/
+    @Operation(
+            operationId = "copyExamTemplate",
+            summary = "Copy an existing exam template",
+            description = "Creates a full copy of the specified ExamTemplate, including its Configuration Template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_TEMPLATE_COPY,
             method = RequestMethod.POST,
@@ -294,6 +334,13 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Indicator Templates
 
+    @Operation(
+            operationId = "getExamTemplateIndicators",
+            summary = "Get indicator templates for an exam template",
+            description = "Returns a paginated list of indicator templates associated with the specified exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
@@ -329,6 +376,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 indicatorTemplatePageSort(sort));
     }
 
+    @Operation(
+            operationId = "getExamTemplateIndicator",
+            summary = "Get a single indicator template by ID",
+            description = "Returns the specified indicator template from the given exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
@@ -358,8 +413,16 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
-    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
+    @Operation(
+            operationId = "createExamTemplateIndicator",
+            summary = "Create an indicator template for an exam template",
+            description = "Creates a new indicator template associated with the specified exam template.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -389,6 +452,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "updateExamTemplateIndicator",
+            summary = "Update an indicator template",
+            description = "Saves changes to an existing indicator template within an exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -411,6 +482,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "deleteExamTemplateIndicator",
+            summary = "Delete an indicator template",
+            description = "Removes the specified indicator template from the exam template.")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
@@ -438,6 +517,13 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Client Group Templates
 
+    @Operation(
+            operationId = "getExamTemplateClientGroups",
+            summary = "Get client group templates for an exam template",
+            description = "Returns a paginated list of client group templates associated with the specified exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
@@ -465,6 +551,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 clientGroupTemplatePageSort(sort));
     }
 
+    @Operation(
+            operationId = "getExamTemplateClientGroup",
+            summary = "Get a single client group template by ID",
+            description = "Returns the specified client group template from the given exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
@@ -489,8 +583,16 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .orElseThrow(() -> new ResourceNotFoundException(EntityType.CLIENT_GROUP, parentModelId));
     }
 
-    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
+    @Operation(
+            operationId = "createExamTemplateClientGroup",
+            summary = "Create a client group template for an exam template",
+            description = "Creates a new client group template associated with the specified exam template.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -520,6 +622,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "updateExamTemplateClientGroup",
+            summary = "Update a client group template",
+            description = "Saves changes to an existing client group template within an exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -542,6 +652,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "deleteExamTemplateClientGroup",
+            summary = "Delete a client group template",
+            description = "Removes the specified client group template from the exam template.")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
@@ -569,6 +687,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Screen Proctoring
 
+    @Operation(
+            operationId = "getExamTemplateScreenProctoringSettings",
+            summary = "Get screen proctoring settings for an exam template",
+            description = "Retrieves the screen proctoring configuration for the specified exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
@@ -587,6 +713,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "saveExamTemplateScreenProctoringSettings",
+            summary = "Save screen proctoring settings for an exam template",
+            description = "Saves the screen proctoring configuration for the specified exam template.")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,

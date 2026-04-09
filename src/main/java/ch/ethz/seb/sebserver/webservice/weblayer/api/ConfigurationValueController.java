@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -95,6 +98,11 @@ public class ConfigurationValueController extends EntityController<Configuration
         throw new UnsupportedOperationException();
     }
 
+    @Operation(operationId = "getConfigTableValues", summary = "Get table values for a specific configuration attribute")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.CONFIGURATION_TABLE_VALUE_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -116,6 +124,11 @@ public class ConfigurationValueController extends EntityController<Configuration
                 .getOrThrow();
     }
 
+    @Operation(operationId = "saveConfigTableValues", summary = "Save table values for a specific configuration attribute")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.CONFIGURATION_TABLE_VALUE_PATH_SEGMENT,
             method = RequestMethod.PUT,

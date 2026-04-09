@@ -17,7 +17,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "Chapters", description = "List of course chapters from an LMS quiz")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Chapters {
 

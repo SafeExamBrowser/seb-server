@@ -261,6 +261,11 @@ public class ExamProctoringController {
                         error));
     }
 
+    @Operation(operationId = "openBreakOutRoom", summary = "Open a break-out proctoring room for selected SEB client connections")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_OPEN_BREAK_OUT_ROOM_SEGMENT,
@@ -285,6 +290,11 @@ public class ExamProctoringController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "closeProctoringRoom", summary = "Close a proctoring room for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_CLOSE_ROOM_SEGMENT,
@@ -306,6 +316,10 @@ public class ExamProctoringController {
                 .onError(error -> log.error("Failed to close remote proctoring break out room {}", roomName, error));
     }
 
+    @Operation(operationId = "isTownhallRoomAvailable", summary = "Check if the townhall room is available (not currently active) for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_TOWNHALL_ROOM_AVAILABLE,
@@ -322,6 +336,11 @@ public class ExamProctoringController {
         return String.valueOf(!this.examProcotringRoomService.isTownhallRoomActive(examId));
     }
 
+    @Operation(operationId = "getTownhallRoom", summary = "Get townhall room data for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_TOWNHALL_ROOM_DATA,
@@ -340,6 +359,11 @@ public class ExamProctoringController {
                 .getOrElse(() -> RemoteProctoringRoom.NULL_ROOM);
     }
 
+    @Operation(operationId = "activateTownhallRoom", summary = "Activate (open) the townhall room for a given exam")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM,

@@ -24,7 +24,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "OpenEdxSEBRestriction", description = "Open edX-specific SEB restriction configuration")
 public class OpenEdxSEBRestriction {
 
     public static final String ATTR_USER_BANNING_ENABLED = "USER_BANNING_ENABLED";
@@ -34,6 +36,7 @@ public class OpenEdxSEBRestriction {
     public static final String ATTR_BROWSER_KEYS = "BROWSER_KEYS";
     public static final String ATTR_CONFIG_KEYS = "CONFIG_KEYS";
 
+    @Schema(description = "Allowed URL path segments for Open edX SEB restriction")
     public enum WhiteListPath {
         ABOUT("about"),
         COURSE_OUTLINE("course-outline"),
@@ -49,6 +52,7 @@ public class OpenEdxSEBRestriction {
         }
     }
 
+    @Schema(description = "SEB key verification component for Open edX access control")
     public enum PermissionComponent {
         ALWAYS_ALLOW_STAFF("AlwaysAllowStaff"),
         CHECK_BROWSER_EXAM_KEY("CheckSEBHashBrowserExamKey"),

@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ScheduledDeleteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,6 +53,10 @@ public class ScheduledDeleteController {
         this.userActivityLogDAO = userActivityLogDAO;
     }
 
+    @Operation(operationId = "getScheduledDeletes", summary = "Get a page of scheduled delete entries")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -82,6 +87,11 @@ public class ScheduledDeleteController {
         return page;
     }
 
+    @Operation(operationId = "getScheduledDelete", summary = "Get full scheduled delete report by model ID")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -96,9 +106,15 @@ public class ScheduledDeleteController {
     }
 
     @Operation(
+        operationId = "scheduleSessionDeletion",
+        summary = "Create a new scheduled delete entry",
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                 content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
     )
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -118,6 +134,11 @@ public class ScheduledDeleteController {
                 .getOrThrow();
     }
 
+    @Operation(operationId = "cancelScheduledDelete", summary = "Cancel and delete a scheduled delete entry by model ID")
+    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE ,
@@ -149,9 +170,15 @@ public class ScheduledDeleteController {
     }
 
     @Operation(
+            operationId = "markExcludeScheduledDelete",
+            summary = "Mark an exam as excluded from the scheduled delete",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
     )
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.SCHEDULED_DELETE_MARK_EXCLUDE + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -161,9 +188,15 @@ public class ScheduledDeleteController {
     }
 
     @Operation(
+            operationId = "unmarkIncludeScheduledDelete",
+            summary = "Unmark an exam exclusion so it is included in the scheduled delete again",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
     )
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "400", description = "Bad request / validation error")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.SCHEDULED_DELETE_UNMARK_INCLUDE + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
