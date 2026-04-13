@@ -77,8 +77,6 @@ public interface ExamTemplateService {
 
     Result<ExamTemplate> applyExamTemplateAdditionalData(ExamTemplate examTemplate);
 
-    //void updateConfigurationTemplate(ExamTemplate examTemplate);
-
     /** Creates a new client group template
      *
      * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)

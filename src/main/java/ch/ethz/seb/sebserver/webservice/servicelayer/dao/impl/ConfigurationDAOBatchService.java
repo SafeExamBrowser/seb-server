@@ -524,6 +524,8 @@ public class ConfigurationDAOBatchService {
                         fromRec.getListIndex(),
                         fromRec.getValue()))
                 .forEach(this.batchConfigurationValueRecordMapper::insert);
+
+        this.batchSqlSessionTemplate.flushStatements();
     }
 
     private ConfigurationRecord getFollowupConfigurationRecord(final Long configurationNodeId) {

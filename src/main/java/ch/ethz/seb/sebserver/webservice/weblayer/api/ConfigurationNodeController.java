@@ -288,6 +288,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
+    @Deprecated(since = "3.0")
     public Configuration importExamConfig(
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_NAME, required = false) final String name,
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
@@ -349,6 +350,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     public Configuration importExamConfigOnExistingConfig(
             @PathVariable final Long modelId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
+            @RequestHeader(name = API.QUIT_PASSWORD_ATTR_NAME, required = false) final String quitPassword,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -370,6 +372,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         if (doImport.hasError()) {
             // rollback of the existing values
             this.configurationDAO.undo(newConfig.configurationNodeId);
+        } else {
+            // reset quit password
+            this.entityDAO
+                    .byPK(modelId)
+                    .flatMap(configNode ->this.sebExamConfigService.setQuitPassword(configNode, quitPassword))
+                    .onError(error -> log.error("Failed to reset quit password from imported config: {}", error.getMessage()));
         }
 
         return doImport

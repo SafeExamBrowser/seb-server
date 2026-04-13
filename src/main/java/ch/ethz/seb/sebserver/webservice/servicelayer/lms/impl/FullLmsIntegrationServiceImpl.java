@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -284,7 +283,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final Long lmsSetupId = lmsSetup.id;
             final String connectionId = lmsSetup.getConnectionId();
             if (connectionId == null) {
-                throw new RuntimeException("Illegal state", new MoodleResponseException(
+                throw new RuntimeException("Illegal state no LMS connectionId", new MoodleResponseException(
                         "The Assessment Tool Setup must be saved first before full integration can be tested and applied.","none"));
             }
 
@@ -292,14 +291,9 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             String accessToken = null;
             try {
 
-
-//                resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
-//                restTemplate.getOAuth2ClientContext().setAccessToken(null);
-//                accessToken = restTemplate.getAccessToken().getValue();
-
-            clientSettingsProvider.setScopes(API.LMS_API_SCOPE_NAME);
-            OAuthRestTemplate rest = getRestTemplate(false);
-            accessToken = restTemplate.getAccessToken().toString();
+                clientSettingsProvider.setScopes(API.LMS_API_SCOPE_NAME);
+                OAuthRestTemplate rest = getRestTemplate(false);
+                accessToken = restTemplate.getAccessToken().toString();
 
             } catch (final Exception e) {
                 log.error("Failed to get SEB webservice access token for Moodle on: {} client: {} scope: {} for LMSSetup: {}",
@@ -418,8 +412,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
             }
 
-            final Exam exam = examResult.get();
-
+            final Exam exam = examResult.getOrThrow();
             final String connectionConfigId = getConnectionConfigurationId(exam);
             if (StringUtils.isBlank(connectionConfigId)) {
                 log.error(
@@ -445,7 +438,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final IntegrationData integrationData,
             final LmsSetup lmsSetup) {
 
-            examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+            examDAO.allActiveForLMSSetup(Collections.singletonList(lmsSetup.id))
                     .getOrThrow()
                     .forEach(exam -> applyExamData(exam, false));
 
@@ -541,7 +534,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             // check if the exam has already been imported, If so return the existing exam if it is not archived
             final Result<Exam> existingExam = findExam(quizData);
             if (!existingExam.hasError()) {
-                final Exam exam = existingExam.get();
+                final Exam exam = existingExam.getOrThrow();
                 if (exam.status == Exam.ExamStatus.ARCHIVED) {
                     throw new IllegalArgumentException("Exam is archived and cannot be re-connected by LMS full integration!");
                 }

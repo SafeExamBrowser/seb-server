@@ -177,11 +177,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
         });
     }
 
-
-    private static final String KEY_SEB_SERVICE_POLICY = "sebServicePolicy";
-    private static final String KEY_ATTR_1 = "enableWindowsUpdate";
-    private static final String KEY_ATTR_2 = "enableChromeNotifications";
-    private static final String KEY_ATTR_3 = "allowScreenSharing";
     @Override
     public void applyIgnoreSEBService(final Long institutionId, final Long configurationId) {
         try {
@@ -194,13 +189,13 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                         .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
                 // set default values enableWindowsUpdate
                 this.setDefaultValues(institutionId, configurationId, 321L)
-                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for enableWindowsUpdate"));
                 // set default values enableChromeNotifications
                 this.setDefaultValues(institutionId, configurationId, 322L)
-                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for enableChromeNotifications"));
                 // set default values allowScreenSharing
                 this.setDefaultValues(institutionId, configurationId, 303L)
-                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for allowScreenSharing"));
             }
 
         } catch (final Exception e) {
@@ -794,7 +789,13 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 data.listIndex,
                 data.value);
 
-        this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
+        Integer execute = UpdateDSL.updateWithMapper(configurationValueRecordMapper::update, configurationValueRecord)
+                .set(listIndex).equalTo(data.listIndex)
+                .set(value).equalTo(data.value)
+                .where(ConfigurationValueRecordDynamicSqlSupport.id, isEqualTo(id))
+                .build()
+                .execute();
+        //this.configurationValueRecordMapper.updateByPrimaryKey(newRecord);
         return this.configurationValueRecordMapper.selectByPrimaryKey(id);
     }
 

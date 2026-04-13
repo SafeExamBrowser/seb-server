@@ -87,6 +87,8 @@ public class TemplateSEBSettingsController {
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_VALUE) final String value) {
 
         authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
+
+        System.out.println("************ save single value: " + value + " templateId: " + templateId + " valueId: " + valueId);
         
         return sebSettingsService
                 .saveSingleValueForTemplate(templateId, valueId, value)

@@ -348,26 +348,30 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .filter(Objects::nonNull)
                     .toList();
 
-            // create SPS data if present and enabled
-            String groupSelection = examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION);
-            if (StringUtils.isBlank(groupSelection) && !groupIdsWithSPS.isEmpty()) {
-                groupSelection = StringUtils.join(groupIdsWithSPS, Constants.LIST_SEPARATOR);
-            }
-
+            // apply SPS settings
             if (examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)) {
                 try {
                     final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle = webserviceInfo
                             .getScreenProctoringServiceBundle();
 
+                    final boolean spsEnabled = BooleanUtils.toBoolean(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
+                    final CollectingStrategy collectingStrategy = examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)
+                            ? CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY))
+                            : CollectingStrategy.EXAM;
+                    String groupSelection = examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION);
+                    if (StringUtils.isBlank(groupSelection) && !groupIdsWithSPS.isEmpty()) {
+                        groupSelection = StringUtils.join(groupIdsWithSPS, Constants.LIST_SEPARATOR);
+                    }
+
                     final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
                             null,
-                            BooleanUtils.toBoolean(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)),
+                            spsEnabled,
                             screenProctoringServiceBundle.serviceURL,
                             screenProctoringServiceBundle.clientId,
                             screenProctoringServiceBundle.clientSecret.toString(),
                             screenProctoringServiceBundle.apiAccountName,
                             screenProctoringServiceBundle.apiAccountPassword.toString(),
-                            CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)),
+                            collectingStrategy,
                             examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME),
                             null,
                             groupSelection,

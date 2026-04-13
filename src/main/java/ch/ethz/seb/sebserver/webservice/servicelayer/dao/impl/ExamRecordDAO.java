@@ -392,6 +392,11 @@ public class ExamRecordDAO {
 
             // check internal persistent write-lock
             final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(examId);
+
+            if (oldRecord == null) {
+                throw new NoResourceFoundException(EntityType.EXAM, "No Exam with Id: " + examId + "found!");
+            }
+
             if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
                 throw new IllegalStateException("Exam is currently locked: " + examId);
             }
