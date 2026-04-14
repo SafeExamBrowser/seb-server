@@ -225,7 +225,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                             }
                         });
                 
-                // delete full integration on Moodle side due to deactivation
+                // delete full integration on LMS side due to deactivation
                 this.teacherAccountService.deleteAllFromLMS(lmsSetup.id);
                 this.deleteFullLmsIntegration(lmsSetup.id)
                         .getOrThrow();
@@ -280,6 +280,10 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     @Override
     public Result<IntegrationData> applyFullLmsIntegration(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
+            if (lmsSetup.getLmsType() == LmsSetup.LmsType.MOCKUP) {
+                return new IntegrationData(null, null, null, null, null);
+            }
+
             final Long lmsSetupId = lmsSetup.id;
             final String connectionId = lmsSetup.getConnectionId();
             if (connectionId == null) {
@@ -296,12 +300,12 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                 accessToken = restTemplate.getAccessToken().toString();
 
             } catch (final Exception e) {
-                log.error("Failed to get SEB webservice access token for Moodle on: {} client: {} scope: {} for LMSSetup: {}",
+                log.error("Failed to get SEB webservice access token for LMS on: {} client: {} scope: {} for LMSSetup: {}",
                         webserviceInfo.getOAuthTokenURI(),
                         clientSettingsProvider.getClientId(),
                         clientSettingsProvider.getScopes(),
                         lmsSetup);
-                throw new RuntimeException("Failed to get SEB webservice access token for Moodle...");
+                throw new RuntimeException("Failed to get SEB webservice access token for LMS...");
             }
 
             final IntegrationData data = new IntegrationData(
@@ -505,6 +509,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quizId) {
 
         return lmsAPITemplate -> {
+            // TODO this will not work for other integrations then Moodle. Must be checked before other LMS Integrations are applied
             final String internalQuizId = MoodleUtils.getInternalQuizId(
                     quizId,
                     courseId,
@@ -629,7 +634,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     ? null
                     : exam.examTemplateId != null
                         ? String.valueOf(exam.examTemplateId)
-                        : "0"; // no selection on Moodle site
+                        : "0"; // no selection on LMS site
             final String quitPassword = deletion
                     ? null
                     : examConfigurationValueService.getQuitPassword(exam.id);
