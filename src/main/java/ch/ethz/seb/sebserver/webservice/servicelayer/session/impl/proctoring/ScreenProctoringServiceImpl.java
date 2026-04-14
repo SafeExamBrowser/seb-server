@@ -312,6 +312,13 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         this.screenProctoringAPIBinding.synchronizeUserAccounts(exam);
+
+        final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id);
+        if (spsData == null) {
+            log.warn("No SPSData found for Exam with SPS. Skip SPS Exam and Group update for: {}", exam);
+            return;
+        }
+
         this.screenProctoringAPIBinding
                 .updateExam(exam)
                 .onError(error -> log.warn("Failed to update exam on SPS: ", error));

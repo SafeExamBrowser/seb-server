@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -39,6 +40,7 @@ public interface ConfigurationNodeDAO extends
      *
      * @param configTemplateId The Configuration Template identifier
      * @param name the name to update
+     *
      * @param description the description to update
      * @return Result refer to the updated ConfigurationNode or to an error when happened */
     Result<ConfigurationNode> updateConfigurationTemplate(

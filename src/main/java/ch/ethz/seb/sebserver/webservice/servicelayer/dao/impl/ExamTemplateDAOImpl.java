@@ -16,6 +16,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
@@ -41,16 +43,14 @@ import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamTemplateRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 
 @Lazy
 @Component
 public class ExamTemplateDAOImpl implements ExamTemplateDAO {
+
+    private static final String COPY_NAME_TEMPLATE = "%s (copy%s)";
 
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final AdditionalAttributesDAO additionalAttributesDAO;
@@ -153,7 +153,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             final Predicate<ExamTemplate> predicate) {
 
         return Result.tryCatch(() -> {
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamTemplateRecord>>>.QueryExpressionWhereBuilder whereClause =
+
+            QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamTemplateRecord>>>.QueryExpressionWhereBuilder whereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.examTemplateRecordMapper
                                     .selectByExample()
@@ -169,13 +170,20 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                                             ExamTemplateRecordDynamicSqlSupport.institutionId,
                                             isEqualToWhenPresent(filterMap.getInstitutionId()));
 
+            // NOTE "UNDEFINED" must find both, "UNDEFINED" and NULL entries
+            String exam_type = filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE);
+            if (exam_type != null) {
+                if (Objects.equals(exam_type, ExamType.UNDEFINED.name())) {
+                    whereClause = whereClause.and(ExamTemplateRecordDynamicSqlSupport.examType, isEqualTo(exam_type), or(ExamTemplateRecordDynamicSqlSupport.examType, isNull()));
+                } else {
+                    whereClause = whereClause.and(ExamTemplateRecordDynamicSqlSupport.examType, isEqualTo(exam_type));
+                }
+            }
+
             return whereClause
                     .and(
                             ExamTemplateRecordDynamicSqlSupport.name,
                             isLikeWhenPresent(filterMap.getExamTemplateName()))
-                    .and(
-                            ExamTemplateRecordDynamicSqlSupport.examType,
-                            isEqualToWhenPresent(filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE)))
                     .build()
                     .execute()
                     .stream()
@@ -202,7 +210,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     data.description,
                     (data.examType != null)
                             ? data.examType.name()
-                            : null,
+                            : ExamType.UNDEFINED.name(),
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
@@ -489,6 +497,35 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     .map(id -> new EntityKey(id, EntityType.EXAM_TEMPLATE))
                     .collect(Collectors.toList());
         });
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getCopyName(ExamTemplate sourceExamTemplate) {
+        try {
+
+            int count = 1;
+            Long number = null;
+            String newName = String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, String.valueOf(Utils.getSecondsNow()));
+
+            while (number == null || number > 0 ) {
+                newName = String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, count > 1 ? " " + count : "");
+                number = this.examTemplateRecordMapper.countByExample()
+                        .where(
+                                ConfigurationNodeRecordDynamicSqlSupport.name,
+                                isEqualTo(newName))
+                        .build()
+                        .execute();
+                count++;
+            }
+
+            return newName;
+
+        } catch (Exception e) {
+            log.error("Failed to find valid copy name for Exam Template: {}, cause: {}, now use timestamp", sourceExamTemplate.name, e.getMessage());
+            return String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, String.valueOf(Utils.getSecondsNow()));
+        }
     }
 
     private Result<ExamTemplateRecord> recordById(final Long id) {

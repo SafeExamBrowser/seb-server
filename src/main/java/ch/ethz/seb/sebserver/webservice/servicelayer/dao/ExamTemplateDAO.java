@@ -68,5 +68,11 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
      * @return Result refer to the EntityKey of the deleted ClientGroupTemplate or to an error when happened */
     Result<EntityKey> deleteClientGroupTemplate(String examTemplateId, String clientGroupTemplateId);
 
-
+    /** Gets a valid copy name for the given ExamTemplate.
+     *  uses "[name] (copy)" if already exists --> "[name] (copy 2)" --> if already exists --> "[name] (copy 3)"...
+     *
+     * @param sourceExamTemplate The source ExamTemplate to get a copy name for
+     * @return the new name for the copy.
+     */
+    String getCopyName(ExamTemplate sourceExamTemplate);
 }

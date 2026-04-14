@@ -233,7 +233,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         checkWritePrivilege(institutionId);
 
         final ExamTemplate sourceExamTemplate = getBy(modelId);
-        final String newName = sourceExamTemplate.name + " (copy)";
+        final String newName = examTemplateDAO.getCopyName(sourceExamTemplate);
 
         // create copy of Configuration Template if available
         Long newConfigTemplateId = null;

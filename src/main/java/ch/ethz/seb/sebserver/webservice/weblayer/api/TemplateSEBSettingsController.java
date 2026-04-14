@@ -12,6 +12,7 @@ import java.util.List;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
@@ -89,6 +90,7 @@ public class TemplateSEBSettingsController {
         authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
 
         System.out.println("************ save single value: " + value + " templateId: " + templateId + " valueId: " + valueId);
+     //   throw new NoResourceFoundException(EntityType.CONFIGURATION_VALUE, "Test");
         
         return sebSettingsService
                 .saveSingleValueForTemplate(templateId, valueId, value)
