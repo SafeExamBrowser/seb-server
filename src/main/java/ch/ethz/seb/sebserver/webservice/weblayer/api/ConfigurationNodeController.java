@@ -517,6 +517,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
+    @Deprecated(since = "3.0")
     public TemplateAttribute attachDefaultTemplateAttributeOrientation(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,

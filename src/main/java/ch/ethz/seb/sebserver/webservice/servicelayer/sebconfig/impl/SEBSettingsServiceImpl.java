@@ -120,7 +120,10 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
             final Long valueId, 
             final String value) {
 
-        return Result.tryCatch(() -> saveSingleValue(templateId, valueId, value));
+        return Result.tryCatch(() -> saveSingleValue(
+                templateId,
+                valueId,
+                convertValueWrite(valueId, value)));
     }
 
     @Override

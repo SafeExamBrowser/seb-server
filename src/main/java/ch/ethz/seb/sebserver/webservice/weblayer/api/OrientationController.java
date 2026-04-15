@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.ORIENTATION_ENDPOINT)
+@Deprecated (since = "3.0")
 public class OrientationController extends EntityController<Orientation, Orientation> {
 
     private final ConfigurationAttributeDAO configurationAttributeDAO;

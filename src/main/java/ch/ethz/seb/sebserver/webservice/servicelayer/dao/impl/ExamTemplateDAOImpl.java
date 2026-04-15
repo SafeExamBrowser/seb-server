@@ -513,7 +513,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 newName = String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, count > 1 ? " " + count : "");
                 number = this.examTemplateRecordMapper.countByExample()
                         .where(
-                                ConfigurationNodeRecordDynamicSqlSupport.name,
+                                ExamTemplateRecordDynamicSqlSupport.name,
                                 isEqualTo(newName))
                         .build()
                         .execute();
@@ -526,6 +526,30 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             log.error("Failed to find valid copy name for Exam Template: {}, cause: {}, now use timestamp", sourceExamTemplate.name, e.getMessage());
             return String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, String.valueOf(Utils.getSecondsNow()));
         }
+    }
+
+    @Override
+    public boolean hasAnyExamTemplateWithConfigTemplate(final Long configTemplateId) {
+        try {
+
+            Long execute = this.examTemplateRecordMapper.countByExample()
+                    .where(
+                            configurationTemplateId,
+                            isEqualTo(configTemplateId))
+                    .build()
+                    .execute();
+
+            return execute != null && execute > 0;
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to check if there is any Exam Template that uses the configuration template with the id: {} case: {}",
+                    configTemplateId,
+                    e.getMessage());
+        }
+
+        // return true for safety reasons
+        return true;
     }
 
     private Result<ExamTemplateRecord> recordById(final Long id) {

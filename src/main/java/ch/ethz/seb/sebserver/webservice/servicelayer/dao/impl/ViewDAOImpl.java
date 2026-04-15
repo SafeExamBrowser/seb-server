@@ -129,7 +129,7 @@ public class ViewDAOImpl implements ViewDAO {
                     .selectByExample()
                     .where(
                             ViewRecordDynamicSqlSupport.templateId,
-                            SqlBuilder.isEqualTo(templateId))
+                            SqlBuilder.isEqualTo(0L))
                     .build()
                     .execute();
             // get default view

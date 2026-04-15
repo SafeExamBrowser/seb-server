@@ -95,7 +95,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .selectByExample()
                 .where(
                         OrientationRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationTemplateId()))
+                        // Note set this always to 0 for 3.0 (no different orientations anymore)
+                        SqlBuilder.isEqualToWhenPresent(0L))
                 .and(
                         OrientationRecordDynamicSqlSupport.configAttributeId,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationAttributeId()))
@@ -201,7 +202,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .selectByExample()
                 .where(
                         OrientationRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualTo(templateId))
+                        // Note set this always to 0 for 3.0 (no different orientations anymore)
+                        SqlBuilder.isEqualTo(0L))
                 .build()
                 .execute()
                 .stream()
@@ -217,7 +219,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .selectByExample()
                 .where(
                         OrientationRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualTo(templateId))
+                        // Note set this always to 0 for 3.0 (no different orientations anymore)
+                        SqlBuilder.isEqualTo(0L))
                 .and(
                         OrientationRecordDynamicSqlSupport.configAttributeId,
                         SqlBuilder.isEqualTo(attributeId))
@@ -241,6 +244,7 @@ public class OrientationDAOImpl implements OrientationDAO {
                     .selectByExample()
                     .where(
                             OrientationRecordDynamicSqlSupport.templateId,
+                            // Note set this always to 0 for 3.0 (no different orientations anymore)
                             SqlBuilder.isEqualTo(0L))
                     .and(
                             OrientationRecordDynamicSqlSupport.viewId,

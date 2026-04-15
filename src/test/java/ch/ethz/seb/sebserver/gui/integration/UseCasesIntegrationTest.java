@@ -1811,18 +1811,19 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNull(savedTAttribute.getOrientation());
 
         // Re-attach default orientation
-        savedTAttribute = restService
-                .getBuilder(AttachDefaultOrientation.class)
-                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(template.id))
-                .withURIVariable(API.PARAM_MODEL_ID, templateAttr.getModelId())
-                .call()
-                .getOrThrow();
+        // deprecated since 3.0
+//        savedTAttribute = restService
+//                .getBuilder(AttachDefaultOrientation.class)
+//                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(template.id))
+//                .withURIVariable(API.PARAM_MODEL_ID, templateAttr.getModelId())
+//                .call()
+//                .getOrThrow();
 
-        assertNotNull(savedTAttribute);
-        assertNotNull(savedTAttribute.getOrientation());
-        assertEquals(orientation.viewId, savedTAttribute.getOrientation().viewId);
-        assertEquals(orientation.templateId, savedTAttribute.getOrientation().templateId);
-        assertEquals(orientation.attributeId, savedTAttribute.getOrientation().attributeId);
+//        assertNotNull(savedTAttribute);
+//        assertNotNull(savedTAttribute.getOrientation());
+//        assertEquals(orientation.viewId, savedTAttribute.getOrientation().viewId);
+//        assertEquals(orientation.templateId, savedTAttribute.getOrientation().templateId);
+//        assertEquals(orientation.attributeId, savedTAttribute.getOrientation().attributeId);
 
         // get first value and change it
         final Configuration fallow_up = restService.getBuilder(GetFollowupConfiguration.class)

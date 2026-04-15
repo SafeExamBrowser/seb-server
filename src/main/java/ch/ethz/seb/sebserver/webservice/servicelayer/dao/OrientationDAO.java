@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+@Deprecated (since = "3.0")
 public interface OrientationDAO extends EntityDAO<Orientation, Orientation> {
 
     /** Use this to delete all Orientation of a defined template.

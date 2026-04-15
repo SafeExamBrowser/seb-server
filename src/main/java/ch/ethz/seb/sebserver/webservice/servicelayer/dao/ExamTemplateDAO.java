@@ -75,4 +75,10 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
      * @return the new name for the copy.
      */
     String getCopyName(ExamTemplate sourceExamTemplate);
+
+    /** Indicates if there exists any Exam Template that uses the Configuration Template with given id.
+     *
+     * @param configTemplateId The Configuration Template identifier
+     * @return true if there exists any Exam Template that uses the Configuration Template with given id */
+    boolean hasAnyExamTemplateWithConfigTemplate(Long configTemplateId);
 }

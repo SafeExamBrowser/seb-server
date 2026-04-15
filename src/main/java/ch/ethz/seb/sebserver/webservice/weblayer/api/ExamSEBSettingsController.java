@@ -108,8 +108,6 @@ public class ExamSEBSettingsController {
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_VALUE) final String value) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
-        
-        //System.out.println("******** value: " + value);
 
         return sebSettingsService
                 .saveSingleValueForExam(examId, valueId, value)

@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -560,6 +561,30 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         return examTemplateDAO
                 .deleteClientGroupTemplate(examTemplateId, clientGroupTemplateId)
                 .map(key -> deleteSPSGroup(examTemplateId, key));
+    }
+
+    @Override
+    public void notifyExamTemplateChange(final ExamTemplateChangeEvent event) {
+        if (event.changeState != ExamTemplateChangeEvent.ChangeState.DELETED) {
+            return;
+        }
+
+        try {
+
+            Long configTemplateId = event.getExamTemplate().configTemplateId;
+            if (configTemplateId == null) {
+                return;
+            }
+
+            if (!examTemplateDAO.hasAnyExamTemplateWithConfigTemplate(configTemplateId)) {
+                configurationNodeDAO
+                        .delete(Collections.singleton(new EntityKey(configTemplateId, EntityType.CONFIGURATION_NODE)))
+                        .getOrThrow();
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to delete configuration template for exam template: {} cause: {}", event.getExamTemplate(), e.getMessage());
+        }
     }
 
 

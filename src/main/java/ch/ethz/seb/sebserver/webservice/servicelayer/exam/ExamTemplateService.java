@@ -14,6 +14,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.event.EventListener;
 
 import java.util.*;
 import java.util.function.Function;
@@ -95,6 +96,14 @@ public interface ExamTemplateService {
      * @param clientGroupTemplateId the id of the ClientGroupTemplate to delete
      * @return Result refer to the EntityKey of the deleted ClientGroupTemplate or to an error when happened */
     Result<EntityKey> deleteClientGroupTemplate(String examTemplateId, String clientGroupTemplateId);
+
+    /** Called by the framework when an Exam Template has changed.
+     *  This reacts only on deletion and also deletes the assigned configuration template
+     *  if it has no references anymore
+     * @param event ExamTemplateChangeEvent only reacts on deletion event
+     */
+    @EventListener(ExamTemplateChangeEvent.class)
+    void notifyExamTemplateChange(ExamTemplateChangeEvent event);
 
     /** Creates a IndicatorTemplate list sort function for a given sort parameter.
      *
