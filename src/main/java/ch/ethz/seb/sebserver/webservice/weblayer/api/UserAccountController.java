@@ -55,6 +55,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -236,6 +237,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getSupporterNames(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,

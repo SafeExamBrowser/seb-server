@@ -139,38 +139,44 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             operationId = "getPage",
             summary = "Get a page of the specific domain entity. Sorting and filtering is applied before paging",
             description = """
-                    Sorting: the sort parameter to sort the list of entities before paging
-                    the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
-                    descending sort order. Note that not all entity-model attribute are suited for sorting while the most
-                    are.
+                    Sorting: the sort parameter to sort the list of entities before paging.
+                    The sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+                    descending sort order. Not all attributes support sorting.
                     </p>
-                    Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
-                    and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
-                    filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
-                    a given text-snippet.""",
+                    Filter: Filter attributes are passed as query parameters in the form [attribute]=[value].
+                    Text filters use SQL wildcards (%value%). The available filter keys depend on the entity type:
+                    </p>
+                    Common filters (all entities): name, active, institutionId
+                    </p>
+                    Exam: type, status, start_timestamp_millis, lms_setup
+                    </p>
+                    User: surname, username, email, language, role
+                    </p>
+                    LMS Setup: lms_type, lms_setup
+                    </p>
+                    Configuration Node: description, status, type, template_id
+                    </p>
+                    Client Connection: examId, status, client_address, connection_token_list
+                    </p>
+                    Client Event: connectionId, type, text, client_time_from_to, server_time_from_to
+                    </p>
+                    Examples: ?name=seb&active=true  or  ?type=MANAGED&status=RUNNING""",
             parameters = {
                     @Parameter(
                             name = Page.ATTR_PAGE_NUMBER,
-                            description = "The number of the page to get from the whole list. If the page does not exists, the API retruns with the first page."),
+                            description = "The number of the page to get from the whole list. If the page does not exist, the first page is returned."),
                     @Parameter(
                             name = Page.ATTR_PAGE_SIZE,
                             description = "The size of the page to get."),
                     @Parameter(
                             name = Page.ATTR_SORT,
-                            description = "the sort parameter to sort the list of entities before paging"),
+                            description = "The sort parameter to sort the list of entities before paging."),
                     @Parameter(
                             name = API.PARAM_INSTITUTION_ID,
                             description = "The institution identifier of the request.\n"
                                     + "Default is the institution identifier of the institution of the current user"),
-                    @Parameter(
-                            name = "filterCriteria",
-                            description = "Additional filter criterias \n" +
-                                    "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
-                            example = "{}",
-                            required = false,
-                            allowEmptyValue = false)
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
@@ -184,7 +190,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> filterCriteria,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
@@ -212,26 +218,18 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             operationId = "getEntityNames",
             summary = "Get a filtered list of specific entity name keys.",
             description = """
-                    An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity.\
+                    An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity.
                     </p>
-                    Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
-                    and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
-                    filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
-                    a given text-snippet.""",
+                    Filter attributes are passed as query parameters in the form [attribute]=[value].
+                    Text filters use SQL wildcards (%value%). The same filter keys as getPage are supported.
+                    Example: ?name=seb&active=true""",
             parameters = {
                     @Parameter(
                             name = API.PARAM_INSTITUTION_ID,
                             description = "The institution identifier of the request.\n"
                                     + "Default is the institution identifier of the institution of the current user"),
-                    @Parameter(
-                            name = "filterCriteria",
-                            description = "Additional filter criterias \n" +
-                                    "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
-                            example = "{}",
-                            required = false,
-                            allowEmptyValue = false)
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
@@ -243,7 +241,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam final MultiValueMap<String, String> filterCriteria,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
@@ -299,7 +297,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
@@ -332,15 +330,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @Operation(
             operationId = "getEntityById",
             summary = "Get a single entity by its modelId.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
                             name = API.PARAM_MODEL_ID,
                             description = "The model identifier of the entity object to get.",
                             in = ParameterIn.PATH)
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Not found")
@@ -368,7 +364,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_MODEL_ID_LIST,
                             description = "Comma separated list of model identifiers.")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
@@ -413,7 +409,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             description = "The institution identifier of the request.\n"
                                     + "Default is the institution identifier of the institution of the current user"),
             })
-    @ApiResponse(responseCode = "200", description = "Created", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Created")
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -458,7 +454,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     "Missing (NULL) parameter that are not mandatory will be ignored and the original value will not be affected",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE) }))
-    @ApiResponse(responseCode = "200", description = "Updated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Updated")
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -485,12 +481,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
                     "please use the dependency endpoint to get a report of all dependent entity objects.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
                             name = API.PARAM_MODEL_ID,
-                            description = "The model identifier of the entity object to get.",
+                            description = "The model identifier of the entity object to delete.",
                             in = ParameterIn.PATH),
                     @Parameter(
                             name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
@@ -499,7 +493,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
-    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Deleted")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Not found")
@@ -528,12 +522,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
                     "please use the dependency endpoint to get a report of all dependent entity objects.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
                             name = API.PARAM_MODEL_ID,
-                            description = "The model identifier of the entity object to get.",
+                            description = "The model identifier of the entity object to force-delete.",
                             in = ParameterIn.PATH),
                     @Parameter(
                             name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
@@ -542,7 +534,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
-    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Deleted")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Not found")
@@ -573,8 +565,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
                     "please use the dependency endpoint to get a report of all dependent entity objects.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
                             name = API.PARAM_MODEL_ID_LIST,
@@ -587,7 +577,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             name = API.PARAM_BULK_ACTION_INCLUDES,
                             description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
-    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Deleted")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Not found")

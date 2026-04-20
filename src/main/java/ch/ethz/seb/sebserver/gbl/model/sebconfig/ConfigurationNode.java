@@ -77,6 +77,7 @@ public final class ConfigurationNode implements GrantEntity {
     @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS)
     public final ConfigurationStatus status;
 
+    @Schema(type = "string", format = "date-time", description = "Last update timestamp in ISO-8601 format")
     @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME)
     public final DateTime lastUpdateTime;
 

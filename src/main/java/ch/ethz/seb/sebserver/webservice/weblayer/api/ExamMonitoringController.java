@@ -66,6 +66,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -162,14 +163,15 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<Exam> getPage(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
-            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @Parameter(description = "The page number") @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @Parameter(description = "The page size") @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @Parameter(description = "Sort column with optional '-' prefix for descending") @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
         this.authorization.checkRole(
@@ -226,14 +228,15 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<Exam> getFinishedExamsPage(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
-            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @Parameter(description = "The page number") @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @Parameter(description = "The page size") @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @Parameter(description = "Sort column with optional '-' prefix for descending") @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
         this.authorization.checkRole(
@@ -276,11 +279,12 @@ public class ExamMonitoringController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam toggleTestRunForExam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
 
         // check overall privileges
         this.authorization.checkRole(
@@ -320,11 +324,12 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ExamMonitoringOverviewData getOverviewData(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId) {
 
         final Exam exam = checkPrivileges(institutionId, examId);
         return examMonitoringV3Service.getExamMonitoringOverviewData(exam);
@@ -350,11 +355,12 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public MonitoringFullPageData getMonitoringExamListData(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_LIST_SHOW_ALL, required = false) final Boolean showAll,
             @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_STATE, required = false) final String showStates,
             @RequestHeader(name = API.EXAM_MONITORING_LIST_FILTER_SHOW_GROUPS, required = false) final String showGroups,
@@ -396,11 +402,12 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientConnectionData> getConnectionData(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates,
             @RequestHeader(name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER, required = false) final String hiddenClientGroups,
             @RequestHeader(name = API.EXAM_MONITORING_ISSUE_FILTER, required = false) final String hiddenIssues){
@@ -440,12 +447,13 @@ public class ExamMonitoringController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public MonitoringStaticClientData getMonitoringStaticClientData(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String clientConnectionIds) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "Comma-separated list of client connection identifiers") @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String clientConnectionIds) {
 
         final Exam runningExam = checkPrivileges(institutionId, examId);
 
@@ -470,11 +478,12 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public MonitoringFullPageData getFullMonitoringPageData(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates,
             @RequestHeader(name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER, required = false) final String hiddenClientGroups,
             @RequestHeader(name = API.EXAM_MONITORING_ISSUE_FILTER, required = false) final String hiddenIssues){
@@ -509,12 +518,13 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientConnectionData getConnectionDataForSingleConnection(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The SEB client connection token") @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
 
@@ -532,11 +542,12 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_QUIT_ALL,
             method = RequestMethod.POST)
     public void quitAllActiveSEBClients(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId) {
 
         checkPrivileges(institutionId, examId);
 
@@ -565,11 +576,12 @@ public class ExamMonitoringController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public void registerInstruction(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @Valid @RequestBody final ClientInstruction clientInstruction) {
 
         checkPrivileges(institutionId, examId);
@@ -598,12 +610,13 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientNotification> pendingNotifications(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The SEB client connection token") @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
 
@@ -634,13 +647,14 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.POST)
     public void confirmNotification(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long notificationId,
-            @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The notification identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long notificationId,
+            @Parameter(description = "The SEB client connection token") @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
 
@@ -665,11 +679,13 @@ public class ExamMonitoringController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void disableConnection(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The SEB client connection token")
             @RequestParam(
                     name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
                     required = true) final String connectionToken) {
@@ -705,12 +721,13 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SecurityKey getAppSignatureKey(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId) {
+            @Parameter(description = "The exam identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The client connection identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId) {
 
         checkPrivileges(institutionId, examId);
         return this.securityKeyService

@@ -54,6 +54,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -130,13 +131,13 @@ public class CertificateController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<CertificateInfo> getPage(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
-            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @Parameter(description = "The page number to retrieve") @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @Parameter(description = "The number of items per page") @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @Parameter(description = "The sort parameter (attribute name with optional leading '-' for descending)") @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
@@ -165,7 +166,7 @@ public class CertificateController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getNames(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
@@ -194,11 +195,11 @@ public class CertificateController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateInfo getAlias(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final String alias) {
+            @Parameter(description = "The certificate alias") @PathVariable final String alias) {
 
         return this.certificateService
                 .getCertificateInfo(institutionId, alias)
@@ -215,7 +216,7 @@ public class CertificateController {
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateInfo importCertificate(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
@@ -260,11 +261,11 @@ public class CertificateController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityKey> deleteCertificate(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = API.CERTIFICATE_ALIAS, required = true) final String aliases) {
+            @Parameter(description = "The certificate alias") @RequestParam(name = API.CERTIFICATE_ALIAS, required = true) final String aliases) {
 
         this.checkWritePrivilege(institutionId);
 

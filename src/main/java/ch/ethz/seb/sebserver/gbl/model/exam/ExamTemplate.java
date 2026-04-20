@@ -69,6 +69,9 @@ public class ExamTemplate implements GrantEntity {
     @JsonProperty(ATTR_CLIENT_GROUP_TEMPLATES)
     public final Collection<ClientGroupTemplate> clientGroupTemplates;
 
+    @Schema(
+            description = "Free-form exam template attributes represented as string key/value pairs",
+            example = "{\"quitPassword\":\"secret\",\"showQuitLink\":\"true\"}")
     @JsonProperty(ATTR_EXAM_ATTRIBUTES)
     public final Map<String, String> examAttributes;
 

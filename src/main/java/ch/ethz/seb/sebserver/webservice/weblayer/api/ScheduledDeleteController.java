@@ -18,6 +18,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ScheduledDeleteService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -64,7 +65,7 @@ public class ScheduledDeleteController {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> filterCriteria,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         authorizationService.check(PrivilegeType.READ, EntityType.SCHEDULED_DELETE);
@@ -171,9 +172,7 @@ public class ScheduledDeleteController {
 
     @Operation(
             operationId = "markExcludeScheduledDelete",
-            summary = "Mark an exam as excluded from the scheduled delete",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
+            summary = "Mark an exam as excluded from the scheduled delete"
     )
     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
@@ -189,9 +188,7 @@ public class ScheduledDeleteController {
 
     @Operation(
             operationId = "unmarkIncludeScheduledDelete",
-            summary = "Unmark an exam exclusion so it is included in the scheduled delete again",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
+            summary = "Unmark an exam exclusion so it is included in the scheduled delete again"
     )
     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")

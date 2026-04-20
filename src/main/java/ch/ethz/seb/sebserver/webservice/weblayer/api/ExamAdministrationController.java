@@ -30,6 +30,7 @@ import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -149,8 +150,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityKey> checkImported(
-            @PathVariable final String modelId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable final String modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -178,12 +179,12 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<APIMessage> checkExamConsistency(
-            @PathVariable final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(
+            @Parameter(description = "Whether to include SEB restriction check") @RequestParam(
                     name = API.EXAM_ADMINISTRATION_CONSISTENCY_CHECK_INCLUDE_RESTRICTION,
                     defaultValue = "false") final boolean includeRestriction) {
 
@@ -208,8 +209,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.PATCH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam archive(
-            @PathVariable final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -287,8 +288,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<AppSignatureKeyInfo> getAppSignatureKeyInfo(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -313,13 +314,13 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void saveAppSignatureKeySettings(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED) final Boolean enableKeyCheck,
-            @RequestParam(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD) final Integer threshold) {
+            @Parameter(description = "Whether the signature key check is enabled") @RequestParam(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED) final Boolean enableKeyCheck,
+            @Parameter(description = "The numerical trust threshold value") @RequestParam(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD) final Integer threshold) {
 
         this.examDAO.byPK(examId)
                 .flatMap(this::checkReadAccess)
@@ -345,8 +346,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<SecurityKey> getSecurityKeyEntries(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -376,13 +377,13 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SecurityKey grantAppSignatureKey(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId,
-            @RequestParam(name = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG, required = false) final String tagName) {
+            @Parameter(description = "The exam model identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The SEB client connection identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId,
+            @Parameter(description = "The tag name for the security key grant") @RequestParam(name = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG, required = false) final String tagName) {
         
         return this.examDAO.byPK(examId)
                 .map(this::checkSecurityGrantAccess)
@@ -410,9 +411,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityKey deleteSecurityGrant(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long keyId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @Parameter(description = "The security key identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long keyId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -452,8 +453,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Boolean checkSEBRestriction(
-            @PathVariable final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The exam model identifier") @PathVariable final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -479,11 +480,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBRestriction getSEBRestriction(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
+            @Parameter(description = "The exam model identifier") @PathVariable final Long modelId) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(modelId)
@@ -506,11 +507,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam saveSEBRestrictionData(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examId,
             @Valid @RequestBody final SEBRestriction sebRestriction) {
 
         checkModifyPrivilege(institutionId);
@@ -537,11 +538,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.PUT,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam applySEBRestriction(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examlId)
@@ -565,11 +566,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam deleteSEBRestriction(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examlId)
@@ -593,11 +594,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Chapters getChapters(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
 
         checkReadPrivilege(institutionId);
         return this.entityDAO.byPK(examlId)
@@ -635,11 +636,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getExamKeysForFollowup(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
 
         checkReadPrivilege(institutionId);
         
@@ -681,11 +682,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ProctoringServiceSettings getProctoringServiceSettings(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
+            @Parameter(description = "The exam model identifier") @PathVariable final Long modelId) {
 
         checkReadPrivilege(institutionId);
         return this.examAdminService
@@ -708,11 +709,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam saveProctoringServiceSettings(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examId,
             @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
 
         checkModifyPrivilege(institutionId);
@@ -752,11 +753,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ScreenProctoringSettings getScreenProctoringSettings(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
+            @Parameter(description = "The exam model identifier") @PathVariable final Long modelId) {
 
         checkReadPrivilege(institutionId);
         return this.examAdminService
@@ -779,11 +780,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam saveScreenProctoringSettings(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examId,
             @Valid @RequestBody final ScreenProctoringSettings screenProctoringSettings) {
 
         checkModifyPrivilege(institutionId);
@@ -819,12 +820,12 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam screenProctoringActivation(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @RequestParam(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING) final boolean enableSP) {
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "Whether to enable screen proctoring") @RequestParam(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING) final boolean enableSP) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO
@@ -852,12 +853,12 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam screenProctoringGroupApply(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @RequestParam(value = ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
+            @Parameter(description = "The exam model identifier") @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "Comma-separated list of SEB client group identifiers to apply") @RequestParam(value = ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO

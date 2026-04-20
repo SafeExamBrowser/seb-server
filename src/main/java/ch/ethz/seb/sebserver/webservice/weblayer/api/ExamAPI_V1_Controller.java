@@ -26,7 +26,10 @@ import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -100,7 +103,26 @@ public class ExamAPI_V1_Controller {
                     @Parameter(name = API.EXAM_API_PARAM_EXAM_ID, description = "Exam identifier (optional, if known at connection time)"),
                     @Parameter(name = API.EXAM_API_PARAM_CLIENT_ID, description = "SEB client identifier (optional)")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(
+            responseCode = "200",
+            description = "Success",
+            headers = {
+                    @Header(
+                            name = API.EXAM_API_SEB_CONNECTION_TOKEN,
+                            description = "SEB connection token for subsequent Exam API requests",
+                            schema = @Schema(type = "string")),
+                    @Header(
+                            name = API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER,
+                            description = "Optional exam signature salt returned when the exam is already known",
+                            schema = @Schema(type = "string")),
+                    @Header(
+                            name = API.EXAM_API_EXAM_ALT_BEK,
+                            description = "Optional alternative browser exam key returned when configured for the exam",
+                            schema = @Schema(type = "string"))
+            },
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    array = @ArraySchema(schema = @Schema(implementation = RunningExamInfo.class))))
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -113,7 +135,7 @@ public class ExamAPI_V1_Controller {
             @RequestParam(name = API.PARAM_INSTITUTION_ID, required = false) final Long instIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientIdRequestParam,
-            @RequestBody(required = false) final MultiValueMap<String, String> formParams,
+            @Parameter(hidden = true) @RequestParam(required = false) final MultiValueMap<String, String> formParams,
             final Principal principal,
             final HttpServletRequest request,
             final HttpServletResponse response) {
@@ -196,7 +218,19 @@ public class ExamAPI_V1_Controller {
             parameters = {
                     @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token from handshake step 1")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(
+            responseCode = "200",
+            description = "Success",
+            headers = {
+                    @Header(
+                            name = API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER,
+                            description = "Optional exam signature salt when the connection is associated with an exam",
+                            schema = @Schema(type = "string")),
+                    @Header(
+                            name = API.EXAM_API_EXAM_ALT_BEK,
+                            description = "Optional alternative browser exam key when configured for the exam",
+                            schema = @Schema(type = "string"))
+            })
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -253,7 +287,15 @@ public class ExamAPI_V1_Controller {
             parameters = {
                     @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token from handshake step 1")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(
+            responseCode = "200",
+            description = "Success",
+            headers = {
+                    @Header(
+                            name = API.EXAM_API_EXAM_ALT_BEK,
+                            description = "Optional alternative browser exam key when configured for the exam",
+                            schema = @Schema(type = "string"))
+            })
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -311,13 +353,12 @@ public class ExamAPI_V1_Controller {
             parameters = {
                     @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token")
             })
-    @ApiResponse(responseCode = "200", description = "Deleted", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Deleted")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
-            method = RequestMethod.DELETE,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+            method = RequestMethod.DELETE)
     public CompletableFuture<Void> handshakeDelete(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             final Principal principal,
@@ -355,34 +396,33 @@ public class ExamAPI_V1_Controller {
                     @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token"),
                     @Parameter(name = API.EXAM_API_PARAM_EXAM_ID, description = "Exam identifier (optional)")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(
+            responseCode = "200",
+            description = "Success",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                    schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Not found")
+    @ApiResponse(responseCode = "500", description = "Unexpected server error while streaming the configuration")
     @RequestMapping(
             path = API.EXAM_API_CONFIGURATION_REQUEST_ENDPOINT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public CompletableFuture<Void> getConfig(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
-            @RequestParam(required = false) final MultiValueMap<String, String> formParams,
+            @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
             final Principal principal,
             final HttpServletRequest request,
             final HttpServletResponse response) {
 
-        Long examId;
-        try {
-            examId = Long.parseLong(Objects.requireNonNull(formParams.getFirst(API.EXAM_API_PARAM_EXAM_ID)));
-        } catch (final Exception e) {
-            examId = null;
-        }
-        final Long _examId = examId;
         final String remoteAddr = this.getClientAddress(request);
 
         return CompletableFuture.runAsync(
                 () -> this.sebClientConnectionService.streamExamConfig(
                         getInstitutionId(principal),
-                        _examId,
+                        examId,
                         connectionToken,
                         remoteAddr,
                         response),
@@ -398,7 +438,13 @@ public class ExamAPI_V1_Controller {
                     @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token"),
                     @Parameter(name = API.EXAM_API_PING_INSTRUCTION_CONFIRM, description = "Instruction confirm token to acknowledge a previously received instruction")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(
+            responseCode = "200",
+            description = "Instruction available",
+            content = @Content(
+                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                    schema = @Schema(type = "string")))
+    @ApiResponse(responseCode = "204", description = "No pending instruction")
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -406,7 +452,7 @@ public class ExamAPI_V1_Controller {
             path = API.EXAM_API_PING_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.TEXT_PLAIN_VALUE)
     public void ping(final HttpServletRequest request, final HttpServletResponse response) {
 
         final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
@@ -435,7 +481,7 @@ public class ExamAPI_V1_Controller {
             parameters = {
                     @Parameter(name = API.EXAM_API_SEB_CONNECTION_TOKEN, in = ParameterIn.HEADER, required = true, description = "SEB connection token")
             })
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "204", description = "No content")
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")

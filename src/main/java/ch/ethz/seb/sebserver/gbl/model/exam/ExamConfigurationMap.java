@@ -117,6 +117,7 @@ public final class ExamConfigurationMap implements GrantEntity {
     @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION)
     public final String examDescription;
 
+    @Schema(type = "string", format = "date-time", description = "Exam start time in ISO-8601 format")
     @JsonProperty(QuizData.QUIZ_ATTR_START_TIME)
     public final DateTime examStartTime;
 

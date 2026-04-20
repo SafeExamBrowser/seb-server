@@ -15,7 +15,10 @@ import java.util.Collections;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /** Data object implementation to generate the SEB Server API discovery JSON. */
+@Schema(name = "ExamAPIDiscovery", description = "SEB Server Exam API discovery document listing available API versions and endpoints")
 public record ExamAPIDiscovery (
         @JsonProperty("title") String title,
         @JsonProperty("description") String description,

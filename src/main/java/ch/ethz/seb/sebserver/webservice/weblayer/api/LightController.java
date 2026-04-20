@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +64,7 @@ public class LightController {
             operationId = "getLightConfig",
             summary = "Get light SEB configuration",
             description = "Streams the encrypted SEB configuration file for light setup as an octet stream.")
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE))
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Not found")
@@ -144,8 +145,11 @@ public class LightController {
 
 }
 
+@Schema(name = "UsernamePasswordView", description = "Initial admin credentials for the light setup")
 class UsernamePasswordView{
+    @Schema(description = "Username of the generated initial admin account")
     private final String username;
+    @Schema(description = "Password of the generated initial admin account")
     private final String password;
 
     @JsonCreator

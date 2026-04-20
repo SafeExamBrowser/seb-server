@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@Schema(name = "Exam", description = "Examination entity managed by SEB Server")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Exam implements GrantEntity {
 

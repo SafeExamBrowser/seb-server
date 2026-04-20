@@ -76,9 +76,11 @@ public final class QuizData implements GrantEntity {
     @JsonProperty(QUIZ_ATTR_DESCRIPTION)
     public final String description;
 
+    @Schema(type = "string", format = "date-time", description = "Quiz start time in ISO-8601 format")
     @JsonProperty(QUIZ_ATTR_START_TIME)
     public final DateTime startTime;
 
+    @Schema(type = "string", format = "date-time", description = "Quiz end time in ISO-8601 format")
     @JsonProperty(QUIZ_ATTR_END_TIME)
     public final DateTime endTime;
 

@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -95,10 +96,12 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<RemoteProctoringRoom> getCollectingRoomsOfExam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
 
         checkAccess(institutionId, examId);
@@ -117,10 +120,12 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ScreenProctoringGroup> getScreenProctoringGroupsOfExam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
 
         checkAccess(institutionId, examId);
@@ -139,12 +144,16 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ProctoringRoomConnection getProctorRoomConnection(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The proctoring room name")
             @RequestParam(name = ProctoringRoomConnection.ATTR_ROOM_NAME, required = true) final String roomName,
+            @Parameter(description = "The room subject/title")
             @RequestParam(name = ProctoringRoomConnection.ATTR_SUBJECT, required = false) final String subject) {
 
         checkAccess(institutionId, examId);
@@ -169,11 +178,14 @@ public class ExamProctoringController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void notifyProctoringRoomOpened(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The proctoring room name")
             @RequestParam(name = ProctoringRoomConnection.ATTR_ROOM_NAME, required = true) final String roomName) {
 
         checkAccess(institutionId, examId);
@@ -193,11 +205,14 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientConnection> getAllClientConnectionsInRoom(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The proctoring room name")
             @RequestParam(
                     name = Domain.REMOTE_PROCTORING_ROOM.ATTR_ID,
                     required = true) final String roomName) {
@@ -219,22 +234,28 @@ public class ExamProctoringController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public void sendReconfigurationAttributes(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The proctoring room name")
             @RequestParam(
                     name = Domain.REMOTE_PROCTORING_ROOM.ATTR_ID,
                     required = false) final String roomName,
+            @Parameter(description = "Whether to enable audio")
             @RequestParam(
                     name = API.EXAM_PROCTORING_ATTR_RECEIVE_AUDIO,
                     required = false,
                     defaultValue = "false") final String sendReceiveAudio,
+            @Parameter(description = "Whether to enable video")
             @RequestParam(
                     name = API.EXAM_PROCTORING_ATTR_RECEIVE_VIDEO,
                     required = false,
                     defaultValue = "false") final String sendReceiveVideo,
+            @Parameter(description = "Whether to enable chat")
             @RequestParam(
                     name = API.EXAM_PROCTORING_ATTR_ALLOW_CHAT,
                     required = false,
@@ -272,14 +293,18 @@ public class ExamProctoringController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ProctoringRoomConnection openBreakOutRoom(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The room subject/title")
             @RequestParam(
                     name = ProctoringRoomConnection.ATTR_SUBJECT,
                     required = false) final String subject,
+            @Parameter(description = "Comma-separated SEB connection tokens")
             @RequestParam(
                     name = API.EXAM_API_SEB_CONNECTION_TOKEN,
                     required = true) final String connectionTokens) {
@@ -301,11 +326,14 @@ public class ExamProctoringController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public void closeProctoringRoom(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The proctoring room name")
             @RequestParam(
                     name = ProctoringRoomConnection.ATTR_ROOM_NAME,
                     required = true) final String roomName) {
@@ -326,10 +354,12 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public String isTownhallRoomAvialbale(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
 
         checkExamReadAccess(institutionId);
@@ -347,10 +377,12 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public RemoteProctoringRoom getTownhallRoom(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
 
         checkExamReadAccess(institutionId);
@@ -370,11 +402,14 @@ public class ExamProctoringController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ProctoringRoomConnection activateTownhall(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution")
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Parameter(description = "The exam identifier")
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The room subject/title")
             @RequestParam(
                     name = ProctoringRoomConnection.ATTR_SUBJECT,
                     required = false) final String subject) {

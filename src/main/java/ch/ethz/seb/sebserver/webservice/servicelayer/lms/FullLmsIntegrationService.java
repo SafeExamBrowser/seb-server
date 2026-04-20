@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEve
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.context.event.EventListener;
 
 public interface FullLmsIntegrationService {
@@ -200,9 +201,12 @@ public interface FullLmsIntegrationService {
         }
     }
 
+    @Schema(name = "TokenLoginResponse", description = "One-time login token response for LMS-initiated access")
     final class TokenLoginResponse {
+        @Schema(description = "Server-generated one-time login token identifier")
         @JsonProperty("id")
         public final String id;
+        @Schema(description = "Absolute login link that redeems the one-time token")
         @JsonProperty("login_link")
         public final String loginLink;
 

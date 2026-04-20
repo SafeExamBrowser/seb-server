@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /** Data class that defines a Page that corresponds with the SEB Server API page JSON object
  *
  * @param <T> The type of a page entry entity */
+@Schema(name = "Page", description = "Paginated response container with page metadata and content items")
 public final class Page<T> {
 
     public static final String ATTR_NAMES_ONLY = "names_only";

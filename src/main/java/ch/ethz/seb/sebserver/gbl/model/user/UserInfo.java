@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  * to and from JSON within the Jackson library.
  * <p>
  * This domain model is immutable and thread-save */
+@Schema(name = "UserInfo", description = "User account information")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class UserInfo implements UserAccount, Serializable {
 

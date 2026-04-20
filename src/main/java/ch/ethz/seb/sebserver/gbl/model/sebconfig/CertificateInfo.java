@@ -80,9 +80,11 @@ public class CertificateInfo implements Entity {
     @JsonProperty(ATTR_ALIAS)
     public final String alias;
 
+    @Schema(type = "string", format = "date-time", description = "Certificate validity start date in ISO-8601 format")
     @JsonProperty(ATTR_VALIDITY_FROM)
     public final DateTime validityFrom;
 
+    @Schema(type = "string", format = "date-time", description = "Certificate validity end date in ISO-8601 format")
     @JsonProperty(ATTR_VALIDITY_TO)
     public final DateTime validityTo;
 

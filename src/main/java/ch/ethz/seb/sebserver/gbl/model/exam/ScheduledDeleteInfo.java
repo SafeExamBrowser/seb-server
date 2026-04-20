@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 import java.util.Objects;
 
+@Schema(name = "ScheduledDeleteInfo", description = "Detailed information about a scheduled deletion item")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ScheduledDeleteInfo(
         @Schema(accessMode = Schema.AccessMode.READ_ONLY) @JsonProperty(Domain.SCHEDULED_DELETE_INFO.ATTR_ID) Long id,

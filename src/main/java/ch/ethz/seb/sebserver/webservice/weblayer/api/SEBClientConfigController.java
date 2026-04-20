@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -103,7 +104,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public SEBClientConfig getBy(@PathVariable final String modelId) {
+    public SEBClientConfig getBy(@Parameter(description = "The model identifier") @PathVariable final String modelId) {
 
         final SEBClientConfig config = this.entityDAO
                 .byModelId(modelId)
@@ -160,8 +161,8 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientCredentials getClientCredentials(
-            @PathVariable final String modelId,
-            @RequestParam(
+            @Parameter(description = "The model identifier") @PathVariable final String modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -175,7 +176,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
     }
 
     @Operation(operationId = "exportSEBClientConfig", summary = "Download and export the SEB client configuration file")
-    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE))
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Not found")
@@ -184,12 +185,12 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadSEBConfig(
-            @PathVariable final String modelId,
-            @RequestParam(
+            @Parameter(description = "The model identifier") @PathVariable final String modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = EXAM.ATTR_ID, required = false) final Long examId,
+            @Parameter(description = "The exam identifier") @RequestParam(name = EXAM.ATTR_ID, required = false) final Long examId,
             final HttpServletResponse response) throws IOException {
 
         checkReadPrivilege(institutionId);

@@ -101,10 +101,9 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                     descending sort order. Note that not all entity-model attribute are suited for sorting while the most
                     are.
                     </p>
-                    Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
-                    and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
-                    filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
-                    a given text-snippet.""",
+                    Filter: pass filter attributes as normal query parameters in the form
+                    [domain-attribute-name]=[filter-value], for example ?type=ERROR&connectionId=42.
+                    Text filters are treated as SQL wildcards with %[text]% where applicable.""",
             parameters = {
                     @Parameter(
                             name = Page.ATTR_PAGE_NUMBER,
@@ -118,14 +117,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                     @Parameter(
                             name = API.PARAM_INSTITUTION_ID,
                             description = "The institution identifier of the request.\n"
-                                    + "Default is the institution identifier of the institution of the current user"),
-                    @Parameter(
-                            name = "filterCriteria",
-                            description = "Additional filter criterias \n" +
-                                    "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
-                            example = "{}",
-                            required = false,
-                            allowEmptyValue = false)
+                                    + "Default is the institution identifier of the institution of the current user")
             })
     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "401", description = "Unauthorized")
@@ -142,7 +134,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> filterCriteria,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have base read access for specified entity type within its own institution

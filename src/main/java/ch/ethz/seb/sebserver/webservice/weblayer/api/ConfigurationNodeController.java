@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -145,7 +146,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Configuration getFollowup(@PathVariable final Long modelId) {
+    public Configuration getFollowup(@Parameter(description = "The model identifier") @PathVariable final Long modelId) {
 
         this.entityDAO
                 .byPK(modelId)
@@ -167,11 +168,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SettingsPublished settingsPublished(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
+            @Parameter(description = "The model identifier") @PathVariable final Long modelId) {
 
         this.entityDAO
                 .byPK(modelId)
@@ -193,7 +194,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ConfigurationNode resetToTemplateValues(@PathVariable final String modelId) {
+    public ConfigurationNode resetToTemplateValues(@Parameter(description = "The model identifier") @PathVariable final String modelId) {
         return this.entityDAO
                 .byModelId(modelId)
                 .flatMap(this.authorization::checkModify)
@@ -219,7 +220,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigurationNode copyConfiguration(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
@@ -257,12 +258,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigKey getConfigKey(
-            @PathVariable final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The model identifier") @PathVariable final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(
+            @Parameter(description = "Whether to use the follow-up configuration") @RequestParam(
                     name = API.PARAM_FOLLOWUP,
                     required = false,
                     defaultValue = "false") final Boolean followup) {
@@ -287,8 +288,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadPlainXMLConfig(
-            @PathVariable final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The model identifier") @PathVariable final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
@@ -334,7 +335,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     required = false) final String description,
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID, required = false) final String templateId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
@@ -392,9 +393,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration importExamConfigOnExistingConfig(
-            @PathVariable final Long modelId,
+            @Parameter(description = "The model identifier") @PathVariable final Long modelId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
@@ -432,12 +433,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigurationNode setQuitPassword(
-            @PathVariable final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The model identifier") @PathVariable final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = API.QUIT_PASSWORD_ATTR_NAME, required = false) final String quitPassword) {
+            @Parameter(description = "The SEB quit password") @RequestParam(name = API.QUIT_PASSWORD_ATTR_NAME, required = false) final String quitPassword) {
 
         return this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkModify)
@@ -454,14 +455,14 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<TemplateAttribute> getTemplateAttributePage(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
-            @RequestParam(
+            @Parameter(description = "The configuration node identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
-            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @Parameter(description = "The page number to retrieve") @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @Parameter(description = "The number of items per page") @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @Parameter(description = "The sort parameter (attribute name with optional leading '-' for descending)") @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
@@ -517,9 +518,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute getTemplateAttribute(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The configuration node identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
+            @Parameter(description = "The model identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -548,9 +549,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute resetTemplateAttributeValues(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The configuration node identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
+            @Parameter(description = "The model identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
@@ -579,13 +580,13 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute attachDefaultTemplateAttributeOrientation(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The configuration node identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
+            @Parameter(description = "The model identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = API.PARAM_VIEW_ID, required = false) final Long viewId) {
+            @Parameter(description = "The view identifier") @RequestParam(name = API.PARAM_VIEW_ID, required = false) final Long viewId) {
 
         checkModifyPrivilege(institutionId);
 
@@ -613,9 +614,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute removeTemplateAttributeOrientation(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
-            @RequestParam(
+            @Parameter(description = "The configuration node identifier") @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
+            @Parameter(description = "The model identifier") @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {

@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationServi
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -104,7 +105,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public LmsSetup getBy(@PathVariable final String modelId) {
+    public LmsSetup getBy(@Parameter(description = "The model identifier") @PathVariable final String modelId) {
 
         LmsSetup lmsSetup = this.entityDAO
                 .byModelId(modelId)
@@ -152,11 +153,11 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public LmsSetupTestResult testLms(
-            @RequestParam(
+            @Parameter(description = "The institution identifier. Defaults to the current user's institution") @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
+            @Parameter(description = "The model identifier") @PathVariable final Long modelId) {
 
         this.authorization.check(
                 PrivilegeType.READ,

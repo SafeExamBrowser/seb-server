@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -69,13 +70,13 @@ public class LmsIntegrationController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void createExam(
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID) final String templateId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_DATA, required = false) final String examData,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_PASSWORD, required = false) final String quitPassword,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final Integer quitLink,
+            @Parameter(description = "The LMS setup UUID") @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
+            @Parameter(description = "The LMS course identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
+            @Parameter(description = "The LMS quiz identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
+            @Parameter(description = "The exam template identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_TEMPLATE_ID) final String templateId,
+            @Parameter(description = "Additional exam data") @RequestParam(name = API.LMS_FULL_INTEGRATION_EXAM_DATA, required = false) final String examData,
+            @Parameter(description = "The SEB quit password") @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_PASSWORD, required = false) final String quitPassword,
+            @Parameter(description = "Whether to include a quit link") @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIT_LINK, required = false) final Integer quitLink,
             final HttpServletRequest request,
             final HttpServletResponse response) {
 
@@ -134,9 +135,9 @@ public class LmsIntegrationController {
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void deleteExam(
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
+            @Parameter(description = "The LMS setup UUID") @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
+            @Parameter(description = "The LMS course identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
+            @Parameter(description = "The LMS quiz identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
             final HttpServletResponse response) {
 
         fullLmsIntegrationService.deleteExam(lmsUUId, courseId, quizId)
@@ -148,7 +149,7 @@ public class LmsIntegrationController {
     }
 
     @Operation(operationId = "getConnectionConfiguration", summary = "Get the SEB connection configuration for an LMS exam as a binary stream")
-    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE))
     @ApiResponse(responseCode = "400", description = "Bad request / validation error")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -158,9 +159,9 @@ public class LmsIntegrationController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void getConnectionConfiguration(
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
+            @Parameter(description = "The LMS setup UUID") @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
+            @Parameter(description = "The LMS course identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
+            @Parameter(description = "The LMS quiz identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
             final HttpServletResponse response) throws IOException {
 
         log.info(
@@ -209,15 +210,15 @@ public class LmsIntegrationController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public FullLmsIntegrationService.TokenLoginResponse getOneTimeLoginToken(
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_ID) final String userId,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_NAME, required = false) final String username,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_EMAIL, required = false) final String userMail,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_FIRST_NAME, required = false) final String firstName,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_LAST_NAME, required = false) final String lastName,
-            @RequestParam(name = API.LMS_FULL_INTEGRATION_TIME_ZONE, required = false) final String timezone,
+            @Parameter(description = "The LMS setup UUID") @RequestParam(name = API.LMS_FULL_INTEGRATION_LMS_UUID) final String lmsUUId,
+            @Parameter(description = "The LMS course identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_COURSE_ID) final String courseId,
+            @Parameter(description = "The LMS quiz identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_QUIZ_ID) final String quizId,
+            @Parameter(description = "The LMS user identifier") @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_ID) final String userId,
+            @Parameter(description = "The LMS user name") @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_NAME, required = false) final String username,
+            @Parameter(description = "The LMS user email address") @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_EMAIL, required = false) final String userMail,
+            @Parameter(description = "The LMS user first name") @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_FIRST_NAME, required = false) final String firstName,
+            @Parameter(description = "The LMS user last name") @RequestParam(name = API.LMS_FULL_INTEGRATION_USER_LAST_NAME, required = false) final String lastName,
+            @Parameter(description = "The LMS user time zone") @RequestParam(name = API.LMS_FULL_INTEGRATION_TIME_ZONE, required = false) final String timezone,
             final HttpServletResponse response) {
 
         final AdHocAccountData adHocAccountData = new AdHocAccountData(

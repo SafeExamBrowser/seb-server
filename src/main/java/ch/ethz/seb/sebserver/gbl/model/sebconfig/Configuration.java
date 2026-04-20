@@ -48,6 +48,7 @@ public final class Configuration implements GrantEntity {
     public final String version;
 
     @NotNull
+    @Schema(type = "string", format = "date-time", description = "Configuration version date in ISO-8601 format")
     @JsonProperty(CONFIGURATION.ATTR_VERSION_DATE)
     public final DateTime versionDate;
 

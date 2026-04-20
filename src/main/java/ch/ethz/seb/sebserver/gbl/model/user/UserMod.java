@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 
+@Schema(name = "UserMod", description = "User account data for creation and modification")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class UserMod implements UserAccount {
 

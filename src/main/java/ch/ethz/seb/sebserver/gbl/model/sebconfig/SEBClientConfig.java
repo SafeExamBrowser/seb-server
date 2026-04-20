@@ -161,6 +161,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     @JsonProperty(ATTR_QUIT_PASSWORD_CONFIRM)
     public final CharSequence quitPasswordConfirm;
 
+    @Schema(type = "string", format = "date-time", description = "Configuration creation date in ISO-8601 format")
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_DATE)
     public final DateTime date;
 
@@ -179,6 +180,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE)
     public final Boolean active;
 
+    @Schema(type = "string", format = "date-time", description = "Last update timestamp in ISO-8601 format")
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_TIME)
     public final DateTime lastUpdateTime;
 

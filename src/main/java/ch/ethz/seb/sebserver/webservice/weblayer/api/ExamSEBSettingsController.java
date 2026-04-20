@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -68,7 +69,9 @@ public class ExamSEBSettingsController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBSettingsView getSEBSettings(
-            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId, 
+            @Parameter(description = "The exam identifier")
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The settings view type")
             @RequestParam(name = SEBSettingsView.ATTR_VIEW_TYPE) final SEBSettingsView.ViewType viewType) {
         
         authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
@@ -88,6 +91,7 @@ public class ExamSEBSettingsController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ExamConfigurationMap> getExamConfigMappings(
+            @Parameter(description = "The exam identifier")
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
@@ -107,7 +111,9 @@ public class ExamSEBSettingsController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SEBSettingsView.TableRowValues> getTableValues(
+            @Parameter(description = "The exam identifier")
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The configuration attribute name")
             @RequestParam(name = Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String attributeName) {
 
         authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
@@ -128,8 +134,11 @@ public class ExamSEBSettingsController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBSettingsView.Value saveSingleValue(
+            @Parameter(description = "The exam identifier")
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The configuration value identifier")
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_ID) final Long valueId,
+            @Parameter(description = "The configuration value")
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_VALUE) final String value) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
@@ -152,6 +161,7 @@ public class ExamSEBSettingsController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBSettingsView.TableRowValues saveTableRowValues(
+            @Parameter(description = "The exam identifier")
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
             @RequestBody final SEBSettingsView.TableRowValues values) {
 
@@ -176,7 +186,9 @@ public class ExamSEBSettingsController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBSettingsView.TableRowValues addNewTableRow(
+            @Parameter(description = "The exam identifier")
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The configuration attribute name")
             @RequestParam(name = Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String attributeName) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
@@ -198,8 +210,11 @@ public class ExamSEBSettingsController {
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SEBSettingsView.TableRowValues> deleteTableRow(
+            @Parameter(description = "The exam identifier")
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
+            @Parameter(description = "The configuration attribute name")
             @RequestParam(name = Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME) final String attributeName,
+            @Parameter(description = "The table row index")
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_LIST_INDEX) final int index) {
         
         if (index < 0) {
@@ -222,7 +237,9 @@ public class ExamSEBSettingsController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_ACTIVE_SEB_CLIENTS,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Integer getActiveSEBClients(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
+    public Integer getActiveSEBClients(
+            @Parameter(description = "The exam identifier")
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
 
@@ -241,7 +258,9 @@ public class ExamSEBSettingsController {
                     API.SEB_SETTINGS_PUBLISH,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Exam publish(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
+    public Exam publish(
+            @Parameter(description = "The exam identifier")
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
 
@@ -266,7 +285,9 @@ public class ExamSEBSettingsController {
                     API.SEB_SETTINGS_UNDO,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Exam undoChanges(@PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
+    public Exam undoChanges(
+            @Parameter(description = "The exam identifier")
+            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
 
