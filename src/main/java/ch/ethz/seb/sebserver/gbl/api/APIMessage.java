@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /** This class defines API error messages that are created and responded on error and/or exceptional
  * cases within the web-service. */
-@Schema(name = "APIMessage", description = "API error or informational message. All API error responses return a JSON array of APIMessage objects.")
+@Schema(name = "APIMessage", description = "Structured API message object used by many JSON error responses.")
 public class APIMessage implements Serializable {
 
     @Serial
@@ -152,12 +152,12 @@ public class APIMessage implements Serializable {
     }
 
     /** A specific message code that can be used to identify the type of message */
-    @Schema(description = "Error code identifying the error type (e.g. 0=generic, 1000=unauthorized, 1001=forbidden, 1002=not found, 1010=illegal argument, 1100=unexpected, 1101=integrity violation, 1200=field validation, 1300=password mismatch)", example = "1002")
+    @Schema(description = "Error code identifying the error type (e.g. 0=generic, 1000=unauthorized, 1001=forbidden, 1002=not found, 1010=illegal argument, 1100=unexpected, 1101=integrity violation, 1200=field validation, 1300=password mismatch)")
     @JsonProperty("messageCode")
     public final String messageCode;
 
     /** A short system message that describes the cause */
-    @Schema(description = "Short system-level error description", example = "resource not found")
+    @Schema(description = "Short system-level error description")
     @JsonProperty("systemMessage")
     public final String systemMessage;
 
