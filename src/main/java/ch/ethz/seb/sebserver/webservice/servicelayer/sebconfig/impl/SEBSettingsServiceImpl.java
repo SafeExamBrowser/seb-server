@@ -167,7 +167,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         if (PASSWORD_TYPE_ATTRIBUTES.contains(attrId)) {
             return cryptor
                     .decrypt(value)
-                    .onError( error -> log.error("Failed to decrypt SEB settings value as password: ", error ))
+                    .onError( error -> log.error("Failed to decrypt SEB settings value as password: {} cause: {}", value, error.getMessage() ))
                     .getOr(value)
                     .toString();
         } 
