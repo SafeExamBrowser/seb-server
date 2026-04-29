@@ -12,7 +12,6 @@ import java.util.List;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
@@ -97,21 +96,24 @@ public class TemplateSEBSettingsController {
                 .getOrThrow();
     }
 
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
-            method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public SEBSettingsView.TableRowValues saveTableRowValues(
-            @PathVariable(name =API.PARAM_MODEL_ID) final Long templateId,
-            @RequestBody final SEBSettingsView.TableRowValues values) {
-
-        authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
-
-        return sebSettingsService
-                .saveTableRowValuesForTemplate(templateId, values)
-                .getOrThrow();
-    }
+    // TODO it seems this is not used. Delete it when confirmed (3.0)
+//    @RequestMapping(
+//            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
+//            method = RequestMethod.PUT,
+//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public SEBSettingsView.TableRowValues saveTableRowValues(
+//            @PathVariable(name =API.PARAM_MODEL_ID) final Long templateId,
+//            @RequestBody final SEBSettingsView.TableRowValues values) {
+//
+//        System.out.println("************* save row values: " + values);
+//
+//        authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
+//
+//        return sebSettingsService
+//                .saveTableRowValuesForTemplate(templateId, values)
+//                .getOrThrow();
+//    }
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT +
