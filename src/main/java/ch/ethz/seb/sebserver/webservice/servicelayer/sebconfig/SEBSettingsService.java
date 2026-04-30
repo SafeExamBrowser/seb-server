@@ -48,7 +48,8 @@ public interface SEBSettingsService {
                         10L, 11L, 12L, 13L, 14L, 15L, 16L, 18L,
                         19L, 20L, 21L, 22L, 24L, 25L, 26L, 27L,
                         28L, 29L, 804L, 812L, 951L, 952L, 953L,
-                        950L, 974L, 975L, 1595L))
+                        950L, 974L, 975L, 1595L, 1660L, 1661L,
+                        1662L, 1663L, 1664L, 1665L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the BROWSER view */
