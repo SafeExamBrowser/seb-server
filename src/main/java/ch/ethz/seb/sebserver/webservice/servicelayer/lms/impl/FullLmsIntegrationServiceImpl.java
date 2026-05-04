@@ -438,7 +438,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         "Failed to verify SEB Connection Configuration id for exam: {}",
                         exam.name);
                 throw new APIMessage.APIMessageException(
-                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
+                        APIMessage.ErrorMessage.RESOURCE_NOT_FOUND.of("No active Connection Configuration found"));
             }
 
             this.connectionConfigurationService.exportSEBClientConfiguration(
@@ -469,12 +469,13 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         if (StringUtils.isBlank(connectionConfigId)) {
             // if there is no default connection configuration assigned, use the first active
             // that can be found for the involved institution
-            connectionConfigId = this.sebClientConfigDAO
+            return this.sebClientConfigDAO
                     .all(exam.institutionId, true)
-                    .map(all -> all.stream().filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
-                            .findFirst()
-                            .orElseThrow())
-                    .map(SEBClientConfig::getModelId)
+                    .map(all -> all
+                            .stream()
+                            .filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
+                            .toList())
+                    .map(configs -> configs.isEmpty() ? "" : configs.getFirst().getModelId())
                     .getOr(null);
         }
         return connectionConfigId;
