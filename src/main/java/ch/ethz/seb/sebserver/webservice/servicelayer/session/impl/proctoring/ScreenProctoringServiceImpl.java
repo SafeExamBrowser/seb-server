@@ -445,34 +445,52 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
-    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
-        try {
+    public Result<Long> processLmsSetupActivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
 
-            if (event.activation == Activatable.ActivationAction.NONE) {
-                return;
-            }
-
-            examDAO.allActiveForLMSSetup(Collections.singletonList(event.getLmsSetup().id))
+            examDAO
+                    .allForLMSSetup(lmsSetupId)
                     .getOrThrow()
                     .forEach(exam -> {
-                        if (screenProctoringAPIBinding.isSPSActive(exam)) {
-                            if (event.activation == Activatable.ActivationAction.ACTIVATE) {
-                                this.screenProctoringAPIBinding.activateScreenProctoring(exam)
-                                        .onError(error -> log.warn("Failed to re-activate SPS for exam: {} error: {}",
-                                                exam.name,
-                                                error.getMessage()));
-                            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
-                                this.screenProctoringAPIBinding.deactivateScreenProctoring(exam)
-                                        .onError(error -> log.warn("Failed to deactivate SPS for exam: {} error: {}",
-                                                exam.name,
-                                                error.getMessage()));
-                            }
+
+                        final ScreenProctoringSettings settingsForExam = this.screenProctoringAPIBinding
+                                .getSettingsForExam(exam);
+
+                        if (BooleanUtils.isTrue(settingsForExam.enableScreenProctoring)) {
+                            this.screenProctoringAPIBinding
+                                    .activateScreenProctoring(exam)
+                                    .onError(error -> log.warn("Failed to re-activate SPS for exam: {} error: {}",
+                                            exam.name,
+                                            error.getMessage()));
                         }
                     });
 
-        } catch (final Exception e) {
-            log.error("Failed to apply LMSSetup change activation/deactivation to Screen Proctoring: ", e);
-        }
+            return lmsSetupId;
+        });
+    }
+
+    @Override
+    public Result<Long> processLmsSetupDeactivation(Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+            examDAO
+                    .allForLMSSetup(lmsSetupId)
+                    .getOrThrow()
+                    .forEach(exam -> {
+
+                        final ScreenProctoringSettings settingsForExam = this.screenProctoringAPIBinding
+                                .getSettingsForExam(exam);
+
+                        if (BooleanUtils.isTrue(settingsForExam.enableScreenProctoring)) {
+                            this.screenProctoringAPIBinding
+                                    .deactivateScreenProctoring(exam)
+                                    .onError(error -> log.warn("Failed to deactivate SPS for exam: {} error: {}",
+                                            exam.name,
+                                            error.getMessage()));
+                        }
+                    });
+
+            return lmsSetupId;
+        });
     }
 
     private void updateClientConnection(final ClientConnectionRecord ccRecord) {
@@ -594,7 +612,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             screenProctoringGroup = groups.stream()
                     .filter(group -> BooleanUtils.isTrue(group.isFallback))
                     .findFirst()
-                    .orElseGet(null);
+                    .orElse(null);
         }
         
         if (screenProctoringGroup == null) {

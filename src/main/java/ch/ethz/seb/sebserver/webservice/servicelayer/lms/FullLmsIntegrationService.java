@@ -43,6 +43,10 @@ public interface FullLmsIntegrationService {
     @EventListener(ExamArchivedEvent.class)
     void notifyExamArchived(ExamArchivedEvent event);
 
+    Result<Long> processLmsSetupActivation(Long lmsSetupId);
+
+    Result<Long> processLmsSetupDeactivation(Long lmsSetupId);
+
     /** Applies the exam data to LMS to inform the LMS that the exam exists on SEB Server site.
      * 
      * @param exam the Exam

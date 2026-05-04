@@ -104,7 +104,7 @@ public class LmsAPITemplateCacheServiceImpl implements LmsAPITemplateCacheServic
                 new CacheKey(lmsSetupId, 0));
 
         if (removedTemplate != null) {
-            log.info("Removed LmsAPITemplate from cache: {}", removedTemplate);
+            log.info("Removed LmsAPITemplate from cache: {}", removedTemplate.lmsSetup());
             removedTemplate.clearCourseCache();
         }
     }

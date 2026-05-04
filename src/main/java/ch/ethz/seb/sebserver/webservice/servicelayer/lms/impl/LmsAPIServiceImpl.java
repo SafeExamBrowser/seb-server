@@ -49,7 +49,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     /** Listen to LmsSetupChangeEvent to release an affected LmsAPITemplate from cache
      *
      * @param event the event holding the changed LmsSetup */
-    @EventListener
+    @EventListener(LmsSetupChangeEvent.class)
     public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
         final LmsSetup lmsSetup = event.getLmsSetup();
         if (lmsSetup == null) {

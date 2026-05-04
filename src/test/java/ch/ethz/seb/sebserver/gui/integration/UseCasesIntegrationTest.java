@@ -629,7 +629,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(deactivation);
         assertFalse(deactivation.hasError());
 
-        // check lms setup is now active
+        // check lms setup is not active
         newLMSCall = restService
                 .getBuilder(GetLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())

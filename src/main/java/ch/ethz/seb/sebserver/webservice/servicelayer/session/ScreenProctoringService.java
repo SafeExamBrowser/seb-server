@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 
 public interface ScreenProctoringService extends SessionUpdateTask {
@@ -87,8 +88,10 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     @EventListener(ExamDeletionEvent.class)
     void notifyExamDeletion(ExamDeletionEvent event);
 
-    @EventListener(LmsSetupChangeEvent.class)
-    void notifyLmsSetupChange(LmsSetupChangeEvent event);
+    Result<Long> processLmsSetupActivation(Long lmsSetupId);
+
+    Result<Long> processLmsSetupDeactivation(Long lmsSetupId);
+
 
     /** This is used to update the exam equivalent on the screen proctoring service side
      * if screen proctoring is enabled for the specified exam.

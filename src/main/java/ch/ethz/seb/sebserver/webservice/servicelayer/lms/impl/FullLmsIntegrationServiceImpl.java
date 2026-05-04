@@ -188,50 +188,64 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     @Override
-    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
-        
-        final LmsSetup lmsSetup = event.getLmsSetup();
-        if (!hasFullIntegration(lmsSetup.id, false)) {
-            return;
-        }
-        
-        try {
-            if (event.activation == Activatable.ActivationAction.NONE) {
-                if (!lmsSetup.integrationActive) {
-                    applyFullLmsIntegration(lmsSetup.id)
-                            .onError(error -> log.warn(
-                                    "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
-                            .onSuccess(data -> log.debug(
-                                    "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
-                }
-            } else if (event.activation == Activatable.ActivationAction.ACTIVATE) {
+    public Result<Long> processLmsSetupActivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetup lmsSetup = lmsSetupDAO.byPK(lmsSetupId).getOrThrow();
+            if (hasFullIntegration(lmsSetup.id, false)) {
                 applyFullLmsIntegration(lmsSetup.id)
                         .map(data -> reapplyExistingExams(data, lmsSetup))
                         .onError(error -> log.warn(
-                                "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                                "Failed to activate LMS integration for: {} error {}", lmsSetup, error.getMessage()))
                         .onSuccess(data -> log.debug(
-                                "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
-            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
+                                "Successfully activated LMS integration for: {} data: {}", lmsSetup, data))
+                        .getOrThrow();
+            }
 
+            return lmsSetupId;
+        });
+    }
+
+    @Override
+    public Result<Long> processLmsSetupDeactivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetup lmsSetup = lmsSetupDAO.byPK(lmsSetupId).getOrThrow();
+            if (hasFullIntegration(lmsSetup.id, false)) {
                 log.info("Deactivate full integration for LMS: {}", lmsSetup);
 
                 // remove all exam data for involved exams before deactivate them
                 this.examDAO
                         .allForLMSSetup(lmsSetup.id)
                         .getOrThrow()
-                        .forEach(exam -> {
-                            if (Objects.equals(exam.lmsSetupId, lmsSetup.id)) {
-                                applyExamData(exam, true);
-                            }
-                        });
-                
+                        .forEach(exam -> applyExamData(exam, true));
+
                 // delete full integration on LMS side due to deactivation
                 this.teacherAccountService.deleteAllFromLMS(lmsSetup.id);
                 this.deleteFullLmsIntegration(lmsSetup.id)
                         .getOrThrow();
             }
-        } catch (final Exception e) {
-            log.error("Failed to apply LMS Setup change for full LMS integration for: {}", lmsSetup, e);
+
+            return lmsSetupId;
+        });
+    }
+
+    @Override
+    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
+
+        final LmsSetup lmsSetup = event.getLmsSetup();
+        if (!hasFullIntegration(lmsSetup.id, false)) {
+            return;
+        }
+
+        if (event.activation == Activatable.ActivationAction.NONE) {
+            if (!lmsSetup.integrationActive) {
+                applyFullLmsIntegration(lmsSetup.id)
+                        .onError(error -> log.warn(
+                                "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                        .onSuccess(data -> log.debug(
+                                "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+            }
         }
     }
 
@@ -281,6 +295,9 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     public Result<IntegrationData> applyFullLmsIntegration(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
             if (lmsSetup.getLmsType() == LmsSetup.LmsType.MOCKUP) {
+                lmsSetupDAO
+                        .setIntegrationActive(lmsSetup.id, true)
+                        .onError(er -> log.error("Failed to mark LMS integration active", er));
                 return new IntegrationData(null, null, null, null, null);
             }
 
@@ -346,9 +363,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId)
                             .getOrThrow()
                             .deleteConnectionDetails()
-                            .onError(error -> lmsSetupDAO
-                                    .setIntegrationActive(lmsSetupId, false)
-                                    .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
+                            .onError(error -> log.error("Failed to delete LMS connection: {}", error.getMessage()))
                             .onSuccess( d -> lmsSetupDAO
                                     .setIntegrationActive(lmsSetupId, false)
                                     .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
@@ -452,6 +467,8 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private String getConnectionConfigurationId(final Exam exam) {
         String connectionConfigId = exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION);
         if (StringUtils.isBlank(connectionConfigId)) {
+            // if there is no default connection configuration assigned, use the first active
+            // that can be found for the involved institution
             connectionConfigId = this.sebClientConfigDAO
                     .all(exam.institutionId, true)
                     .map(all -> all.stream().filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
