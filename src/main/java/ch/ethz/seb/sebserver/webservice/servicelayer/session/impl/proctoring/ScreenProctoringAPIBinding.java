@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplateFactory;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -139,7 +140,7 @@ public class ScreenProctoringAPIBinding {
         }
     }
 
-    SPSData getSPSData(final Long examId) {
+    SPSData getSPSData(final Long examId, boolean expected) {
         try {
 
             final String dataEncrypted = this.additionalAttributesDAO
@@ -155,8 +156,9 @@ public class ScreenProctoringAPIBinding {
                     SPSData.class);
 
         } catch (final Exception e) {
-            if (log.isDebugEnabled()) {
-                log.info("No local SPSData for exam: {} found", examId);
+            if (expected) {
+                log.info("No local SPSData for exam: {} found but expected", examId);
+                throw new RuntimeException("No local SPSData for exam: "+examId+"found but expected");
             }
             return null;
         }
@@ -199,35 +201,41 @@ public class ScreenProctoringAPIBinding {
             // reactivate on SPS site and synchronize
             if (exam.additionalAttributes.containsKey(SPSData.ATTR_SPS_ACTIVE)) {
 
-                log.info("SPS Exam for SEB Server Exam: {} already exists. Try to re-activate", exam.externalId);
+                log.info("The Exam with id: {} has local SPS data. Try to re-activate on SPS site.", exam.externalId);
 
-                final SPSData spsData = this.getSPSData(exam.id);
-                
                 if (!existsExamOnSPS(exam)) {
-                    log.warn("Exam does not exist on SPS but has local data. Try to reinitialize Screen Proctoring for exam: {}", exam.name);
+                    log.info("Exam does not exist on SPS but has local data. Try to reinitialize Screen Proctoring for exam: {}", exam.name);
                     initializeScreenProctoring(exam, apiTemplate);
                     return exam;
                 }
-                
+
                 // re-activate all needed entities on SPS side
-                if (exam.status == Exam.ExamStatus.RUNNING) {
-                    activateScreenProctoring(exam)
-                            .getOrThrow();
+                final SPSData spsData = this.getSPSData(exam.id, false);
+                if (spsData != null) {
+                    log.info("Found SPSData for Exam: {}. re-activate Exam, Groups and Accounts in SPS site", exam.externalId);
+                    if (exam.status == Exam.ExamStatus.RUNNING) {
+                        activateScreenProctoring(exam, spsData)
+                                .getOrThrow();
+                    }
+
+                    synchronizeUserAccounts(exam);
+                    synchronizeGroups(exam, spsData);
+
+                    return exam;
                 }
 
-                synchronizeUserAccounts(exam);
-                synchronizeGroups(exam, spsData);
-                
-                return exam;
+                log.warn("Missing SPSData for Exam {}. Go on with synchronizing", exam.externalId);
             }
 
             // if we have a new Exam but Exam on SPS site for ExamUUID exists, reinitialize the exam and synchronize
             if (existsExamOnSPS(exam)) {
+                log.info("Found SPSData for Exam: {} but probably no local SPSData. Re-initialize it locally and synchronize it with SPS", exam.externalId);
                 reinitializeScreenProctoring(exam);
                 return exam;
             }
 
             // This is a completely new exam with new SPS binding, initialize it
+            log.info("This is a completely new Exam: {} with new SPS binding, initialize it", exam.externalId);
             initializeScreenProctoring(exam, apiTemplate);
 
             return exam;
@@ -317,9 +325,9 @@ public class ScreenProctoringAPIBinding {
         }
     }
 
-    public void synchronizeGroups(final Exam exam) {
-        synchronizeGroups(exam, this.getSPSData(exam.id));
-    }
+//    public void synchronizeGroups(final Exam exam) {
+//        synchronizeGroups(exam, this.getSPSData(exam.id));
+//    }
 
     public void synchronizeGroups(final Exam exam, final SPSData spsData) {
         try {
@@ -478,11 +486,7 @@ public class ScreenProctoringAPIBinding {
                             updateGroupOnSPS(spsData, sebGroup.name, apiTemplate, spsGroup);
                         }
                     } else {
-                        log.warn(
-                                "Screen Proctoring group mismatch detected. No SPS group found for exam: {} and local group: {}", 
-                                exam.name, 
-                                existing);
-                        log.info("Try to create new one on SPS");
+                        logGroupDataMismatch(exam, existing);
                         try {
                             final ScreenProctoringGroup groupOnSPS = createGroupOnSPS(
                                     0,
@@ -555,15 +559,15 @@ public class ScreenProctoringAPIBinding {
                 .filter(g -> BooleanUtils.isTrue(g.isFallback))
                 .findFirst()
                 .orElse(null);
-        final SPSGroup spsGroup = spsGroups.get(localGroup.uuid);
+
+
+        final SPSGroup spsGroup = localGroup != null
+                ? spsGroups.get(localGroup.uuid)
+                : null;
 
         if (spsGroup == null) {
             // try re-create group on SPS
-            log.warn(
-                    "Screen Proctoring group mismatch detected. No SPS group found for exam: {} and local group: {}",
-                    exam.name,
-                    localGroup);
-            log.info("Try to create new one on SPS");
+            logGroupDataMismatch(exam, localGroup);
             try {
                 final ScreenProctoringGroup groupOnSPS = createGroupOnSPS(
                         0,
@@ -702,10 +706,9 @@ public class ScreenProctoringAPIBinding {
     /** This is called when an exam has changed its parameter and needs data update on SPS side
      *
      * @param exam The exam*/
-    Result<Exam> updateExam(final Exam exam) {
+    Result<Exam> updateExam(final Exam exam, @NotNull final SPSData spsData) {
         
         return Result.tryCatch(() -> {
-            final SPSData spsData = this.getSPSData(exam.id);
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
             final ScreenProctoringSettings settings = this.proctoringSettingsDAO
                     .getScreenProctoringSettings(new EntityKey(exam.id, EntityType.EXAM))
@@ -762,7 +765,7 @@ public class ScreenProctoringAPIBinding {
                 log.debug("Deactivate active screen proctoring exam, groups and access on SPS for exam: {}", exam.name);
             }
 
-            final SPSData spsData = this.getSPSData(exam.id);
+            final SPSData spsData = this.getSPSData(exam.id, true);
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
             activation(SEB_ACCESS_ENDPOINT, spsData.spsSEBAccessUUID, false, apiTemplate);
             activation(EXAM_ENDPOINT, spsData.spsExamUUID, false, apiTemplate);
@@ -778,17 +781,12 @@ public class ScreenProctoringAPIBinding {
         });
     }
 
-    Result<Exam> activateScreenProctoring(final Exam exam) {
+    Result<Exam> activateScreenProctoring(final Exam exam, @NotNull final SPSData spsData) {
 
         return Result.tryCatch(() -> {
 
             if (log.isDebugEnabled()) {
                 log.debug("Activate screen proctoring exam, groups and access on SPS for exam: {}", exam.name);
-            }
-
-            final SPSData spsData = this.getSPSData(exam.id);
-            if (spsData == null) {
-                return exam;
             }
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
@@ -856,7 +854,7 @@ public class ScreenProctoringAPIBinding {
             final String spsExamId = requestJSON.get(EXAM.ATTR_ID).asText();
             
             // check if Exam has SPSData, if not create and if check completeness
-            SPSData spsData = this.getSPSData(exam.id);
+            SPSData spsData = this.getSPSData(exam.id, false);
             if (spsData == null) {
                 spsData = new SPSData();
             }
@@ -871,7 +869,7 @@ public class ScreenProctoringAPIBinding {
             saveSPSData(exam, spsData);
 
             // reactivate exam on SPS
-            this.activateScreenProctoring(exam).getOrThrow();
+            this.activateScreenProctoring(exam, spsData).getOrThrow();
             // synchronize groups
             this.synchronizeGroups(exam, spsData);
             
@@ -990,12 +988,7 @@ public class ScreenProctoringAPIBinding {
         try {
 
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
-            final SPSData spsData = this.getSPSData(exam.id);
-            
-            if (spsData == null) {
-                log.info("There is no SPS data for this exam");
-                return;
-            }
+            final SPSData spsData = this.getSPSData(exam.id, true);
 
             log.info("Delete or deactivate exam and groups on SPS site and send deletion request for exam {}", exam);
             
@@ -1401,7 +1394,7 @@ public class ScreenProctoringAPIBinding {
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, paramsFormEncoded);
             if (exchange.getStatusCode() != HttpStatus.OK) {
                 throw new RuntimeException("Error response from Screen Proctoring Service: "
-                        + exchange.getStatusCodeValue()
+                        + exchange.getStatusCode().value()
                         + " "
                         + exchange.getBody());
             }
@@ -1686,6 +1679,14 @@ public class ScreenProctoringAPIBinding {
         } catch (Exception e) {
             log.error("Failed to ensure SEBAccess for exam: {} cause: {}", exam.externalId, e.getMessage());
         }
+    }
+
+    private static void logGroupDataMismatch(Exam exam, ScreenProctoringGroup existing) {
+        log.warn(
+                "Screen Proctoring group mismatch detected. No SPS group found for exam: {} and local group: {}",
+                exam.name,
+                existing);
+        log.info("Try to create new one on SPS");
     }
 
 }
