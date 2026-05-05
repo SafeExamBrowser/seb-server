@@ -539,23 +539,17 @@ public class ExamConfigXMLParser extends DefaultHandler {
         }
 
         if (SECRET_ATTRIBUTES.contains(name)) {
-            // NOTE this is a special case, if a hashed password is imported it is not possible to view this password
-            //      later in plain text to the administrator. Therefore this password hash is marked here as imported
-            //      and internally encrypted as usual. So the password will be decrypted while viewing and is recognizable
-            //      for the export so that the password can be decrypted with internal encryption and then, if import
-            //      marked, just send to the export by removing the marker and do not rehash the already hashed password.
+            // NOTE this is a special case, a hashed password is skipped (deleted) on imported. See SEBSERV-482
+            if (StringUtils.isNotBlank(value)) {
+                log.info("The SEB Settings password: " + name + " is not imported due to Issue SEBSERV-482. Leave it empty, can be set later.");
+            }
             return new ConfigurationValue(
                     null,
                     this.institutionId,
                     this.configId,
                     attribute.id,
                     listIndex,
-                    StringUtils.isNotBlank(value)
-                            ? this.cryptor
-                                    .encrypt(value + Constants.IMPORTED_PASSWORD_MARKER)
-                                    .getOrThrow()
-                                    .toString()
-                            : value);
+                    null);
         }
 
         return new ConfigurationValue(
@@ -644,17 +638,15 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
         @Override
         public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("PListNode [type=");
-            builder.append(this.type);
-            builder.append(", name=");
-            builder.append(this.name);
-            builder.append(", listIndex=");
-            builder.append(this.listIndex);
-            builder.append(", value=");
-            builder.append(this.value);
-            builder.append("]");
-            return builder.toString();
+            return "PListNode [type=" +
+                    this.type +
+                    ", name=" +
+                    this.name +
+                    ", listIndex=" +
+                    this.listIndex +
+                    ", value=" +
+                    this.value +
+                    "]";
         }
     }
 

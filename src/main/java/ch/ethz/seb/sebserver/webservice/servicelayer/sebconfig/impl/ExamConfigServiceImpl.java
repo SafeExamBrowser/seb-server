@@ -485,17 +485,23 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         return Result.tryCatch(() -> {
 
             // encrypt quitPassword if needed
-            final CharSequence encryptedPWD = cryptor
-                    .decrypt(quitPassword)
-                    .onErrorDo(error -> quitPassword)
-                    .flatMap(cryptor::encrypt)
-                    .getOrThrow();
+            final CharSequence encryptedPWD = StringUtils.isNotBlank(quitPassword)
+                    ? cryptor
+                            .decrypt(quitPassword)
+                            .onErrorDo(error -> quitPassword)
+                            .flatMap(cryptor::encrypt)
+                            .getOrThrow()
+                    : null;
 
             final Long followupId = this.configurationDAO
                     .getFollowupConfigurationId(node.id)
                     .getOrThrow();
 
-            this.configurationValueDAO.saveQuitPassword(followupId, encryptedPWD.toString())
+            this.configurationValueDAO
+                    .saveQuitPassword(
+                            followupId,
+                            encryptedPWD == null ? null : encryptedPWD.toString()
+                    )
                     .onError(error -> log.warn(
                             "Failed to reset quit password for configuration: {} cause: {}",
                             node,
@@ -505,7 +511,11 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                     .getConfigurationLastStableVersion(node.id)
                     .getOrThrow();
 
-            this.configurationValueDAO.saveQuitPassword(config.id, encryptedPWD.toString())
+            this.configurationValueDAO
+                    .saveQuitPassword(
+                            config.id,
+                            encryptedPWD == null ? null : encryptedPWD.toString()
+                    )
                     .onError(error -> log.warn(
                             "Failed to reset quit password for configuration: {} cause: {}",
                             node,

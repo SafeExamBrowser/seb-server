@@ -590,7 +590,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     }
 
     private ConfigurationNode createTemplate(final ConfigurationNode node) {
-        if (node.type != null && node.type == ConfigurationType.TEMPLATE) {
+        if (node.type == ConfigurationType.TEMPLATE) {
             // create views and orientations for node
             return this.viewDAO.copyDefaultViewsForTemplate(node)
                     .flatMap(viewMapping -> this.orientationDAO.copyDefaultOrientationsForTemplate(
