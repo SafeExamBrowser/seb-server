@@ -38,7 +38,7 @@ public interface SEBSettingsService {
         /* Ids of all SEB Setting/Configuration Attributes for the General view */
         VIEW_ATTRIBUTE_MAPPINGS.put(
                 SEBSettingsView.ViewType.GENERAL,
-                Utils.immutableSetOf( Arrays.asList(1L, 2L, 4L))
+                Utils.immutableSetOf( Arrays.asList(1L, 2L, 4L, 802L, 920L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the User Interface view */
@@ -49,7 +49,7 @@ public interface SEBSettingsService {
                         19L, 20L, 21L, 22L, 24L, 25L, 26L, 27L,
                         28L, 29L, 804L, 812L, 951L, 952L, 953L,
                         950L, 974L, 975L, 1595L, 1660L, 1661L,
-                        1662L, 1663L, 1664L, 1665L))
+                        1662L, 1663L, 1664L, 1665L, 17L, 902L, 926L, 927L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the BROWSER view */
@@ -61,7 +61,7 @@ public interface SEBSettingsService {
                         53L,54L,55L,56L,57L,58L,960L,961L,
                         919L,928L,904L,1564L,1590L,1568L,1558L,
                         1559L,1560L,1561L,1562L,905L,1569L,
-                        1570L,1563L,1602L,1603L))
+                        1570L,1563L,1602L,1603L, 37L, 39L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the DOWN_UPLOAD view */
@@ -70,7 +70,7 @@ public interface SEBSettingsService {
                 Utils.immutableSetOf( Arrays.asList(8L,
                         59L,60L,61L,972L,63L,64L,65L,66L,
                         1580L,1581L,1582L,1651L,1652L,
-                        1653L,1654L,1655L))
+                        1653L,1654L,1655L, 62L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the EXAM view */
@@ -100,7 +100,7 @@ public interface SEBSettingsService {
                         238L, 239L, 240L, 241L, 242L, 243L, 244L, 245L, 246L,
                         247L, 248L, 249L, 250L, 251L, 252L, 253L, 254L, 255L,
                         256L, 257L, 258L, 259L, 260L, 261L, 262L, 263L, 264L,
-                        265L))
+                        265L, 908L, 929L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the SECURITY vew */
@@ -111,7 +111,7 @@ public interface SEBSettingsService {
                         309L,310L,311L,312L,313L,314L,315L,316L,317L,
                         318L,319L,320L,321L,322L,501L,971L,1578L,1551L,
                         1567L,1550L,909L,1552L,948L,1557L,943L,945L,
-                        1201L,1600L,1620L,1601L,1621L))
+                        1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L, 925L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the REGISTRY vew */
@@ -140,7 +140,8 @@ public interface SEBSettingsService {
         );
 
     }
-    
+
+    /** Get static list of SEB Setting attribute ids per View */
     default Set<Long> getAttributeIdsForView(final SEBSettingsView.ViewType viewType) {
         return VIEW_ATTRIBUTE_MAPPINGS.get(viewType);
     }
@@ -165,10 +166,10 @@ public interface SEBSettingsService {
 
     Result<Integer> getActiveSEBClientsForExam(Long examId);
     
-    Result<Long> applySettingsForTemplate(Long templateId);
+    //Result<Long> applySettingsForTemplate(Long templateId);
     Result<Long> applySettingsForExam(Long examId);
 
-    Result<Long> undoSettingsForTemplate(Long templateId);
+    //Result<Long> undoSettingsForTemplate(Long templateId);
     Result<Long> undoSettingsForExam(Long examId);
 
 }

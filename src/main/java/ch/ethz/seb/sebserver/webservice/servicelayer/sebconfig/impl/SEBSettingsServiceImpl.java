@@ -35,7 +35,6 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
 
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
-    private final OrientationDAO orientationDAO;
     private final ConfigurationValueDAO configurationValueDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
@@ -46,7 +45,6 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     public SEBSettingsServiceImpl(
             final ConfigurationDAO configurationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
-            final OrientationDAO orientationDAO,
             final ConfigurationValueDAO configurationValueDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamConfigUpdateService examConfigUpdateService,
@@ -56,7 +54,6 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
-        this.orientationDAO = orientationDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examConfigUpdateService = examConfigUpdateService;
@@ -64,18 +61,6 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         this.examConfigService = examConfigService;
         this.cryptor = cryptor;
     }
-
-    @Override
-    public Set<Long> getAttributeIdsForView(final SEBSettingsView.ViewType viewType) {
-        if (VIEW_ATTRIBUTE_MAPPINGS.containsKey(viewType)) {
-            return VIEW_ATTRIBUTE_MAPPINGS.get(viewType);
-        }
-
-        return orientationDAO
-                .getConfigAttributeIdsOfView(viewType)
-                .getOrThrow();
-    }
-
 
     @Override
     public Result<SEBSettingsView> getSEBSettingsOfTemplate(
@@ -239,15 +224,15 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 .map(Collection::size);
     }
 
-    @Override
-    public Result<Long> applySettingsForTemplate(final Long templateId) {
-
-        // create new history entry and clear history
-        return configurationDAO
-                .saveToHistory(templateId)
-                .flatMap(config -> configurationDAO.clearHistory(templateId))
-                .map(Configuration::getId);
-    }
+//    @Override
+//    public Result<Long> applySettingsForTemplate(final Long templateId) {
+//
+//        // create new history entry and clear history
+//        return configurationDAO
+//                .saveToHistory(templateId)
+//                .flatMap(config -> configurationDAO.clearHistory(templateId))
+//                .map(Configuration::getId);
+//    }
 
     @Override
     public Result<Long> applySettingsForExam(final Long examId) {
@@ -259,14 +244,14 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 .map( all -> examId);
     }
 
-    @Override
-    public Result<Long> undoSettingsForTemplate(final Long templateId) {
-        // copy the values from first rev to followup
-        return configurationDAO
-                .getConfigurationLastStableVersion(templateId)
-                .flatMap(backup -> configurationDAO.restoreToVersion(templateId, backup.id))
-                .map( config -> templateId);
-    }
+//    @Override
+//    public Result<Long> undoSettingsForTemplate(final Long templateId) {
+//        // copy the values from first rev to followup
+//        return configurationDAO
+//                .getConfigurationLastStableVersion(templateId)
+//                .flatMap(backup -> configurationDAO.restoreToVersion(templateId, backup.id))
+//                .map( config -> templateId);
+//    }
 
     @Override
     public Result<Long> undoSettingsForExam(final Long examId) {
