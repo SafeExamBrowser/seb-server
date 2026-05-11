@@ -1,7 +1,7 @@
 -- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`institution` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `institution` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `url_suffix` `url_suffix` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
   CHANGE COLUMN `theme_name` `theme_name` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
@@ -9,7 +9,7 @@ ALTER TABLE `SEBServer`.`institution` CHARACTER SET = utf8mb4, COLLATE = utf8mb4
 -- -----------------------------------------------------
 -- Table `lms_setup`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`lms_setup` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `lms_setup` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `lms_type` `lms_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `lms_url` `lms_url` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -24,7 +24,7 @@ ALTER TABLE `SEBServer`.`lms_setup` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_g
 -- -----------------------------------------------------
 -- Table `exam`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`exam` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `exam` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `external_id` `external_id` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `owner` `owner` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `supporter` `supporter` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL COMMENT 'comma separated list of user_uuid',
@@ -38,7 +38,7 @@ ALTER TABLE `SEBServer`.`exam` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_genera
 -- -----------------------------------------------------
 -- Table `remote_proctoring_room`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`remote_proctoring_room` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `remote_proctoring_room` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `subject` `subject` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
   CHANGE COLUMN `break_out_connections` `break_out_connections` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -48,7 +48,7 @@ ALTER TABLE `SEBServer`.`remote_proctoring_room` CHARACTER SET = utf8mb4, COLLAT
 -- -----------------------------------------------------
 -- Table `screen_proctoring_group`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`screen_proctoring_group` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `screen_proctoring_group` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `uuid` `uuid` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `data` `data` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
@@ -56,7 +56,7 @@ ALTER TABLE `SEBServer`.`screen_proctoring_group` CHARACTER SET = utf8mb4, COLLA
 -- -----------------------------------------------------
 -- Table `client_connection`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`client_connection` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `client_connection` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `status` `status` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
 --   CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `exam_user_session_id` `exam_user_session_id` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -71,13 +71,13 @@ ALTER TABLE `SEBServer`.`client_connection` CHARACTER SET = utf8mb4, COLLATE = u
 -- -----------------------------------------------------
 -- Table `client_event`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`client_event` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `client_event` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `text` `text` VARCHAR(512) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `indicator`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`indicator` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `indicator` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `type` `type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `name` `name` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `color` `color` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -87,7 +87,7 @@ ALTER TABLE `SEBServer`.`indicator` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_g
 -- -----------------------------------------------------
 -- Table `configuration_node`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`configuration_node` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `configuration_node` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `owner` `owner` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `description` `description` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -98,13 +98,13 @@ ALTER TABLE `SEBServer`.`configuration_node` CHARACTER SET = utf8mb4, COLLATE = 
 -- -----------------------------------------------------
 -- Table `configuration`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`configuration` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `configuration` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `version` `version` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `configuration_attribute`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`configuration_attribute` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `configuration_attribute` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `type` `type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `resources` `resources` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -115,32 +115,32 @@ ALTER TABLE `SEBServer`.`configuration_attribute` CHARACTER SET = utf8mb4, COLLA
 -- -----------------------------------------------------
 -- Table `configuration_value`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`configuration_value` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `configuration_value` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `value` `value` VARCHAR(16000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `view`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`view` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `view` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `orientation`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`orientation` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `orientation` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `group_id` `group_id` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
   CHANGE COLUMN `title` `title` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `exam_configuration_map`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`exam_configuration_map` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `exam_configuration_map` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `encrypt_secret` `encrypt_secret` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`user` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `user` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `uuid` `uuid` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `surname` `surname` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -153,20 +153,20 @@ ALTER TABLE `SEBServer`.`user` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_genera
 -- -----------------------------------------------------
 -- Table `user_role`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`user_role` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `user_role` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `role_name` `role_name` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL;
 
 -- -----------------------------------------------------
 -- Table `threshold`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`threshold` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `threshold` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `color` `color` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
   CHANGE COLUMN `icon` `icon` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `user_activity_log`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`user_activity_log` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `user_activity_log` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `user_uuid` `user_uuid` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `activity_type` `activity_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `entity_type` `entity_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
@@ -176,7 +176,7 @@ ALTER TABLE `SEBServer`.`user_activity_log` CHARACTER SET = utf8mb4, COLLATE = u
 -- -----------------------------------------------------
 -- Table `additional_attributes`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`additional_attributes` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `additional_attributes` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `entity_type` `entity_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `value` `value` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
@@ -184,7 +184,7 @@ ALTER TABLE `SEBServer`.`additional_attributes` CHARACTER SET = utf8mb4, COLLATE
 -- -----------------------------------------------------
 -- Table `seb_client_configuration`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`seb_client_configuration` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `seb_client_configuration` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `client_name` `client_name` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `client_secret` `client_secret` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
@@ -194,28 +194,27 @@ ALTER TABLE `SEBServer`.`seb_client_configuration` CHARACTER SET = utf8mb4, COLL
 -- -----------------------------------------------------
 -- Table `webservice_server_info`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`webservice_server_info` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `webservice_server_info` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `uuid` `uuid` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `service_address` `service_address` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL;
 
 -- -----------------------------------------------------
 -- Table `client_instruction`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`client_instruction` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
---   CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
-  CHANGE COLUMN `type` `type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
+ALTER TABLE `client_instruction` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+  CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `attributes` `attributes` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `certificate`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`certificate` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `certificate` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `aliases` `aliases` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `exam_template`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`exam_template` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `exam_template` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `description` `description` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
   CHANGE COLUMN `exam_type` `exam_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -225,7 +224,7 @@ ALTER TABLE `SEBServer`.`exam_template` CHARACTER SET = utf8mb4, COLLATE = utf8m
 -- -----------------------------------------------------
 -- Table `batch_action`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`batch_action` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `batch_action` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `owner` `owner` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
   CHANGE COLUMN `action_type` `action_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `attributes` `attributes` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -236,13 +235,13 @@ ALTER TABLE `SEBServer`.`batch_action` CHARACTER SET = utf8mb4, COLLATE = utf8mb
 -- -----------------------------------------------------
 -- Table `client_notification`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`client_notification` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `client_notification` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `text` `text` VARCHAR(512) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
 -- Table `client_group`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`client_group` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `client_group` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `name` `name` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `type` `type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `color` `color` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -252,7 +251,7 @@ ALTER TABLE `SEBServer`.`client_group` CHARACTER SET = utf8mb4, COLLATE = utf8mb
 -- -----------------------------------------------------
 -- Table `seb_security_key_registry`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`seb_security_key_registry` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `seb_security_key_registry` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `key_type` `key_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `key_value` `key_value` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `tag` `tag` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
@@ -260,7 +259,7 @@ ALTER TABLE `SEBServer`.`seb_security_key_registry` CHARACTER SET = utf8mb4, COL
 -- -----------------------------------------------------
 -- Table `entity_privilege`
 -- -----------------------------------------------------
-ALTER TABLE `SEBServer`.`entity_privilege` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `entity_privilege` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `entity_type` `entity_type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `user_uuid` `user_uuid` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL;
 
@@ -268,5 +267,5 @@ ALTER TABLE `SEBServer`.`entity_privilege` CHARACTER SET = utf8mb4, COLLATE = ut
 -- Table `feature_privilege`
 -- -----------------------------------------------------
 
-ALTER TABLE `SEBServer`.`feature_privilege` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
+ALTER TABLE `feature_privilege` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `user_uuid` `user_uuid` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL;
