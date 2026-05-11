@@ -72,8 +72,6 @@ public class LmsAPIResourceServerConfig {
             try {
                 final List<String> scopes = source.getClaim("scope");
 
-                System.out.println("******************** scopes: " + scopes);
-
                 if (!scopes.contains(API.LMS_API_SCOPE_NAME)) {
                     throw new InvalidBearerTokenException("Invalid scope");
                 }
