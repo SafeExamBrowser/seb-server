@@ -101,6 +101,15 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
                 SEBServerInit.INIT_LOGGER.info("----> No pending migrations found. Last migration --> {} --> {}",
                         info.current().getVersion(),
                         info.current().getDescription());
+
+                final ValidateResult validateWithResult = this.flyway.validateWithResult();
+                if (!validateWithResult.validationSuccessful) {
+                    SEBServerInit.INIT_LOGGER.warn("----> ");
+                    SEBServerInit.INIT_LOGGER.warn("----> VALIDATION OF DB MIGRATION SCHEMA FAILED:  \n\n" +
+                            validateWithResult.getAllErrorMessages() + "\n\n");
+
+                    tryRepair();
+                }
             }
 
             SEBServerInit.INIT_LOGGER.info("----> ** Migration check END **");
@@ -129,10 +138,8 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
             SEBServerInit.INIT_LOGGER.info("----> Migration validation checksum mismatch error detected: ");
             SEBServerInit.INIT_LOGGER.info("----> {}", validateWithResult.getAllErrorMessages());
-            SEBServerInit.INIT_LOGGER.info("----> Try to run repair task...");
 
-            this.flyway.repair();
-
+            tryRepair();
         }
 
         this.flyway.migrate();
@@ -145,5 +152,17 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
         SEBServerInit.INIT_LOGGER.info("----> **** End Migration **************************************");
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
     }
+
+    private void tryRepair() {
+        try {
+            SEBServerInit.INIT_LOGGER.info("----> Try to run repair migration task...");
+            this.flyway.repair();
+            SEBServerInit.INIT_LOGGER.info("----> Successfully repaired migration task!");
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("----> Failed to repair Migration due to: {}", e.getMessage());
+            SEBServerInit.INIT_LOGGER.info("----> Ignore it and go on, try again next time");
+        }
+    }
+
 
 }
