@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -28,7 +27,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
@@ -51,20 +49,18 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService {
 
     private static final Logger log = LoggerFactory.getLogger(FullLmsIntegrationServiceImpl.class);
@@ -86,17 +82,17 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private final WebserviceInfo webserviceInfo;
     private final String lmsAPIEndpoint;
     private final UserService userService;
-    private final ClientCredentialsResourceDetails resource;
     private final SEBRestrictionService sebRestrictionService;
-    private final OAuth2RestTemplate restTemplate;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+
+    private final OAuthRestTemplate.DefaultClientSettingsProvider clientSettingsProvider;
+    private OAuthRestTemplate restTemplate;
 
     public FullLmsIntegrationServiceImpl(
             final LmsSetupDAO lmsSetupDAO,
             final UserActivityLogDAO userActivityLogDAO,
-            final UserDAO userDAO,
             final SEBClientConfigDAO sebClientConfigDAO,
-            final ScreenProctoringService screenProctoringService,
             final ConnectionConfigurationService connectionConfigurationService,
             final DeleteExamAction deleteExamAction,
             final ExamConfigurationValueService examConfigurationValueService,
@@ -132,22 +128,14 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         this.clientConnectionDAO = clientConnectionDAO;
         this.sebRestrictionService = sebRestrictionService;
         this.additionalAttributesDAO = additionalAttributesDAO;
-
-        resource = new ClientCredentialsResourceDetails();
-        resource.setAccessTokenUri(webserviceInfo.getOAuthTokenURI());
-        resource.setClientId(clientId);
-        resource.setClientSecret(clientSecret);
-        resource.setGrantType(API.GRANT_TYPE_CLIENT);
-        //resource.setScope(API.RW_SCOPES);
-
-        this.restTemplate = new OAuth2RestTemplate(resource);
-        clientHttpRequestFactoryService
-                .getClientHttpRequestFactory()
-                .onSuccess(this.restTemplate::setRequestFactory)
-                .onError(error -> log.warn("Failed to set HTTP request factory: ", error));
-        this.restTemplate
-                .getMessageConverters()
-                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.clientSettingsProvider = new OAuthRestTemplate.DefaultClientSettingsProvider(
+                clientId,
+                clientSecret,
+                null,
+                null,
+                ""
+        );
     }
 
     @Override
@@ -200,50 +188,64 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     @Override
-    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
-        
-        final LmsSetup lmsSetup = event.getLmsSetup();
-        if (!hasFullIntegration(lmsSetup.id, false)) {
-            return;
-        }
-        
-        try {
-            if (event.activation == Activatable.ActivationAction.NONE) {
-                if (!lmsSetup.integrationActive) {
-                    applyFullLmsIntegration(lmsSetup.id)
-                            .onError(error -> log.warn(
-                                    "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
-                            .onSuccess(data -> log.debug(
-                                    "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
-                }
-            } else if (event.activation == Activatable.ActivationAction.ACTIVATE) {
+    public Result<Long> processLmsSetupActivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetup lmsSetup = lmsSetupDAO.byPK(lmsSetupId).getOrThrow();
+            if (hasFullIntegration(lmsSetup.id, false)) {
                 applyFullLmsIntegration(lmsSetup.id)
                         .map(data -> reapplyExistingExams(data, lmsSetup))
                         .onError(error -> log.warn(
-                                "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                                "Failed to activate LMS integration for: {} error {}", lmsSetup, error.getMessage()))
                         .onSuccess(data -> log.debug(
-                                "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
-            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
+                                "Successfully activated LMS integration for: {} data: {}", lmsSetup, data))
+                        .getOrThrow();
+            }
 
+            return lmsSetupId;
+        });
+    }
+
+    @Override
+    public Result<Long> processLmsSetupDeactivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetup lmsSetup = lmsSetupDAO.byPK(lmsSetupId).getOrThrow();
+            if (hasFullIntegration(lmsSetup.id, false)) {
                 log.info("Deactivate full integration for LMS: {}", lmsSetup);
 
                 // remove all exam data for involved exams before deactivate them
                 this.examDAO
                         .allForLMSSetup(lmsSetup.id)
                         .getOrThrow()
-                        .forEach(exam -> {
-                            if (Objects.equals(exam.lmsSetupId, lmsSetup.id)) {
-                                applyExamData(exam, true);
-                            }
-                        });
-                
-                // delete full integration on Moodle side due to deactivation
+                        .forEach(exam -> applyExamData(exam, true));
+
+                // delete full integration on LMS side due to deactivation
                 this.teacherAccountService.deleteAllFromLMS(lmsSetup.id);
                 this.deleteFullLmsIntegration(lmsSetup.id)
                         .getOrThrow();
             }
-        } catch (final Exception e) {
-            log.error("Failed to apply LMS Setup change for full LMS integration for: {}", lmsSetup, e);
+
+            return lmsSetupId;
+        });
+    }
+
+    @Override
+    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
+
+        final LmsSetup lmsSetup = event.getLmsSetup();
+        if (!hasFullIntegration(lmsSetup.id, false)) {
+            return;
+        }
+
+        if (event.activation == Activatable.ActivationAction.NONE) {
+            if (!lmsSetup.integrationActive) {
+                applyFullLmsIntegration(lmsSetup.id)
+                        .onError(error -> log.warn(
+                                "Failed to update LMS integration for: {} error {}", lmsSetup, error.getMessage()))
+                        .onSuccess(data -> log.debug(
+                                "Successfully updated LMS integration for: {} data: {}", lmsSetup, data));
+            }
         }
     }
 
@@ -292,26 +294,35 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     @Override
     public Result<IntegrationData> applyFullLmsIntegration(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
+            if (lmsSetup.getLmsType() == LmsSetup.LmsType.MOCKUP) {
+                lmsSetupDAO
+                        .setIntegrationActive(lmsSetup.id, true)
+                        .onError(er -> log.error("Failed to mark LMS integration active", er));
+                return new IntegrationData(null, null, null, null, null);
+            }
+
             final Long lmsSetupId = lmsSetup.id;
             final String connectionId = lmsSetup.getConnectionId();
             if (connectionId == null) {
-                throw new RuntimeException("Illegal state", new MoodleResponseException(
+                throw new RuntimeException("Illegal state no LMS connectionId", new MoodleResponseException(
                         "The Assessment Tool Setup must be saved first before full integration can be tested and applied.","none"));
             }
 
             // reset old token to get actual one
             String accessToken = null;
             try {
-                resource.setScope(Arrays.asList(String.valueOf(lmsSetupId)));
-                restTemplate.getOAuth2ClientContext().setAccessToken(null);
-                accessToken = restTemplate.getAccessToken().getValue();
+
+                clientSettingsProvider.setScopes(API.LMS_API_SCOPE_NAME);
+                OAuthRestTemplate rest = getRestTemplate(false);
+                accessToken = restTemplate.getAccessToken().toString();
+
             } catch (final Exception e) {
-                log.error("Failed to get SEB webservice access token for Moodle on: {} client: {} scope: {} for LMSSetup: {}",
-                        restTemplate.getResource().getAccessTokenUri(),
-                        restTemplate.getResource().getClientId(),
-                        restTemplate.getResource().getScope(),
+                log.error("Failed to get SEB webservice access token for LMS on: {} client: {} scope: {} for LMSSetup: {}",
+                        webserviceInfo.getOAuthTokenURI(),
+                        clientSettingsProvider.getClientId(),
+                        clientSettingsProvider.getScopes(),
                         lmsSetup);
-                throw new RuntimeException("Failed to get SEB webservice access token for Moodle...");
+                throw new RuntimeException("Failed to get SEB webservice access token for LMS...");
             }
 
             final IntegrationData data = new IntegrationData(
@@ -352,9 +363,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     lmsAPITemplateCacheService.getLmsAPITemplate(lmsSetupId)
                             .getOrThrow()
                             .deleteConnectionDetails()
-                            .onError(error -> lmsSetupDAO
-                                    .setIntegrationActive(lmsSetupId, false)
-                                    .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
+                            .onError(error -> log.error("Failed to delete LMS connection: {}", error.getMessage()))
                             .onSuccess( d -> lmsSetupDAO
                                     .setIntegrationActive(lmsSetupId, false)
                                     .onError(er -> log.error("Failed to mark LMS integration inactive", er)))
@@ -422,15 +431,14 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
             }
 
-            final Exam exam = examResult.get();
-
+            final Exam exam = examResult.getOrThrow();
             final String connectionConfigId = getConnectionConfigurationId(exam);
             if (StringUtils.isBlank(connectionConfigId)) {
                 log.error(
                         "Failed to verify SEB Connection Configuration id for exam: {}",
                         exam.name);
                 throw new APIMessage.APIMessageException(
-                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("No active Connection Configuration found"));
+                        APIMessage.ErrorMessage.RESOURCE_NOT_FOUND.of("No active Connection Configuration found"));
             }
 
             this.connectionConfigurationService.exportSEBClientConfiguration(
@@ -449,7 +457,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final IntegrationData integrationData,
             final LmsSetup lmsSetup) {
 
-            examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+            examDAO.allActiveForLMSSetup(Collections.singletonList(lmsSetup.id))
                     .getOrThrow()
                     .forEach(exam -> applyExamData(exam, false));
 
@@ -459,14 +467,15 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     private String getConnectionConfigurationId(final Exam exam) {
         String connectionConfigId = exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_DEFAULT_CONNECTION_CONFIGURATION);
         if (StringUtils.isBlank(connectionConfigId)) {
-            connectionConfigId = this.sebClientConfigDAO
+            // if there is no default connection configuration assigned, use the first active
+            // that can be found for the involved institution
+            return this.sebClientConfigDAO
                     .all(exam.institutionId, true)
-                    .map(all -> all.stream().filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
-                            .findFirst()
-                            .orElseThrow(() -> new APIMessage.APIMessageException(
-                                    APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of(
-                                            "No active Connection Configuration found"))))
-                    .map(SEBClientConfig::getModelId)
+                    .map(all -> all
+                            .stream()
+                            .filter(config -> config.configPurpose == SEBClientConfig.ConfigPurpose.START_EXAM)
+                            .toList())
+                    .map(configs -> configs.isEmpty() ? "" : configs.getFirst().getModelId())
                     .getOr(null);
         }
         return connectionConfigId;
@@ -518,6 +527,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quizId) {
 
         return lmsAPITemplate -> {
+            // TODO this will not work for other integrations then Moodle. Must be checked before other LMS Integrations are applied
             final String internalQuizId = MoodleUtils.getInternalQuizId(
                     quizId,
                     courseId,
@@ -547,7 +557,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             // check if the exam has already been imported, If so return the existing exam if it is not archived
             final Result<Exam> existingExam = findExam(quizData);
             if (!existingExam.hasError()) {
-                final Exam exam = existingExam.get();
+                final Exam exam = existingExam.getOrThrow();
                 if (exam.status == Exam.ExamStatus.ARCHIVED) {
                     throw new IllegalArgumentException("Exam is archived and cannot be re-connected by LMS full integration!");
                 }
@@ -569,7 +579,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
             if (StringUtils.isNotBlank(quitPassword)) {
                 // check new quit password has no invalid trailing chars
-                if (quitPassword != null && !Objects.equals(quitPassword, StringUtils.trim(quitPassword))) {
+                if (!Objects.equals(quitPassword, StringUtils.trim(quitPassword))) {
                     throw new IllegalArgumentException("quit password has invalid trailing characters!");
                 }
 
@@ -587,6 +597,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
     }
 
     private Exam checkDeletion(final Exam exam) {
+        // TODO it should also not been deleted when archived
         if (exam.status != Exam.ExamStatus.RUNNING) {
             return exam;
         }
@@ -641,7 +652,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     ? null
                     : exam.examTemplateId != null
                         ? String.valueOf(exam.examTemplateId)
-                        : "0"; // no selection on Moodle site
+                        : "0"; // no selection on LMS site
             final String quitPassword = deletion
                     ? null
                     : examConfigurationValueService.getQuitPassword(exam.id);
@@ -840,6 +851,33 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                         "Failed to log exam deletion from LMS: {}",
                         error.getMessage()));
         return exam;
+    }
+
+    private OAuthRestTemplate getRestTemplate(boolean clear) {
+        if (clear) {
+            this.restTemplate = null;
+        }
+
+        if (this.restTemplate != null) {
+            return restTemplate;
+        }
+
+        final RestTemplate restTemplateDelegate = new RestTemplate();
+        clientHttpRequestFactoryService
+                .getClientHttpRequestFactory()
+                .onSuccess(restTemplateDelegate::setRequestFactory)
+                .onError(error -> log.warn("Failed to set HTTP request factory: ", error));
+        restTemplateDelegate
+                .getMessageConverters()
+                .addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+        this.restTemplate = new OAuthRestTemplate(
+                webserviceInfo.getExternalServerURL(),
+                API.OAUTH_TOKEN_ENDPOINT,
+                clientSettingsProvider,
+                restTemplateDelegate);
+
+        return this.restTemplate;
     }
 
 }

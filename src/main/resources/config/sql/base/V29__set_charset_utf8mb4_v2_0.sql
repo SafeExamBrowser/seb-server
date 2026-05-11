@@ -58,7 +58,7 @@ ALTER TABLE `screen_proctoring_group` CHARACTER SET = utf8mb4, COLLATE = utf8mb4
 -- -----------------------------------------------------
 ALTER TABLE `client_connection` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `status` `status` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
-  CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
+--   CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `exam_user_session_id` `exam_user_session_id` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
   CHANGE COLUMN `client_address` `client_address` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `virtual_client_address` `virtual_client_address` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL,
@@ -203,7 +203,6 @@ ALTER TABLE `webservice_server_info` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_
 -- -----------------------------------------------------
 ALTER TABLE `client_instruction` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
   CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
-  CHANGE COLUMN `type` `type` VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `attributes` `attributes` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------

@@ -11,6 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 @FunctionalInterface
 public interface PendingNotificationIndication {
 
-    boolean notifictionPending();
+    boolean notificationPending();
 
 }

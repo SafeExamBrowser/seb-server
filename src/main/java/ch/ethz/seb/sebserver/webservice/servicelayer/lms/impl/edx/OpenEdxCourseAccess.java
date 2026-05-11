@@ -20,23 +20,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.security.oauth2.client.OAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2RequestAuthenticator;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.http.AccessTokenRequiredException;
-import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -61,7 +52,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
- *
+ * <p>
  * See also: https://course-catalog-api-guide.readthedocs.io */
 final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements CourseAccessAPI {
 
@@ -78,7 +69,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
     private final WebserviceInfo webserviceInfo;
 
-    private OAuth2RestTemplate restTemplate;
+    private OAuthRestTemplate restTemplate;
     private final Long lmsSetupId;
 
     public OpenEdxCourseAccess(
@@ -106,35 +97,20 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
     @Override
     public LmsSetupTestResult testCourseAccessAPI() {
 
-        final LmsSetupTestResult attributesCheck = this.openEdxRestTemplateFactory.test();
-        if (!attributesCheck.isOk()) {
-            return attributesCheck;
-        }
-
-        final Result<OAuth2RestTemplate> restTemplateRequest = getRestTemplate();
-        if (restTemplateRequest.hasError()) {
-            final String message = "Failed to gain access token from OpenEdX Rest API:\n tried token endpoints: " +
-                    this.openEdxRestTemplateFactory.knownTokenAccessPaths;
-            log.error(message, restTemplateRequest.getError());
-            return LmsSetupTestResult.ofTokenRequestError(LmsType.OPEN_EDX, message);
-        }
-
-        final OAuth2RestTemplate restTemplate = restTemplateRequest.get();
-
         try {
-            restTemplate.getAccessToken();
-            //this.getEdxPage(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
-        } catch (final RuntimeException e) {
 
-            restTemplate.setAuthenticator(new EdxOAuth2RequestAuthenticator());
-
-            try {
-                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-                this.getEdxPage(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
-            } catch (final RuntimeException ee) {
-                log.error("Failed to access Open edX course API: ", ee);
-                return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_EDX, ee.getMessage());
+            final LmsSetupTestResult attributesCheck = this.openEdxRestTemplateFactory.test();
+            if (!attributesCheck.isOk()) {
+                return attributesCheck;
             }
+
+            final OAuthRestTemplate restTemplate = getRestTemplate().getOrThrow();
+            CharSequence accessToken = restTemplate.getAccessToken();
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            this.getEdxPage(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
+        } catch (final RuntimeException e) {
+            log.error("Failed to access Open edX course API: ", e);
+            return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_EDX, e.getMessage());
         }
 
         return LmsSetupTestResult.ofOkay(LmsType.OPEN_EDX);
@@ -143,7 +119,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
     @Override
     public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
         try {
-            final OAuth2RestTemplate restTemplate = getRestTemplate().getOrThrow();
+            final OAuthRestTemplate restTemplate = getRestTemplate().getOrThrow();
             final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
             final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
             final String edxAPI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT;
@@ -239,7 +215,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
 
             final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
             final HttpHeaders httpHeaders = new HttpHeaders();
-            final OAuth2RestTemplate template = getRestTemplate()
+            final OAuthRestTemplate template = getRestTemplate()
                     .getOrThrow();
 
             final String externalStartURI = this.webserviceInfo
@@ -252,8 +228,8 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
             final String responseJSON = template.exchange(
                     uri,
                     HttpMethod.GET,
-                    new HttpEntity<>(httpHeaders),
-                    String.class)
+                    null,
+                    httpHeaders)
                     .getBody();
 
             final EdxUserDetails[] userDetails = this.jsonMapper.<EdxUserDetails[]> readValue(
@@ -334,7 +310,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
         return super.getFromCache(id);
     }
 
-    private ArrayList<QuizData> collectQuizzes(final OAuth2RestTemplate restTemplate, final Set<String> ids) {
+    private ArrayList<QuizData> collectQuizzes(final OAuthRestTemplate restTemplate, final Set<String> ids) {
         final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
         final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
 
@@ -381,7 +357,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
 
     private List<CourseData> collectCourses(
             final String pageURI,
-            final OAuth2RestTemplate restTemplate,
+            final OAuthRestTemplate restTemplate,
             final Collection<String> ids) {
 
         final List<CourseData> collector = new ArrayList<>();
@@ -407,7 +383,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
 
     private CourseData getOneCourse(
             final String pageURI,
-            final OAuth2RestTemplate restTemplate,
+            final OAuthRestTemplate restTemplate,
             final String id) {
 
         if (log.isDebugEnabled()) {
@@ -425,7 +401,8 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
             final ResponseEntity<CourseData> exchange = restTemplate.exchange(
                     uri,
                     HttpMethod.GET,
-                    new HttpEntity<>(httpHeaders),
+                    null,
+                    httpHeaders,
                     CourseData.class);
 
             return exchange.getBody();
@@ -442,23 +419,25 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
         }
     }
 
-    private ResponseEntity<EdXPage> getEdxPage(final String pageURI, final OAuth2RestTemplate restTemplate) {
+    private ResponseEntity<EdXPage> getEdxPage(final String pageURI, final OAuthRestTemplate restTemplate) {
         final HttpHeaders httpHeaders = new HttpHeaders();
         return restTemplate.exchange(
                 pageURI,
                 HttpMethod.GET,
-                new HttpEntity<>(httpHeaders),
+                null,
+                httpHeaders,
                 EdXPage.class);
     }
 
     private ResponseEntity<Blocks> getCourseBlocks(final String uri) {
         final HttpHeaders httpHeaders = new HttpHeaders();
-        return getRestTemplateNoEncoding()
+        return getRestTemplate()
                 .getOrThrow()
                 .exchange(
                         uri,
                         HttpMethod.GET,
-                        new HttpEntity<>(httpHeaders),
+                        null,
+                        httpHeaders,
                         Blocks.class);
     }
 
@@ -558,38 +537,38 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
         }
     }
 
-    private static final class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
+//    private static final class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
+//
+//        @Override
+//        public void authenticate(
+//                final OAuth2ProtectedResourceDetails resource,
+//                final OAuth2ClientContext clientContext,
+//                final ClientHttpRequest request) {
+//
+//            final OAuth2AccessToken accessToken = clientContext.getAccessToken();
+//            if (accessToken == null) {
+//                throw new AccessTokenRequiredException(resource);
+//            }
+//
+//            request.getHeaders().set("Authorization", String.format("%s %s", "Bearer", accessToken.getValue()));
+//        }
+//
+//    }
 
-        @Override
-        public void authenticate(
-                final OAuth2ProtectedResourceDetails resource,
-                final OAuth2ClientContext clientContext,
-                final ClientHttpRequest request) {
+//    private Result<OAuthRestTemplate> getRestTemplateNoEncoding() {
+//        return this.openEdxRestTemplateFactory
+//                .createOAuthRestTemplate()
+//                .map(tempalte -> {
+//                    final DefaultUriBuilderFactory builderFactory = new DefaultUriBuilderFactory();
+//                    builderFactory.setEncodingMode(EncodingMode.NONE);
+//                    tempalte.setUriTemplateHandler(builderFactory);
+//                    return tempalte;
+//                });
+//    }
 
-            final OAuth2AccessToken accessToken = clientContext.getAccessToken();
-            if (accessToken == null) {
-                throw new AccessTokenRequiredException(resource);
-            }
-
-            request.getHeaders().set("Authorization", String.format("%s %s", "Bearer", accessToken.getValue()));
-        }
-
-    }
-
-    private Result<OAuth2RestTemplate> getRestTemplateNoEncoding() {
-        return this.openEdxRestTemplateFactory
-                .createOAuthRestTemplate()
-                .map(tempalte -> {
-                    final DefaultUriBuilderFactory builderFactory = new DefaultUriBuilderFactory();
-                    builderFactory.setEncodingMode(EncodingMode.NONE);
-                    tempalte.setUriTemplateHandler(builderFactory);
-                    return tempalte;
-                });
-    }
-
-    private Result<OAuth2RestTemplate> getRestTemplate() {
+    private Result<OAuthRestTemplate> getRestTemplate() {
         if (this.restTemplate == null) {
-            final Result<OAuth2RestTemplate> templateRequest = this.openEdxRestTemplateFactory
+            final Result<OAuthRestTemplate> templateRequest = this.openEdxRestTemplateFactory
                     .createOAuthRestTemplate();
             if (templateRequest.hasError()) {
                 return templateRequest;

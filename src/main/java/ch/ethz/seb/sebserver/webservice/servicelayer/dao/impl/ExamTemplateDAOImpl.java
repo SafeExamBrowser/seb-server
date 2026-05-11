@@ -11,18 +11,15 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -44,30 +41,16 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamTemplateRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExamTemplateDAOImpl implements ExamTemplateDAO {
+
+    private static final String COPY_NAME_TEMPLATE = "%s (copy%s)";
 
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final AdditionalAttributesDAO additionalAttributesDAO;
@@ -120,7 +103,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 throw new ResourceNotFoundException(EntityType.EXAM_TEMPLATE, String.valueOf(institutionId));
             }
 
-            return defaults.get(0);
+            return defaults.getFirst();
         })
                 .flatMap(this::toDomainModel);
     }
@@ -170,7 +153,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             final Predicate<ExamTemplate> predicate) {
 
         return Result.tryCatch(() -> {
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamTemplateRecord>>>.QueryExpressionWhereBuilder whereClause =
+
+            QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamTemplateRecord>>>.QueryExpressionWhereBuilder whereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.examTemplateRecordMapper
                                     .selectByExample()
@@ -186,13 +170,20 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                                             ExamTemplateRecordDynamicSqlSupport.institutionId,
                                             isEqualToWhenPresent(filterMap.getInstitutionId()));
 
+            // NOTE "UNDEFINED" must find both, "UNDEFINED" and NULL entries
+            String exam_type = filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE);
+            if (exam_type != null) {
+                if (Objects.equals(exam_type, ExamType.UNDEFINED.name())) {
+                    whereClause = whereClause.and(ExamTemplateRecordDynamicSqlSupport.examType, isEqualTo(exam_type), or(ExamTemplateRecordDynamicSqlSupport.examType, isNull()));
+                } else {
+                    whereClause = whereClause.and(ExamTemplateRecordDynamicSqlSupport.examType, isEqualTo(exam_type));
+                }
+            }
+
             return whereClause
                     .and(
                             ExamTemplateRecordDynamicSqlSupport.name,
                             isLikeWhenPresent(filterMap.getExamTemplateName()))
-                    .and(
-                            ExamTemplateRecordDynamicSqlSupport.examType,
-                            isEqualToWhenPresent(filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE)))
                     .build()
                     .execute()
                     .stream()
@@ -211,11 +202,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             checkUniqueName(data);
             checkUniqueDefault(data);
 
-            final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
-            final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
-                    ? this.jsonMapper.writeValueAsString(indicatorTemplates)
-                    : null;
-
             final ExamTemplateRecord newRecord = new ExamTemplateRecord(
                     null,
                     data.institutionId,
@@ -224,24 +210,23 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     data.description,
                     (data.examType != null)
                             ? data.examType.name()
-                            : null,
+                            : ExamType.UNDEFINED.name(),
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    indicatorsJSON,
+                    null,
                     BooleanUtils.toInteger(data.institutionalDefault),
                     BooleanUtils.toInteger(data.lmsIntegration),
                     data.clientConfigurationId);
 
             this.examTemplateRecordMapper.insert(newRecord);
 
-            final String quitPassword = data.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
-            if (StringUtils.isNotBlank(quitPassword)) {
-                this.additionalAttributesDAO.saveAdditionalAttribute(
-                        EntityType.EXAM_TEMPLATE,
-                        newRecord.getId(),
-                        ExamTemplate.ATTR_QUIT_PASSWORD,
-                        quitPassword);
+            final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
+            if (indicatorTemplates != null && !indicatorTemplates.isEmpty()) {
+                indicatorTemplates.forEach( t -> {
+                    createNewIndicatorTemplate(new IndicatorTemplate(null, newRecord.getId(), t.name, t.type, t.defaultColor, t.defaultIcon, t.tags, t.thresholds))
+                            .onError(error -> log.error("Failed to create new IndicatorTemplate: {t}", error));
+                });
             }
             
             return newRecord;
@@ -263,14 +248,14 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     : null;
 
             UpdateDSL.updateWithMapper(examTemplateRecordMapper::update, examTemplateRecord)
-                .set(configurationTemplateId).equalTo(data.configTemplateId)
+                .set(configurationTemplateId).equalToWhenPresent(data.configTemplateId)
                 .set(name).equalTo(data.name)
                 .set(description).equalTo(data.description)
                 .set(examType).equalToWhenPresent((data.examType != null) ? data.examType.name() : null)
                 .set(ExamTemplateRecordDynamicSqlSupport.supporter).equalTo(supporter)
                 .set(institutionalDefault).equalTo(BooleanUtils.toInteger(data.institutionalDefault))
                 .set(lmsIntegration).equalTo(BooleanUtils.toInteger(data.lmsIntegration))
-                .set(clientConfigurationId).equalTo(data.clientConfigurationId)
+                .set(clientConfigurationId).equalToWhenPresent(data.clientConfigurationId)
                 .where(id, isEqualTo(data.id))
                 .build()
                 .execute();
@@ -283,9 +268,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                         value));
             }
 
-            return this.examTemplateRecordMapper.selectByPrimaryKey(data.id);
+            return data;
         })
-                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -370,6 +354,12 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             return new EntityKey(indicatorTemplateId, EntityType.INDICATOR);
         })
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientGroupTemplate>> getClientGroupTemplates(final Long examTemplateId) {
+        return Result.tryCatch(() ->  loadClientGroupTemplates(examTemplateId));
     }
 
     @Override
@@ -509,6 +499,59 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         });
     }
 
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getCopyName(ExamTemplate sourceExamTemplate) {
+        try {
+
+            int count = 1;
+            Long number = null;
+            String newName = String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, String.valueOf(Utils.getSecondsNow()));
+
+            while (number == null || number > 0 ) {
+                newName = String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, count > 1 ? " " + count : "");
+                number = this.examTemplateRecordMapper.countByExample()
+                        .where(
+                                ExamTemplateRecordDynamicSqlSupport.name,
+                                isEqualTo(newName))
+                        .build()
+                        .execute();
+                count++;
+            }
+
+            return newName;
+
+        } catch (Exception e) {
+            log.error("Failed to find valid copy name for Exam Template: {}, cause: {}, now use timestamp", sourceExamTemplate.name, e.getMessage());
+            return String.format(COPY_NAME_TEMPLATE, sourceExamTemplate.name, String.valueOf(Utils.getSecondsNow()));
+        }
+    }
+
+    @Override
+    public boolean hasAnyExamTemplateWithConfigTemplate(final Long configTemplateId) {
+        try {
+
+            Long execute = this.examTemplateRecordMapper.countByExample()
+                    .where(
+                            configurationTemplateId,
+                            isEqualTo(configTemplateId))
+                    .build()
+                    .execute();
+
+            return execute != null && execute > 0;
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to check if there is any Exam Template that uses the configuration template with the id: {} case: {}",
+                    configTemplateId,
+                    e.getMessage());
+        }
+
+        // return true for safety reasons
+        return true;
+    }
+
     private Result<ExamTemplateRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
 
@@ -533,15 +576,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                             })
                     : null;
 
-            final Map<String, String> examAttributes = this.additionalAttributesDAO
-                    .getAdditionalAttributes(EntityType.EXAM_TEMPLATE, record.getId())
-                    .map(attrs -> attrs.stream()
-                            .collect(Collectors.toMap(
-                                    AdditionalAttributeRecord::getName,
-                                    AdditionalAttributeRecord::getValue)))
-                    .onError(error -> log.error("Failed to load exam attributes for template: {}", record, error))
-                    .getOrElse(Collections::emptyMap);
-
             final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
                     : null;
@@ -549,8 +583,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             final ExamType examType = (record.getExamType() != null)
                     ? ExamType.valueOf(record.getExamType())
                     : ExamType.UNDEFINED;
-
-            final Collection<ClientGroupTemplate> clientGroupTemplates = loadClientGroupTemplates(record.getId());
 
             return new ExamTemplate(
                     record.getId(),
@@ -564,8 +596,9 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     BooleanUtils.toBooleanObject(record.getLmsIntegration()),
                     record.getClientConfigurationId(),
                     indicators,
-                    clientGroupTemplates,
-                    examAttributes);
+                    // NOTE: this data is later added if needed. Not needed for lists
+                    Collections.emptyList(),
+                    Collections.emptyMap());
         });
     }
 
@@ -733,6 +766,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                         ExamTemplate.ATTR_CLIENT_GROUP_TEMPLATES)
                 .map(AdditionalAttributeRecord::getValue)
                 .getOr(StringUtils.EMPTY);
+
 
         return (StringUtils.isNotBlank(clientGroupTemplatesJSON))
                 ? this.jsonMapper.readValue(

@@ -8,19 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import javax.validation.Valid;
 
-import java.util.concurrent.Executor;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import jakarta.validation.Valid;
 
-import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsTestService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +39,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -50,11 +47,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.LMS_SETUP_ENDPOINT)
 public class LmsSetupController extends ActivatableEntityController<LmsSetup, LmsSetup> {
@@ -63,10 +58,9 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
     private final LmsAPIService lmsAPIService;
     private final LmsTestService lmsTestService;
-    private final SEBRestrictionService sebRestrictionService;
-    private final FullLmsIntegrationService fullLmsIntegrationService;
+    private final LmsLiveCycleService lmsLiveCycleService;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final Executor executor;
+    private final Cryptor cryptor;
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
@@ -79,8 +73,10 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final LmsTestService lmsTestService,
             final SEBRestrictionService sebRestrictionService,
             final FullLmsIntegrationService fullLmsIntegrationService,
+            final ScreenProctoringService screenProctoringService,
+            final LmsLiveCycleService lmsLiveCycleService,
             final ApplicationEventPublisher applicationEventPublisher,
-            @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
+            final Cryptor cryptor) {
 
         super(authorization,
                 bulkActionService,
@@ -91,10 +87,47 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
         this.lmsAPIService = lmsAPIService;
         this.lmsTestService = lmsTestService;
-        this.sebRestrictionService = sebRestrictionService;
-        this.fullLmsIntegrationService = fullLmsIntegrationService;
+        this.lmsLiveCycleService = lmsLiveCycleService;
         this.applicationEventPublisher = applicationEventPublisher;
-        this.executor = executor;
+        this.cryptor = cryptor;
+    }
+
+    @Override
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public LmsSetup getBy(@PathVariable final String modelId) {
+
+        LmsSetup lmsSetup = this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this::checkReadAccess)
+                .getOrThrow();
+        
+        return new LmsSetup(
+            lmsSetup.id,
+            lmsSetup.institutionId,
+            lmsSetup.name,
+            lmsSetup.lmsType,
+            lmsSetup.lmsAuthName,
+            (lmsSetup.lmsAuthSecret != null) 
+                    ? String.valueOf(cryptor.decrypt(lmsSetup.lmsAuthSecret).getOr(lmsSetup.lmsAuthSecret))
+                    : null,
+            lmsSetup.lmsApiUrl,
+                (lmsSetup.lmsRestApiToken != null)
+                        ? String.valueOf(cryptor.decrypt(lmsSetup.lmsRestApiToken).getOr(lmsSetup.lmsRestApiToken))
+                        : null,
+            lmsSetup.proxyHost,
+            lmsSetup.proxyPort,
+            lmsSetup.proxyAuthUsername,
+                (lmsSetup.proxyAuthSecret != null)
+                        ? String.valueOf(cryptor.decrypt(lmsSetup.proxyAuthSecret).getOr(lmsSetup.proxyAuthSecret))
+                        : null,
+            lmsSetup.active,
+            lmsSetup.updateTime,
+            lmsSetup.connectionId ,
+            lmsSetup.integrationActive
+        );
     }
 
     @Override
@@ -105,7 +138,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     @RequestMapping(
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public LmsSetupTestResult testLms(
             @RequestParam(
@@ -169,38 +201,47 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
     @Override
     protected Result<LmsSetup> notifySaved(final LmsSetup entity, final Activatable.ActivationAction activation) {
-        // TODO this triggers a whole bunch of updates when LMS Setup is been activated/deactivated that
-        //      currently leads to GUI timeout when there are a lot of exams
-        //      Solution, run this in a background task (and store errors when possible)
-        //      involved: SEB Restriction, LmsAPI Service, FullLMSIntegration, Screen Proctoring, Proctoring, 
+        // NOTE: When this save notification is called, the save (or activation/deactivation) has already happened
+        //       In the case of deactivation this means the involved exams are already marked as inactive
+        //       We need to handle activation and deactivation in different order especially if the full integration
+        //       is involved since we have to make sure that the LMS integration is deleted after all
+        //       post processes that still need the integration, has been processed. And on activation, we need
+        //       the full integration activated first before all post processes that need it.
+        //
+        //       Therefore, we differentiate the cases here and for save-only case we use the usual Event publisher.
+        if (activation == Activatable.ActivationAction.ACTIVATE) {
+            lmsLiveCycleService
+                    .processPostLmsActivation(entity.id)
+                    .onErrorHandle(error -> new APIMessage.APIMessageException(
+                            APIMessage.ErrorMessage.UNEXPECTED.of(
+                                    error,
+                                    "Failed to deactivate LMS Setup due to unexpected error"))
+                    )
+                    .getOrThrow();
+        } else if (activation == Activatable.ActivationAction.DEACTIVATE) {
+            lmsLiveCycleService
+                    .processPostLmsDeactivation(entity.id)
+                    .onErrorHandle(error -> new APIMessage.APIMessageException(
+                            APIMessage.ErrorMessage.UNEXPECTED.of(
+                                    error,
+                                    "Failed to deactivate LMS Setup due to unexpected error"))
+                    )
+                    .getOrThrow();
+        }
+
+        // Finally publish the event for all generic listeners that are interested in it
         this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
-//        executor.execute(() -> {
-//            try {
-//                this.applicationEventPublisher.publishEvent(new LmsSetupChangeEvent(entity, activation));
-//            } catch (final Exception e) {
-//                log.error("Failed on publish LmsSetupChangeEvent: ", e);
-//            }
-//        });
-        
+
         return super.notifySaved(entity, activation);
     }
 
     @Override
     protected Result<LmsSetup> validForDelete(final LmsSetup entity) {
         return Result.tryCatch(() -> {
-            // if there is a SEB Restriction involved, release all SEB Restriction for exams
-            if (entity.lmsType.features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
-                sebRestrictionService
-                        .releaseAllRestrictionsOf(entity)
-                        .getOrThrow();
+            if (entity.isActive()) {
+                throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of(
+                        "The Assessment Tool must be inactive bevor deletion. Please deactivate it first."));
             }
-            // if there is a full LMS integration involved, delete it first on LMS
-            if (entity.lmsType.features.contains(LmsSetup.Features.LMS_FULL_INTEGRATION)) {
-                fullLmsIntegrationService
-                        .deleteFullLmsIntegration(entity.id)
-                        .getOrThrow();
-            }
-
             return entity;
         });
     }

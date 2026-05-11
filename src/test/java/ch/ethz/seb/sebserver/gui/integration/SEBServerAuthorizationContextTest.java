@@ -10,15 +10,17 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import ch.ethz.seb.sebserver.gui.api.auth.SEBServerAuthorizationContext;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
+import org.springframework.test.context.jdbc.Sql;
 
 public class SEBServerAuthorizationContextTest extends GuiIntegrationTest {
 
     @Test
+
     public void testLoginLogoutAsSEBAdmin() {
 
         final SEBServerAuthorizationContext authorizationContext = getAuthorizationContext();

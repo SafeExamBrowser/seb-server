@@ -105,7 +105,10 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     @Override
     @JsonProperty(ATTR_PENDING_NOTIFICATION)
     public final Boolean pendingNotification() {
-        return this.pendingNotificationIndication.notifictionPending();
+        if (!clientConnection.status.clientActiveStatus) {
+            return false;
+        }
+        return this.pendingNotificationIndication.notificationPending();
     }
 
     @Override
@@ -124,6 +127,12 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     public final boolean hasWarning(final Indicator.IndicatorType type) {
         final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
         return clientIndicator != null && clientIndicator.hasWarning();
+    }
+
+    @JsonIgnore
+    public final boolean hasIncidentOrWarning(final Indicator.IndicatorType type) {
+        final ClientIndicator clientIndicator = indicatorTypeMapping.get(type);
+        return clientIndicator != null && (clientIndicator.hasWarning() || clientIndicator.hasWarning());
     }
 
     @JsonIgnore
@@ -175,8 +184,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
         @Override
         public Integer notificationFlag() {
-            final int flag = 0
-                    | (isMissingPing() ? ClientMonitoringDataView.FLAG_MISSING_PING : 0)
+            final int flag = (isMissingPing() ? ClientMonitoringDataView.FLAG_MISSING_PING : 0)
                     | (isPendingNotification() ? ClientMonitoringDataView.FLAG_PENDING_NOTIFICATION : 0)
                     | (!isGrantChecked() ? ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED : 0)
                     | (isGrantDenied() ? ClientMonitoringDataView.FLAG_GRANT_DENIED : 0)

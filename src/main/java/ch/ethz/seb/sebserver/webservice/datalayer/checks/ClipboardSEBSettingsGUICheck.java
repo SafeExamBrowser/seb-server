@@ -9,15 +9,11 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.checks;
 
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport.*;
-import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport.title;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.DBIntegrityCheck;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.OrientationRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
@@ -27,7 +23,6 @@ import org.springframework.stereotype.Component;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClipboardSEBSettingsGUICheck implements DBIntegrityCheck {
 
     public static final Logger INIT_LOGGER = LoggerFactory.getLogger("ch.ethz.seb.SEB_SERVER_INIT");

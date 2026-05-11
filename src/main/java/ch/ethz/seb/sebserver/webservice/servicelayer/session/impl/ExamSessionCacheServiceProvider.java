@@ -9,14 +9,12 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamSessionCacheServiceProvider {
 
     private final ApplicationContext applicationContext;

@@ -19,21 +19,37 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+//import org.apache.http.HttpHost;
+//import org.apache.http.auth.AuthScope;
+//import org.apache.http.auth.UsernamePasswordCredentials;
+//import org.apache.http.client.CredentialsProvider;
+//import org.apache.http.client.HttpClient;
+//import org.apache.http.client.CredentialsProvider;
+//import org.apache.http.client.config.RequestConfig;
+//import org.apache.http.conn.ssl.TrustAllStrategy;
+//import org.apache.http.impl.client.*;
+//import org.apache.http.ssl.SSLContextBuilder;
+//import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
-import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,21 +64,20 @@ import org.springframework.util.ResourceUtils;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+import javax.net.ssl.SSLContext;
+
+
 @Lazy
 @Service
-@WebServiceProfile
-@GuiProfile
 public class ClientHttpRequestFactoryService {
 
     private static final Logger log = LoggerFactory.getLogger(ClientHttpRequestFactoryService.class);
 
-    private static final Collection<String> DEV_PROFILES = Arrays.asList("dev", "test", "demo");
-    private static final Collection<String> PROD_PROFILES = Arrays.asList("prod", "prod-gui", "prod-ws");
+    private static final Collection<String> DEV_PROFILES = Arrays.asList("dev", "test", "demo", "e2e");
+    private static final Collection<String> PROD_PROFILES = Arrays.asList("prod");
 
     private final int connectTimeout;
     private final int connectionRequestTimeout;
@@ -105,10 +120,7 @@ public class ClientHttpRequestFactoryService {
     /** A ClientHttpRequestFactory for development profile with no TSL SSL protocol and
      * not following redirects on redirect responses.
      *
-     * @return ClientHttpRequestFactory bean for development profiles
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException */
+     * @return ClientHttpRequestFactory bean for development profiles*/
     private ClientHttpRequestFactory clientHttpRequestFactory(final ProxyData proxy)
             throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
@@ -116,54 +128,17 @@ public class ClientHttpRequestFactoryService {
             log.debug("Initialize ClientHttpRequestFactory with insecure ClientHttpRequestFactory for development");
         }
 
-        if (proxy != null) {
+        SSLContext sslContext = SSLContextBuilder
+                .create()
+                .loadTrustMaterial(null, new TrustAllStrategy())
+                .build();
 
-            if (log.isDebugEnabled()) {
-                log.debug("Initialize ClientHttpRequestFactory with proxy: {}", proxy);
-            }
-
-            final SSLContext sslContext = org.apache.http.ssl.SSLContexts
-                    .custom()
-                    .loadTrustMaterial(null, new TrustAllStrategy())
-                    .build();
-
-            final HttpComponentsClientHttpRequestFactory factory =
-                    new HttpComponentsClientHttpRequestFactory();
-            factory.setHttpClient(this.createProxiedClient(proxy, sslContext));
-            factory.setBufferRequestBody(false);
-            factory.setConnectionRequestTimeout(this.connectionRequestTimeout);
-            factory.setConnectTimeout(this.connectTimeout);
-            factory.setReadTimeout(this.readTimeout);
-            return factory;
-
-        } else {
-
-            final SSLContext sslContext = org.apache.http.ssl.SSLContexts
-                    .custom()
-                    .loadTrustMaterial(null, new TrustAllStrategy())
-                    .build();
-            final HttpClient client = HttpClients.custom()
-                    .setSSLContext(sslContext)
-                    .build();
-            final HttpComponentsClientHttpRequestFactory devClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(client);
-
-            //devClientHttpRequestFactory.setBufferRequestBody(false);
-            devClientHttpRequestFactory.setConnectionRequestTimeout(this.connectionRequestTimeout);
-            devClientHttpRequestFactory.setConnectTimeout(this.connectTimeout);
-            devClientHttpRequestFactory.setReadTimeout(this.readTimeout);
-            return devClientHttpRequestFactory;
-        }
+        return getRequestFactory(proxy, sslContext);
     }
 
     /** A ClientHttpRequestFactory used in production with TSL SSL configuration.
      *
-     * @return ClientHttpRequestFactory with TLS / SSL configuration
-     * @throws IOException
-     * @throws FileNotFoundException
-     * @throws CertificateException
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException */
+     * @return ClientHttpRequestFactory with TLS / SSL configuration*/
     private ClientHttpRequestFactory clientHttpRequestFactoryTLS(final ProxyData proxy) throws KeyManagementException,
             NoSuchAlgorithmException, KeyStoreException, CertificateException, FileNotFoundException, IOException {
 
@@ -175,14 +150,15 @@ public class ClientHttpRequestFactoryService {
                 .getProperty("server.ssl.trust-store", "");
 
         final SSLContext sslContext;
+
         if (StringUtils.isBlank(truststoreFilePath)) {
 
             if (log.isDebugEnabled()) {
                 log.debug("Securing outgoing calls without trust-store by trusting all certificates");
             }
 
-            sslContext = org.apache.http.ssl.SSLContexts
-                    .custom()
+            sslContext = SSLContextBuilder
+                    .create()
                     .loadTrustMaterial(null, new TrustAllStrategy())
                     .build();
 
@@ -216,69 +192,59 @@ public class ClientHttpRequestFactoryService {
                     .build();
         }
 
+        return getRequestFactory(proxy, sslContext);
+    }
+
+    private HttpComponentsClientHttpRequestFactory getRequestFactory(ProxyData proxy, SSLContext sslContext) {
         if (proxy != null) {
 
             if (log.isDebugEnabled()) {
                 log.debug("Initialize ClientHttpRequestFactory with proxy: {}", proxy);
             }
 
-            final HttpClient client = createProxiedClient(proxy, sslContext);
-            return new HttpComponentsClientHttpRequestFactory(client);
+            CloseableHttpClient httpClient = createClient(proxy, sslContext);
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setHttpClient(httpClient);
+            return requestFactory;
         } else {
-
-            final HttpClient client = HttpClients.custom()
-                    .setSSLContext(sslContext)
-                    .build();
-            final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
-
-            factory.setConnectionRequestTimeout(this.connectionRequestTimeout);
-            factory.setConnectTimeout(this.connectTimeout);
-            factory.setReadTimeout(this.readTimeout);
-
-            return factory;
+            CloseableHttpClient httpClient = createClient(null, sslContext);
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setHttpClient(httpClient);
+            return requestFactory;
         }
     }
 
-    private HttpClient createProxiedClient(final ProxyData proxy, final SSLContext sslContext) {
+    private CloseableHttpClient createClient(final ProxyData proxy, SSLContext sslcontext) {
 
-        final HttpHost httpHost = new HttpHost(
-                proxy.proxyName,
-                proxy.proxyPort);
-
-        final HttpClientBuilder clientBuilder = HttpClients
-                .custom()
-                .useSystemProperties()
-                .setProxy(httpHost)
-
-                .setDefaultRequestConfig(RequestConfig
-                        .custom()
-                        .setRedirectsEnabled(true)
-                        .setCircularRedirectsAllowed(true)
-                        .build())
-                .setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
-
-        if (proxy.clientCredentials != null && StringUtils.isNotBlank(proxy.clientCredentials.clientId)) {
-            final CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        if (proxy != null) {
             final String plainClientId = proxy.clientCredentials.clientIdAsString();
             final CharSequence secret = this.clientCredentialService
                     .getPlainClientSecret(proxy.clientCredentials)
                     .getOrThrow();
             final String plainClientSecret = Utils.toString(secret);
 
+            BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
-                    AuthScope.ANY,
-                    new UsernamePasswordCredentials(plainClientId, plainClientSecret));
+                    new AuthScope(proxy.proxyName, proxy.proxyPort),
+                    new UsernamePasswordCredentials(plainClientId, plainClientSecret.toCharArray())
+            );
 
-            clientBuilder.setDefaultCredentialsProvider(credsProvider);
-        }
+            SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslcontext, new NoopHostnameVerifier());
+            PoolingHttpClientConnectionManager connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setSSLSocketFactory(sslConSocFactory).build();
 
-        if (sslContext != null) {
-            clientBuilder.setSSLContext(sslContext);
+            HttpHost myProxy = new HttpHost(proxy.proxyName, proxy.proxyPort);
+            HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+            clientBuilder.setProxy(myProxy).setDefaultCredentialsProvider(credsProvider).disableCookieManagement();
+            clientBuilder.setConnectionManager(connectionManagerBuilder);
+
+            return clientBuilder.build();
         } else {
-
+            SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslcontext, new NoopHostnameVerifier());
+            PoolingHttpClientConnectionManager connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setSSLSocketFactory(sslConSocFactory).build();
+            return HttpClientBuilder.create().setConnectionManager(connectionManagerBuilder).build();
         }
-
-        return clientBuilder.build();
     }
 
 }

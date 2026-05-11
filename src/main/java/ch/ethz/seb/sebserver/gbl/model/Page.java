@@ -11,7 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model;
 import java.util.Collection;
 import java.util.List;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;

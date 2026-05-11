@@ -8,9 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -18,7 +18,6 @@ import java.io.PipedOutputStream;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
@@ -35,7 +34,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.lms.api.endpoint}")
 public class LmsIntegrationController {
@@ -165,7 +163,7 @@ public class LmsIntegrationController {
             outputStream.flush();
 
         } catch (final APIMessage.APIMessageException me) {
-            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setStatus(HttpStatus.EXPECTATION_FAILED.value());
             throw me;
         } catch (final Exception e) {
             log.error(

@@ -63,17 +63,17 @@ public final class ClientCredentials {
 
     @JsonIgnore
     public boolean hasClientId() {
-        return this.clientId != null && this.clientId.length() > 0;
+        return this.clientId != null && !this.clientId.isEmpty();
     }
 
     @JsonIgnore
     public boolean hasSecret() {
-        return this.secret != null && this.secret.length() > 0;
+        return this.secret != null && !this.secret.isEmpty();
     }
 
     @JsonIgnore
     public boolean hasAccessToken() {
-        return this.accessToken != null && this.accessToken.length() > 0;
+        return this.accessToken != null && !this.accessToken.isEmpty();
     }
 
     @JsonIgnore
@@ -93,11 +93,7 @@ public final class ClientCredentials {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ClientCredentials [clientId=");
-        builder.append(this.clientId);
-        builder.append("]");
-        return builder.toString();
+        return "ClientCredentials [clientId=" + this.clientId + "]";
     }
 
 }

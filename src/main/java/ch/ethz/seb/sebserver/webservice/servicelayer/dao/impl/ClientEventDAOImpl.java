@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
@@ -49,7 +48,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientNotification
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientEventDAOImpl implements ClientEventDAO {
 
     private final ClientEventRecordMapper clientEventRecordMapper;

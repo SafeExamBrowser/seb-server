@@ -55,15 +55,11 @@ public enum PrivilegeType {
             return false;
         }
 
-        switch (this) {
-            case READ:
-                return type == READ;
-            case MODIFY:
-                return type == READ || type == MODIFY;
-            case WRITE:
-                return type == READ || type == MODIFY || type == WRITE;
-            default:
-                return false;
-        }
+        return switch (this) {
+            case READ -> type == READ;
+            case MODIFY -> type == READ || type == MODIFY;
+            case WRITE -> type == READ || type == MODIFY || type == WRITE;
+            default -> false;
+        };
     }
 }

@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -24,13 +24,11 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.api.authorization.RoleTypeKey;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class AuthorizationServiceImpl implements AuthorizationService {
 
     private final UserService userService;
@@ -79,6 +77,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.TEACHER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
@@ -240,6 +239,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .create();
+
+        // grants for scheduled deletions
+        addPrivilege(EntityType.SCHEDULED_DELETE)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .create();
     }

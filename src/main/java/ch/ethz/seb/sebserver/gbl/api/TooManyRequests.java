@@ -9,10 +9,8 @@
 package ch.ethz.seb.sebserver.gbl.api;
 
 public class TooManyRequests extends RuntimeException {
-
-    private static final long serialVersionUID = 3303246002774619224L;
-
-    public static enum Code {
+    
+    public enum Code {
         INCOMMING,
         REGISTRATION
     }

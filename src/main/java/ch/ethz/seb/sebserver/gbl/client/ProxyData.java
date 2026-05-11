@@ -38,15 +38,10 @@ public class ProxyData {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ProxyData [proxyName=");
-        builder.append(this.proxyName);
-        builder.append(", proxyPort=");
-        builder.append(this.proxyPort);
-        builder.append(", clientCredentials=");
-        builder.append(this.clientCredentials);
-        builder.append("]");
-        return builder.toString();
+        return "ProxyData [proxyName=" + this.proxyName +
+                ", proxyPort=" + this.proxyPort +
+                ", clientCredentials=" + this.clientCredentials +
+                "]";
     }
 
 }

@@ -24,7 +24,6 @@ public class AsyncRunner {
     /** Calls a given Supplier asynchronously in a new thread and returns a CompletableFuture
      * to get and handle the result later.
      *
-     *
      * @param supplier The Supplier that gets called asynchronously
      * @return CompletableFuture of the result of the Supplier */
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)

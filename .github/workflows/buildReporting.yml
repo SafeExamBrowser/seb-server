@@ -13,7 +13,28 @@ on:
     branches: [master, development]
 
 jobs:
+  shai-hulud-detector:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout seb-server repo
+      uses: actions/checkout@v6
+      with:
+        path: seb
+        clean: false
+    - name: Checkout Cobenian/shai-hulud-detect
+      uses: actions/checkout@v6
+      with:
+        repository: Cobenian/shai-hulud-detect
+        path: hulud
+        clean: false
+    - # Pipeline will automatically fail on exit codes 1 or 2
+      name: Security Scan with Shai-Hulud Detector
+      run: |
+        chmod +x ./hulud/shai-hulud-detector.sh
+        ./hulud/shai-hulud-detector.sh ./seb
+
   maven-build-reporting:
+    needs: shai-hulud-detector
     runs-on: ubuntu-latest
     steps:
     - name: Get short SHA
@@ -36,7 +57,7 @@ jobs:
       name: Build Test Reporting
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'adopt'
     -
       name: Cache Maven packages
@@ -47,7 +68,7 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     -
       name: Build with Maven
-      run: mvn clean install -e -P let_reporting -Dsebserver-version="${{ env.TAG_NAME }}-${{ env.SHA }}"
+      run: mvn clean install -e -Dsebserver-version="${{ env.TAG_NAME }}-${{ env.SHA }}"
       env:
         sebserver-version: ${{ env.TAG_NAME }}-${{ env.SHA }}
 

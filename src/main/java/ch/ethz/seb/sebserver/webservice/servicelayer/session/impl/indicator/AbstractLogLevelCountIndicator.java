@@ -21,6 +21,8 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 
+import java.util.function.Consumer;
+
 public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicator {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractLogLevelCountIndicator.class);
@@ -73,33 +75,30 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
             log.trace("computeValueAt: {}", timestamp);
         }
 
-        try {
+        distributedIndicatorValueService.addIndicatorValueFetch(
+                new AsyncValueFetch(timestamp, value -> this.currentValue = value));
 
-            final Long numberOfLogs = this.clientEventRecordMapper
-                    .countByExample()
-                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
-                    .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
-                    .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
-                    .and(
-                            ClientEventRecordDynamicSqlSupport.text,
-                            isLikeWhenPresent(getfirstTagSQL()),
-                            getSubTagSQL())
-                    .build()
-                    .execute();
+        return currentValue;
+    }
 
-            // update active indicator value record on persistent when caching is not enabled
-            if (this.active && this.distributedIndicatorValueRecordId != null) {
-                this.distributedIndicatorValueService.updateIndicatorValueAsync(
-                        this.distributedIndicatorValueRecordId,
-                        numberOfLogs.longValue());
-            }
+    protected Double fetchValue(final long timestamp) {
+        Long value = this.clientEventRecordMapper
+                .countByExample()
+                .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
+                .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
+                .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.text,
+                        isLikeWhenPresent(getfirstTagSQL()),
+                        getSubTagSQL())
+                .build()
+                .execute();
 
-            return numberOfLogs.doubleValue();
-
-        } catch (final Exception e) {
-            log.error("Failed to get indicator count from persistent storage: ", e);
-            return super.currentValue;
+        if (value == null) {
+            return null;
         }
+
+        return value.doubleValue();
     }
 
     private String getfirstTagSQL() {
@@ -124,6 +123,42 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
         }
 
         return result;
+    }
+
+    private final class AsyncValueFetch implements FetchIndicatorValue {
+
+        private final long timestamp;
+        private final Consumer<Double> callback;
+
+        private AsyncValueFetch(long timestamp, Consumer<Double> callback) {
+            this.timestamp = timestamp;
+            this.callback = callback;
+        }
+
+        @Override
+        public void fetch() {
+            try {
+
+                final Double numberOfLogs = fetchValue(timestamp);
+
+                if (numberOfLogs != null) {
+                    // update active indicator value record on persistent when caching is not enabled
+                    if (active && distributedIndicatorValueRecordId != null) {
+                        distributedIndicatorValueService.updateIndicatorValueAsync(
+                                distributedIndicatorValueRecordId,
+                                numberOfLogs.longValue());
+                    }
+
+                    callback.accept(numberOfLogs);
+                } else {
+                    callback.accept(currentValue);
+                }
+
+            } catch (final Exception e) {
+                log.error("Failed to get indicator count from persistent storage: ", e);
+                callback.accept(currentValue);
+            }
+        }
     }
 
 }

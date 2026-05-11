@@ -10,7 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionInfo;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -255,5 +258,7 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the list of deleted client connections or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
-    
+    Long numberOfConnectionsOfExam(Long examId);
+
+    Result<Collection<ClientConnectionRecord>> getAllForUserSessionNameLike(String searchName);
 }

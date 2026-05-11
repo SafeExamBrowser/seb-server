@@ -9,13 +9,17 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+@Deprecated (since = "3.0")
 public interface OrientationDAO extends EntityDAO<Orientation, Orientation> {
 
     /** Use this to delete all Orientation of a defined template.
@@ -32,4 +36,5 @@ public interface OrientationDAO extends EntityDAO<Orientation, Orientation> {
 
     Result<Orientation> getAttributeOfTemplate(Long templateId, Long attributeId);
 
+    Result<Set<Long>> getConfigAttributeIdsOfView(SEBSettingsView.ViewType viewType);
 }

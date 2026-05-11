@@ -13,9 +13,9 @@ import java.util.function.Supplier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+/** Implements a asynchronous service to manly support CircuitBreaker and MemoizingCircuitBreaker functionality. */
 @Lazy
 @Service
-/** Implements a asynchronous service to manly support CircuitBreaker and MemoizingCircuitBreaker functionality. */
 public class AsyncService {
 
     private final AsyncRunner asyncRunner;
@@ -83,5 +83,4 @@ public class AsyncService {
                 momoized,
                 maxMemoizingTime);
     }
-
 }

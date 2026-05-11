@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
@@ -35,7 +34,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class SEBClientEventExportTransactionHandler {
 
     private final ClientEventRecordMapper clientEventRecordMapper;

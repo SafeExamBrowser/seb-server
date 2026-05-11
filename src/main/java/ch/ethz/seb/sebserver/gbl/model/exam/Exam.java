@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.*;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -39,7 +39,7 @@ public final class Exam implements GrantEntity {
             -1L, -1L, -1L, Constants.EMPTY_NOTE, false, Constants.EMPTY_NOTE,
             null, null, ExamType.UNDEFINED, null, null, ExamStatus.FINISHED,
             null, Boolean.FALSE, null, Boolean.FALSE, null,
-            null, null, null, null);
+            null, null, null, Boolean.FALSE, null);
 
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
@@ -157,6 +157,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_FOLLOWUP_ID)
     public final Long followUpId;
 
+    @JsonProperty(EXAM.ATTR_EXCLUDE_FROM_DELETION)
+    public final Boolean excludeFromDeletion;
+
     @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
     @JsonSerialize(using = ExamAdditionalAttributeSerializer.class)
     public final Map<String, String> additionalAttributes;
@@ -188,6 +191,7 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
             @JsonProperty(EXAM.ATTR_LAST_MODIFIED) final Long lastModified,
             @JsonProperty(EXAM.ATTR_FOLLOWUP_ID) final Long followUpId,
+            @JsonProperty(EXAM.ATTR_EXCLUDE_FROM_DELETION) final Boolean excludeFromDeletion,
             @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
@@ -209,6 +213,7 @@ public final class Exam implements GrantEntity {
         this.examTemplateId = examTemplateId;
         this.lastModified = lastModified;
         this.followUpId = followUpId;
+        this.excludeFromDeletion = excludeFromDeletion;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
@@ -242,6 +247,7 @@ public final class Exam implements GrantEntity {
         this.examTemplateId = postMap.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
         this.lastModified = null;
         this.followUpId = postMap.getLong(EXAM.ATTR_FOLLOWUP_ID);
+        this.excludeFromDeletion = postMap.getBoolean(EXAM.ATTR_EXCLUDE_FROM_DELETION);
 
         final Map<String, String> additionalAttributes = new HashMap<>();
         if (postMap.contains(QuizData.QUIZ_ATTR_DESCRIPTION)) {
@@ -304,6 +310,7 @@ public final class Exam implements GrantEntity {
         this.examTemplateId = mapper.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
         this.lastModified = null;
         this.followUpId =  mapper.getLong(EXAM.ATTR_FOLLOWUP_ID);
+        this.excludeFromDeletion = mapper.getBoolean(EXAM.ATTR_EXCLUDE_FROM_DELETION);
         this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
 
         this.checkASK = BooleanUtils
@@ -483,46 +490,29 @@ public final class Exam implements GrantEntity {
         examTemplateId,
         lastModified,
         followUpId,
+        excludeFromDeletion,
         Collections.emptyMap());
     }
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Exam [id=");
-        builder.append(this.id);
-        builder.append(", institutionId=");
-        builder.append(this.institutionId);
-        builder.append(", lmsSetupId=");
-        builder.append(this.lmsSetupId);
-        builder.append(", externalId=");
-        builder.append(this.externalId);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", description=");
-        builder.append(Utils.truncateText(this.getDescription(), 32));
-        builder.append(", startTime=");
-        builder.append(this.startTime);
-        builder.append(", endTime=");
-        builder.append(this.endTime);
-        builder.append(", startURL=");
-        builder.append(this.getStartURL());
-        builder.append(", type=");
-        builder.append(this.type);
-        builder.append(", owner=");
-        builder.append(this.owner);
-        builder.append(", supporter=");
-        builder.append(this.supporter);
-        builder.append(", status=");
-        builder.append(this.status);
-        builder.append(", browserExamKeys=");
-        builder.append(this.browserExamKeys);
-        builder.append(", active=");
-        builder.append(this.active);
-        builder.append(", lastUpdate=");
-        builder.append(this.lastUpdate);
-        builder.append("]");
-        return builder.toString();
+        return "Exam [id=" + this.id +
+                ", institutionId=" + this.institutionId +
+                ", lmsSetupId=" + this.lmsSetupId +
+                ", externalId=" + this.externalId +
+                ", name=" + this.name +
+                ", description=" + Utils.truncateText(this.getDescription(), 32) +
+                ", startTime=" + this.startTime +
+                ", endTime=" + this.endTime +
+                ", startURL=" + this.getStartURL() +
+                ", type=" + this.type +
+                ", owner=" + this.owner +
+                ", supporter=" + this.supporter +
+                ", status=" + this.status +
+                ", browserExamKeys=" + this.browserExamKeys +
+                ", active=" + this.active +
+                ", lastUpdate=" + this.lastUpdate +
+                "]";
     }
 
     public static ExamStatus getStatusFromDate(final DateTime startTime, final DateTime endTime) {

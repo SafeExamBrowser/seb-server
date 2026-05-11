@@ -32,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordMapper;
@@ -41,7 +40,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientInstructionDAO;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientInstructionDAOImpl implements ClientInstructionDAO {
 
     private static final Logger log = LoggerFactory.getLogger(ClientInstructionDAOImpl.class);
@@ -125,7 +123,7 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
         return Result.tryCatch(() -> {
             final int deleteByPrimaryKey = this.clientInstructionRecordMapper.deleteByPrimaryKey(id);
             if (deleteByPrimaryKey != 1) {
-                throw new RuntimeException("Failed to delete ClientInstruction with id: " + id);
+                log.info("Failed to delete ClientInstruction with id:{}", id);
             } else if (log.isDebugEnabled()) {
                 log.debug("Deleted client instruction with id: {}", id);
             }

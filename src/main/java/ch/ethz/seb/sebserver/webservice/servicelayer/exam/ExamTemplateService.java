@@ -8,9 +8,16 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.event.EventListener;
+
+import java.util.*;
+import java.util.function.Function;
 
 public interface ExamTemplateService {
 
@@ -58,6 +65,98 @@ public interface ExamTemplateService {
      * @return Result refer to the created exam or to an error when happened */
     Result<Exam> initExamConfiguration(Exam exam);
 
+    /** Applies the Exam Template screen proctoring settings to an imported Exam that has been imported with the template
+     * The Exam Template is referenced by the Exam itself.
+     *
+     * @param exam The exam to apply the screen proctoring settings from Exam  related Exam Template.
+     * @return Result refer to teh Exam with applied SPS settings */
     Result<Exam> applyScreenProctoringSettingsForExam(Exam exam);
+
+    Result<ExamTemplate> createExamTemplateAdditionalData(Long createdTemplateId, ExamTemplate examTemplate);
+
+    Result<ExamTemplate> saveAdditionalData(ExamTemplate examTemplate);
+
+    Result<ExamTemplate> applyExamTemplateAdditionalData(ExamTemplate examTemplate);
+
+    /** Creates a new client group template
+     *
+     * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the created ClientGroupTemplate or to an error when happened */
+    Result<ClientGroupTemplate> createNewClientGroupTemplate(ClientGroupTemplate clientGroupTemplate);
+
+    /** Saves an already existing client group template
+     *
+     * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the saved ClientGroupTemplate or to an error when happened */
+    Result<ClientGroupTemplate> saveClientGroupTemplate(ClientGroupTemplate clientGroupTemplate);
+
+    /** Deletes an already existing client group template
+     *
+     * @param examTemplateId the ExamTemplate id where the specified ClientGroupTemplate shall be deleted from
+     * @param clientGroupTemplateId the id of the ClientGroupTemplate to delete
+     * @return Result refer to the EntityKey of the deleted ClientGroupTemplate or to an error when happened */
+    Result<EntityKey> deleteClientGroupTemplate(String examTemplateId, String clientGroupTemplateId);
+
+    /** Called by the framework when an Exam Template has changed.
+     *  This reacts only on deletion and also deletes the assigned configuration template
+     *  if it has no references anymore
+     * @param event ExamTemplateChangeEvent only reacts on deletion event
+     */
+    @EventListener(ExamTemplateChangeEvent.class)
+    void notifyExamTemplateChange(ExamTemplateChangeEvent event);
+
+    /** Creates a IndicatorTemplate list sort function for a given sort parameter.
+     *
+     * @param sort Sort parameter (Indicator.FILTER_ATTR_NAME)
+     * @return Sort function for a IndicatorTemplate list */
+    static Function<Collection<IndicatorTemplate>, List<IndicatorTemplate>> indicatorTemplatePageSort(
+            final String sort) {
+
+        final String sortBy = PageSortOrder.decode(sort);
+        return indicators -> {
+            final List<IndicatorTemplate> list = new ArrayList<>(indicators);
+            if (StringUtils.isBlank(sort)) {
+                return list;
+            }
+
+            if (sortBy.equals(Indicator.FILTER_ATTR_NAME)) {
+                list.sort(Comparator.comparing(indicator -> indicator.name));
+            }
+
+            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+                Collections.reverse(list);
+            }
+            return list;
+        };
+    }
+
+    /** Creates a ClientGroupTemplate list sort function for a given sort parameter.
+     *
+     * @param sort Sort parameter (ClientGroupTemplate.FILTER_ATTR_NAME)
+     * @return Sort function for a ClientGroupTemplate list */
+    static Function<Collection<ClientGroupTemplate>, List<ClientGroupTemplate>> clientGroupTemplatePageSort(
+            final String sort) {
+
+        final String sortBy = PageSortOrder.decode(sort);
+        return clientGroups -> {
+            final List<ClientGroupTemplate> list = new ArrayList<>(clientGroups);
+            if (StringUtils.isBlank(sort)) {
+                return list;
+            }
+
+            if (sortBy.equals(ClientGroupTemplate.FILTER_ATTR_NAME)) {
+                list.sort(Comparator.comparing(indicator -> indicator.name));
+            }
+
+            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+                Collections.reverse(list);
+            }
+            return list;
+        };
+    }
+
+    static String createNameForTemporaryConfigurationTemplate() {
+        return ConfigurationNodeDAO.TEMPORARY_TEMPLATE_PREFIX + UUID.randomUUID();
+    }
 
 }

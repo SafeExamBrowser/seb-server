@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordDynamicSqlSupport;
@@ -42,7 +41,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ViewDAOImpl implements ViewDAO {
 
     private final ViewRecordMapper viewRecordMapper;
@@ -131,7 +129,7 @@ public class ViewDAOImpl implements ViewDAO {
                     .selectByExample()
                     .where(
                             ViewRecordDynamicSqlSupport.templateId,
-                            SqlBuilder.isEqualTo(templateId))
+                            SqlBuilder.isEqualTo(0L))
                     .build()
                     .execute();
             // get default view

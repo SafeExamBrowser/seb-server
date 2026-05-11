@@ -8,8 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.Collection;
 import java.util.Set;
@@ -43,7 +43,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public static final String ATTR_VDI_PATH = "vdiPath";
     public static final String ATTR_VDI_ARGUMENTS = "vdiArguments";
 
-    public static final String ATTR_FALLBACK = "sebServerFallback ";
+    public static final String ATTR_FALLBACK = "sebServerFallback";
     public static final String ATTR_FALLBACK_START_URL = "startURL";
     public static final String ATTR_FALLBACK_TIMEOUT = "sebServerFallbackTimeout";
     public static final String ATTR_FALLBACK_ATTEMPTS = "sebServerFallbackAttempts";

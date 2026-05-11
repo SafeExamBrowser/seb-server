@@ -29,7 +29,7 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
     public void testGetExamConfigOnAFullyEstablishedConnection() throws Exception {
-        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        final String accessToken = super.obtainAccessToken("test", "test", "");
         assertNotNull(accessToken);
 
         final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
@@ -76,7 +76,7 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
         // work correctly as long as a examId is already defined for the connection or an examId is provided
         // by the configuration request. This tests the first case
 
-        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        final String accessToken = super.obtainAccessToken("test", "test", "");
         assertNotNull(accessToken);
 
         final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, EXAM_ID);
@@ -129,7 +129,7 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
         // work correctly as long as a examId is already defined for the connection or an examId is provided
         // by the configuration request. This tests the second case
 
-        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        final String accessToken = super.obtainAccessToken("test", "test", "");
         assertNotNull(accessToken);
 
         final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
@@ -184,7 +184,7 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
     public void testGetExamConfigOnNoneEstablishedConnectionNoneExamId() throws Exception {
 
-        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        final String accessToken = super.obtainAccessToken("test", "test", "");
         assertNotNull(accessToken);
 
         final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
@@ -234,7 +234,7 @@ public class SebExamConfigurationRequestTest extends ExamAPIIntegrationTester {
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
     public void testGetExamConfigOnConnectionNoExamIdSouldFail() throws Exception {
-        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        final String accessToken = super.obtainAccessToken("test", "test", "");
         assertNotNull(accessToken);
 
         final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);

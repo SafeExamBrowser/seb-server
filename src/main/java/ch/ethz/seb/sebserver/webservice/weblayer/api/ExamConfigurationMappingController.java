@@ -9,8 +9,9 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.List;
+import java.util.Objects;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -37,7 +38,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamConfigurationMapRecordDynamicSqlSupport;
@@ -54,7 +54,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateSer
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_CONFIGURATION_MAP_ENDPOINT)
 public class ExamConfigurationMappingController extends EntityController<ExamConfigurationMap, ExamConfigurationMap> {
@@ -238,7 +237,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     }
 
     private ExamConfigurationMap checkPasswordMatch(final ExamConfigurationMap entity) {
-        if (entity.hasEncryptionSecret() && !entity.encryptSecret.equals(entity.confirmEncryptSecret)) {
+        if (entity.hasEncryptionSecret() && !Objects.equals(entity.encryptSecret, entity.confirmEncryptSecret)) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.EXAM_CONFIGURATION_MAP.TYPE_NAME,

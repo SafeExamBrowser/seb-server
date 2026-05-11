@@ -15,7 +15,12 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -23,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -37,7 +43,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -51,7 +56,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamTemplateServiceImpl implements ExamTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateServiceImpl.class);
@@ -66,6 +70,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private final IndicatorDAO indicatorDAO;
     private final ClientGroupDAO clientGroupDAO;
     private final JSONMapper jsonMapper;
+    private final WebserviceInfo webserviceInfo;
+    private final ProctoringAdminService proctoringServiceSettingsService;
+    private final BeanValidationService beanValidationService;
 
     private final String defaultIndicatorName;
     private final String defaultIndicatorType;
@@ -83,6 +90,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final IndicatorDAO indicatorDAO,
             final ClientGroupDAO clientGroupDAO,
             final JSONMapper jsonMapper,
+            final WebserviceInfo webserviceInfo,
+            final ProctoringAdminService proctoringServiceSettingsService,
+            final BeanValidationService beanValidationService,
 
             @Value("${sebserver.webservice.api.exam.indicator.name:}") final String defaultIndicatorName,
             @Value("${sebserver.webservice.api.exam.indicator.type:}") final String defaultIndicatorType,
@@ -99,6 +109,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         this.indicatorDAO = indicatorDAO;
         this.clientGroupDAO = clientGroupDAO;
         this.jsonMapper = jsonMapper;
+        this.webserviceInfo = webserviceInfo;
+        this.proctoringServiceSettingsService = proctoringServiceSettingsService;
+        this.beanValidationService = beanValidationService;
 
         this.defaultIndicatorName = defaultIndicatorName;
         this.defaultIndicatorType = defaultIndicatorType;
@@ -298,10 +311,401 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         });
     }
 
+    @Override
+    public Result<ExamTemplate> createExamTemplateAdditionalData(
+            final Long createdTemplateId,
+            final ExamTemplate examTemplate) {
+
+        return Result.tryCatch(() -> {
+
+            // create group templates
+            final List<String> groupIdsWithSPS = examTemplate
+                    .getClientGroupTemplates()
+                    .stream()
+                    .map(clientGroupTemplate -> {
+                        final ClientGroupTemplate newTemplate = new ClientGroupTemplate(
+                                null,
+                                createdTemplateId,
+                                clientGroupTemplate.name,
+                                clientGroupTemplate.type,
+                                clientGroupTemplate.color,
+                                clientGroupTemplate.icon,
+                                clientGroupTemplate.ipRangeStart,
+                                clientGroupTemplate.ipRangeEnd,
+                                clientGroupTemplate.clientOS,
+                                clientGroupTemplate.nameRangeStartLetter,
+                                clientGroupTemplate.nameRangeEndLetter,
+                                clientGroupTemplate.screenProctoringEnabled
+                        );
+                        final ClientGroupTemplate newGroup = this.beanValidationService
+                                .validateBean(newTemplate)
+                                .map(ExamUtils::checkClientGroupConsistency)
+                                .flatMap(this.examTemplateDAO::createNewClientGroupTemplate)
+                                .onError(error -> log.error("Failed to create ClientGroupTemplate: {}", clientGroupTemplate, error))
+                                .getOr(null);
+
+                        return BooleanUtils.isTrue(newGroup.screenProctoringEnabled) ? newGroup.getModelId() : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            // apply SPS settings
+            if (examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)) {
+                try {
+                    final WebserviceInfo.ScreenProctoringServiceBundle screenProctoringServiceBundle = webserviceInfo
+                            .getScreenProctoringServiceBundle();
+
+                    final boolean spsEnabled = BooleanUtils.toBoolean(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
+                    final CollectingStrategy collectingStrategy = examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)
+                            ? CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY))
+                            : CollectingStrategy.EXAM;
+                    String groupSelection = examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION);
+                    if (StringUtils.isBlank(groupSelection) && !groupIdsWithSPS.isEmpty()) {
+                        groupSelection = StringUtils.join(groupIdsWithSPS, Constants.LIST_SEPARATOR);
+                    }
+
+                    final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
+                            null,
+                            spsEnabled,
+                            screenProctoringServiceBundle.serviceURL,
+                            screenProctoringServiceBundle.clientId,
+                            screenProctoringServiceBundle.clientSecret.toString(),
+                            screenProctoringServiceBundle.apiAccountName,
+                            screenProctoringServiceBundle.apiAccountPassword.toString(),
+                            collectingStrategy,
+                            examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME),
+                            null,
+                            groupSelection,
+                            true,
+                            false);
+
+                    this.proctoringServiceSettingsService
+                            .saveScreenProctoringSettings(
+                                    new EntityKey(createdTemplateId, EntityType.EXAM_TEMPLATE),
+                                    screenProctoringSettings)
+                            .getOrThrow();
+
+                } catch (final Exception e) {
+                    log.error("Failed to create SPS data for ExamTemplate: {}", examTemplate, e);
+                }
+            }
+
+            // update the assigned Configuration Template with name and description from Exam Template
+            this.updateConfigurationTemplate(examTemplate);
+
+            return examTemplateDAO.byPK(createdTemplateId).getOr(examTemplate);
+        });
+    }
+
+    @Override
+    public Result<ExamTemplate> saveAdditionalData(final ExamTemplate examTemplate) {
+        return Result.tryCatch(() -> {
+
+            // apply and save SPS changes
+            final ScreenProctoringSettings currentSPSSettings = this.proctoringServiceSettingsService
+                    .getScreenProctoringSettings(new EntityKey(examTemplate.getModelId(), EntityType.EXAM_TEMPLATE))
+                    .getOrThrow();
+
+            // check if SPS enabled is available and has changed. Of not available, skip the update
+            if (examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)) {
+                final boolean spsEnabled = BooleanUtils.toBoolean(
+                        examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
+                final CollectingStrategy collectingStrategy = examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)
+                        ? CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY))
+                        : currentSPSSettings.collectingStrategy;
+
+                // if we change to APPLY_SEB_GROUPS strategy and there are no sebGroupsSelection we set all SEB groups
+                // to avoid data inconsistency
+                String sebGroupsSelection = currentSPSSettings.sebGroupsSelection;
+                if (collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS && sebGroupsSelection == null) {
+                    sebGroupsSelection = examTemplateDAO
+                            .getClientGroupTemplates(examTemplate.id)
+                            .map(groups ->
+                                    StringUtils.join(groups.stream().map(
+                                            ClientGroupTemplate::getModelId).toList(),
+                                            Constants.LIST_SEPARATOR))
+                            .getOr(null);
+                }
+
+                final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
+                        currentSPSSettings.examId,
+                        spsEnabled,
+                        currentSPSSettings.spsServiceURL,
+                        currentSPSSettings.spsAPIKey,
+                        currentSPSSettings.spsAPISecret,
+                        currentSPSSettings.spsAccountId,
+                        currentSPSSettings.spsAccountPassword,
+                        collectingStrategy,
+                        currentSPSSettings.collectingGroupName,
+                        null,
+                        sebGroupsSelection,
+                        true,
+                        false);
+
+                this.proctoringServiceSettingsService
+                        .saveScreenProctoringSettings(
+                                new EntityKey(examTemplate.id, EntityType.EXAM_TEMPLATE),
+                                screenProctoringSettings)
+                        .getOrThrow();
+            }
+
+            // apply the name and description to the related Configuration Template
+            this.updateConfigurationTemplate(examTemplate);
+
+            return examTemplateDAO.byPK(examTemplate.id).getOrThrow();
+        }).flatMap(this::applyExamTemplateAdditionalData);
+    }
+
+    @Override
+    public Result<ExamTemplate> applyExamTemplateAdditionalData(ExamTemplate examTemplate) {
+        return Result.tryCatch(() -> {
+
+            // apply SPS Settings
+            final ScreenProctoringSettings spsSettings = this.proctoringServiceSettingsService
+                    .getScreenProctoringSettings(new EntityKey(examTemplate.getModelId(), EntityType.EXAM_TEMPLATE))
+                    .getOrThrow();
+
+            final Map<String, String> examAttributes = new HashMap<>(examTemplate.examAttributes);
+            examAttributes.put(
+                    ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING,
+                    Boolean.toString(spsSettings.enableScreenProctoring));
+
+            examAttributes.put(
+                    ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY,
+                    spsSettings.collectingStrategy.toString());
+
+            examAttributes.put(
+                    ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME,
+                    spsSettings.collectingGroupName);
+
+            if (spsSettings.collectingGroupSize != null) {
+                examAttributes.put(
+                        ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE,
+                        Integer.toString(spsSettings.collectingGroupSize));
+            }
+
+            examAttributes.put(
+                    ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION,
+                    spsSettings.sebGroupsSelection);
+
+            // apply SEB groups
+            final String[] spsGroupIds = StringUtils.split(spsSettings.sebGroupsSelection, Constants.LIST_SEPARATOR_CHAR);
+            final Set<Long> spsGIds = BooleanUtils.isTrue(spsSettings.enableScreenProctoring) && spsGroupIds != null
+                    ? Arrays.stream(spsGroupIds).map(Long::parseLong).collect(Collectors.toSet())
+                    : Collections.emptySet();
+
+            final List<ClientGroupTemplate> clientGroupTemplates = examTemplateDAO
+                    .getClientGroupTemplates(examTemplate.id)
+                    .getOrThrow()
+                    .stream()
+                    .map(group -> new ClientGroupTemplate(spsGIds.contains(group.id), group))
+                    .toList();
+
+            // create and return full ExamTemplate
+            return new ExamTemplate(
+                    examTemplate.id,
+                    examTemplate.institutionId,
+                    examTemplate.name,
+                    examTemplate.description,
+                    examTemplate.examType,
+                    examTemplate.supporter,
+                    examTemplate.configTemplateId,
+                    examTemplate.institutionalDefault,
+                    examTemplate.lmsIntegration,
+                    examTemplate.clientConfigurationId,
+                    examTemplate.indicatorTemplates,
+                    clientGroupTemplates,
+                    examAttributes
+            );
+        });
+    }
+
+    private void updateConfigurationTemplate(final ExamTemplate examTemplate) {
+        if (examTemplate.configTemplateId == null) {
+            return;
+        }
+
+        try {
+
+            // update name and description of the related Configuration Template
+            configurationNodeDAO.updateConfigurationTemplate(
+                            examTemplate.configTemplateId,
+                            examTemplate.name,
+                            examTemplate.description)
+                    .getOrThrow();
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to update Configuration Template for saved Exam Template: {} cause: {}",
+                    examTemplate,
+                    e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<ClientGroupTemplate> createNewClientGroupTemplate(final ClientGroupTemplate clientGroupTemplate) {
+        return examTemplateDAO
+                .createNewClientGroupTemplate(clientGroupTemplate)
+                .map(this::updateSPSGroups);
+    }
+
+    @Override
+    public Result<ClientGroupTemplate> saveClientGroupTemplate(ClientGroupTemplate clientGroupTemplate) {
+        return examTemplateDAO
+                .saveClientGroupTemplate(clientGroupTemplate)
+                .map(this::updateSPSGroups);
+    }
+
+    @Override
+    public Result<EntityKey> deleteClientGroupTemplate(String examTemplateId, String clientGroupTemplateId) {
+        return examTemplateDAO
+                .deleteClientGroupTemplate(examTemplateId, clientGroupTemplateId)
+                .map(key -> deleteSPSGroup(examTemplateId, key));
+    }
+
+    @Override
+    public void notifyExamTemplateChange(final ExamTemplateChangeEvent event) {
+        if (event.changeState != ExamTemplateChangeEvent.ChangeState.DELETED) {
+            return;
+        }
+
+        try {
+
+            Long configTemplateId = event.getExamTemplate().configTemplateId;
+            if (configTemplateId == null) {
+                return;
+            }
+
+            if (!examTemplateDAO.hasAnyExamTemplateWithConfigTemplate(configTemplateId)) {
+                configurationNodeDAO
+                        .delete(Collections.singleton(new EntityKey(configTemplateId, EntityType.CONFIGURATION_NODE)))
+                        .getOrThrow();
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to delete configuration template for exam template: {} cause: {}", event.getExamTemplate(), e.getMessage());
+        }
+    }
+
+
+    private ClientGroupTemplate updateSPSGroups(final ClientGroupTemplate clientGroupTemplate) {
+        try {
+
+            final EntityKey templateKey = new EntityKey(clientGroupTemplate.examTemplateId, EntityType.EXAM_TEMPLATE);
+
+            final ScreenProctoringSettings screenProctoringSettings = proctoringAdminService
+                    .getScreenProctoringSettings(templateKey)
+                    .getOrThrow();
+
+            // if sps is not enabled at all, ignore the group setting for SPS
+            if (!BooleanUtils.isTrue(screenProctoringSettings.enableScreenProctoring)) {
+                if (BooleanUtils.isTrue(clientGroupTemplate.screenProctoringEnabled)) {
+                    return new ClientGroupTemplate(
+                            clientGroupTemplate.id,
+                            clientGroupTemplate.examTemplateId,
+                            clientGroupTemplate.name,
+                            clientGroupTemplate.type,
+                            clientGroupTemplate.color,
+                            clientGroupTemplate.icon,
+                            clientGroupTemplate.ipRangeStart,
+                            clientGroupTemplate.ipRangeEnd,
+                            clientGroupTemplate.clientOS,
+                            clientGroupTemplate.nameRangeStartLetter,
+                            clientGroupTemplate.nameRangeEndLetter,
+                            false
+                    );
+                }
+                return clientGroupTemplate;
+            }
+
+            final Set<String> spsGroupIds = new HashSet<>();
+            final String sebGroupsSelection = screenProctoringSettings.sebGroupsSelection;
+            if (StringUtils.isNotBlank(sebGroupsSelection)) {
+                spsGroupIds.addAll(Arrays.stream(StringUtils.split(sebGroupsSelection, Constants.LIST_SEPARATOR_CHAR)).toList());
+            }
+
+            // update SPS Group mapping
+            if (BooleanUtils.isTrue(clientGroupTemplate.screenProctoringEnabled)) {
+                spsGroupIds.add(String.valueOf(clientGroupTemplate.id));
+            } else {
+                spsGroupIds.remove(String.valueOf(clientGroupTemplate.id));
+            }
+
+            saveSPSSettings(spsGroupIds, templateKey, screenProctoringSettings);
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to update SPS Groups from ClientGroupTemplate: {} cause: {}",
+                    clientGroupTemplate,
+                    e.getMessage());
+        }
+
+        return clientGroupTemplate;
+    }
+
+    private EntityKey deleteSPSGroup(final String examTemplateId, final EntityKey entityKey) {
+        try {
+
+            final EntityKey templateKey = new EntityKey(examTemplateId, EntityType.EXAM_TEMPLATE);
+
+            final ScreenProctoringSettings screenProctoringSettings = proctoringAdminService
+                    .getScreenProctoringSettings(templateKey)
+                    .getOrThrow();
+
+            final Set<String> spsGroupIds = new HashSet<>();
+            final String sebGroupsSelection = screenProctoringSettings.sebGroupsSelection;
+            if (StringUtils.isNotBlank(sebGroupsSelection)) {
+                spsGroupIds.addAll(Arrays.stream(StringUtils.split(sebGroupsSelection, Constants.LIST_SEPARATOR_CHAR)).toList());
+            }
+
+            // update SPS Group mapping
+            spsGroupIds.remove(entityKey.modelId);
+            saveSPSSettings(spsGroupIds, templateKey, screenProctoringSettings);
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to update SPS Groups from deleted ClientGroupTemplate: {} cause: {}",
+                    entityKey,
+                    e.getMessage());
+        }
+
+        return entityKey;
+    }
+
+    private void saveSPSSettings(
+            final Set<String> spsGroupIds,
+            final EntityKey templateKey,
+            final ScreenProctoringSettings screenProctoringSettings) {
+
+        final String newSPSGroupIds = !spsGroupIds.isEmpty()
+                ? StringUtils.join(spsGroupIds, Constants.LIST_SEPARATOR_CHAR)
+                : null;
+
+        // and save new group mapping
+        proctoringAdminService.saveScreenProctoringSettings(
+                        templateKey,
+                        new ScreenProctoringSettings(
+                                screenProctoringSettings.examId,
+                                screenProctoringSettings.enableScreenProctoring,
+                                screenProctoringSettings.spsServiceURL,
+                                screenProctoringSettings.spsAPIKey,
+                                screenProctoringSettings.spsAPISecret,
+                                screenProctoringSettings.spsAccountId,
+                                screenProctoringSettings.spsAccountPassword,
+                                screenProctoringSettings.collectingStrategy,
+                                screenProctoringSettings.collectingGroupName,
+                                screenProctoringSettings.collectingGroupSize,
+                                newSPSGroupIds,
+                                screenProctoringSettings.bundled,
+                                screenProctoringSettings.confirmChangeStrategy))
+                .getOrThrow();
+    }
+
     private ScreenProctoringSettings convertSPSTemplateSettings(
             final Exam exam,
             final ExamTemplate examTemplate,
             final ScreenProctoringSettings screenProctoringSettings) {
+
         if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
             // in this case we need to map the selected template client groups to the just created exam client groups
             final Set<Long> selectedTemplateIds = Arrays.stream(StringUtils.split(
@@ -549,6 +953,38 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         vars.put(VAR_EXAM_TEMPLATE_NAME, examTemplate.name);
 
         return Utils.replaceAll(template, vars);
+    }
+
+    @Scheduled(fixedRate = 12 * Constants.HOUR_IN_MILLIS, initialDelay = Constants.MINUTE_IN_MILLIS)
+    private void cleanupTemporaryConfigurationTemplates() {
+        try {
+
+            log.info("Check for outdated temporary ConfigurationTemplate");
+
+            final long now = Utils.getMillisecondsNow();
+
+            configurationNodeDAO
+                    .getAllTemporary()
+                    .getOrThrow()
+                    .forEach(c -> {
+                        try {
+
+                            if (c.getLastUpdateTime() == null || now - c.getLastUpdateTime() > 24 * Constants.HOUR_IN_MILLIS) {
+
+                                log.info("Delete outdated temporary ConfigurationTemplate: {}", c);
+
+                                configurationNodeDAO
+                                        .delete(Collections.singleton(new EntityKey(c.getId(), EntityType.CONFIGURATION_NODE)))
+                                        .getOrThrow();
+                            }
+                        } catch (Exception e) {
+                            log.error("Failed to cleanup temporary ConfigurationTemplate: {} ", c, e);
+                        }
+                    });
+
+        } catch (Exception e) {
+            log.error("Failed to cleanup temporary ConfigurationTemplates: ", e);
+        }
     }
 
 }

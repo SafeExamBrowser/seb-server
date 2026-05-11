@@ -10,27 +10,20 @@ package ch.ethz.seb.sebserver.webservice.datalayer.checks;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.DBIntegrityCheck;
 
 @Lazy
 @Component
-@WebServiceProfile
 @Deprecated // This should not be needed anymore since we have a migration task now that alters the table and set charset
 public class TableCharsetCheck implements DBIntegrityCheck {
 

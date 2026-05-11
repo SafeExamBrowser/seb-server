@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,20 +36,11 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplateService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigTemplateServiceImpl.class);
@@ -57,19 +50,21 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
     private final OrientationDAO orientationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
+    private final ConfigurationNodeDAO configurationNodeDAO;
 
     protected ExamConfigTemplateServiceImpl(
             final ViewDAO viewDAO,
             final ConfigurationDAO configurationDAO,
             final OrientationDAO orientationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
-            final ConfigurationValueDAO configurationValueDAO) {
+            final ConfigurationValueDAO configurationValueDAO, ConfigurationNodeDAO configurationNodeDAO) {
 
         this.viewDAO = viewDAO;
         this.configurationDAO = configurationDAO;
         this.orientationDAO = orientationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
+        this.configurationNodeDAO = configurationNodeDAO;
     }
 
     @Override

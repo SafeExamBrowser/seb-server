@@ -41,7 +41,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.BatisConfig;
@@ -67,7 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
  * intensive write operation on Configuration domain. */
 @Lazy
 @Component
-@WebServiceProfile
 @DependsOn("batisConfig")
 public class ConfigurationDAOBatchService {
 
@@ -127,6 +125,8 @@ public class ConfigurationDAOBatchService {
 
         return Result.tryCatch(() -> {
 
+            // TODO this might be slow when there are a lot if config nodes!?!?
+            //      but should not
             final Long count = this.batchConfigurationNodeRecordMapper.countByExample()
                     .where(
                             ConfigurationNodeRecordDynamicSqlSupport.name,
@@ -524,6 +524,8 @@ public class ConfigurationDAOBatchService {
                         fromRec.getListIndex(),
                         fromRec.getValue()))
                 .forEach(this.batchConfigurationValueRecordMapper::insert);
+
+        this.batchSqlSessionTemplate.flushStatements();
     }
 
     private ConfigurationRecord getFollowupConfigurationRecord(final Long configurationNodeId) {

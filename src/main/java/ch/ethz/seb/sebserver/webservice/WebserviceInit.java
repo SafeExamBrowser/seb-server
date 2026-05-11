@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -21,12 +21,10 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo.ScreenProctoringServiceBundle;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Component
-@WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
 public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent> {
 
@@ -159,7 +157,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> Remote-Host name: {}", this.webserviceInfo.getLoopbackHostName());
 
         SEBServerInit.INIT_LOGGER.info("---->");
-        SEBServerInit.INIT_LOGGER.info("----> Context Path: {}", this.webserviceInfo.getContextPath());
         SEBServerInit.INIT_LOGGER.info("----> External-Host URL: {}", this.webserviceInfo.getExternalServerURL());
         SEBServerInit.INIT_LOGGER.info("----> Autologin URL: {}", this.webserviceInfo.getGUIAutologinURL());
         SEBServerInit.INIT_LOGGER.info("----> LMS-External-Address-Alias: {}",

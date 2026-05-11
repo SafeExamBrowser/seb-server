@@ -83,7 +83,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     }
 
     @Test
-    public void testErrorLogCountIndicator() {
+    public void testErrorLogCountIndicator() throws InterruptedException {
 
         final ClientConnection connection = this.clientConnectionDAO
                 .createNew(
@@ -108,6 +108,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                 .findFirst();
         assertTrue(findFirst.isPresent());
         final IndicatorValue clientIndicator = findFirst.get();
+        Thread.sleep(500);
         assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.ERROR_COUNT));
 
         this.sebClientSessionService.notifyClientEvent(
@@ -140,7 +141,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     }
 
     @Test
-    public void testInfoLogWithTagCountIndicator() {
+    public void testInfoLogWithTagCountIndicator() throws InterruptedException {
 
         final ClientConnection connection = this.clientConnectionDAO
                 .createNew(
@@ -165,6 +166,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                 .findFirst();
         assertTrue(findFirst.isPresent());
         final IndicatorValue clientIndicator = findFirst.get();
+        Thread.sleep(500);
         assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
 
         this.sebClientSessionService.notifyClientEvent(
@@ -263,7 +265,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
 
         this.sebClientSessionService.notifyClientEvent(
                 "token3",
-                writeValueAsString(new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 40.0,
+                writeValueAsString(new ClientEvent(null, connection.id, EventType.INFO_LOG, 2L, 2L, 40.0,
                         "<battery> some info other")));
         waitForExecutor();
         assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));

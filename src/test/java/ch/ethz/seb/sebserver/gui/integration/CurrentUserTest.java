@@ -10,17 +10,20 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.*;
 
+import ch.ethz.seb.sebserver.gui.api.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.api.auth.OAuth2AuthorizationContextHolder;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
+import org.springframework.test.context.jdbc.Sql;
+
 
 public class CurrentUserTest extends GuiIntegrationTest {
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void testCurrentUserLoginAndGet() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = getAuthorizationContextHolder();
 
@@ -48,6 +51,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
     }
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void testCurrentUserPrivileges() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = getAuthorizationContextHolder();
 
@@ -62,6 +66,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
     }
 
     @Test
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void testCurrentUserLogin() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = login("admin", "admin");
         final CurrentUser currentUser = new CurrentUser(authorizationContextHolder, null);

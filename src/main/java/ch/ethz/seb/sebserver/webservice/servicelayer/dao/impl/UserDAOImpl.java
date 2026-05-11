@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
@@ -48,7 +48,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
@@ -61,7 +60,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class UserDAOImpl implements UserDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserDAOImpl.class);
@@ -77,7 +75,7 @@ public class UserDAOImpl implements UserDAO {
             final RoleRecordMapper roleRecordMapper,
             final EntityPrivilegeRecordMapper entityPrivilegeRecordMapper,
             final FeaturePrivilegeRecordMapper featurePrivilegeRecordMapper,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final PasswordEncoder userPasswordEncoder) {
 
         this.userRecordMapper = userRecordMapper;
         this.roleRecordMapper = roleRecordMapper;
@@ -400,11 +398,13 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    @Transactional()
     public Result<Collection<EntityKey>> deleteAdHocAccountsForLMS(
             final String adHocTeacherIdPrefix, 
             final Long lmsSetupId) {
         
-        return Result.tryCatch(() ->this.userRecordMapper.selectByExample()
+        return Result.tryCatch(() -> this.userRecordMapper
+                .selectByExample()
                 .where(uuid, isLike(adHocTeacherIdPrefix + Constants.PERCENTAGE))
                 .build()
                 .execute()
@@ -413,6 +413,23 @@ public class UserDAOImpl implements UserDAO {
                 .collect(Collectors.toSet())
         )
                 .flatMap(this::delete);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getAllActiveUsersUUID() {
+        return Result.tryCatch(() -> {
+
+            return this.userRecordMapper
+                    .selectByExample()
+                    .where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toIntegerObject(true)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(UserRecord::getUuid)
+                    .toList();
+
+        });
     }
 
     @Override

@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
@@ -60,7 +59,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitSer
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationValueDAOImpl.class);
@@ -179,11 +177,6 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
         });
     }
 
-
-    private static final String KEY_SEB_SERVICE_POLICY = "sebServicePolicy";
-    private static final String KEY_ATTR_1 = "enableWindowsUpdate";
-    private static final String KEY_ATTR_2 = "enableChromeNotifications";
-    private static final String KEY_ATTR_3 = "allowScreenSharing";
     @Override
     public void applyIgnoreSEBService(final Long institutionId, final Long configurationId) {
         try {
@@ -196,13 +189,13 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                         .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
                 // set default values enableWindowsUpdate
                 this.setDefaultValues(institutionId, configurationId, 321L)
-                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for enableWindowsUpdate"));
                 // set default values enableChromeNotifications
                 this.setDefaultValues(institutionId, configurationId, 322L)
-                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for enableChromeNotifications"));
                 // set default values allowScreenSharing
                 this.setDefaultValues(institutionId, configurationId, 303L)
-                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for allowScreenSharing"));
             }
 
         } catch (final Exception e) {
@@ -256,7 +249,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .stream()
                 .map(ConfigurationValueDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
     }
 
     @Override
@@ -280,7 +273,30 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                             value);
 
                     this.configurationValueRecordMapper.insert(newRecord);
-                    return newRecord;
+
+                    List<ConfigurationValueRecord> newResults = configurationValueRecordMapper
+                            .selectByExample()
+                            .where(
+                                    institutionId,
+                                    SqlBuilder.isEqualToWhenPresent(data.institutionId))
+                            .and(
+                                    configurationId,
+                                    isEqualTo(data.configurationId))
+                            .and(
+                                    configurationAttributeId,
+                                    isEqualTo(data.attributeId))
+                            .and(
+                                    listIndex,
+                                    isEqualTo(data.listIndex))
+                            .build()
+                            .execute();
+
+                    if (newResults == null || newResults.size() != 1) {
+                        log.warn("Expected one value but found none or more then one: {}", newResults);
+                        return newRecord;
+                    }
+
+                    return newResults.get(0);
                 })
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -773,7 +789,13 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 data.listIndex,
                 data.value);
 
-        this.configurationValueRecordMapper.updateByPrimaryKeySelective(newRecord);
+        Integer execute = UpdateDSL.updateWithMapper(configurationValueRecordMapper::update, configurationValueRecord)
+                .set(listIndex).equalTo(data.listIndex)
+                .set(value).equalTo(data.value)
+                .where(ConfigurationValueRecordDynamicSqlSupport.id, isEqualTo(id))
+                .build()
+                .execute();
+        //this.configurationValueRecordMapper.updateByPrimaryKey(newRecord);
         return this.configurationValueRecordMapper.selectByPrimaryKey(id);
     }
 
@@ -784,6 +806,27 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             final int index) {
 
         log.info("Missing SEB Setting value detected for attribute: {} try to create one", attr);
+
+        // first try to find value if one already exists, return that
+        Optional<ConfigurationValueRecord> first = this.configurationValueRecordMapper.selectByExample()
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        isEqualTo(configurationId))
+                .and(
+                        configurationAttributeId,
+                        isEqualTo(attr.getId()))
+                .and(
+                        listIndex,
+                        isEqualTo(index))
+                .build()
+                .execute()
+                .stream()
+                .findFirst();
+
+        if (first.isPresent()) {
+            log.info("Found missing SEB Setting value: {}", first.get());
+            return toDomainModel(first.get()).getOr(null);
+        }
 
         return createNew(new ConfigurationValue(
                 null,

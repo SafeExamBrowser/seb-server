@@ -21,7 +21,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
@@ -39,7 +42,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
@@ -67,7 +69,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
 
     private final ConfigurationRecordMapper configurationRecordMapper;
@@ -121,7 +122,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 return Collections.emptyList();
             }
 
-            return this.configurationNodeRecordMapper.selectByExample()
+            return this.configurationNodeRecordMapper
+                    .selectByExample()
                     .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                     .build()
                     .execute()
@@ -255,11 +257,61 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             final String newOwner,
             final ConfigCreationInfo copyInfo) {
 
-        return this.configurationDAOBatchService.createCopy(
-                institutionId,
-                newOwner,
-                copyInfo,
-                daoUserServcie.getCurrentUserUUID());
+        return this
+                .checkCorrectCopyName(copyInfo)
+                .flatMap(cInfo -> this.configurationDAOBatchService.createCopy(
+                        institutionId,
+                        newOwner,
+                        cInfo,
+                        daoUserServcie.getCurrentUserUUID())
+                );
+    }
+
+    @Override
+    @Transactional
+    public Result<ConfigurationNode> updateConfigurationTemplate(
+            final Long configTemplateId,
+            final String name,
+            final String description) {
+
+        return Result.tryCatch(() -> {
+
+            ConfigurationNodeRecord record = recordById(configTemplateId).getOrThrow();
+            if (ConfigurationType.valueOf(record.getType()) != ConfigurationType.TEMPLATE) {
+                throw new APIMessage.APIMessageException(
+                        APIMessage.ErrorMessage.BAD_REQUEST.of(
+                                "ConfigurationNode is not of expected type TEMPLATE"));
+            }
+
+            final ConfigurationNodeRecord newRecord = new ConfigurationNodeRecord(
+                    record.getId(),
+                    null,
+                    null,
+                    null,
+                    name,
+                    description,
+                    null,
+                    null,
+                    Utils.getMillisecondsNow(),
+                    this.daoUserServcie.getCurrentUserUUID());
+
+            this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return this.configurationNodeRecordMapper.selectByPrimaryKey(newRecord.getId());
+
+         })
+                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ConfigurationNodeRecord>> getAllTemporary() {
+        return Result.tryCatch(() -> this.configurationNodeRecordMapper
+                .selectByExample()
+                .where(ConfigurationNodeRecordDynamicSqlSupport.name, isLike(Utils.toSQLWildcard(TEMPORARY_TEMPLATE_PREFIX)))
+                .build()
+                .execute()
+        );
     }
 
     @Override
@@ -432,6 +484,29 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 ConfigurationStatus.valueOf(record.getStatus()),
                 Utils.toDateTimeUTC(record.getLastUpdateTime()),
                 record.getLastUpdateUser()));
+    }
+
+    private Result<ConfigCreationInfo> checkCorrectCopyName(final ConfigCreationInfo copyInfo) {
+        return Result.tryCatch(() -> {
+            final Long count = this.configurationNodeRecordMapper.countByExample()
+                    .where(
+                            ConfigurationNodeRecordDynamicSqlSupport.name,
+                            isEqualTo(copyInfo.name))
+                    .build()
+                    .execute();
+
+            if (count > 0) {
+                return new ConfigCreationInfo(
+                        copyInfo.configurationNodeId,
+                        copyInfo.name + " " + Utils.formatDate(DateTime.now(DateTimeZone.UTC)),
+                        copyInfo.description,
+                        copyInfo.withHistory,
+                        copyInfo.configurationType
+                );
+            }
+
+            return copyInfo;
+        });
     }
 
 }

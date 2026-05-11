@@ -75,7 +75,7 @@ public interface ClientMonitoringDataView {
         return notificationFlag != null && (notificationFlag & FLAG_PENDING_NOTIFICATION) > 0;
     }
 
-    public static Predicate<ClientMonitoringDataView> getStatusPredicate(final ConnectionStatus... status) {
+    static Predicate<ClientMonitoringDataView> getStatusPredicate(final ConnectionStatus... status) {
         final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);
         if (status != null) {
             Collections.addAll(states, status);

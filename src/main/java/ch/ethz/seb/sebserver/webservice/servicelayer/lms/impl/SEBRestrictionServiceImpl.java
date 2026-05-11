@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,7 +36,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -50,7 +48,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBRestrictionServiceImpl.class);
@@ -89,23 +86,23 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
         // check only if SEB_RESTRICTION feature is on
         if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
-            return exam.sebRestriction;
+            return Boolean.TRUE.equals(exam.sebRestriction);
         }
 
         return true;
     }
-    
-    @Override
-    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
-        final LmsSetup lmsSetup = event.getLmsSetup();
-        // only relevant for LMS Setups with SEB restriction feature
-        if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
-            return;
-        }
 
-        try {
-            if (event.activation == Activatable.ActivationAction.ACTIVATE) {
-                examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+    @Override
+    public Result<Long> processLmsSetupActivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+            final LmsSetup lmsSetup = lmsAPIService
+                    .getLmsSetup(lmsSetupId)
+                    .getOrThrow();
+
+            // only relevant for LMS Setups with SEB restriction feature
+            if (lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
+                examDAO
+                        .allActiveForLMSSetup(Collections.singletonList(lmsSetup.id))
                         .getOrThrow()
                         .forEach(exam -> {
                             if (exam.status != Exam.ExamStatus.RUNNING) {
@@ -115,15 +112,28 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                             applySEBClientRestriction(exam)
                                     .onError(error -> log.warn("Failed to update SEB restriction for exam: {} error: {}", exam.name, error.getMessage()));
                         });
-            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
+            }
+
+            return lmsSetupId;
+        });
+    }
+
+    @Override
+    public Result<Long> processLmsSetupDeactivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+            final LmsSetup lmsSetup = lmsAPIService
+                    .getLmsSetup(lmsSetupId)
+                    .getOrThrow();
+            // only relevant for LMS Setups with SEB restriction feature
+            if (lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
                 releaseAllRestrictionsOf(lmsSetup)
                         .onError(error -> log.warn(
                                 "Failed to remove all SEB Restrictions on LMS Setup deactivation: {}",
                                 error.getMessage()));
             }
-        } catch (final Exception e) {
-            log.error("Failed to update SEB restriction for re-activated exams: {}", e.getMessage());
-        }
+
+            return lmsSetupId;
+        });
     }
 
     @Override
@@ -134,7 +144,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                 return lmsSetup;
             }
 
-            examDAO.allActiveForLMSSetup(Arrays.asList(lmsSetup.id))
+            examDAO.allForLMSSetup(lmsSetup.id)
                     .getOrThrow()
                     .forEach( exam -> {
                         this.releaseSEBClientRestriction(exam)
@@ -233,7 +243,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             final Collection<String> browserExamKeys = sebRestriction.getBrowserExamKeys();
             this.examDAO.saveBrowserExamKeys(
                             exam.id,
-                    (browserExamKeys != null && !browserExamKeys.isEmpty())
+                    (!browserExamKeys.isEmpty())
                             ? StringUtils.join(browserExamKeys, Constants.LIST_SEPARATOR_CHAR)
                             : StringUtils.EMPTY);
 
@@ -308,14 +318,14 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         event.ids.forEach(this::processExamDeletion);
     }
 
-    private Result<Exam> processExamDeletion(final Long examId) {
-        return this.examDAO
+    private void processExamDeletion(final Long examId) {
+        this.examDAO
                 .byPK(examId)
                 .whenDo(
                         exam -> exam.lmsSetupId != null,
                         exam -> releaseSEBClientRestriction(exam).getOrThrow()
                 ).onError(error -> log.info(
-                        "Failed to release SEB restrictions for finished exam: {} error: {}",
+                        "Failed to release SEB restrictions on exam deletion, exam: {} error: {}",
                         examId, error.getMessage()));
     }
 

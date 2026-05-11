@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.DBIntegrityCheck;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
@@ -33,7 +32,6 @@ import org.springframework.stereotype.Component;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class DowngradeSEBSettingsCheck implements DBIntegrityCheck {
 
     public static final Logger INIT_LOGGER = LoggerFactory.getLogger("ch.ethz.seb.SEB_SERVER_INIT");

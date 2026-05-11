@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Arrays;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -20,10 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.ExamAPIDiscovery;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.discovery}")
 public class ExamAPIDiscoveryController {

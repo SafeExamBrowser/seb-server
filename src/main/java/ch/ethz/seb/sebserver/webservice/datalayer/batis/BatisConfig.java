@@ -22,8 +22,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-
 /** The MyBatis - Spring configuration
  *
  * All mapper- and model-classes in the specified sub-packages
@@ -35,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
  * The Datasource is auto-configured by Spring and depends on the Spring property configuration so far */
 @Configuration
 @MapperScan(basePackages = "ch.ethz.seb.sebserver.webservice.datalayer.batis")
-@WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
 public class BatisConfig {
 

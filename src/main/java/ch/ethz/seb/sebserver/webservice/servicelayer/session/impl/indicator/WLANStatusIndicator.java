@@ -13,11 +13,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
+
+import static ch.ethz.seb.sebserver.gbl.api.API.LOG_EVENT_TAG_WLAN_STATUS;
 
 @Lazy
 @Component(IndicatorType.Names.WLAN_STATUS)
@@ -29,7 +30,7 @@ public class WLANStatusIndicator extends AbstractLogNumberIndicator {
             final ClientEventRecordMapper clientEventRecordMapper) {
 
         super(distributedPingCache, clientEventRecordMapper, EventType.INFO_LOG);
-        super.tags = new String[] { API.LOG_EVENT_TAG_WLAN_STATUS };
+        super.tags = new String[] { LOG_EVENT_TAG_WLAN_STATUS };
     }
 
     @Override
@@ -40,7 +41,7 @@ public class WLANStatusIndicator extends AbstractLogNumberIndicator {
             final boolean cachingEnabled) {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
-        super.tags = new String[] { API.LOG_EVENT_TAG_WLAN_STATUS };
+        super.tags = new String[] { LOG_EVENT_TAG_WLAN_STATUS };
     }
 
     @Override

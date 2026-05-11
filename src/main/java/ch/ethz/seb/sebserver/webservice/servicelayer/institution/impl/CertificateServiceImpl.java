@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -45,7 +44,6 @@ import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class CertificateServiceImpl implements CertificateService {
 
     private final CertificateDAO certificateDAO;

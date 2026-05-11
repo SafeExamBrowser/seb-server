@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentialServiceImpl;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -41,7 +40,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Component
-@WebServiceProfile
 class AdminUserInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(AdminUserInitializer.class);
@@ -62,7 +60,7 @@ class AdminUserInitializer {
             final InstitutionDAO institutionDAO,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final Environment environment,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder passwordEncoder,
+            final PasswordEncoder passwordEncoder,
             @Value("${sebserver.init.adminaccount.gen-on-init:false}") final boolean initializeAdmin,
             @Value("${sebserver.init.adminaccount.username:seb-server-admin}") final String adminName,
             @Value("${sebserver.init.organisation.name:[SET_ORGANIZATION_NAME]}") final String orgName) {

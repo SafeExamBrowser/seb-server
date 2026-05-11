@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -27,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  * cases within the web-service. */
 public class APIMessage implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -6858683658311637361L;
 
     /** An enumeration of error messages defining the error code, the HTTP status for the response
@@ -249,6 +251,7 @@ public class APIMessage implements Serializable {
      * and send as response. */
     public static class APIMessageException extends RuntimeException implements APIMessageError {
 
+        @Serial
         private static final long serialVersionUID = 1453431210820677296L;
 
         private final Collection<APIMessage> apiMessages;
@@ -324,6 +327,7 @@ public class APIMessage implements Serializable {
      * and send as response. */
     public static class FieldValidationException extends RuntimeException {
 
+        @Serial
         private static final long serialVersionUID = 3324566460573096815L;
 
         public final APIMessage apiMessage;

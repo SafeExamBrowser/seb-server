@@ -208,7 +208,7 @@ public class ModelObjectJSONGenerator {
                 1L, 1L, 1L, "externalId", true, "name", DateTime.now(), DateTime.now(),
                 ExamType.BYOD, "owner",
                 Arrays.asList("user1", "user2"),
-                ExamStatus.RUNNING, null, false, "browserExamKeys", true, null, null, null, null, null);
+                ExamStatus.RUNNING, null, false, "browserExamKeys", true, null, null, null, null,Boolean.FALSE, null);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -304,7 +304,7 @@ public class ModelObjectJSONGenerator {
                         false, null, null),
                 new PendingNotificationIndication() {
                     @Override
-                    public boolean notifictionPending() {
+                    public boolean notificationPending() {
                         return false;
                     }
                 },

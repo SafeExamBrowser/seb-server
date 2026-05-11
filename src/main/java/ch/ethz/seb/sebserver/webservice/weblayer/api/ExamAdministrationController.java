@@ -12,7 +12,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.DeleteExamAction;
+import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
@@ -51,7 +52,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -70,7 +70,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_ADMINISTRATION_ENDPOINT)
 public class ExamAdministrationController extends EntityController<Exam, Exam> {
@@ -87,6 +86,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final SecurityKeyService securityKeyService;
     private final Cryptor cryptor;
     private final FullLmsIntegrationService fullLmsIntegrationService;
+    private final DeleteExamAction deleteExamAction;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -103,7 +103,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final SEBRestrictionService sebRestrictionService,
             final SecurityKeyService securityKeyService,
             final Cryptor cryptor,
-            final FullLmsIntegrationService fullLmsIntegrationService) {
+            final FullLmsIntegrationService fullLmsIntegrationService,
+            final DeleteExamAction deleteExamAction) {
 
         super(authorization,
                 bulkActionService,
@@ -122,29 +123,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.securityKeyService = securityKeyService;
         this.cryptor = cryptor;
         this.fullLmsIntegrationService = fullLmsIntegrationService;
-    }
-    @Override
-    protected Result<Collection<Exam>> getAll(final FilterMap filterMap) {
-        // If current user has only supporter role, put user UUID to filter to get correct page result from DB
-        final String supporterId = authorization.getSupporterOnlyUUID();
-        if (StringUtils.isNotBlank(supporterId)) {
-            filterMap.putIfAbsent(FilterMap.ATTR_SUPPORTER_USER_ID, supporterId);
-        }
-
-        // add users time zone for Exam start time search
-        filterMap.putIfAbsent(
-                FilterMap.ATTR_USER_TIME_ZONE,
-                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
-        
-        return this.entityDAO.allMatching(
-                filterMap,
-                this::hasReadAccess);
+        this.deleteExamAction = deleteExamAction;
     }
 
     @Override
     protected SqlTable getSQLTableOfEntity() {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
+    
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,
@@ -206,6 +192,54 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.examAdminService::archiveExam)
                 .flatMap(super.userActivityLogDAO::logArchive)
                 .getOrThrow();
+    }
+
+
+
+    @Override
+    public EntityProcessingReport hardDelete(final String modelId, final boolean addIncludes, final List<String> includes) {
+        return forceHardDelete(modelId, addIncludes, includes);
+    }
+
+    @Override
+    public EntityProcessingReport hardDeleteAll(final List<String> ids, final boolean addIncludes, final List<String> includes, final Long institutionId) {
+        throw new UnsupportedOperationException("Bulk Delete is not supported anymore for Exams. Use ScheduledDelete");
+    }
+
+    @Override
+    public EntityProcessingReport forceHardDelete(final String modelId, final boolean addIncludes, final List<String> includes) {
+        // NOTE: for single Exam deletion we use DeleteExamAction now to process exam deletion always with DeleteExamAction
+        //        and not directly via DAO that is not emitting the ExamDeletionEvent anymore (executed not on transaction)
+
+        final List<EntityKey> dependencies = super.getDependencies(modelId, API.BulkActionType.HARD_DELETE, addIncludes, includes)
+                .stream()
+                .map(dep -> dep.self)
+                .toList();
+        final ArrayList<EntityKey> all = new ArrayList<>(dependencies);
+        all.add(new EntityKey(modelId, EntityType.EXAM));
+        final List<EntityKey> entityKeys = Collections.singletonList(new EntityKey(modelId, EntityType.EXAM));
+
+
+        return examDAO.byModelId(modelId)
+                .flatMap(this::checkWriteAccess)
+                .flatMap(this::logDelete)
+                .flatMap(deleteExamAction::deleteExamInternal)
+                .map( exam -> new EntityProcessingReport(
+                        entityKeys,
+                        all,
+                        Collections.emptyList(),
+                        API.BulkActionType.HARD_DELETE))
+                .onErrorDo(error -> {
+                    log.error("Failed to delete single Exam: {} cause: {}", modelId, error.getMessage());
+                    return new EntityProcessingReport(
+                            entityKeys,
+                            all,
+                            Collections.singletonList(new EntityProcessingReport.ErrorEntry(
+                                    entityKeys.getFirst(),
+                                    APIMessage.ErrorMessage.UNEXPECTED.of(error))),
+                            API.BulkActionType.HARD_DELETE
+                    );
+                }).getOrThrow();
     }
 
     // ****************************************************************************
@@ -651,7 +685,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @RequestParam(value = ScreenProctoringSettings.ATT_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
+            @RequestParam(value = ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION, required = false) final String groupIds) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO
@@ -782,6 +816,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                             exam.examTemplateId,
                             exam.lastModified,
                             exam.followUpId,
+                            exam.excludeFromDeletion,
                             exam.additionalAttributes);
                 }
             }
@@ -798,6 +833,17 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         if (sort != null && sort.contains(Domain.EXAM.ATTR_LMS_SETUP_ID)) {
             filterMap.putIfAbsent(FilterMap.ATTR_ADD_LMS_SETUP_JOIN, Constants.TRUE_STRING);
         }
+
+        // If current user has only supporter role, put user UUID to filter to get correct page result from DB
+        final String supporterId = authorization.getSupporterOnlyUUID();
+        if (StringUtils.isNotBlank(supporterId)) {
+            filterMap.putIfAbsent(FilterMap.ATTR_SUPPORTER_USER_ID, supporterId);
+        }
+
+        // add users time zone for Exam start time search
+        filterMap.putIfAbsent(
+                FilterMap.ATTR_USER_TIME_ZONE,
+                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
     }
 
     @Override

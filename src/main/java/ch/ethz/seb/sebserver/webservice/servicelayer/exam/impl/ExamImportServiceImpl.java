@@ -22,7 +22,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -44,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamImportServiceImpl implements ExamImportService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamImportServiceImpl.class);

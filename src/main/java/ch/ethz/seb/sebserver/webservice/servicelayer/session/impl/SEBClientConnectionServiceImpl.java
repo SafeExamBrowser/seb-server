@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -47,24 +46,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientConnectionServiceImpl implements SEBClientConnectionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientConnectionServiceImpl.class);
@@ -166,17 +160,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         clientId);
             }
 
-            final String connectionToken = createToken();
-
             if (examId != null) {
                 checkExamIntegrity(
                         examId,
                         null,
                         institutionId,
-                        connectionToken,
+                        "NONE",
                         clientAddress);
             }
 
+            final String connectionToken = createToken();
             final String updateUserSessionId = updateUserSessionId(
                     examId,
                     null,
@@ -298,7 +291,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     applyScreenProctoring(_examId, newStatus),
                     null,
-                    applyProctoring(_examId, newStatus),
+                    false,
                     null,
                     signatureHash,
                     null);
@@ -389,7 +382,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     applyScreenProctoring(_examId, newStatus),
                     null,
-                    applyProctoring(_examId, newStatus),
+                    false,
                     null,
                     getSignatureHash(appSignatureKey, connectionToken, _examId),
                     null);
@@ -426,10 +419,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             } else if (log.isDebugEnabled()) {
                 log.debug("SEB client connection, successfully established ClientConnection: {}",
                         establishedClientConnection);
-            }
-            
-            if (StringUtils.isBlank(activeClientConnection.clientConnection.ask)) {
-                log.warn("No ASK has been saved for established connection: {}", activeClientConnection.clientConnection);
+
+                if (StringUtils.isBlank(activeClientConnection.clientConnection.ask)) {
+                    log.warn("No ASK has been saved for established connection: {}", activeClientConnection.clientConnection);
+                }
             }
 
             return establishedClientConnection;
@@ -619,7 +612,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
         } catch (final IllegalArgumentException e) {
-            final Collection<APIMessage> errorMessages = Arrays.asList(
+            final Collection<APIMessage> errorMessages = List.of(
                     APIMessage.ErrorMessage.CLIENT_CONNECTION_INTEGRITY_VIOLATION.of(e.getMessage()));
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             writeSEBClientErrors(response, errorMessages);
@@ -628,7 +621,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     "Unexpected error while trying to stream SEB Exam Configuration to client with connection: {}",
                     connectionToken, e);
 
-            final Collection<APIMessage> errorMessages = Arrays.asList(
+            final Collection<APIMessage> errorMessages = List.of(
                     APIMessage.ErrorMessage.GENERIC.of(e.getMessage()));
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             writeSEBClientErrors(response, errorMessages);
@@ -738,13 +731,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         }
     }
 
-
-
     private void checkExamRunning(final Long examId, final String ccToken, final String ccInfo) {
         if (examId != null && !this.examSessionService.isExamRunning(examId)) {
-            log.warn("The exam {} is not running. Called by: {} info {}", examId, ccToken, ccInfo);
-            throw new APIConstraintViolationException(
-                    "The exam " + examId + " is not running");
+            if (log.isDebugEnabled()) {
+                log.warn("The exam {} is not running. Called by: {} info {}", examId, ccToken, ccInfo);
+            }
+            throw new APIConstraintViolationException("The exam " + examId + " is not running. info: " + ccInfo);
         }
     }
 
@@ -854,6 +846,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     Constants.EMBEDDED_LIST_SEPARATOR +
                     Constants.SPACE +
                     clientConnection.userSessionId;
+
             if (userSessionName.length() > 255) {
                 return Utils.truncateText(userSessionName, 240);
             } else {
@@ -957,17 +950,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 !clientConnection.userSessionId.equals(clientConnection.clientAddress) &&
                 !clientConnection.userSessionId.equals(clientConnection.sebClientUserId) &&
                 !clientConnection.userSessionId.equals(clientConnection.sebMachineName);
-    }
-
-    private boolean applyProctoring(final Long examId, final ConnectionStatus status) {
-        if (examId == null) {
-            return false;
-        }
-        final Exam exam = this.examSessionCacheService.getRunningExam(examId);
-        final boolean proctoringEnabled = exam != null && BooleanUtils.toBoolean(
-                exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
-
-        return isApplyProctoring(status, exam) && proctoringEnabled;
     }
 
     private boolean applyScreenProctoring(final Long examId, final ConnectionStatus status) {

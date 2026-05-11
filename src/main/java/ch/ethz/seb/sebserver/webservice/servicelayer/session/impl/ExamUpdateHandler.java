@@ -32,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -51,7 +50,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringSer
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamUpdateHandler implements ExamUpdateTask {
 
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
@@ -161,7 +159,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                                 try {
                                     final Exam exam = exams.get(quizId);
                                     if (exam.lmsSetupId != null && (exam.lmsAvailable == null || exam.isLmsAvailable())) {
-                                        this.examDAO.markLMSAvailability(quizId, false, updateId);
+                                        this.examDAO.markLMSAvailability(exam.lmsSetupId, quizId, false, updateId);
                                     }
                                 } catch (final Exception ee) {
                                     log.error("Failed to mark exam: {} as not connected to LMS", quizId, ee);
@@ -205,7 +203,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                                             updateQuizData.getError());
                                 } else {
                                     if (!exam.isLmsAvailable()) {
-                                        this.examDAO.markLMSAvailability(quiz.id, true, updateId);
+                                        this.examDAO.markLMSAvailability(exam.lmsSetupId, quiz.id, true, updateId);
                                         // delete attempts attribute
                                         this.additionalAttributesDAO.delete(
                                                 EntityType.EXAM,
@@ -213,7 +211,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                                                 Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS);
                                     }
                                     failedOrMissing.remove(quiz.id);
-                                    log.info("Updated quiz data for exam: {}", updateQuizData.get());
+                                    log.info("Updated quiz data for exam: {}", updateQuizData.get().id);
                                 }
 
                                 // also update the exam on screen proctoring service if exam has screen proctoring enabled
@@ -224,7 +222,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
 
                             } else {
                                 if (!exam.isLmsAvailable()) {
-                                    this.examDAO.markLMSAvailability(quiz.id, true, updateId);
+                                    this.examDAO.markLMSAvailability(exam.lmsSetupId, quiz.id, true, updateId);
                                 }
                                 failedOrMissing.remove(quiz.id);
                             }
@@ -254,7 +252,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
         try {
             // Include leadTime and followupTime
             final DateTime startTimeThreshold = now.plus(leadTime);
-            final DateTime endTimeThreshold = now.minus(leadTime);
+            final DateTime endTimeThreshold = now.minus(followupTime);
 
             if (log.isDebugEnabled()) {
                 log.debug("Check exam update for startTimeThreshold: {}, endTimeThreshold {}, exam: {}",
@@ -283,9 +281,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                 }
             }
 
-            if (exam.status != ExamStatus.FINISHED &&
-                    exam.endTime != null &&
-                    endTimeThreshold.isAfter(exam.endTime)) {
+            if (exam.status != ExamStatus.FINISHED && exam.endTime != null && endTimeThreshold.isAfter(exam.endTime)) {
                 setFinished(exam, updateId)
                         .onError(error -> log.error("Failed to update exam to finished state: {}",
                                 exam,
@@ -293,9 +289,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                 return;
             }
 
-            if (exam.status != ExamStatus.UP_COMING &&
-                    exam.startTime != null &&
-                    startTimeThreshold.isBefore(exam.startTime)) {
+            if (exam.status != ExamStatus.UP_COMING && exam.startTime != null && startTimeThreshold.isBefore(exam.startTime)) {
                 setUpcoming(exam, updateId)
                         .onError(error -> log.error("Failed to update exam to up-coming state: {}",
                                 exam,
@@ -466,7 +460,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
             final Exam exam = exams.get(quizId);
             if (!lmsTemplate.getType().features.contains(Features.COURSE_RECOVERY)) {
                 if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
-                    this.examDAO.markLMSAvailability(quizId, false, updateId);
+                    this.examDAO.markLMSAvailability(exam.lmsSetupId, quizId, false, updateId);
                 }
                 throw new UnsupportedOperationException("No Course Recovery");
             }
@@ -519,7 +513,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                 .onError(error1 -> log.error("Failed to save new attempts: ", error1));
 
         if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
-            this.examDAO.markLMSAvailability(quizId, false, updateId);
+            this.examDAO.markLMSAvailability(exam.lmsSetupId, quizId, false, updateId);
         }
     }
 

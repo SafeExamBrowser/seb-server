@@ -17,13 +17,11 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamConfigInitServiceImpl implements ExamConfigInitService {
 
     private final Collection<AdditionalDefaultValueProvider> defaultValueProvider;

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import ch.ethz.seb.sebserver.gbl.model.user.*;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -36,14 +36,12 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import io.github.bucket4j.local.LocalBucket;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.REGISTER_ENDPOINT)
 public class RegisterUserController {
@@ -58,14 +56,12 @@ public class RegisterUserController {
     private final boolean autoActivation;
 
     protected RegisterUserController(
-            final InstitutionDAO institutionDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final UserDAO userDAO,
             final BeanValidationService beanValidationService,
             final RateLimitService rateLimitService,
             final WebserviceInfo webserviceInfo,
-            final ScreenProctoringService screenProctoringService,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final ScreenProctoringService screenProctoringService) {
         
         final Map<String, Boolean> features = webserviceInfo.configuredFeatures();
         this.userActivityLogDAO = userActivityLogDAO;

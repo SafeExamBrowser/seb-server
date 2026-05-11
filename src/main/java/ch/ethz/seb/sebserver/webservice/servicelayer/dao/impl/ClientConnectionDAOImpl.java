@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
@@ -38,7 +39,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientConnectionTokenMapper;
@@ -62,11 +62,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
-import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
@@ -983,6 +981,33 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .collect(Collectors.toList());
         })
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long numberOfConnectionsOfExam(final Long examId) {
+        try {
+            return clientConnectionRecordMapper
+                    .countByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(examId))
+                    .build()
+                    .execute();
+        } catch (Exception e) {
+            log.error("Failed to get number of connections for exam with id: {}", examId);
+            return -1L;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnectionRecord>> getAllForUserSessionNameLike(String searchName) {
+        return Result.tryCatch(() -> {
+            return clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examUserSessionId, SqlBuilder.isLike(Utils.toSQLWildcard(searchName)))
+                    .build()
+                    .execute();
+        });
     }
 
     private Result<ClientConnectionRecord> recordById(final Long id) {

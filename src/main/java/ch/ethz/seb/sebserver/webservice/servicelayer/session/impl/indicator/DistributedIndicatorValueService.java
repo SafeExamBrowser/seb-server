@@ -12,10 +12,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +35,6 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientIndicatorValueMapper;
@@ -50,7 +46,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Lazy
 @Component
-@WebServiceProfile
 /* This service is only needed within a distributed setup where more than one webservice works
  * simultaneously within one SEB Server and one persistent storage.
  * </p>
@@ -79,6 +74,10 @@ public class DistributedIndicatorValueService {
     private final ClientIndicatorValueMapper clientIndicatorValueMapperBatch;
     private final SqlSessionTemplate sqlSessionTemplate;
     private final Map<Long, Long> indicatorValueQueue = new ConcurrentHashMap<>();
+
+    // fetch batch
+    private final BlockingDeque<FetchIndicatorValue> fetchQueue = new LinkedBlockingDeque<>();
+    private final List<FetchIndicatorValue> fetchBatch = new ArrayList<>();
 
 
     public DistributedIndicatorValueService(
@@ -135,21 +134,44 @@ public class DistributedIndicatorValueService {
 
             try {
 
+                // the cache read batch
                 taskScheduler.scheduleAtFixedRate(
                         this::updateIndicatorValueCache,
-                        readBatchInterval);
+                        Duration.ofMillis(readBatchInterval));
 
                 SEBServerInit.INIT_LOGGER.info("------> distributed indicator value service successfully initialized!");
 
+                // the store update batch
                 Map<Long, Long> batchMap1 = new HashMap<>();
                 taskScheduler.scheduleWithFixedDelay(
                         () -> processStoreUpdate(batchMap1),
                         Duration.ofMillis(writeBatchInterval));
 
+
+
+
             } catch (final Exception e) {
                 SEBServerInit.INIT_LOGGER.error("------> Failed to initialize distributed indicator value service:", e);
                 log.error("Failed to initialize distributed indicator value cache update task");
             }
+        }
+
+        try {
+
+            final long batchFetchInterval = webserviceInfo.getDistributedWriteBatchInterval();
+
+            // only use the fetch batch for none distributed setups
+            SEBServerInit.INIT_LOGGER.info("------> with batched indicator value fetch interval : {}",
+                    batchFetchInterval);
+
+            // the value fetch batch
+            taskScheduler.scheduleAtFixedRate(
+                    this::fetchValues,
+                    Duration.ofMillis(batchFetchInterval));
+
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("------> Failed to initialize batched indicator value fetch interval:", e);
+            log.error("Failed to initialize batched indicator value fetch interval task");
         }
     }
 
@@ -331,7 +353,7 @@ public class DistributedIndicatorValueService {
     /** Updates the internal indicator value cache by loading all actual SEB client indicators from persistent storage
      * and put it in the cache.
      * This is internally periodically scheduled by the task scheduler but also implements an execution drop if
-     * the last update was less then 2/3 of the schedule interval ago. This is to prevent task queue overflows
+     * the last update was less than 2/3 of the schedule interval ago. This is to prevent task queue overflows
      * and wait with update when there is a persistent storage leak or a lot of network latency. */
     private void updateIndicatorValueCache() {
         if (this.indicatorValueCache.isEmpty()) {
@@ -340,7 +362,9 @@ public class DistributedIndicatorValueService {
 
         final long millisecondsNow = Utils.getMillisecondsNow();
         if (millisecondsNow - this.lastUpdate < this.updateTolerance) {
-            log.warn("Skip indicator value update schedule because the last one was less then 2 seconds ago");
+            if (log.isTraceEnabled()) {
+                log.trace("Skip indicator value update schedule because the last one was less then 2 seconds ago");
+            }
             return;
         }
 
@@ -409,6 +433,33 @@ public class DistributedIndicatorValueService {
         } catch (Exception e) {
             log.error("Failed write distributed indicator values to persistent store. Skip all. cause: {}", e.getMessage());
         }
+    }
+
+    public void addIndicatorValueFetch(final FetchIndicatorValue fetchIndicatorValue) {
+        fetchQueue.add(fetchIndicatorValue);
+    }
+
+    private void fetchValues() {
+        try {
+
+            fetchBatch.clear();
+            fetchQueue.drainTo(fetchBatch);
+
+            fetchBatch.forEach(fetcher -> {
+                try {
+
+                    fetcher.fetch();
+
+                } catch (Exception ee) {
+                    log.error("Failed to fetch single indicator value: {}. put it back to queue", ee.getMessage());
+                    fetchQueue.add(fetcher);
+                }
+            });
+
+        } catch (Exception e) {
+            log.error("Failed to batch fetch indicator values: {}", e.getMessage());
+        }
+
     }
 
 }

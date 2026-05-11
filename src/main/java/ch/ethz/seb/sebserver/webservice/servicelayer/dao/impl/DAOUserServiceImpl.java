@@ -13,13 +13,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class DAOUserServiceImpl implements DAOUserServcie {
 
     private static final Logger log = LoggerFactory.getLogger(DAOUserServiceImpl.class);
@@ -35,7 +33,7 @@ public class DAOUserServiceImpl implements DAOUserServcie {
         try {
             return this.authorizationService.getUserService().getCurrentUser().uuid();
         } catch (final Exception e) {
-            log.error("Failed to get current user: ", e);
+            log.error("Failed to get current user: {}", e.getMessage());
             return null;
         }
     }

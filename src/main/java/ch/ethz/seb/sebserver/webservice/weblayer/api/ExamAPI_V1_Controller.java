@@ -17,8 +17,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
@@ -54,7 +53,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.exam.endpoint.v1}")
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_SEB_API)
@@ -151,7 +149,7 @@ public class ExamAPI_V1_Controller {
                                 .byPK(examId)
                                 .getOrThrow();
 
-                        result = Arrays.asList(createRunningExamInfo(exam));
+                        result = List.of(createRunningExamInfo(exam));
                         processASKSalt(response, clientConnection);
                         processAlternativeBEK(response, clientConnection.examId);
                     }

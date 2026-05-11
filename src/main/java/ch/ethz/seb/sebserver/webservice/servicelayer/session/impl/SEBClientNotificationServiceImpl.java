@@ -26,7 +26,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -37,7 +36,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificati
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientNotificationServiceImpl implements SEBClientNotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientNotificationServiceImpl.class);

@@ -8,27 +8,22 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
-import javax.sql.DataSource;
-
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.OAuthFlow;
 import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.apache.catalina.filters.RemoteIpFilter;
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
 
 @Configuration
-@WebServiceProfile
 public class WebserviceConfig {
 
     public static final String SWAGGER_AUTH_SEB_API = "SEBOAuth";
@@ -42,9 +37,13 @@ public class WebserviceConfig {
         return aes256jnCryptor;
     }
 
+    /** Used to get real remote IP address by using "X-Forwarded-For" and "X-Forwarded-Proto" header.
+     * https://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/filters/RemoteIpFilter.html
+     *
+     * @return RemoteIpFilter instance */
     @Bean
-    public TokenStore tokenStore(final DataSource dataSource) {
-        return new CachableJdbcTokenStore(dataSource);
+    public RemoteIpFilter remoteIpFilter() {
+        return new RemoteIpFilter();
     }
 
     @Bean

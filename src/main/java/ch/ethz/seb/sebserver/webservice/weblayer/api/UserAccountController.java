@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -25,7 +24,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -42,22 +40,23 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint;
+import jakarta.servlet.http.HttpServletRequest;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.*;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.USER_ACCOUNT_ENDPOINT)
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
@@ -70,7 +69,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     private final ScreenProctoringService screenProctoringService;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final WebserviceInfo webserviceInfo;
-
+    private final OAuth2AuthorizationService oAuth2AuthorizationService;
     private final FeatureService featureService;
 
     public UserAccountController(
@@ -85,7 +84,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final WebserviceInfo webserviceInfo,
             final FeatureService featureService,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final PasswordEncoder userPasswordEncoder,
+            final OAuth2AuthorizationService oAuth2AuthorizationService) {
 
         super(authorization,
                 bulkActionService,
@@ -100,9 +100,13 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.webserviceInfo = webserviceInfo;
         this.featureService = featureService;
+        this.oAuth2AuthorizationService = oAuth2AuthorizationService;
     }
 
-    @RequestMapping(path = API.CURRENT_USER_PATH_SEGMENT, method = RequestMethod.GET)
+    @RequestMapping(
+            path = API.CURRENT_USER_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public UserInfo loggedInUser() {
         return this.authorization
                 .getUserService()
@@ -119,7 +123,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @RequestMapping(path = API.LOGIN_PATH_SEGMENT, method = RequestMethod.POST)
-    public void logLogin() {
+    public void login() {
         this.userActivityLogDAO.logLogin(this.authorization
                 .getUserService()
                 .getCurrentUser()
@@ -127,7 +131,18 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @RequestMapping(path = API.LOGOUT_PATH_SEGMENT, method = RequestMethod.POST)
-    public void logLogout() {
+    public void logout(final HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null) {
+                String tokenValue = authHeader.replace("Bearer", "").trim();
+                OAuth2Authorization byToken = oAuth2AuthorizationService.findByToken(tokenValue, OAuth2TokenType.ACCESS_TOKEN);
+                oAuth2AuthorizationService.remove(byToken);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to revoke access token: {}", e.getMessage());
+        }
+
         this.userActivityLogDAO.logLogout(this.authorization
                 .getUserService()
                 .getCurrentUser()
@@ -229,20 +244,21 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(this.authorization::checkModify)
                 .map(ui -> checkPasswordChange(ui, passwordChange))
                 .flatMap(e -> this.userDAO.changePassword(modelId, passwordChange.getNewPassword()))
-                .flatMap(this::revokeAccessToken)
+               // .flatMap(this::revokeAccessToken)
                 .flatMap(e -> this.userActivityLogDAO.log(UserLogActivityType.PASSWORD_CHANGE, e))
                 .map(this::synchronizeUserWithSPS)
                 .map(this::removeInitialAdminPasswordFromDB)
                 .getOrThrow();
     }
 
-    private Result<UserInfo> revokeAccessToken(final UserInfo userInfo) {
-        return Result.tryCatch(() -> {
-            this.applicationEventPublisher.publishEvent(
-                    new RevokeTokenEndpoint.RevokeTokenEvent(userInfo, userInfo.username));
-            return userInfo;
-        });
-    }
+    // NOTE: there is no revoke token possibility anymore since 3.0
+//    private Result<UserInfo> revokeAccessToken(final UserInfo userInfo) {
+//        return Result.tryCatch(() -> {
+//            this.applicationEventPublisher.publishEvent(
+//                    new RevokeTokenEndpoint.RevokeTokenEvent(userInfo, userInfo.username));
+//            return userInfo;
+//        });
+//    }
 
     private <T extends UserAccount> Result<UserMod> passwordMatch(final UserMod userInfo) {
         if (!userInfo.newPasswordMatch()) {

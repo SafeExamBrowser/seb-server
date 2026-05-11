@@ -63,14 +63,14 @@ public class AllowedSEBVersion {
 
         int num = -1;
         try {
-            num = Integer.valueOf(split[1]);
+            num = Integer.parseInt(split[1]);
         } catch (final Exception e) {
             valid = false;
         }
         this.major = num;
 
         try {
-            num = Integer.valueOf(split[2]);
+            num = Integer.parseInt(split[2]);
         } catch (final Exception e) {
             valid = false;
         }

@@ -11,7 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 import java.util.Comparator;
 import java.util.EnumSet;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 

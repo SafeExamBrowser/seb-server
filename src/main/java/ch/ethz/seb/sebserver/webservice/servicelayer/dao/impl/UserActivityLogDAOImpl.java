@@ -43,7 +43,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
@@ -61,7 +60,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserActivityLogDAOImpl.class);
@@ -104,6 +102,15 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Transactional
     public <E extends Entity> Result<E> logCreate(final E entity) {
         return log(UserLogActivityType.CREATE, entity);
+    }
+
+    @Override
+    @Transactional
+    public Result<EntityKey> logCreate(EntityKey entityKey) {
+        return Result.tryCatch(() -> {
+            log(UserLogActivityType.CREATE, entityKey.entityType, entityKey.modelId, null);
+            return entityKey;
+        });
     }
 
     @Override

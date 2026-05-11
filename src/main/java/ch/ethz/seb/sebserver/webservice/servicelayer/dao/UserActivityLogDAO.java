@@ -12,6 +12,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -41,6 +42,12 @@ public interface UserActivityLogDAO extends
      * @param entity the Entity
      * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> logCreate(E entity);
+
+    /** Create a user activity log entry for the current user of activity type CREATE
+     *
+     * @param entityKey the EntityKey
+     * @return Result of the Entity or referring to an Error if happened */
+    Result<EntityKey> logCreate(EntityKey entityKey);
 
     /** Create a user activity log entry for a user registration event
      *

@@ -28,7 +28,7 @@ public interface ExamUUIDMapper {
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
     @ResultType(ExamUUID.class)
     @ConstructorArgs({
-            @Arg(column = "external_id", javaType = String.class, jdbcType = JdbcType.VARCHAR, id = true)
+            @Arg(column = "uuid", javaType = String.class, jdbcType = JdbcType.VARCHAR, id = true)
     })
     Collection<ExamUUID> selectMany(SelectStatementProvider select);
 

@@ -27,10 +27,7 @@ import org.springframework.cache.support.CompositeCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-
 @EnableCaching
-@WebServiceProfile
 @Configuration
 public class CacheConfig extends JCacheConfigurerSupport {
 

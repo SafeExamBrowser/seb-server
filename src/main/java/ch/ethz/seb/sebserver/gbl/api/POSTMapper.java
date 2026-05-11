@@ -50,6 +50,13 @@ public class POSTMapper {
                 ? new LinkedMultiValueMap<>(params)
                 : new LinkedMultiValueMap<>();
 
+        // Workaround support sent arrays for new GUI
+        (new LinkedMultiValueMap<>(this.params)).forEach((name, values) -> {
+            if (name.endsWith("[]")) {
+                this.params.put(name.replace("[]", ""), values);
+            }
+        });
+
         if (uriQueryString != null) {
             handleEncodedURIParams(uriQueryString);
         }
@@ -60,18 +67,15 @@ public class POSTMapper {
     //       I also tried to set application property: server.tomcat.uri-encoding=UTF-8 but with no effect.
     private void handleEncodedURIParams(final String uriQueryString) {
         final MultiValueMap<String, String> override = new LinkedMultiValueMap<>();
-        this.params
-                .entrySet()
-                .stream()
-                .forEach(entry -> {
-                    if (uriQueryString.contains(entry.getKey())) {
-                        override.put(
-                                entry.getKey(),
-                                entry.getValue().stream()
-                                        .map(val -> decode(val))
-                                        .collect(Collectors.toList()));
-                    }
-                });
+        this.params.forEach((key, value) -> {
+                if (uriQueryString.contains(key)) {
+                    override.put(
+                            key,
+                            value.stream()
+                                    .map(this::decode)
+                                    .collect(Collectors.toList()));
+                }
+        });
 
         if (!override.isEmpty()) {
             this.params.putAll(override);
@@ -143,7 +147,7 @@ public class POSTMapper {
         try {
             return Long.parseLong(value);
         } catch (final Exception e) {
-            log.error("Failed to parse long value for attribute: {}", name, e.getMessage());
+            log.error("Failed to parse long value for attribute: {} cause: {}", name, e.getMessage());
             return null;
         }
     }
@@ -246,7 +250,7 @@ public class POSTMapper {
                 .keySet()
                 .stream()
                 .filter(actionAttributes::contains)
-                .collect(Collectors.toMap(Function.identity(), k -> this.params.getFirst(k)));
+                .collect(Collectors.toMap(Function.identity(), this.params::getFirst));
     }
 
     public List<Threshold> getThresholds() {
@@ -264,11 +268,11 @@ public class POSTMapper {
                         try {
                             val = Double.parseDouble(split[0]);
                         } catch (final Exception e) {
-                            log.error("Failed to parse double: ", e.getMessage());
+                            log.error("Failed to parse double: {}", e.getMessage());
                         }
                         return new Threshold(
                                 val,
-                                (split.length > 1) ? Utils.parseColorString(Utils.parseRGB(split[1])) : null,
+                                (split.length > 1) ? split[1] : null,
                                 (split.length > 2 && "null".equals(split[2])) ? split[2] : null);
                     } catch (final Exception e) {
                         return null;
@@ -286,11 +290,7 @@ public class POSTMapper {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("POSTMapper [params=");
-        builder.append(this.params);
-        builder.append("]");
-        return builder.toString();
+        return "POSTMapper [params=" + this.params + "]";
     }
     
 }

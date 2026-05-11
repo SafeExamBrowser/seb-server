@@ -23,13 +23,11 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamUpdateTask;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SessionUpdateTask;
 
 @Service
-@WebServiceProfile
 public class ExamSessionControlTask implements DisposableBean {
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);

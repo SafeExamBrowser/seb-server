@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
@@ -22,7 +21,6 @@ import io.github.bucket4j.local.LocalBucket;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class RateLimitService {
 
     private final int requestLimit;

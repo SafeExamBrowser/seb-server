@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -56,7 +55,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CERTIFICATE_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -82,7 +80,7 @@ public class CertificateController {
     /** This is called by Spring to initialize the WebDataBinder and is used here to
      * initialize the default value binding for the institutionId request-parameter
      * that has the current users insitutionId as default.
-     *
+     * <p>
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {
@@ -121,7 +119,6 @@ public class CertificateController {
      * @return Page of domain-model-entities of specified type */
     @RequestMapping(
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<CertificateInfo> getPage(
             @RequestParam(
@@ -153,7 +150,6 @@ public class CertificateController {
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getNames(
             @RequestParam(
@@ -178,7 +174,6 @@ public class CertificateController {
     @RequestMapping(
             path = API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateInfo getAlias(
             @RequestParam(
@@ -201,12 +196,8 @@ public class CertificateController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestHeader(
-                    name = API.IMPORT_FILE_ATTR_NAME,
-                    required = true) final String fileName,
-            @RequestHeader(
-                    name = API.CERTIFICATE_ALIAS,
-                    required = false) final String alias,
+            @RequestHeader(name = API.IMPORT_FILE_ATTR_NAME, required = true) final String fileName,
+            @RequestHeader(name = API.CERTIFICATE_ALIAS, required = false) final String alias,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final CharSequence password,
             final HttpServletRequest request) {
 

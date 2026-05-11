@@ -26,7 +26,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
@@ -34,7 +33,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.Ping
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientIndicatorFactory {
 
     private static final Logger log = LoggerFactory.getLogger(ClientIndicatorFactory.class);
@@ -79,7 +77,12 @@ public class ClientIndicatorFactory {
                 this.distributedPingCache.createIndicatorForConnection(
                         clientConnection.id,
                         indicatorDef.type,
-                        indicatorDef.type == IndicatorType.LAST_PING ? Utils.getMillisecondsNow() : 0L);
+                        indicatorDef.type == IndicatorType.LAST_PING 
+                                ? Utils.getMillisecondsNow() 
+                                : (indicatorDef.type == IndicatorType.WLAN_STATUS || indicatorDef.type == IndicatorType.BATTERY_STATUS) 
+                                    ? 100L 
+                                    : 0L
+                );
 
                 if (!pingIndicatorAvailable) {
                     pingIndicatorAvailable = indicatorDef.type == IndicatorType.LAST_PING;

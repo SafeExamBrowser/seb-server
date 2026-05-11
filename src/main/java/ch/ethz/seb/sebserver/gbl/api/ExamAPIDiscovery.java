@@ -15,35 +15,16 @@ import java.util.Collections;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-
 /** Data object implementation to generate the SEB Server API discovery JSON. */
-public final class ExamAPIDiscovery {
-
-    @JsonProperty("title")
-    public final String title;
-
-    @JsonProperty("description")
-    public final String description;
-
-    @JsonProperty("server-location")
-    public final String serverLocation;
-
-    @JsonProperty("api-versions")
-    public final Collection<ExamAPIVersion> versions;
+public record ExamAPIDiscovery (
+        @JsonProperty("title") String title,
+        @JsonProperty("description") String description,
+        @JsonProperty("server-location") String serverLocation,
+        @JsonProperty("api-versions") Collection<ExamAPIVersion> versions) {
+    
 
     @JsonCreator
-    public ExamAPIDiscovery(
-            @JsonProperty("title") final String title,
-            @JsonProperty("description") final String description,
-            @JsonProperty("server-location") final String serverLocation,
-            @JsonProperty("api-versions") final Collection<ExamAPIVersion> versions) {
-
-        this.title = title;
-        this.description = description;
-        this.serverLocation = serverLocation;
-        this.versions = versions;
-    }
+    public ExamAPIDiscovery {}
 
     public ExamAPIDiscovery(
             final String title,
@@ -58,100 +39,41 @@ public final class ExamAPIDiscovery {
                 (versions != null) ? Arrays.asList(versions) : Collections.emptyList());
     }
 
-    public String getTitle() {
-        return this.title;
-    }
-
-    public String getDescription() {
-        return this.description;
-    }
-
-    public String getServerLocation() {
-        return this.serverLocation;
-    }
-
-    public Collection<ExamAPIVersion> getVersions() {
-        return this.versions;
-    }
-
-    public static final class ExamAPIVersion {
-
-        @JsonProperty("name")
-        public final String name;
-
-        @JsonProperty("endpoints")
-        public final Collection<Endpoint> endpoints;
+    public record ExamAPIVersion (
+            @JsonProperty("name")  String name,
+            @JsonProperty("endpoints")  Collection<Endpoint> endpoints) {
 
         @JsonCreator
-        public ExamAPIVersion(
-                @JsonProperty("name") final String name,
-                @JsonProperty("endpoints") final Collection<Endpoint> endpoints) {
-
-            this.name = name;
-            this.endpoints = Utils.immutableCollectionOf(endpoints);
-        }
-
-        public ExamAPIVersion(
-                final String name,
-                final Endpoint... endpoints) {
-
-            this.name = name;
-            this.endpoints = (endpoints != null)
-                    ? Utils.immutableCollectionOf(Arrays.asList(endpoints))
-                    : Collections.emptyList();
-        }
-
-        public String getName() {
-            return this.name;
-        }
-
-        public Collection<Endpoint> getEndpoints() {
-            return this.endpoints;
-        }
-
+        public ExamAPIVersion {}
     }
 
-    public static final class Endpoint {
+    public record Endpoint(
+            @JsonProperty("name") String name, 
+            @JsonProperty("description") String description,
+            @JsonProperty("location") String location,
+            @JsonProperty("authorization") String authorization) {
 
-        @JsonProperty("name")
-        public final String name;
-
-        @JsonProperty("description")
-        public final String description;
-
-        @JsonProperty("location")
-        public final String location;
-
-        @JsonProperty("authorization")
-        public final String authorization;
-
-        @JsonCreator
-        public Endpoint(
-                @JsonProperty("name") final String name,
-                @JsonProperty("description") final String description,
-                @JsonProperty("location") final String location,
-                @JsonProperty("authorization") final String authorization) {
-
-            this.name = name;
-            this.description = description;
-            this.location = location;
-            this.authorization = authorization;
+            @JsonCreator
+            public Endpoint {}
+    
+            @Override
+            public String name() {
+                return this.name;
+            }
+    
+            @Override
+            public String description() {
+                return this.description;
+            }
+    
+            @Override
+            public String location() {
+                return this.location;
+            }
+    
+            @Override
+            public String authorization() {
+                return this.authorization;
+            }
         }
-
-        public String getName() {
-            return this.name;
-        }
-
-        public String getDescription() {
-            return this.description;
-        }
-
-        public String getLocation() {
-            return this.location;
-        }
-
-        public String getAuthorization() {
-            return this.authorization;
-        }
-    }
 }

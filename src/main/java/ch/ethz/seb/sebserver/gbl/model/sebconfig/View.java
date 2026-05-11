@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
