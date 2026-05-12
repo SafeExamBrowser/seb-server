@@ -304,7 +304,9 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (931, 'showNavigationButtons', 'CHECKBOX', null, null, null, null, 'false'),
     (932, 'showScanQRCodeButton', 'CHECKBOX', null, null, null, null, 'false'),
     (933, 'startResource', 'TEXT_FIELD', null, null, null, null, ''),
-    
+
+
+
     (1000, 'originatorVersion', 'TEXT_FIELD', null, null, null, null, 'SEB_Server_0.3.0'),
     (1001, 'sebConfigPurpose', 'RADIO_SELECTION', null, '0,1', null, null, '0'),
     
@@ -337,10 +339,85 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1575, 'tabFocusesLinks', 'CHECKBOX', null, null, null, null, 'true'),
     (1576, 'terminateProcesses', 'CHECKBOX', null, null, null, null, 'false'),
     (1577, 'prohibitedProcesses.ignoreInAAC', 'CHECKBOX', 93, null, null, null, 'true'),
-    
-    (1578, 'sebAllowedVersions', 'TEXT_FIELD_LIST', null, null, null, null, null)
-    
+
+    (946, 'enableAAC', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1202, 'browserShowFileSystemElementPath', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+
+    (1578, 'sebAllowedVersions', 'TEXT_FIELD_LIST', null, null, null, null, null),
+    (1580, 'allowUploads', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1581, 'allowDownloads', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1582, 'useTemporaryDownUploadDirectory', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1583, 'systemAlwaysOn', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1584, 'displayAlwaysOn', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1585, 'disableSessionChangeLockScreen', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1590, 'allowPrint', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1591, 'enableFindPrinter', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1595, 'lockScreenBackgroundColor', 'COLOR_SELECTOR', NULL, NULL, NULL, NULL, '#FF0000'),
+    (1600, 'enableCursorVerification', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1601, 'allowStickyKeys', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1602, 'browserWindowWebViewClassicHideDeprecationNote', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1603, 'browserConnectionErrorReload', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1610, 'batteryChargeThresholdCritical', 'DECIMAL', NULL, NULL, 'DecimalTypeValidator', NULL, '0.1'),
+    (1611, 'batteryChargeThresholdLow', 'DECIMAL', NULL, NULL, 'DecimalTypeValidator', NULL, '0.2'),
+    (1620, 'enableSessionVerification', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1621, 'mobileEnableModernAAC', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1630, 'allowOpenAndSavePanel', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1631, 'allowShareSheet', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1632, 'permittedProcesses.allowManualStart', 'CHECKBOX', '73', NULL, NULL, NULL, 'true'),
+    (1633, 'permittedProcesses.allowNetworkAccess', 'CHECKBOX', '73', NULL, NULL, NULL, 'false'),
+    (1634, 'permittedProcesses.teamIdentifier', 'TEXT_FIELD', '73', NULL, NULL, NULL, ''),
+    (1640, 'enableScrollLock', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1650, 'mobileShowEditConfigShortcutItem', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true'),
+    (1651, 'allowUploadsiOS', 'CHECKBOX', NULL, NULL, NULL, NULL, 'false'),
+    (1652, 'downloadFileTypes', 'TABLE', NULL, NULL, NULL, NULL, NULL),
+    (1653, 'downloadFileTypes.associatedAppId', 'TEXT_FIELD', '1652', NULL, NULL, NULL, ''),
+    (1654, 'downloadFileTypes.extension', 'TEXT_FIELD', '1652', NULL, NULL, NULL, ''),
+    (1655, 'downloadFileTypes.os', 'SINGLE_SELECTION', '1652', '0,1,2', NULL, NULL, '0'),
+    (1660, 'accessibilityFeatureVoiceOver', 'SINGLE_SELECTION', NULL, '0,1,2', NULL, NULL, '0'),
+    (1661, 'accessibilityFeatureAssistiveTouch', 'SINGLE_SELECTION', NULL, '0,1,2', NULL, NULL, '0'),
+    (1662, 'accessibilityFeatureGrayscaleDisplay', 'SINGLE_SELECTION', NULL, '0,1,2', NULL, NULL, '0'),
+    (1663, 'accessibilityFeatureInvertColors', 'SINGLE_SELECTION', NULL, '0,1,2', NULL, NULL, '0'),
+    (1664, 'accessibilityFeatureZoom', 'SINGLE_SELECTION', NULL, '0,1,2', NULL, NULL, '0'),
+    (1665, 'showQRVerifyButton', 'CHECKBOX', NULL, NULL, NULL, NULL, 'true')
     ;
+
+INSERT IGNORE INTO configuration_attribute_deprecation VALUES
+    (1, 3),  -- ignoreExitKeys
+    (2, 5),  -- exitKey1
+    (3, 6),  -- exitKey2
+    (4, 7),  -- exitKey3
+    (5, 9),  -- enableTouchExit
+    (6, 23),  -- zoomMode
+    (7, 30),  -- allowSpellCheckDictionary
+    (8, 36),  -- enablePlugIns
+    (9, 38),  -- enableJava
+    (10, 40),  -- allowVideoCapture
+    (11, 41),  -- allowAudioCapture
+    (12, 49),  -- removeLocalStorage
+    (13, 92),  -- allowFlashFullscreen
+    (14, 800),  -- browserMessagingSocket
+    (15, 801),  -- browserMessagingPingTime
+    (16, 805),  -- browserScreenKeyboard
+    (17, 806),  -- newBrowserWindowByScriptPolicy
+    (18, 807),  -- newBrowserWindowByScriptBlockForeign
+    (19, 808),  -- monitorProcesses
+    (20, 809),  -- blacklistURLFilter
+    (21, 810),  -- whitelistURLFilter
+    (22, 903),  -- showSettingsInApp
+    (23, 906),  -- lockOnMessageSocketClose
+    (24, 907),  -- enableDrawingEditor
+    (25, 910),  -- allowUserSwitching
+    (26, 915),  -- browserURLSalt
+    (27, 933),  -- startResource
+    (28, 946),  -- enableAAC
+    (29, 1202),  -- browserShowFileSystemElementPath
+    (30, 1576),  -- terminateProcesses
+    (31, 1583),  -- systemAlwaysOn
+    (32, 1584),  -- displayAlwaysOn
+    (33, 1585),  -- disableSessionChangeLockScreen
+    (34, 1610),  -- batteryChargeThresholdCritical
+    (35, 1611)  -- batteryChargeThresholdLow
+;
     
 INSERT IGNORE INTO orientation VALUES 
     (1, 1, 0, 1, null, 1, 1, 1, 2, 'LEFT'),

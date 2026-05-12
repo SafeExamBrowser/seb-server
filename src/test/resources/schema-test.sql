@@ -306,7 +306,7 @@ DROP TABLE IF EXISTS `configuration_attribute` ;
 
 CREATE TABLE IF NOT EXISTS `configuration_attribute` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
   `type` VARCHAR(45) NOT NULL,
   `parent_id` BIGINT UNSIGNED NULL,
   `resources` VARCHAR(255) NULL,
@@ -874,3 +874,19 @@ CREATE TABLE IF NOT EXISTS `scheduled_delete_info` (
     REFERENCES `scheduled_delete` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
+
+  -- -----------------------------------------------------
+  -- Table `configuration_attribute_deprecation`
+  -- -----------------------------------------------------
+  DROP TABLE IF EXISTS `configuration_attribute_deprecation` ;
+
+  CREATE TABLE IF NOT EXISTS `configuration_attribute_deprecation` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `configuration_attribute_id` BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `configuration_attribute_idRef_idx` (`configuration_attribute_id` ASC),
+    CONSTRAINT `configuration_attribute_idRef`
+      FOREIGN KEY (`configuration_attribute_id`)
+      REFERENCES `configuration_attribute` (`id`)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION);

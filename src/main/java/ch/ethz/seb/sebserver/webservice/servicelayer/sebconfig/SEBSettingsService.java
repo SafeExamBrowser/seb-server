@@ -38,7 +38,7 @@ public interface SEBSettingsService {
         /* Ids of all SEB Setting/Configuration Attributes for the General view */
         VIEW_ATTRIBUTE_MAPPINGS.put(
                 SEBSettingsView.ViewType.GENERAL,
-                Utils.immutableSetOf( Arrays.asList(1L, 2L, 4L, 802L, 920L))
+                Utils.immutableSetOf( Arrays.asList(1L, 2L, 4L, 802L, 920L, 925L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the User Interface view */
@@ -111,7 +111,7 @@ public interface SEBSettingsService {
                         309L,310L,311L,312L,313L,314L,315L,316L,317L,
                         318L,319L,320L,321L,322L,501L,971L,1578L,1551L,
                         1567L,1550L,909L,1552L,948L,1557L,943L,945L,
-                        1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L, 925L))
+                        1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the REGISTRY vew */

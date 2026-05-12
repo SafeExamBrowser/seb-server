@@ -2,7 +2,7 @@ package ch.ethz.seb.sebserver.gbl.api;
 
 import jakarta.annotation.Generated;
 
-@Generated(value="org.mybatis.generator.api.MyBatisGenerator",comments="ch.ethz.seb.sebserver.gen.DomainModelNameReferencePlugin",date="2026-03-02T15:33:13.638+01:00")
+@Generated(value="org.mybatis.generator.api.MyBatisGenerator",comments="ch.ethz.seb.sebserver.gen.DomainModelNameReferencePlugin",date="2026-05-11T14:20:08.023+02:00")
 public enum EntityType {
     CONFIGURATION_ATTRIBUTE,
     CONFIGURATION_VALUE,
@@ -39,5 +39,6 @@ public enum EntityType {
     ENTITY_PRIVILEGE,
     FEATURE_PRIVILEGE,
     SCHEDULED_DELETE,
-    SCHEDULED_DELETE_INFO;
+    SCHEDULED_DELETE_INFO,
+    CONFIGURATION_ATTRIBUTE_DEPRECATION;
 }

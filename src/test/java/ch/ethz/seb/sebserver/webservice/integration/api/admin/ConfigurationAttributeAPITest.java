@@ -88,7 +88,7 @@ public class ConfigurationAttributeAPITest extends AdministrationAPIIntegrationT
 
         assertNotNull(names);
         assertFalse(names.isEmpty());
-        assertEquals("270", String.valueOf(names.size()));
+        assertEquals("307", String.valueOf(names.size()));
 
         this.params.clear();
         this.params.add(ConfigurationAttribute.FILTER_ATTR_TYPE, AttributeType.CHECKBOX.name());
@@ -100,7 +100,7 @@ public class ConfigurationAttributeAPITest extends AdministrationAPIIntegrationT
 
         assertNotNull(names);
         assertFalse(names.isEmpty());
-        assertEquals("161", String.valueOf(names.size()));
+        assertEquals("185", String.valueOf(names.size()));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class ConfigurationAttributeAPITest extends AdministrationAPIIntegrationT
         forIds = this.configurationAttributeController.getForIds(null);
 
         assertNotNull(forIds);
-        assertEquals("270", String.valueOf(forIds.size()));
+        assertEquals("307", String.valueOf(forIds.size()));
     }
 
     @Test
