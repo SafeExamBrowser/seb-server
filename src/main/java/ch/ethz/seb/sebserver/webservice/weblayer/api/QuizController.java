@@ -111,6 +111,7 @@ public class QuizController {
                 examDAO.getImportedQuizUUIDs(filterMap.getLmsSetupId())
                         .getOr(null));
 
+        System.out.println("*********************** quizFromTime: " + filterMap.getQuizFromTime());
 
         return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)

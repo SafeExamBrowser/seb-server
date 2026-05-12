@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -106,9 +107,11 @@ public interface LmsAPIService {
         final DateTime now = DateTime.now(DateTimeZone.UTC);
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
-        
-        if (from != null) {
-            // this is the old way to search with due date 
+        boolean newSearch = filterMap.getBoolean(API.LMS_LOOKUP_NEW_SEARCH);
+
+        if (!newSearch) {
+            // this is the old way to search with due date
+            // TODO remove after Release of 3.0
             return q -> {
 
                 final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && Utils.containsIgnoreCase(q.name, name));

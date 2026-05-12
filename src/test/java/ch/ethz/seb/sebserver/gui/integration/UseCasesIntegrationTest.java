@@ -567,6 +567,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         quizPageCall = restService
                 .getBuilder(GetQuizPage.class)
                 //.withQueryParam(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
+                .withQueryParam(API.LMS_LOOKUP_NEW_SEARCH, "true")
                 .call();
         assertNotNull(quizPageCall);
         assertFalse(quizPageCall.hasError());
@@ -3516,6 +3517,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final QuizData quizData = restService
                 .getBuilder(GetQuizPage.class)
                 .withQueryParam(LmsSetup.FILTER_ATTR_LMS_SETUP, lmsSetup.id.toString())
+                .withQueryParam(API.LMS_LOOKUP_NEW_SEARCH, "true")
                 .call()
                 .map(q -> {
                     System.out.println("************************** q: " + q);

@@ -113,7 +113,17 @@ public class FilterMap extends POSTMapper {
     }
 
     public DateTime getQuizFromTime() {
-        return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
+        DateTime dateTime = Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
+        if (dateTime != null) {
+            return dateTime;
+        }
+
+        Long quizFromTimeMillis = getLong(QuizData.FILTER_ATTR_START_TIME_MILLIS);
+        if (quizFromTimeMillis != null) {
+            return Utils.toDateTimeUTC(quizFromTimeMillis).minusDays(1);
+        }
+
+        return null;
     }
     
     public Long getQuizFromTimeMillis() {
