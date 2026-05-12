@@ -80,34 +80,36 @@ public interface QuizLookupService {
                 return new Page<>(0, 1, pageSize, sortAttribute, Collections.emptyList(), lookupResult.completed);
             }
 
-            int start = (pageNumber - 1) * pageSize;
-            int end = start + pageSize;
+            final int _pageSize = Math.max(pageSize, 5);
+
+            int start = (pageNumber - 1) * _pageSize;
+            int end = start + _pageSize;
             if (end > quizzes.size()) {
                 end = quizzes.size();
             }
             if (start >= end) {
-                start = end - pageSize;
+                start = end - _pageSize;
                 if (start < 0) {
                     start = 0;
                 }
 
                 return new Page<>(
-                        (quizzes.size() <= pageSize) ? 1 : quizzes.size() / pageSize + 1,
-                        start / pageSize + 1,
-                        pageSize,
+                        (quizzes.size() <= _pageSize) ? 1 : quizzes.size() / _pageSize + 1,
+                        start / _pageSize + 1,
+                        _pageSize,
                         sortAttribute,
                         quizzes.subList(start, end));
             }
 
-            final int mod = quizzes.size() % pageSize;
+            final int mod = quizzes.size() % _pageSize;
             return new Page<>(
-                    (quizzes.size() <= pageSize)
+                    (quizzes.size() <= _pageSize)
                             ? 1
                             : (mod > 0)
-                                    ? quizzes.size() / pageSize + 1
-                                    : quizzes.size() / pageSize,
+                                    ? quizzes.size() / _pageSize + 1
+                                    : quizzes.size() / _pageSize,
                     pageNumber,
-                    pageSize,
+                    _pageSize,
                     sortAttribute,
                     quizzes.subList(start, end),
                     lookupResult.completed);

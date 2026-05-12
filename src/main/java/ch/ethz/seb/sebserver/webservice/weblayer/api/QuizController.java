@@ -112,6 +112,8 @@ public class QuizController {
                         .getOr(null));
 
         System.out.println("*********************** quizFromTime: " + filterMap.getQuizFromTime());
+        System.out.println("*********************** pageSize: " + pageSize);
+
 
         return this.lmsAPIService.requestQuizDataPage(
                 (pageNumber != null)
