@@ -188,7 +188,7 @@ jobs:
           name: Package
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v7.0.1
+        uses: docker/build-push-action@v7.1.0
         with:
           context: .
           file: ./docker/Dockerfile
