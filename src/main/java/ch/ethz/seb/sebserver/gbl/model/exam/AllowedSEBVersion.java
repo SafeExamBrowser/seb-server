@@ -25,7 +25,7 @@ public class AllowedSEBVersion {
     public static final String MINIMAL_IDENTIFIER = "min";
     public static final String MINIMAL_IDENTIFIER_FULL = "minimal";
 
-    //public final String wholeVersionString;
+    public final String wholeVersionString;
     public final String osTypeString;
     public final int major;
     public final int minor;
@@ -35,7 +35,7 @@ public class AllowedSEBVersion {
     public final boolean isValidFormat;
 
     public AllowedSEBVersion(final String wholeVersionString) {
-        //this.wholeVersionString = wholeVersionString;
+        this.wholeVersionString = wholeVersionString;
 
         if (StringUtils.isBlank(wholeVersionString)) {
             this.isValidFormat = false;

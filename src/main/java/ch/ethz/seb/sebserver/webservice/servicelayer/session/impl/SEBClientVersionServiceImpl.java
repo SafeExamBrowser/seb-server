@@ -78,9 +78,7 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
 
         return allowedSEBVersions
                 .stream()
-                .filter(v -> v.match(version))
-                .findFirst()
-                .isPresent();
+                .anyMatch(v -> v.match(version));
     }
 
     @Override
@@ -121,8 +119,8 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
             }
 
             final String[] versionSplit = StringUtils.split(clientVersion, Constants.SPACE);
-            final String versioNumber = versionSplit[0];
-            final String[] versionNumberSplit = StringUtils.split(versioNumber, Constants.DOT);
+            final String versionNumber = versionSplit[0];
+            final String[] versionNumberSplit = StringUtils.split(versionNumber, Constants.DOT);
 
             if (versionNumberSplit.length > 3) {
                 log.warn("Invalid SEB version in : {}", clientVersion);
@@ -152,13 +150,13 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
         final char c = clientVersion.charAt(0);
         final String osVersionText = (c >= 'A' && c <= 'Z') ? clientVersion : clientOSName;
         if (StringUtils.isNotBlank(osVersionText)) {
-            if (this.knownWindowsOSTags.stream().filter(osVersionText::contains).findFirst().isPresent()) {
+            if (this.knownWindowsOSTags.stream().anyMatch(osVersionText::contains)) {
                 return AllowedSEBVersion.OS_WINDOWS_IDENTIFIER;
             }
-            if (this.knownMacOSTags.stream().filter(osVersionText::contains).findFirst().isPresent()) {
+            if (this.knownMacOSTags.stream().anyMatch(osVersionText::contains)) {
                 return AllowedSEBVersion.OS_MAC_IDENTIFIER;
             }
-            if (this.knownIOSTags.stream().filter(osVersionText::contains).findFirst().isPresent()) {
+            if (this.knownIOSTags.stream().anyMatch(osVersionText::contains)) {
                 return AllowedSEBVersion.OS_IOS_IDENTIFIER;
             }
         }

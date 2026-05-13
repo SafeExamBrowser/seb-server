@@ -66,7 +66,7 @@ public class UserFeatures {
         MONITORING_FINISHED_EXAMS("monitoring.finished.exams"),
         MONITORING_OVERALL_LOG_EXPORT("monitoring.overall.export"),
 
-
+        SEB_CLIENT_VERSION_RESTRICTION_REDIRECT ( "seb.client.version.restriction.redirect"),
 
         ;
 

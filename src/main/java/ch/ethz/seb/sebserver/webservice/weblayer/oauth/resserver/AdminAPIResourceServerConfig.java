@@ -52,7 +52,8 @@ public class AdminAPIResourceServerConfig {
                                 adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**",
                                 adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**",
                                 adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT,
-                                adminAPIEndpoint + API.REGISTER_ENDPOINT
+                                adminAPIEndpoint + API.REGISTER_ENDPOINT,
+                                adminAPIEndpoint + API.SEB_VERSION_PAGE_ENDPOINT
                         ).permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(AbstractHttpConfigurer::disable)

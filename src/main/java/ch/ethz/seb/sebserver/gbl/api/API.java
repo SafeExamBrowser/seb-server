@@ -87,6 +87,13 @@ public final class API {
 
     public static final String FEATURES_PATH_SEGMENT = "/features";
 
+    public static final String SEB_VERSION_PAGE_ENDPOINT = "/seb-version-info";
+    public static final String SEB_VERSION_SELECTED_EXAM = "selected-exam";
+    public static final String SEB_VERSION_RESTRICTION = "restriction";
+    public static final String SEB_VERSION = "seb-version";
+    public static final String SEB_DOWNLOAD_LINK = "download";
+
+
     public static final String INFO_ENDPOINT = "/info";
     public static final String INFO_PARAM_INST_SUFFIX = "urlSuffix";
     public static final String INFO_INST_PATH_SEGMENT = "/institution";

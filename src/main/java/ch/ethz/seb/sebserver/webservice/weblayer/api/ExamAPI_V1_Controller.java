@@ -14,14 +14,14 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBVersionRestrictionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -60,27 +59,30 @@ public class ExamAPI_V1_Controller {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAPI_V1_Controller.class);
 
-    private final LmsSetupDAO lmsSetupDAO;
     private final ExamSessionService examSessionService;
     private final SEBClientConnectionService sebClientConnectionService;
     private final SEBClientSessionService sebClientSessionService;
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final Executor executor;
+    private final SEBVersionRestrictionService sebVersionRestrictionService;
+    private final FeatureService featureService;
 
     protected ExamAPI_V1_Controller(
-            final LmsSetupDAO lmsSetupDAO,
             final ExamSessionService examSessionService,
             final SEBClientConnectionService sebClientConnectionService,
             final SEBClientSessionService sebClientSessionService,
             final SEBClientConfigDAO sebClientConfigDAO,
-            @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
+            final SEBVersionRestrictionService sebVersionRestrictionService,
+            @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor,
+            final FeatureService featureService) {
 
-        this.lmsSetupDAO = lmsSetupDAO;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
         this.sebClientSessionService = sebClientSessionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.executor = executor;
+        this.sebVersionRestrictionService = sebVersionRestrictionService;
+        this.featureService = featureService;
     }
 
     @RequestMapping(
@@ -130,16 +132,31 @@ public class ExamAPI_V1_Controller {
                             API.EXAM_API_SEB_CONNECTION_TOKEN,
                             clientConnection.connectionToken);
 
+                    // NOTE: This is fpr PoC: SEBSERV-918 ------------------------------------------------
+                    // -----------------------------------------------------------------------------------
+                    if (featureService.isEnabledByConfig(UserFeatures.Feature.SEB_CLIENT_VERSION_RESTRICTION_REDIRECT)) {
+
+                        Collection<RunningExamInfo> runningExamInfos = sebVersionRestrictionService.checkSEBRestriction(
+                                clientConnection,
+                                principal);
+
+                        if (runningExamInfos != null && !runningExamInfos.isEmpty()) {
+                            processASKSalt(response, clientConnection);
+                            processAlternativeBEK(response, clientConnection.examId);
+                            return runningExamInfos;
+                        }
+                    }
+
                     // Crate list of running exams
                     final List<RunningExamInfo> result;
                     if (examId == null) {
 
                         result = this.examSessionService.getRunningExams(
                                     institutionId,
-                                    getExamSelectionPredicate(principal.getName()))
+                                    sebClientConfigDAO.getExamSelectionPredicate(principal.getName()))
                                 .getOrThrow()
                                 .stream()
-                                .map(this::createRunningExamInfo)
+                                .map(sebVersionRestrictionService::getGrantedRunningExamInfo)
                                 .filter(this::checkConsistency)
                                 .collect(Collectors.toList());
                     } else {
@@ -149,7 +166,7 @@ public class ExamAPI_V1_Controller {
                                 .byPK(examId)
                                 .getOrThrow();
 
-                        result = List.of(createRunningExamInfo(exam));
+                        result = List.of(sebVersionRestrictionService.getGrantedRunningExamInfo(exam));
                         processASKSalt(response, clientConnection);
                         processAlternativeBEK(response, clientConnection.examId);
                     }
@@ -363,13 +380,7 @@ public class ExamAPI_V1_Controller {
                 .getOrThrow().institutionId;
     }
 
-    private RunningExamInfo createRunningExamInfo(final Exam exam) {
-        return new RunningExamInfo(
-                exam,
-                this.lmsSetupDAO.byPK(exam.lmsSetupId)
-                        .map(lms -> lms.lmsType)
-                        .getOr(null));
-    }
+
 
     private String getClientAddress(final HttpServletRequest request) {
         try {
@@ -409,20 +420,7 @@ public class ExamAPI_V1_Controller {
                 .onSuccess(bek -> response.setHeader(API.EXAM_API_EXAM_ALT_BEK, bek));
     }
 
-    private Predicate<Long> getExamSelectionPredicate(final String clientName) {
-        return this.sebClientConfigDAO
-                .byClientName(clientName)
-                .map(this::getExamSelectionPredicate)
-                .onError(error -> log.warn("Failed to get SEB connection configuration by name: {}", clientName))
-                .getOr(Utils.truePredicate());
-    }
 
-    private Predicate<Long> getExamSelectionPredicate(final SEBClientConfig config) {
-        if (config == null || config.selectedExams.isEmpty()) {
-            return Utils.truePredicate();
-        }
-        return config.getSelectedExams()::contains;
-    }
 
     private boolean checkConsistency(final RunningExamInfo info) {
         if (StringUtils.isNotBlank(info.name) &&

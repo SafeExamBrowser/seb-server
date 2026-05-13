@@ -11,7 +11,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
+
+import java.util.function.Predicate;
 
 /** Concrete EntityDAO interface of SEBClientConfig entities */
 public interface SEBClientConfigDAO extends
@@ -46,5 +49,19 @@ public interface SEBClientConfigDAO extends
      * @param clientName the client name
      * @return encrypted configuration password */
     Result<CharSequence> getConfigPasswordCipherByClientName(String clientName);
+
+    default Predicate<Long> getExamSelectionPredicate(final String clientName) {
+        return byClientName(clientName)
+                .map(this::getExamSelectionPredicate)
+                .onError(error -> log.warn("Failed to get SEB connection configuration by name: {}", clientName))
+                .getOr(Utils.truePredicate());
+    }
+
+    default Predicate<Long> getExamSelectionPredicate(final SEBClientConfig config) {
+        if (config == null || config.selectedExams.isEmpty()) {
+            return Utils.truePredicate();
+        }
+        return config.getSelectedExams()::contains;
+    }
 
 }
