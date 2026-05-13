@@ -132,6 +132,7 @@ public class ExamAPI_V1_Controller {
                             API.EXAM_API_SEB_CONNECTION_TOKEN,
                             clientConnection.connectionToken);
 
+                    // -----------------------------------------------------------------------------------
                     // NOTE: This is fpr PoC: SEBSERV-918 ------------------------------------------------
                     // -----------------------------------------------------------------------------------
                     if (featureService.isEnabledByConfig(UserFeatures.Feature.SEB_CLIENT_VERSION_RESTRICTION_REDIRECT)) {

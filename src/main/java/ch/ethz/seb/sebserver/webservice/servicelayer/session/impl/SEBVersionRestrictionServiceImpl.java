@@ -68,6 +68,10 @@ public class SEBVersionRestrictionServiceImpl implements SEBVersionRestrictionSe
             final String sebVersion = cc.sebVersion;
             final String sebOSName = cc.sebOSName;
 
+            if (log.isDebugEnabled()) {
+                log.info("Apply SEB Version Check if needed. SEB sent: sebVersion: {}, sebOSName: {}", sebVersion, sebOSName);
+            }
+
             if (cc.examId == null) {
 
                 return examSessionService
@@ -105,6 +109,11 @@ public class SEBVersionRestrictionServiceImpl implements SEBVersionRestrictionSe
 
         if (exam.allowedSEBVersions == null || exam.allowedSEBVersions.isEmpty()) {
             // no version restriction for this exam
+
+            if (log.isDebugEnabled()) {
+                log.info("No SEB version restriction configured for Exam: {}", exam.externalId);
+            }
+
             if (examSelected) {
                 return null;
             } else {
@@ -149,6 +158,9 @@ public class SEBVersionRestrictionServiceImpl implements SEBVersionRestrictionSe
             final ClientConnection cc,
             final String allowedSEBVersions,
             final boolean examSelected) {
+
+
+        log.info("SEB Version Restriction Applied for {} on Exam: {}", cc, exam.externalId);
 
         if (examSelected) {
             // If exam has been selected we can store the check for this connection as not granted
