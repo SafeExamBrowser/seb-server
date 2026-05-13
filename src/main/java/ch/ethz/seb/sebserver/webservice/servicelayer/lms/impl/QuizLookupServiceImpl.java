@@ -176,8 +176,6 @@ public class QuizLookupServiceImpl implements QuizLookupService {
             final FilterMap filterMap,
             final Function<String, Result<LmsAPITemplate>> lmsAPITemplateSupplier) {
 
-        System.out.println("*********************** fetch quizzes with quizFromTime: " + filterMap.getQuizFromTime());
-
         try {
             final Long institutionId = filterMap.getInstitutionId();
             Long userInstitutionId = institutionId;
