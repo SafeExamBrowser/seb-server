@@ -25,7 +25,7 @@ public class SEBVersionRestrictionServiceImpl implements SEBVersionRestrictionSe
 
     private static final Logger log = LoggerFactory.getLogger(SEBVersionRestrictionServiceImpl.class);
 
-    private final static String REDIRECT_URL_TEMPLATE = "%s/admin-api/v1/seb-version-info?selected-exam=%s&seb-version=%s&restriction=%s&download=https://www.safeexambrowser.org/download_en.html";
+    private final static String REDIRECT_URL_TEMPLATE = "%s/admin-api/v1/seb-version-info?selected-exam=%s&seb-version=%s&restriction=%s";
 
 
     private final SEBClientVersionService sebClientVersionService;

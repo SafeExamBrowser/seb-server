@@ -3,6 +3,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,15 +21,34 @@ public class SEBVersionController {
             path = API.SEB_VERSION_PAGE_ENDPOINT,
             method = RequestMethod.GET,
             produces = MediaType.TEXT_HTML_VALUE)
-    public String sebVersionInfoPage(
-            @RequestParam(name = API.SEB_VERSION_SELECTED_EXAM, required = true) final String examName,
-            @RequestParam(name = API.SEB_VERSION, required = true) final String currentSEBVersion,
-            @RequestParam(name = API.SEB_VERSION_RESTRICTION, required = true) final String restriction,
-            @RequestParam(name = API.SEB_DOWNLOAD_LINK, required = true) final String download) {
+    public String sebVersionInfoPage(final HttpServletRequest request) {
 
         if (!featureService.isEnabledByConfig(UserFeatures.Feature.SEB_CLIENT_VERSION_RESTRICTION_REDIRECT)) {
             return "";
         }
+
+        String examName = request.getParameter(API.SEB_VERSION_SELECTED_EXAM);
+        String currentSEBVersion = request.getParameter(API.SEB_VERSION);
+        String restriction = request.getParameter(API.SEB_VERSION_RESTRICTION);
+        String download = request.getParameter(API.SEB_DOWNLOAD_LINK);
+
+        if (examName == null) {
+            examName = "--";
+        }
+
+        if (currentSEBVersion == null) {
+            currentSEBVersion = "--";
+        }
+
+        if (restriction == null) {
+            restriction = "--";
+        }
+
+        if (download == null) {
+            download = "https://www.safeexambrowser.org/download_en.html";
+        }
+
+
 
         try {
             return String.format(HTML_PAGE, examName, currentSEBVersion, restriction, download);
