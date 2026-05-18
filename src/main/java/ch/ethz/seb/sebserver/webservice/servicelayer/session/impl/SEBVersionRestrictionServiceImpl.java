@@ -173,12 +173,12 @@ public class SEBVersionRestrictionServiceImpl implements SEBVersionRestrictionSe
 
         final String examName = exam != null ? String.valueOf(exam.name) : "--";
 
-        final String redirectURL = Utils.encodeFormURL_UTF_8(String.format(
+        final String redirectURL = String.format(
                 REDIRECT_URL_TEMPLATE,
                 webserviceInfo.getExternalServerURL(),
-                examName,
+                Utils.encodeFormURL_UTF_8(examName),
                 cc.sebVersion != null ? cc.sebVersion : "--",
-                allowedSEBVersions));
+                Utils.encodeFormURL_UTF_8(allowedSEBVersions));
 
 
         return new RunningExamInfo(
