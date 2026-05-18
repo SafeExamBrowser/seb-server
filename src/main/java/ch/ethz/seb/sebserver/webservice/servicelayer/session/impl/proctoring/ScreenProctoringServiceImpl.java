@@ -146,7 +146,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS &&
             StringUtils.isBlank(screenProctoringSettings.sebGroupsSelection)) {
                 fieldChecks.add(APIMessage.fieldValidationError(
-                        "clientSecret",
+                        "spsSEBGroupsSelection",
                         "screenProctoringSettings:spsSEBGroupsSelection:notNull"));
             }
 

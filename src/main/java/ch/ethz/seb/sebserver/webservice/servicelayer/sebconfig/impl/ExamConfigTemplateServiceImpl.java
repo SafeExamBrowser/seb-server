@@ -19,7 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,21 +49,19 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
     private final OrientationDAO orientationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
-    private final ConfigurationNodeDAO configurationNodeDAO;
 
     protected ExamConfigTemplateServiceImpl(
             final ViewDAO viewDAO,
             final ConfigurationDAO configurationDAO,
             final OrientationDAO orientationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
-            final ConfigurationValueDAO configurationValueDAO, ConfigurationNodeDAO configurationNodeDAO) {
+            final ConfigurationValueDAO configurationValueDAO) {
 
         this.viewDAO = viewDAO;
         this.configurationDAO = configurationDAO;
         this.orientationDAO = orientationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
-        this.configurationNodeDAO = configurationNodeDAO;
     }
 
     @Override
@@ -175,7 +172,7 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
             }
 
             this.orientationDAO
-                    .delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
+                    .delete(new HashSet<>(Collections.singletonList(orientation.getEntityKey())))
                     .getOrThrow();
 
             final TemplateAttribute attribute = getAttribute(institutionId, templateId, attributeId)
@@ -208,7 +205,7 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
 
             if (orientation != null) {
                 this.orientationDAO
-                        .delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
+                        .delete(new HashSet<>(Collections.singletonList(orientation.getEntityKey())))
                         .getOrThrow();
             }
 

@@ -148,6 +148,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
+                        .flatMap(this::applyExamTemplateAdditionalData)
                         .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
@@ -188,6 +189,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
+                        .flatMap(this::applyExamTemplateAdditionalData)
                         .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
@@ -235,6 +237,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
+                        .flatMap(this::applyExamTemplateAdditionalData)
                         .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
@@ -282,6 +285,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         return Result.tryCatch(() -> {
             final ExamTemplate examTemplate = this.examTemplateDAO
                     .byPK(exam.examTemplateId)
+                    .flatMap(this::applyExamTemplateAdditionalData)
                     .onError(error -> log.warn("No exam template found for id: {} error: {}",
                             exam.examTemplateId,
                             error.getMessage()))
