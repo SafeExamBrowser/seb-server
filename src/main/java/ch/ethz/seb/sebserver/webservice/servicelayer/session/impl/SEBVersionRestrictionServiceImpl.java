@@ -4,6 +4,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
@@ -172,12 +173,12 @@ public class SEBVersionRestrictionServiceImpl implements SEBVersionRestrictionSe
 
         final String examName = exam != null ? String.valueOf(exam.name) : "--";
 
-        final String redirectURL = String.format(
+        final String redirectURL = Utils.encodeFormURL_UTF_8(String.format(
                 REDIRECT_URL_TEMPLATE,
                 webserviceInfo.getExternalServerURL(),
                 examName,
                 cc.sebVersion != null ? cc.sebVersion : "--",
-                allowedSEBVersions);
+                allowedSEBVersions));
 
 
         return new RunningExamInfo(
