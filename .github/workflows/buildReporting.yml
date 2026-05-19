@@ -197,7 +197,7 @@ jobs:
             sebadmin/seb-server:${{ env.TAG_NAME }}
         
   cleanup:
-    needs: [maven-build-reporting, docker-build]
+    needs: [maven-build-reporting, docker-admin-build]
     if: |
       always()
     runs-on: ubuntu-latest
