@@ -231,7 +231,7 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>3.0.3</version>
+            <version>4.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.pagehelper</groupId>
@@ -279,25 +279,8 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
-            <version>3.3.3</version>
-        </dependency>
 
-        <!-- NOTE since org.springframework.security.oauth is not fully migrated 
-      to spring-boot-starter-security we have to declare a separate version here. 
-      This refers to the latest version of spring-security-oauth2 and should be 
-      compatible with the overall version of spring boot SEE: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0.0-M5-Release-Notes#oauth-20-support 
-      TODO: once spring-security-oauth2 is fully migrated we should be able to 
-      remove this dependency -->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.security.oauth</groupId>-->
-<!--            <artifactId>spring-security-oauth2</artifactId>-->
-<!--            <version>2.3.6.RELEASE</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.security</groupId>-->
-<!--            <artifactId>spring-security-jwt</artifactId>-->
-<!--            <version>1.0.9.RELEASE</version>-->
-<!--        </dependency>-->
+        </dependency>
 
         <!-- Springdoc-openapi -->
         <dependency>
@@ -310,7 +293,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <!--            <version>10.17.3</version>-->
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -328,15 +310,9 @@
         </dependency>
 
         <!-- Apache HTTP -->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.httpcomponents</groupId>-->
-<!--            <artifactId>httpclient</artifactId>-->
-<!--            <version>4.5.14</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
-<!--            <version>5.2.3</version>-->
         </dependency>
 
 
@@ -358,6 +334,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
