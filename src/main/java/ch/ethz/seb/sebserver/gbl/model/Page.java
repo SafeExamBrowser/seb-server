@@ -65,14 +65,14 @@ public final class Page<T> {
             @JsonProperty(value = ATTR_PAGE_SIZE, required = true) final int pageSize,
             @JsonProperty(ATTR_SORT) final String sort,
             @JsonProperty(ATTR_CONTENT) final Collection<T> content,
-            @JsonProperty(ATTR_COMPLETE) final boolean complet) {
+            @JsonProperty(ATTR_COMPLETE) final boolean complete) {
 
         this.numberOfPages = numberOfPages;
         this.pageNumber = pageNumber;
         this.content = Utils.immutableListOf(content);
         this.pageSize = pageSize;
         this.sort = sort;
-        this.complete = complet;
+        this.complete = complete;
     }
 
     public Page(

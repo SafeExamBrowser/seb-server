@@ -120,7 +120,7 @@ public class ModelObjectJSONGenerator {
 
         domainObject = new LmsSetupTestResult(
                 LmsType.MOCKUP,
-                Arrays.asList(new LmsSetupTestResult.Error(ErrorType.QUIZ_ACCESS_API_REQUEST, "No Access")),
+                Arrays.asList(new LmsSetupTestResult.LmsSetupError(ErrorType.QUIZ_ACCESS_API_REQUEST, "No Access")),
                 Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of()));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));

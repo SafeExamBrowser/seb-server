@@ -71,7 +71,7 @@ public class LmsTestServiceImpl implements LmsTestService {
         if (_lmsSetupTemplate.hasError()) {
             return new LmsSetupTestResult(
                     lmsSetup.lmsType,
-                    new LmsSetupTestResult.Error(LmsSetupTestResult.ErrorType.TEMPLATE_CREATION,
+                    new LmsSetupTestResult.LmsSetupError(LmsSetupTestResult.ErrorType.TEMPLATE_CREATION,
                             _lmsSetupTemplate.getError().getMessage()));
 
         }
