@@ -366,41 +366,6 @@ public final class Utils {
         return new Pair<>(dayStart, dayEnd);
     }
 
-//    public static String toJsonArray(final String string) {
-//        if (string == null) {
-//            return null;
-//        }
-//
-//        final List<String> asList = Arrays.asList(StringUtils.split(string, Constants.LIST_SEPARATOR_CHAR));
-//        try {
-//            return new ObjectMapper().writeValueAsString(asList);
-//        } catch (final JsonProcessingException e) {
-//            return string;
-//        }
-//    }
-
-//    public static String formatHTMLLines(final String message) {
-//        return (message != null)
-//                ? message.replace("\n", "<br/>")
-//                : null;
-//    }
-//
-//    public static String formatHTMLLinesForceEscaped(final String message) {
-//        return (message != null)
-//                ? message.replace("\n", "<br/>").replace("\\n", "<br/>")
-//                : null;
-//    }
-//
-//    public static String formatLineBreaks(final String text) {
-//        if (text == null) {
-//            return null;
-//        }
-//
-//        return text
-//                .replace("<br/>", "\n")
-//                .replace("<br></br>", "\n");
-//    }
-
     public static String encodeFormURL_UTF_8(final String value) {
         if (StringUtils.isBlank(value)) {
             return value;
