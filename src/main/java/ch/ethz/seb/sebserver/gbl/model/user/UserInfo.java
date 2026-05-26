@@ -31,6 +31,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** The user info domain model contains primary user information
  * <p>
@@ -39,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  * <p>
  * This domain model is immutable and thread-save */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "UserInfo", description = "User account read and update model.")
 public final class UserInfo implements UserAccount, Serializable {
 
 
@@ -54,68 +57,91 @@ public final class UserInfo implements UserAccount, Serializable {
     public static final String FILTER_ATTR_ROLE = "role";
 
     /** The user's UUID */
+    @Schema(description = "User UUID.", example = "f91f9c0a-15a1-4c65-89c2-2b60310f2c12")
     @JsonProperty(USER.ATTR_UUID)
     public final String uuid;
 
     /** The foreign key identifier to the institution where the User belongs to */
+    @Schema(description = "Institution identifier the user belongs to.", example = "1")
     @NotNull(message = "user:institutionId:notNull")
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
+    @Schema(description = "Creation timestamp.", type = "string", format = "date-time", nullable = true)
     @JsonProperty(USER.ATTR_CREATION_DATE)
     public final DateTime creationDate;
 
     /** First name of the user */
+    @Schema(description = "First name of the user.", example = "Ada")
     @NotNull(message = "user:name:notNull")
     @Size(max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
 
     /** Surname of the user */
+    @Schema(description = "Surname of the user.", example = "Lovelace")
     @NotNull(message = "user:surname:notNull")
     @Size(max = 255, message = "user:surname:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_SURNAME)
     public final String surname;
 
     /** The internal user name */
+    @Schema(description = "Login username.", example = "ada.lovelace")
     @NotNull(message = "user:username:notNull")
     @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USERNAME)
     public final String username;
 
     /** E-mail address of the user */
+    @Schema(description = "User email address.", example = "ada@example.org", nullable = true)
     @Email(message = "user:email:email:_:_:${validatedValue}")
     @JsonProperty(USER.ATTR_EMAIL)
     public final String email;
 
     /** Indicates whether this user is still active or not */
+    @Schema(description = "Whether the user account is active.", example = "true")
     @NotNull
     @JsonProperty(USER.ATTR_ACTIVE)
     public final Boolean active;
 
+    @Schema(description = "Whether direct login is enabled for this account.", example = "true")
     @JsonProperty(USER.ATTR_DIRECT_LOGIN)
     public final Boolean directLogin;
 
+    @Schema(description = "Whether this is a local SEB Server account.", example = "true")
     @JsonProperty(USER.ATTR_LOCAL_ACCOUNT)
     public final Boolean localAccount;
 
 
     /** The users locale */
+    @Schema(description = "User locale.", type = "string", example = "en")
     @NotNull(message = "user:language:notNull")
     @JsonProperty(USER.ATTR_LANGUAGE)
     public final Locale language;
 
     /** The users time zone */
+    @Schema(description = "User time zone.", type = "string", example = "Europe/Zurich")
     @NotNull(message = "user:timeZone:notNull")
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;
 
     /** The users roles in a unmodifiable set. Is never null */
+    @ArraySchema(
+            arraySchema = @Schema(description = "Assigned user roles."),
+            schema = @Schema(
+                    type = "string",
+                    allowableValues = {
+                            "SEB_SERVER_ADMIN",
+                            "INSTITUTIONAL_ADMIN",
+                            "EXAM_ADMIN",
+                            "EXAM_SUPPORTER",
+                            "TEACHER" }))
     @NotNull(message = "user:userRoles:notNull")
     @NotEmpty(message = "user:userRoles:notNull")
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
+    @Schema(description = "Entity-level privileges assigned to the user.")
     @JsonProperty(ATTR_ENTITY_PRIVILEGES)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public final Collection<EntityPrivilege> entityPrivileges;

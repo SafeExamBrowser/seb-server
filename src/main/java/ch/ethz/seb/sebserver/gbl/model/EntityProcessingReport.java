@@ -21,12 +21,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Data class that represents a entity processing report JSON of the SEB Server API.
  * This report is many used on bulk-action and defines the entity-keys of processing, entity-keys of all entities that
  * has dependencies to the given processing entities and a list of error entries that describes
  * errors if happened. */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "EntityProcessingReport", description = "Result report for delete, activate, and deactivate bulk actions.")
 public class EntityProcessingReport {
 
     public static final String ATTR_SOURCE = "source";
@@ -36,15 +38,19 @@ public class EntityProcessingReport {
 
     /** A set of entity-keys that are or were processed by a bulk action- or other process with a EntityProcessingReport
      * result. */
+    @Schema(description = "Entities requested for processing.")
     @JsonProperty(value = ATTR_SOURCE, required = true)
     public final Set<EntityKey> source;
     /** A set of entity-keys for all entities that has been detected as dependency to one or more of the source entities
      * during the process */
+    @Schema(description = "Entities processed or detected as dependencies.")
     @JsonProperty(value = ATTR_RESULTS, required = true)
     public final Set<EntityKey> results;
     /** A set of error entries that defines an error if happened. */
+    @Schema(description = "Per-entity processing errors.")
     @JsonProperty(value = ATTR_ERRORS, required = true)
     public final Set<ErrorEntry> errors;
+    @Schema(description = "Bulk action that produced this report.", example = "HARD_DELETE")
     @JsonProperty(value = ATTR_TYPE, required = true)
     public final BulkActionType bulkActionType;
 
@@ -83,10 +89,13 @@ public class EntityProcessingReport {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @Schema(name = "EntityProcessingErrorEntry", description = "Error entry inside an entity processing report.")
     public static final class ErrorEntry {
 
+        @Schema(description = "Entity that caused the error.", nullable = true)
         @JsonProperty(value = "entity_key", required = false)
         public final EntityKey entityKey;
+        @Schema(description = "Structured API error message.")
         @JsonProperty(value = "error_message", required = true)
         public final APIMessage errorMessage;
 

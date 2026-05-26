@@ -18,10 +18,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** An EntityKey uniquely identifies a domain entity within the SEB Server's domain model.
  * An EntityKey consists of the model identifier of a domain entity and the type of the entity. */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "EntityKey", description = "Unique key of a SEB Server domain entity.")
 public class EntityKey implements ModelIdAware, Serializable, Comparable<EntityKey> {
 
     private static final long serialVersionUID = -2368065921846821061L;
@@ -29,11 +31,13 @@ public class EntityKey implements ModelIdAware, Serializable, Comparable<EntityK
     public static final String ATTR_ENTITY_TYPE = "entityType";
 
     /** The model identifier of the entity */
+    @Schema(description = "Entity model identifier.", example = "f91f9c0a-15a1-4c65-89c2-2b60310f2c12")
     @JsonProperty(value = ATTR_MODEL_ID, required = true)
     @NotNull
     public final String modelId;
 
     /** The type of the entity */
+    @Schema(description = "SEB Server domain entity type.", example = "USER")
     @JsonProperty(value = ATTR_ENTITY_TYPE, required = true)
     @NotNull
     public final EntityType entityType;

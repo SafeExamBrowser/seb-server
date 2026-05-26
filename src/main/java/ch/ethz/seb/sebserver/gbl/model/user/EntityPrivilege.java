@@ -18,22 +18,29 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "EntityPrivilege", description = "Entity-level privilege assigned to a user account.")
 public class EntityPrivilege {
 
+    @Schema(description = "Privilege record identifier.", example = "42")
     @JsonProperty(ENTITY_PRIVILEGE.ATTR_ID)
     public final Long id;
 
+    @Schema(description = "Entity type this privilege applies to.", example = "EXAM")
     @JsonProperty(ENTITY_PRIVILEGE.ATTR_ENTITY_TYPE)
     public final EntityType entityType;
 
+    @Schema(description = "Entity identifier this privilege applies to.", example = "120")
     @JsonProperty(ENTITY_PRIVILEGE.ATTR_ENTITY_ID)
     public final Long entityId;
 
+    @Schema(description = "User UUID that owns this privilege.", example = "f91f9c0a-15a1-4c65-89c2-2b60310f2c12")
     @JsonProperty(ENTITY_PRIVILEGE.ATTR_USER_UUID)
     public final String userUUID;
 
+    @Schema(description = "Assigned privilege type.", example = "READ")
     @JsonProperty(ENTITY_PRIVILEGE.ATTR_PRIVILEGE_TYPE)
     public final PrivilegeType privilegeType;
 

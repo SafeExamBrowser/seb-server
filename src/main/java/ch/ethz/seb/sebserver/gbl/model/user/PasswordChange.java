@@ -19,26 +19,32 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(name = "PasswordChange", description = "Request model for changing a user account password.")
 public class PasswordChange implements Entity {
 
     public static final String ATTR_NAME_PASSWORD = "password";
     public static final String ATTR_NAME_NEW_PASSWORD = "newPassword";
     public static final String ATTR_NAME_CONFIRM_NEW_PASSWORD = "confirmNewPassword";
 
+    @Schema(description = "User UUID whose password is changed.", example = "f91f9c0a-15a1-4c65-89c2-2b60310f2c12")
     @NotNull
     @JsonProperty(USER.ATTR_UUID)
     public final String userId;
 
+    @Schema(description = "Current password.", type = "string", format = "password")
     @NotEmpty(message = "user:password:notNull")
     @JsonProperty(ATTR_NAME_PASSWORD)
     private final CharSequence password;
 
+    @Schema(description = "New password.", type = "string", format = "password", minLength = 8, maxLength = 255)
     @NotEmpty(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final CharSequence newPassword;
 
+    @Schema(description = "Repeated new password.", type = "string", format = "password")
     @NotEmpty(message = "user:confirmNewPassword:notNull")
     @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD)
     private final CharSequence confirmNewPassword;
