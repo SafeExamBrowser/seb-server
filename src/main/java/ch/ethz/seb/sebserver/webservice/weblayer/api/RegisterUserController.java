@@ -43,7 +43,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 import io.github.bucket4j.local.LocalBucket;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -99,18 +98,6 @@ public class RegisterUserController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserInfo.class))),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Registration is disabled or validation failed.",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = APIMessage.class)))),
-            @ApiResponse(
-                    responseCode = "429",
-                    description = "Registration rate limit exceeded.",
-                    content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string", allowableValues = { "INCOMMING", "REGISTRATION" })))
     })
     @RequestMapping(
             method = RequestMethod.POST,

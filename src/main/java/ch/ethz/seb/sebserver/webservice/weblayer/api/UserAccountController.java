@@ -161,13 +161,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             summary = "Record current user logout",
             description = "Attempts to revoke the current bearer token and records a logout activity.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Logout activity recorded."),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Authentication is missing or invalid.",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = APIMessage.class))))
+            @ApiResponse(responseCode = "200", description = "Logout activity recorded.")
     })
     @RequestMapping(path = API.LOGOUT_PATH_SEGMENT, method = RequestMethod.POST)
     public void logout(@Parameter(hidden = true) final HttpServletRequest request) {
@@ -256,13 +250,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     description = "Active supporter user names.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = EntityName.class)))),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "The current user has no read grant for user accounts in this institution.",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = APIMessage.class))))
+                            array = @ArraySchema(schema = @Schema(implementation = EntityName.class))))
     })
     @RequestMapping(
             path = API.USER_ACCOUNT_ENDPOINT_SUPPORTER,
@@ -306,19 +294,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                     description = "User account after password change.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserInfo.class))),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Validation failed or passwords do not match.",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = APIMessage.class)))),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "The current user has no modify grant for this user account.",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = APIMessage.class))))
+                            schema = @Schema(implementation = UserInfo.class)))
     })
     @RequestMapping(
             path = API.PASSWORD_PATH_SEGMENT,
