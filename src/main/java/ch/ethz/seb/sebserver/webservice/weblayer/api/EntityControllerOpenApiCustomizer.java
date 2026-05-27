@@ -32,6 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
 
+/** Fixes OpenAPI docs for generic {@link EntityController} endpoints without overriding every concrete controller.
+ * I use this so codegen sees the real create model pair, for example UserMod -> UserInfo, instead of MultiValueMap -> T. */
 @Configuration
 public class EntityControllerOpenApiCustomizer {
 
@@ -41,10 +43,14 @@ public class EntityControllerOpenApiCustomizer {
 
     private final ApplicationContext applicationContext;
 
+    /** Keeps the Spring context so I can find all concrete entity controllers later.
+     * That matters because some schemas need to be added globally, not only while one operation is being customized. */
     public EntityControllerOpenApiCustomizer(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
+    /** Patches the inherited {@code EntityController#create} operation when Springdoc is building one endpoint.
+     * This is where the vague generic create docs get replaced with the concrete create and response models. */
     @Bean
     public OperationCustomizer entityControllerCreateOperationCustomizer() {
         return (operation, handlerMethod) -> {
@@ -63,6 +69,8 @@ public class EntityControllerOpenApiCustomizer {
         };
     }
 
+    /** Adds the concrete entity schemas to the OpenAPI components section.
+     * This makes sure the references created by the operation customizer point to schemas that actually exist. */
     @Bean
     public OpenApiCustomizer entityControllerSchemaOpenApiCustomizer() {
         return openApi -> {
@@ -81,16 +89,22 @@ public class EntityControllerOpenApiCustomizer {
         };
     }
 
+    /** Checks that this is exactly the inherited generic create method.
+     * I only want to patch that method, not normal create methods that a controller documents itself. */
     private static boolean isInheritedEntityCreate(final String methodName, final Class<?> declaringClass) {
         return CREATE_METHOD_NAME.equals(methodName) && EntityController.class.equals(declaringClass);
     }
 
+    /** Checks whether a Spring bean is a real entity controller that can expose inherited endpoints.
+     * Abstract base classes are skipped because they are not actual API resources. */
     private static boolean isConcreteEntityController(final Class<?> beanType) {
         return beanType != null &&
                 EntityController.class.isAssignableFrom(ClassUtils.getUserClass(beanType)) &&
                 !Modifier.isAbstract(ClassUtils.getUserClass(beanType).getModifiers());
     }
 
+    /** Resolves the {@code T} and {@code M} from {@code EntityController<T, M>} for one concrete controller.
+     * For UserAccountController, this is the step that turns the generic types into UserInfo and UserMod. */
     private static Optional<EntityControllerTypes> resolveEntityControllerTypes(final Class<?> controllerType) {
         final ResolvableType entityControllerType = ResolvableType.forClass(EntityController.class, controllerType);
         final Class<?> responseType = entityControllerType.getGeneric(0).resolve();
@@ -103,6 +117,8 @@ public class EntityControllerOpenApiCustomizer {
         return Optional.of(new EntityControllerTypes(responseType, createType));
     }
 
+    /** Rewrites the OpenAPI operation for a generic create endpoint.
+     * It sets a useful operationId, replaces the request body with the create model, and fixes the 200 response model. */
     private static void customizeCreateOperation(
             final Operation operation,
             final Class<?> controllerType,
@@ -120,6 +136,8 @@ public class EntityControllerOpenApiCustomizer {
         addSuccessResponse(operation, types.responseType, "Created " + humanName + ".");
     }
 
+    /** Removes the old fake {@code formParams} parameter from the generated docs.
+     * The real input is now documented as the concrete create model in the request body. */
     private static void removeFormParamsParameter(final Operation operation) {
         if (operation.getParameters() == null) {
             return;
@@ -128,10 +146,14 @@ public class EntityControllerOpenApiCustomizer {
         operation.getParameters().removeIf(EntityControllerOpenApiCustomizer::isFormParamsParameter);
     }
 
+    /** Checks whether a generated OpenAPI parameter is the generic form map placeholder.
+     * That placeholder is useful to the backend implementation, but not useful to generated frontend clients. */
     private static boolean isFormParamsParameter(final Parameter parameter) {
         return parameter != null && FORM_PARAMS_PARAMETER.equals(parameter.getName());
     }
 
+    /** Builds the form-urlencoded request body for the concrete create model.
+     * The schema is a reference so Orval can generate a named TypeScript type instead of an inline object. */
     private static RequestBody formRequestBody(final Class<?> createType) {
         return new RequestBody()
                 .required(true)
@@ -140,6 +162,8 @@ public class EntityControllerOpenApiCustomizer {
                         new MediaType().schema(refSchema(createType))));
     }
 
+    /** Adds or replaces the 200 response for the create operation.
+     * This keeps the response type tied to {@code T}, which is the normal entity info model returned by the backend. */
     private static void addSuccessResponse(
             final Operation operation,
             final Class<?> responseType,
@@ -164,10 +188,14 @@ public class EntityControllerOpenApiCustomizer {
                         new MediaType().schema(refSchema(responseType))));
     }
 
+    /** Creates a component schema reference for a Java model class.
+     * This keeps operation bodies small and points clients to the shared schema definition. */
     private static Schema<?> refSchema(final Class<?> modelType) {
         return new Schema<>().$ref("#/components/schemas/" + schemaName(modelType));
     }
 
+    /** Finds the schema name Swagger uses for a model class.
+     * Usually this is just the Java simple name, but the fallback handles cases where Swagger picks another generated name. */
     private static String schemaName(final Class<?> modelType) {
         final Map<String, Schema> schemas = ModelConverters.getInstance().readAll(modelType);
         if (schemas.containsKey(modelType.getSimpleName())) {
@@ -180,6 +208,8 @@ public class EntityControllerOpenApiCustomizer {
         return modelType.getSimpleName();
     }
 
+    /** Gets or creates the OpenAPI components object.
+     * The customizer needs this because schemas live under components, not directly on operations. */
     private static Components components(final OpenAPI openApi) {
         if (openApi.getComponents() == null) {
             openApi.setComponents(new Components());
@@ -188,6 +218,8 @@ public class EntityControllerOpenApiCustomizer {
         return openApi.getComponents();
     }
 
+    /** Registers all Swagger schemas needed for a model class if they are missing.
+     * This includes nested schemas Swagger discovers while reading the model. */
     private static void addSchemas(final Components components, final Class<?> modelType) {
         final Map<String, Schema> schemas = ModelConverters.getInstance().readAll(modelType);
         schemas.forEach((name, schema) -> {
@@ -197,6 +229,8 @@ public class EntityControllerOpenApiCustomizer {
         });
     }
 
+    /** Turns a controller class name into the resource name used in the operation id.
+     * For example, UserAccountController becomes UserAccount, so the generated operation id is createUserAccount. */
     private static String resourceName(final Class<?> controllerType) {
         final String simpleName = controllerType.getSimpleName();
         if (simpleName.endsWith(CONTROLLER_SUFFIX)) {
@@ -206,15 +240,21 @@ public class EntityControllerOpenApiCustomizer {
         return simpleName;
     }
 
+    /** Turns a Java-style name into readable OpenAPI text.
+     * This is only for summaries/descriptions, not for stable ids used by codegen. */
     private static String humanize(final String name) {
         return name.replaceAll("(?<!^)([A-Z])", " $1").toLowerCase(Locale.ROOT);
     }
 
+    /** Small holder for the two generic model types resolved from EntityController.
+     * Keeping them together makes the operation customization code easier to read. */
     private static final class EntityControllerTypes {
 
         private final Class<?> responseType;
         private final Class<?> createType;
 
+        /** Stores the response model and create model for one concrete controller.
+         * For UserAccountController, that means UserInfo and UserMod. */
         private EntityControllerTypes(final Class<?> responseType, final Class<?> createType) {
             this.responseType = responseType;
             this.createType = createType;
