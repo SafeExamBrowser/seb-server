@@ -62,7 +62,7 @@ public interface SEBSettingsService {
                         53L,54L,55L,56L,57L,58L,960L,961L,
                         919L,928L,904L,1564L,1590L,1568L,1558L,
                         1559L,1560L,1561L,1562L,905L,1569L,
-                        1570L,1563L,1602L,1603L, 37L, 39L, 1575L))
+                        1570L,1563L,1602L,1603L, 37L, 39L, 1575L, 917L, 918L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the DOWN_UPLOAD view */
@@ -113,7 +113,7 @@ public interface SEBSettingsService {
                         318L,319L,320L,321L,322L,501L,971L,1578L,1551L,
                         1567L,1550L,909L,1552L,948L,1557L,943L,945L,
                         1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L,
-                        1553L, 1554L, 1555L, 1556L, 1571L))
+                        1553L, 1554L, 1555L, 1556L, 1571L, 911L, 912L, 913L, 914L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the REGISTRY vew */
