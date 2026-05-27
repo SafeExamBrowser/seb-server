@@ -158,7 +158,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                     final LmsType lmsType = this.entityDAO.byPK(modelId).get().lmsType;
                     return new LmsSetupTestResult(
                             lmsType,
-                            new LmsSetupTestResult.Error(ErrorType.TEMPLATE_CREATION, error.getMessage()));
+                            new LmsSetupTestResult.LmsSetupError(ErrorType.TEMPLATE_CREATION, error.getMessage()));
                 })
                 .get();
 

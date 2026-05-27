@@ -117,7 +117,7 @@ public interface LmsAPIService {
                 final boolean nameFilter = StringUtils.isBlank(name) || (q.name != null && Utils.containsIgnoreCase(q.name, name));
                 final boolean startTimeFilter = q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from));
                 final DateTime endTime = now.isAfter(from) ? now : from;
-                final boolean fromTimeFilter = q.endTime == null || endTime.isBefore(q.endTime);
+                final boolean fromTimeFilter = endTime == null || q.endTime == null || endTime.isBefore(q.endTime);
 
                 // SEBSERV-632
                 boolean imported = false;

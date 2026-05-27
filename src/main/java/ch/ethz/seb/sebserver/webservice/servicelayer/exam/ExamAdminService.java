@@ -9,10 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import org.apache.commons.lang3.BooleanUtils;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
+
+import java.util.Collection;
+import java.util.function.Predicate;
 
 public interface ExamAdminService {
 
@@ -36,6 +40,15 @@ public interface ExamAdminService {
             Long examId,
             Boolean enabled,
             Integer numThreshold);
+
+    /** Gets all finished Exams for a particular FilterMap.
+     *
+     * @param filterMap the FilterMap containing the filter attributes
+     * @param predicate additional filter predicate
+     * @return Result referencing the list of all currently finished Exams or to an error if happened. */
+    Result<Collection<Exam>> getFilteredFinishedExams(
+            FilterMap filterMap,
+            Predicate<Exam> predicate);
 
     /** Indicates whether a specific exam is being restricted with SEB restriction feature on the LMS or not.
      *

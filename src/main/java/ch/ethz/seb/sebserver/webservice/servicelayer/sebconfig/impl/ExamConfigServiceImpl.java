@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,6 +49,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncrypti
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
+import org.springframework.util.DigestUtils;
 
 @Lazy
 @Service
@@ -306,7 +306,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                     configurationNodeId,
                     configId);
 
-            final String configKey = DigestUtils.sha256Hex(pin);
+            final String configKey = DigestUtils.md5DigestAsHex(pin);
 
             return Result.of(configKey);
 

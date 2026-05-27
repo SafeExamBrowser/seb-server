@@ -238,7 +238,12 @@ public class ExamMonitoringController {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
 
-        final Collection<Exam> exams = this.examSessionService
+        // add users time zone for Exam start time search
+        filterMap.putIfAbsent(
+                FilterMap.ATTR_USER_TIME_ZONE,
+                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
+
+        final Collection<Exam> exams = this.examAdminService
                 .getFilteredFinishedExams(
                         filterMap,
                         exam -> this.hasRunningExamPrivilege(exam, institutionId))

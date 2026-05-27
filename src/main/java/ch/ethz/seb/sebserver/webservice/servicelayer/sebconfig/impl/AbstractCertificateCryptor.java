@@ -17,7 +17,6 @@ import java.util.Enumeration;
 
 import javax.crypto.Cipher;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +26,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateServ
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
+import org.springframework.util.DigestUtils;
 
 public abstract class AbstractCertificateCryptor {
 
@@ -88,7 +88,7 @@ public abstract class AbstractCertificateCryptor {
             final org.bouncycastle.asn1.x509.Certificate bcCert =
                     org.bouncycastle.asn1.x509.Certificate.getInstance(cert.getEncoded());
             final byte[] bytes = bcCert.getSubjectPublicKeyInfo().getPublicKeyData().getBytes();
-            return DigestUtils.sha1(bytes);
+            return DigestUtils.md5Digest(bytes);
         } catch (final Exception e) {
             throw new RuntimeException("Failed to generate public key hash:" + e.getMessage(), e);
         }

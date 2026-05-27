@@ -40,14 +40,14 @@ public final class LmsSetupTestResult {
     @JsonProperty(Domain.LMS_SETUP.ATTR_LMS_TYPE)
     public final LmsSetup.LmsType lmsType;
     @JsonProperty(ATTR_ERRORS)
-    public final Collection<Error> errors;
+    public final Collection<LmsSetupError> errors;
     @JsonProperty(ATTR_MISSING_ATTRIBUTE)
     public final Collection<APIMessage> missingLMSSetupAttribute;
 
     @JsonCreator
     public LmsSetupTestResult(
             @JsonProperty(Domain.LMS_SETUP.ATTR_LMS_TYPE) final LmsSetup.LmsType lmsType,
-            @JsonProperty(ATTR_ERRORS) final Collection<Error> errors,
+            @JsonProperty(ATTR_ERRORS) final Collection<LmsSetupError> errors,
             @JsonProperty(ATTR_MISSING_ATTRIBUTE) final Collection<APIMessage> missingLMSSetupAttribute) {
 
         this.lmsType = lmsType;
@@ -61,7 +61,7 @@ public final class LmsSetupTestResult {
                 Collections.emptyList());
     }
 
-    public LmsSetupTestResult(final LmsSetup.LmsType lmsType, final Error error) {
+    public LmsSetupTestResult(final LmsSetup.LmsType lmsType, final LmsSetupError error) {
         this(lmsType,
                 Utils.immutableCollectionOf(Arrays.asList(error)),
                 Collections.emptyList());
@@ -69,7 +69,7 @@ public final class LmsSetupTestResult {
 
     protected LmsSetupTestResult(
             final LmsSetup.LmsType lmsType,
-            final Error error,
+            final LmsSetupError error,
             final Collection<APIMessage> missingLMSSetupAttribute) {
         this(lmsType,
                 Utils.immutableCollectionOf(Arrays.asList(error)),
@@ -113,37 +113,37 @@ public final class LmsSetupTestResult {
     }
 
     public static LmsSetupTestResult ofAPINotSupported(final LmsSetup.LmsType lmsType) {
-        return new LmsSetupTestResult(lmsType, new Error(ErrorType.TOKEN_REQUEST, "Not Supported"));
+        return new LmsSetupTestResult(lmsType, new LmsSetupError(ErrorType.TOKEN_REQUEST, "Not Supported"));
     }
 
     public static LmsSetupTestResult ofMissingAttributes(
             final LmsSetup.LmsType lmsType,
             final Collection<APIMessage> attrs) {
-        return new LmsSetupTestResult(lmsType, new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"), attrs);
+        return new LmsSetupTestResult(lmsType, new LmsSetupError(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"), attrs);
     }
 
     public static LmsSetupTestResult ofMissingAttributes(final LmsSetup.LmsType lmsType, final APIMessage... attrs) {
-        return new LmsSetupTestResult(lmsType, new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"),
+        return new LmsSetupTestResult(lmsType, new LmsSetupError(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"),
                 Arrays.asList(attrs));
     }
 
     public static LmsSetupTestResult ofTokenRequestError(final LmsSetup.LmsType lmsType, final String message) {
-        return new LmsSetupTestResult(lmsType, new Error(ErrorType.TOKEN_REQUEST, message));
+        return new LmsSetupTestResult(lmsType, new LmsSetupError(ErrorType.TOKEN_REQUEST, message));
     }
 
     public static LmsSetupTestResult ofQuizAccessAPIError(final LmsSetup.LmsType lmsType, final String message) {
-        return new LmsSetupTestResult(lmsType, new Error(ErrorType.QUIZ_ACCESS_API_REQUEST, message));
+        return new LmsSetupTestResult(lmsType, new LmsSetupError(ErrorType.QUIZ_ACCESS_API_REQUEST, message));
     }
 
     public static LmsSetupTestResult ofQuizRestrictionAPIError(final LmsSetup.LmsType lmsType, final String message) {
-        return new LmsSetupTestResult(lmsType, new Error(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
+        return new LmsSetupTestResult(lmsType, new LmsSetupError(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
     }
 
     public static LmsSetupTestResult ofFullIntegrationAPIError(final LmsSetup.LmsType lmsType, final String message) {
-        return new LmsSetupTestResult(lmsType, new Error(ErrorType.APPLY_FULL_INTEGRATION, message));
+        return new LmsSetupTestResult(lmsType, new LmsSetupError(ErrorType.APPLY_FULL_INTEGRATION, message));
     }
 
-    public final static class Error {
+    public final static class LmsSetupError {
 
         @JsonProperty(ATTR_ERROR_TYPE)
         public final ErrorType errorType;
@@ -151,7 +151,7 @@ public final class LmsSetupTestResult {
         public final String message;
 
         @JsonCreator
-        public Error(
+        public LmsSetupError(
                 @JsonProperty(ATTR_ERROR_TYPE) final ErrorType errorType,
                 @JsonProperty(ATTR_ERROR_MESSAGE) final String message) {
 

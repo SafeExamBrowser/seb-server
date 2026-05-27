@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
@@ -34,6 +36,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValue
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
+
+import java.util.Collection;
+import java.util.function.Predicate;
 
 @Lazy
 @Service
@@ -111,6 +116,21 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
         }).flatMap(v -> this.examDAO.byPK(examId));
     }
+
+    @Override
+    public Result<Collection<Exam>> getFilteredFinishedExams(
+            final FilterMap filterMap,
+            final Predicate<Exam> predicate) {
+
+        filterMap.putIfAbsent(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
+
+        return this.examDAO.getExamsForStatus(
+                filterMap,
+                predicate,
+                ExamStatus.FINISHED,
+                ExamStatus.ARCHIVED);
+    }
+
 
     @Override
     public Result<Boolean> isRestricted(final Exam exam) {

@@ -493,7 +493,7 @@ public class ExamRecordDAO {
                 // if there is already an existing imported exam for the quiz, this is
                 // used to save instead of create a new one
                 if (records != null && !records.isEmpty()) {
-                    final ExamRecord examRecord = records.get(0);
+                    final ExamRecord examRecord = records.getFirst();
                     // if the same institution tries to import an exam that already exists throw an error
                     if (exam.institutionId.equals(examRecord.getInstitutionId())) {
                         throw new DuplicateResourceException(EntityType.EXAM, exam.externalId);
@@ -714,7 +714,7 @@ public class ExamRecordDAO {
                 return null;
             }
 
-            final ExamRecord examRecord = records.get(0);
+            final ExamRecord examRecord = records.getFirst();
             if (examRecord.getFollowupId() == null) {
                 return null;
             }
@@ -754,7 +754,7 @@ public class ExamRecordDAO {
                     .selectByExample()
                     .where(institutionId, isEqualToWhenPresent(exam.institutionId))
                     .and(active, isNotEqualTo(0))
-                    .and(id, isNotInWhenPresent(exclude.isEmpty() ? null : exclude))
+                    .and(id, isNotInWhenPresent(exclude))
                     .and(status, isNotIn(ExamStatus.ARCHIVED.name(), ExamStatus.FINISHED.name()))
                     .and(quizStartTime,
                             isGreaterThanOrEqualTo(Utils.toDateTimeUTC(userDaySpanMillis.a)),

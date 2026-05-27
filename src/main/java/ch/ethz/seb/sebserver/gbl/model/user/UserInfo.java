@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -139,6 +140,7 @@ public final class UserInfo implements UserAccount, Serializable {
     @NotNull(message = "user:userRoles:notNull")
     @NotEmpty(message = "user:userRoles:notNull")
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
+    @Schema(anyOf = UserRole.class)
     public final Set<String> roles;
 
     @Schema(description = "Entity-level privileges assigned to the user.")

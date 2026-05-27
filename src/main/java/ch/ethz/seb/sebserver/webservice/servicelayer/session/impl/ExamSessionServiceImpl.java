@@ -286,20 +286,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Collection<Exam>> getFilteredFinishedExams(
-            final FilterMap filterMap,
-            final Predicate<Exam> predicate) {
-
-        filterMap.putIfAbsent(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
-
-        return this.examDAO.getExamsForStatus(
-                filterMap,
-                predicate,
-                ExamStatus.FINISHED,
-                ExamStatus.ARCHIVED);
-    }
-
-    @Override
     public void streamDefaultExamConfig(
             final Long institutionId,
             final String connectionToken,
