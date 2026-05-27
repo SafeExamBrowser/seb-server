@@ -243,7 +243,7 @@ public class ExamMonitoringController {
                 FilterMap.ATTR_USER_TIME_ZONE,
                 authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
 
-        final Collection<Exam> exams = this.examSessionService
+        final Collection<Exam> exams = this.examAdminService
                 .getFilteredFinishedExams(
                         filterMap,
                         exam -> this.hasRunningExamPrivilege(exam, institutionId))
