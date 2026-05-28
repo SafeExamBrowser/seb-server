@@ -58,7 +58,11 @@ public final class UserInfo implements UserAccount, Serializable {
     public static final String FILTER_ATTR_ROLE = "role";
 
     /** The user's UUID */
-    @Schema(description = "User UUID.", example = "f91f9c0a-15a1-4c65-89c2-2b60310f2c12")
+    @Schema(
+            description = "User UUID.",
+            example = "f91f9c0a-15a1-4c65-89c2-2b60310f2c12",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "user:uuid:notNull")
     @JsonProperty(USER.ATTR_UUID)
     public final String uuid;
 
