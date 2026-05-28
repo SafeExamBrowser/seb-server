@@ -38,7 +38,7 @@ public interface SEBSettingsService {
         /* Ids of all SEB Setting/Configuration Attributes for the General view */
         VIEW_ATTRIBUTE_MAPPINGS.put(
                 SEBSettingsView.ViewType.GENERAL,
-                Utils.immutableSetOf( Arrays.asList(1L, 2L, 4L, 802L, 920L, 925L))
+                Utils.immutableSetOf( Arrays.asList(1L, 2L, 4L, 802L, 920L, 925L, 1650L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the User Interface view */
@@ -49,7 +49,8 @@ public interface SEBSettingsService {
                         19L, 20L, 21L, 22L, 24L, 25L, 26L, 27L,
                         28L, 29L, 804L, 812L, 951L, 952L, 953L,
                         950L, 974L, 975L, 1595L, 1660L, 1661L,
-                        1662L, 1663L, 1664L, 1665L, 17L, 902L, 926L, 927L))
+                        1662L, 1663L, 1664L, 1665L, 17L, 902L, 926L, 927L,
+                        931L, 932L, 1565L, 1566L, 1572L, 1573L, 1640L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the BROWSER view */
@@ -61,7 +62,7 @@ public interface SEBSettingsService {
                         53L,54L,55L,56L,57L,58L,960L,961L,
                         919L,928L,904L,1564L,1590L,1568L,1558L,
                         1559L,1560L,1561L,1562L,905L,1569L,
-                        1570L,1563L,1602L,1603L, 37L, 39L))
+                        1570L,1563L,1602L,1603L, 37L, 39L, 1575L, 917L, 918L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the DOWN_UPLOAD view */
@@ -78,7 +79,7 @@ public interface SEBSettingsService {
                 SEBSettingsView.ViewType.EXAM,
                 Utils.immutableSetOf( Arrays.asList(8L,
                         67L,68L,69L,70L,71L,72L,900L,
-                        901L,942L,940L,941L,973L))
+                        901L,942L,940L,941L,973L, 1574L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the Application view */
@@ -88,7 +89,7 @@ public interface SEBSettingsService {
                         73L, 74L, 75L, 76L, 77L, 78L, 79L, 81L, 82L, 85L,
                         86L, 87L, 88L, 89L, 90L, 91L, 93L, 94L, 95L,
                         96L, 97L, 98L, 99L, 100L, 1200L, 1577L, 1630L,
-                        1631L, 1632L, 1633L, 1634L))
+                        1631L, 1632L, 1633L, 1634L, 944L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the Network vew */
@@ -111,7 +112,8 @@ public interface SEBSettingsService {
                         309L,310L,311L,312L,313L,314L,315L,316L,317L,
                         318L,319L,320L,321L,322L,501L,971L,1578L,1551L,
                         1567L,1550L,909L,1552L,948L,1557L,943L,945L,
-                        1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L))
+                        1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L,
+                        1553L, 1554L, 1555L, 1556L, 1571L, 911L, 912L, 913L, 914L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the REGISTRY vew */
