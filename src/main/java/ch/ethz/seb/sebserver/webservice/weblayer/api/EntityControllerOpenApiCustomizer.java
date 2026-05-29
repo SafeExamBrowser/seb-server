@@ -9,10 +9,14 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
@@ -38,9 +42,23 @@ import org.springframework.util.ClassUtils;
 public class EntityControllerOpenApiCustomizer {
 
     private static final String CREATE_METHOD_NAME = "create";
+    private static final String GET_PAGE_METHOD_NAME = "getPage";
     private static final String FORM_PARAMS_PARAMETER = "formParams";
     private static final String FILTER_CRITERIA_PARAMETER = "filterCriteria";
     private static final String CONTROLLER_SUFFIX = "Controller";
+    private static final String QUERY_PARAMETER_LOCATION = "query";
+    private static final String STRING_SCHEMA_TYPE = "string";
+    private static final String BOOLEAN_SCHEMA_TYPE = "boolean";
+
+    private static final Map<Class<?>, List<EntityFilterParameter>> ENTITY_FILTER_PARAMETERS = Map.of(
+            UserInfo.class, List.of(
+                    stringFilter(Entity.FILTER_ATTR_NAME, "Filters user accounts by first or full name."),
+                    stringFilter(UserInfo.FILTER_ATTR_SURNAME, "Filters user accounts by surname."),
+                    stringFilter(UserInfo.FILTER_ATTR_USER_NAME, "Filters user accounts by login username."),
+                    stringFilter(UserInfo.FILTER_ATTR_EMAIL, "Filters user accounts by email address."),
+                    stringFilter(UserInfo.FILTER_ATTR_LANGUAGE, "Filters user accounts by language."),
+                    stringFilter(UserInfo.FILTER_ATTR_ROLE, "Filters user accounts by role."),
+                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters user accounts by active state.")));
 
     private final ApplicationContext applicationContext;
 
@@ -94,8 +112,56 @@ public class EntityControllerOpenApiCustomizer {
                 operation.setOperationId(operationId);
             }
             removeGenericFilterParameter(operation);
+            addEntityFilterParameters(operation, methodName, controllerType);
             return operation;
         };
+    }
+
+    /** Adds explicit flat query parameters for the generic {@code getPage} filter map.
+     * The backend still receives a MultiValueMap, but generated clients see typed domain filters. */
+    private static void addEntityFilterParameters(
+            final Operation operation,
+            final String methodName,
+            final Class<?> controllerType) {
+
+        if (!GET_PAGE_METHOD_NAME.equals(methodName)) {
+            return;
+        }
+
+        resolveEntityControllerTypes(controllerType)
+                .map(types -> ENTITY_FILTER_PARAMETERS.get(types.responseType))
+                .ifPresent(filterParameters -> filterParameters.forEach(parameter ->
+                        addQueryParameter(operation, parameter)));
+    }
+
+    /** Adds one query parameter if Springdoc has not already put a parameter with the same name on the operation. */
+    private static void addQueryParameter(final Operation operation, final EntityFilterParameter filterParameter) {
+        if (operation.getParameters() == null) {
+            operation.setParameters(new ArrayList<>());
+        }
+
+        final boolean alreadyDocumented = operation
+                .getParameters()
+                .stream()
+                .anyMatch(parameter -> parameter != null && filterParameter.name.equals(parameter.getName()));
+        if (alreadyDocumented) {
+            return;
+        }
+
+        operation.addParametersItem(new Parameter()
+                .name(filterParameter.name)
+                .in(QUERY_PARAMETER_LOCATION)
+                .required(false)
+                .description(filterParameter.description)
+                .schema(new Schema<>().type(filterParameter.schemaType)));
+    }
+
+    private static EntityFilterParameter stringFilter(final String name, final String description) {
+        return new EntityFilterParameter(name, STRING_SCHEMA_TYPE, description);
+    }
+
+    private static EntityFilterParameter booleanFilter(final String name, final String description) {
+        return new EntityFilterParameter(name, BOOLEAN_SCHEMA_TYPE, description);
     }
 
     /** Drops the generic {@code filterCriteria} {@link org.springframework.util.MultiValueMap} parameter that Springdoc
@@ -327,6 +393,24 @@ public class EntityControllerOpenApiCustomizer {
         private EntityControllerTypes(final Class<?> responseType, final Class<?> createType) {
             this.responseType = responseType;
             this.createType = createType;
+        }
+    }
+
+    /** OpenAPI-only metadata for one flat entity filter query parameter. */
+    private static final class EntityFilterParameter {
+
+        private final String name;
+        private final String schemaType;
+        private final String description;
+
+        private EntityFilterParameter(
+                final String name,
+                final String schemaType,
+                final String description) {
+
+            this.name = name;
+            this.schemaType = schemaType;
+            this.description = description;
         }
     }
 }
