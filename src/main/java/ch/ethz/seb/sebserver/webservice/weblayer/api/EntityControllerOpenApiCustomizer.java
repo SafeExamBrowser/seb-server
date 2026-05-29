@@ -39,6 +39,7 @@ public class EntityControllerOpenApiCustomizer {
 
     private static final String CREATE_METHOD_NAME = "create";
     private static final String FORM_PARAMS_PARAMETER = "formParams";
+    private static final String FILTER_CRITERIA_PARAMETER = "filterCriteria";
     private static final String CONTROLLER_SUFFIX = "Controller";
 
     private final ApplicationContext applicationContext;
@@ -66,6 +67,74 @@ public class EntityControllerOpenApiCustomizer {
 
             customizeCreateOperation(operation, controllerType, types.get());
             return operation;
+        };
+    }
+
+    /** Sets stable {@code operationId}s on the other inherited {@link EntityController} and
+     * {@link ActivatableEntityController} endpoints. Without this Springdoc emits collision-suffixed names like
+     * {@code getPage_1} or {@code hardDelete_1} which propagate into every generated client identifier. */
+    @Bean
+    public OperationCustomizer entityControllerInheritedOperationIdCustomizer() {
+        return (operation, handlerMethod) -> {
+            final Class<?> declaringClass = handlerMethod.getMethod().getDeclaringClass();
+            if (!isGenericEntityBase(declaringClass)) {
+                return operation;
+            }
+
+            final String methodName = handlerMethod.getMethod().getName();
+            // 'create' has its own customizer above that does more than rename it.
+            if (CREATE_METHOD_NAME.equals(methodName)) {
+                return operation;
+            }
+
+            final Class<?> controllerType = ClassUtils.getUserClass(handlerMethod.getBeanType());
+            final String resourceName = resourceName(controllerType);
+            final String operationId = inheritedOperationId(methodName, resourceName);
+            if (operationId != null) {
+                operation.setOperationId(operationId);
+            }
+            removeGenericFilterParameter(operation);
+            return operation;
+        };
+    }
+
+    /** Drops the generic {@code filterCriteria} {@link org.springframework.util.MultiValueMap} parameter that Springdoc
+     * generates for inherited list endpoints. Callers can still pass per-domain filters as flat query parameters at runtime;
+     * removing it here keeps the generated client signatures focused on documented params. */
+    private static void removeGenericFilterParameter(final Operation operation) {
+        if (operation.getParameters() == null) {
+            return;
+        }
+
+        operation.getParameters().removeIf(
+                parameter -> parameter != null && FILTER_CRITERIA_PARAMETER.equals(parameter.getName()));
+    }
+
+    /** Whether a method was declared on one of the generic entity base controllers (i.e. not on a concrete subclass).
+     * Only inherited methods need an explicit operationId — methods documented on the concrete controller already have one. */
+    private static boolean isGenericEntityBase(final Class<?> declaringClass) {
+        return EntityController.class.equals(declaringClass)
+                || ActivatableEntityController.class.equals(declaringClass);
+    }
+
+    /** Maps an inherited generic method name to a domain-named operationId.
+     * For example, {@code getPage} on a UserAccount controller becomes {@code getUserAccounts}. */
+    private static String inheritedOperationId(final String methodName, final String resourceName) {
+        return switch (methodName) {
+            case "getPage" -> "get" + resourceName + "s";
+            case "getBy" -> "get" + resourceName + "ById";
+            case "savePut" -> "edit" + resourceName;
+            case "hardDelete" -> "delete" + resourceName;
+            case "hardDeleteAll" -> "deleteAll" + resourceName + "s";
+            case "forceHardDelete" -> "forceDelete" + resourceName;
+            case "getDependencies" -> "get" + resourceName + "Dependencies";
+            case "getNames" -> "get" + resourceName + "Names";
+            case "getForIds" -> "get" + resourceName + "sByIds";
+            case "allActive" -> "getActive" + resourceName + "s";
+            case "allInactive" -> "getInactive" + resourceName + "s";
+            case "activate" -> "activate" + resourceName;
+            case "deactivate" -> "deactivate" + resourceName;
+            default -> null;
         };
     }
 
