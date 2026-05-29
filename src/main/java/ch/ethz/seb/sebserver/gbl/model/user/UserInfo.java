@@ -97,7 +97,7 @@ public final class UserInfo implements UserAccount, Serializable {
     public final String username;
 
     /** E-mail address of the user */
-    @Schema(description = "User email address.", example = "ada@example.org", nullable = true)
+    @Schema(description = "User email address.", format = "email", example = "ada@example.org", nullable = true)
     @Email(message = "user:email:email:_:_:${validatedValue}")
     @JsonProperty(USER.ATTR_EMAIL)
     public final String email;

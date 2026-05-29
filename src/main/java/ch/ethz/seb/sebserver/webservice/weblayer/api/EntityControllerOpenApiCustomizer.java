@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -21,9 +22,11 @@ import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
@@ -47,8 +50,7 @@ public class EntityControllerOpenApiCustomizer {
     private static final String FILTER_CRITERIA_PARAMETER = "filterCriteria";
     private static final String CONTROLLER_SUFFIX = "Controller";
     private static final String QUERY_PARAMETER_LOCATION = "query";
-    private static final String STRING_SCHEMA_TYPE = "string";
-    private static final String BOOLEAN_SCHEMA_TYPE = "boolean";
+    private static final String SPRINGDOC_COLLISION_SUFFIX_PATTERN = "_\\d+$";
 
     private static final Map<Class<?>, List<EntityFilterParameter>> ENTITY_FILTER_PARAMETERS = Map.of(
             UserInfo.class, List.of(
@@ -95,13 +97,13 @@ public class EntityControllerOpenApiCustomizer {
     public OperationCustomizer entityControllerInheritedOperationIdCustomizer() {
         return (operation, handlerMethod) -> {
             final Class<?> declaringClass = handlerMethod.getMethod().getDeclaringClass();
-            if (!isGenericEntityBase(declaringClass)) {
+            final String methodName = handlerMethod.getMethod().getName();
+            if (!needsDomainOperationId(operation, methodName, declaringClass)) {
                 return operation;
             }
 
-            final String methodName = handlerMethod.getMethod().getName();
             // 'create' has its own customizer above that does more than rename it.
-            if (CREATE_METHOD_NAME.equals(methodName)) {
+            if (isInheritedEntityCreate(methodName, declaringClass)) {
                 return operation;
             }
 
@@ -153,15 +155,15 @@ public class EntityControllerOpenApiCustomizer {
                 .in(QUERY_PARAMETER_LOCATION)
                 .required(false)
                 .description(filterParameter.description)
-                .schema(new Schema<>().type(filterParameter.schemaType)));
+                .schema(filterParameter.schema()));
     }
 
     private static EntityFilterParameter stringFilter(final String name, final String description) {
-        return new EntityFilterParameter(name, STRING_SCHEMA_TYPE, description);
+        return new EntityFilterParameter(name, StringSchema::new, description);
     }
 
     private static EntityFilterParameter booleanFilter(final String name, final String description) {
-        return new EntityFilterParameter(name, BOOLEAN_SCHEMA_TYPE, description);
+        return new EntityFilterParameter(name, BooleanSchema::new, description);
     }
 
     /** Drops the generic {@code filterCriteria} {@link org.springframework.util.MultiValueMap} parameter that Springdoc
@@ -180,7 +182,48 @@ public class EntityControllerOpenApiCustomizer {
      * Only inherited methods need an explicit operationId — methods documented on the concrete controller already have one. */
     private static boolean isGenericEntityBase(final Class<?> declaringClass) {
         return EntityController.class.equals(declaringClass)
-                || ActivatableEntityController.class.equals(declaringClass);
+                || ActivatableEntityController.class.equals(declaringClass)
+                || ReadonlyEntityController.class.equals(declaringClass);
+    }
+
+    /** Identifies endpoints where Springdoc fell back to method names such as {@code getPage} or {@code getPage_1}.
+     * Those names are technically valid OpenAPI, but they generate useless SDK method names. */
+    private static boolean needsDomainOperationId(
+            final Operation operation,
+            final String methodName,
+            final Class<?> declaringClass) {
+
+        return isGenericEntityBase(declaringClass)
+                || isGenericOperationId(operation.getOperationId(), methodName);
+    }
+
+    private static boolean isGenericOperationId(final String operationId, final String methodName) {
+        if (operationId == null) {
+            return false;
+        }
+
+        final String normalizedOperationId = operationId.replaceFirst(SPRINGDOC_COLLISION_SUFFIX_PATTERN, "");
+        return methodName.equals(normalizedOperationId) && isMappedOperationMethod(methodName);
+    }
+
+    private static boolean isMappedOperationMethod(final String methodName) {
+        return switch (methodName) {
+            case "getPage",
+                 "getBy",
+                 "savePut",
+                 "hardDelete",
+                 "hardDeleteAll",
+                 "forceHardDelete",
+                 "getDependencies",
+                 "getNames",
+                 "getForIds",
+                 "allActive",
+                 "allInactive",
+                 "activate",
+                 "deactivate",
+                 "create" -> true;
+            default -> false;
+        };
     }
 
     /** Maps an inherited generic method name to a domain-named operationId.
@@ -188,6 +231,7 @@ public class EntityControllerOpenApiCustomizer {
     private static String inheritedOperationId(final String methodName, final String resourceName) {
         return switch (methodName) {
             case "getPage" -> "get" + resourceName + "s";
+            case "create" -> "create" + resourceName;
             case "getBy" -> "get" + resourceName + "ById";
             case "savePut" -> "edit" + resourceName;
             case "hardDelete" -> "delete" + resourceName;
@@ -227,7 +271,9 @@ public class EntityControllerOpenApiCustomizer {
     /** Checks that this is exactly the inherited generic create method.
      * I only want to patch that method, not normal create methods that a controller documents itself. */
     private static boolean isInheritedEntityCreate(final String methodName, final Class<?> declaringClass) {
-        return CREATE_METHOD_NAME.equals(methodName) && EntityController.class.equals(declaringClass);
+        return CREATE_METHOD_NAME.equals(methodName)
+                && (EntityController.class.equals(declaringClass)
+                        || ReadonlyEntityController.class.equals(declaringClass));
     }
 
     /** Checks whether a Spring bean is a real entity controller that can expose inherited endpoints.
@@ -400,17 +446,21 @@ public class EntityControllerOpenApiCustomizer {
     private static final class EntityFilterParameter {
 
         private final String name;
-        private final String schemaType;
+        private final Supplier<Schema<?>> schemaFactory;
         private final String description;
 
         private EntityFilterParameter(
                 final String name,
-                final String schemaType,
+                final Supplier<Schema<?>> schemaFactory,
                 final String description) {
 
             this.name = name;
-            this.schemaType = schemaType;
+            this.schemaFactory = schemaFactory;
             this.description = description;
+        }
+
+        private Schema<?> schema() {
+            return this.schemaFactory.get();
         }
     }
 }
