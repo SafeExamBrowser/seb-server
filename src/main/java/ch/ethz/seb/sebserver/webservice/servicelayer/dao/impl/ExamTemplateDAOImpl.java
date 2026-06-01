@@ -170,15 +170,41 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                                             ExamTemplateRecordDynamicSqlSupport.institutionId,
                                             isEqualToWhenPresent(filterMap.getInstitutionId()));
 
+            // Exam Type filter, also multiple selection allowed
             // NOTE "UNDEFINED" must find both, "UNDEFINED" and NULL entries
             String exam_type = filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE);
-            if (exam_type != null) {
-                if (Objects.equals(exam_type, ExamType.UNDEFINED.name())) {
-                    whereClause = whereClause.and(ExamTemplateRecordDynamicSqlSupport.examType, isEqualTo(exam_type), or(ExamTemplateRecordDynamicSqlSupport.examType, isNull()));
+            if (StringUtils.isNotBlank(exam_type)) {
+                if (exam_type.contains(Constants.LIST_SEPARATOR)) {
+                    final List<String> examTypes = Arrays.asList(StringUtils.split(exam_type, Constants.LIST_SEPARATOR));
+                    if (examTypes.contains(ExamType.UNDEFINED.name())) {
+                        whereClause = whereClause
+                                .and(
+                                        ExamTemplateRecordDynamicSqlSupport.examType,
+                                        isIn(examTypes),
+                                        or(ExamTemplateRecordDynamicSqlSupport.examType, isNull()));
+                    } else {
+                        whereClause = whereClause
+                                .and(
+                                        ExamTemplateRecordDynamicSqlSupport.examType,
+                                        isIn(examTypes));
+                    }
+
                 } else {
-                    whereClause = whereClause.and(ExamTemplateRecordDynamicSqlSupport.examType, isEqualTo(exam_type));
+                    if (Objects.equals(exam_type, ExamType.UNDEFINED.name())) {
+                        whereClause = whereClause
+                                .and(
+                                        ExamTemplateRecordDynamicSqlSupport.examType,
+                                        isEqualTo(exam_type),
+                                        or(ExamTemplateRecordDynamicSqlSupport.examType, isNull()));
+                    } else {
+                        whereClause = whereClause
+                                .and(
+                                        ExamTemplateRecordDynamicSqlSupport.examType,
+                                        isEqualTo(exam_type));
+                    }
                 }
             }
+
 
             return whereClause
                     .and(

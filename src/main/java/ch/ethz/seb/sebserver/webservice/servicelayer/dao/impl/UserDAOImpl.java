@@ -179,6 +179,8 @@ public class UserDAOImpl implements UserDAO {
                 _predicate = predicate;
             }
 
+            // If institution is available, join with institution table
+            // otherwise no join
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>>.QueryExpressionWhereBuilder sqlWhereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.userRecordMapper
