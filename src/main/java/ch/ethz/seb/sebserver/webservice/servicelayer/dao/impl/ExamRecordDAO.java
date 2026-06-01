@@ -162,6 +162,7 @@ public class ExamRecordDAO {
 
             // If we have a sort on institution name, join the institution table
             // If we have a sort on lms setup name, join lms setup table
+            // otherwise no join
             QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>>.QueryExpressionWhereBuilder whereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.examRecordMapper
@@ -188,17 +189,33 @@ public class ExamRecordDAO {
                                                     ExamRecordDynamicSqlSupport.active,
                                                     isEqualToWhenPresent(filterMap.getActiveAsInt()));
 
+            // Institution and LMS filter, no multiple OR/IN currently implemented
             whereClause = whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.institutionId,
                             isEqualToWhenPresent(filterMap.getInstitutionId()))
                     .and(
                             ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualToWhenPresent(filterMap.getLmsSetupId()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.type,
-                            isEqualToWhenPresent(filterMap.getExamType()));
+                            isEqualToWhenPresent(filterMap.getLmsSetupId()));
 
+            // Exam Types (OR/IN when multiple)
+            String examType = filterMap.getExamType();
+            if (StringUtils.isNotBlank(examType)) {
+                if (examType.contains(Constants.LIST_SEPARATOR)) {
+                    final List<String> examTypes = Arrays.asList(StringUtils.split(examType, Constants.LIST_SEPARATOR));
+                    whereClause = whereClause
+                            .and(
+                                    ExamRecordDynamicSqlSupport.type,
+                                    isIn(examTypes));
+                } else {
+                    whereClause = whereClause
+                            .and(
+                                    ExamRecordDynamicSqlSupport.type,
+                                    isEqualToWhenPresent(examType));
+                }
+            }
+
+            // Supporter like clause when supporterUUID is available
             final String supporterUUID = filterMap.getSQLWildcard(FilterMap.ATTR_SUPPORTER_USER_ID);
             if (StringUtils.isNotBlank(supporterUUID)) {
                 whereClause = whereClause.and(
@@ -206,13 +223,14 @@ public class ExamRecordDAO {
                         SqlBuilder.isLike(supporterUUID));
             }
 
-            // SEBSERV-298
+            // SEBSERV-298 hide missing Exams when flag is set
             if (filterMap.getBoolean(Exam.FILTER_ATTR_HIDE_MISSING)) {
                 whereClause = whereClause.and(
                         ExamRecordDynamicSqlSupport.lmsAvailable,
                         SqlBuilder.isGreaterThan(0));
             }
 
+            // Exam Status filter, multiple OR/IN possible
             final String examStatus = filterMap.getExamStatus();
             if (StringUtils.isNotBlank(examStatus)) {
                 if (examStatus.contains(Constants.LIST_SEPARATOR)) {
@@ -240,9 +258,9 @@ public class ExamRecordDAO {
                                 isNotEqualTo(ExamStatus.ARCHIVED.name()));
             }
 
+            // Start time clause... when FILTER_ATTR_START_TIME_MILLIS is available restrict search on user day span
+            //                      otherwise search for Exams with start time greater than given date/time
             final Long startTime = filterMap.getLong(Exam.FILTER_ATTR_START_TIME_MILLIS);
-            
-            // if start timestamp is available use user day span search for quiz start time
             if (startTime != null) {
                 final DateTimeZone userTimeZone = filterMap.getUserTimeZone();
                 final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(startTime, userTimeZone);
@@ -255,7 +273,6 @@ public class ExamRecordDAO {
                                             quizStartTime, 
                                             isLessThanOrEqualTo(Utils.toDateTimeUTC(userDaySpanMillis.b))));
                 }
-            // if old exam from time filter is available apply old search
             } else if (filterMap.getExamFromTime() != null) {
                 whereClause = whereClause
                         .and(
@@ -264,6 +281,7 @@ public class ExamRecordDAO {
                                 or(ExamRecordDynamicSqlSupport.quizEndTime, isNull()));
             }
 
+            // Exam name filter
             final String nameCriteria = filterMap.contains(QuizData.FILTER_ATTR_NAME)
                     ? filterMap.getSQLWildcard(QuizData.FILTER_ATTR_NAME)
                     : filterMap.getSQLWildcard(Domain.EXAM.ATTR_QUIZ_NAME);
