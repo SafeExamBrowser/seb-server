@@ -33,18 +33,18 @@ public class PasswordChange implements Entity {
     @JsonProperty(USER.ATTR_UUID)
     public final String userId;
 
-    @Schema(description = "Current password.", type = "string", format = "password")
+    @Schema(description = "Current password.", type = "string", format = "password", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "user:password:notNull")
     @JsonProperty(ATTR_NAME_PASSWORD)
     private final CharSequence password;
 
-    @Schema(description = "New password.", type = "string", format = "password", minLength = 8, maxLength = 255)
+    @Schema(description = "New password.", type = "string", format = "password", minLength = 8, maxLength = 255, requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(ATTR_NAME_NEW_PASSWORD)
     private final CharSequence newPassword;
 
-    @Schema(description = "Repeated new password.", type = "string", format = "password")
+    @Schema(description = "Repeated new password.", type = "string", format = "password", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "user:confirmNewPassword:notNull")
     @JsonProperty(ATTR_NAME_CONFIRM_NEW_PASSWORD)
     private final CharSequence confirmNewPassword;

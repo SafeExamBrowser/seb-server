@@ -55,6 +55,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
@@ -388,7 +389,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     @Parameter(
                             name = API.PARAM_INSTITUTION_ID,
                             description = "The institution identifier of the request.\n"
-                                    + "Default is the institution identifier of the institution of the current user"),
+                                    + "Default is the institution identifier of the institution of the current user",
+                            schema = @Schema(type = "integer", format = "int64")),
             })
     @RequestMapping(
             method = RequestMethod.POST,
