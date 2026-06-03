@@ -350,7 +350,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     public Result<Exam> archiveExam(final Exam exam) {
         return Result.tryCatch(() -> {
 
-            if (exam.status != ExamStatus.FINISHED) {
+            if (exam.status == ExamStatus.UP_COMING || exam.status == ExamStatus.TEST_RUN) {
                 throw new APIMessageException(
                         APIMessage.ErrorMessage.INTEGRITY_VALIDATION.of("Exam is in wrong status to archive."));
             }

@@ -3969,37 +3969,4 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals(ExamStatus.ARCHIVED, exam2.status);
     }
 
-    @Test
-    @Order(31)
-    // *************************************
-    // Use Case 31: Login as admin and archive finished exam
-    // - Get Exam (running), archive and check not possible
-    public void testUsecase31_TestArchiveRunningExam_NotPossible() throws IOException {
-        final RestServiceImpl restService = createRestServiceForUser(
-                "admin",
-                "admin",
-                new GetExamPage(),
-                new GetExam(),
-                new ArchiveExam());
-
-        final Page<Exam> finishedExams = restService
-                .getBuilder(GetExamPage.class)
-                .withQueryParam(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name())
-                .call()
-                .get();
-
-        assertNotNull(finishedExams);
-        assertFalse(finishedExams.content.isEmpty());
-        final Exam exam = finishedExams.content.get(0);
-        assertEquals(ExamStatus.RUNNING, exam.status);
-
-        final Result<Exam> archiveCall = restService.getBuilder(ArchiveExam.class)
-                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
-                .call();
-
-        assertNotNull(archiveCall);
-        assertTrue(archiveCall.hasError());
-        assertTrue(archiveCall.getError().getCause().getMessage().contains("Exam is in wrong status to archive"));
-    }
-
 }
