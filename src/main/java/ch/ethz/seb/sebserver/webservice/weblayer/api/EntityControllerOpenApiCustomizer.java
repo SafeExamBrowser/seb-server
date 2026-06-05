@@ -8,13 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Supplier;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -276,15 +280,49 @@ public class EntityControllerOpenApiCustomizer {
     @Bean
     public OpenApiCustomizer errorCodeSchemaOpenApiCustomizer() {
         return openApi -> {
+            final Map<String, String> codeToName = new LinkedHashMap<>();
+            final Map<String, String> codeToMessage = new LinkedHashMap<>();
+            Arrays.stream(APIMessage.ErrorMessage.values()).forEach(error -> {
+                codeToName.putIfAbsent(error.messageCode, error.name());
+                codeToMessage.putIfAbsent(error.messageCode, error.systemMessage);
+            });
+            final List<String> codes = codeToName.keySet().stream().sorted().toList();
+
             final StringSchema errorCodeSchema = new StringSchema();
             errorCodeSchema.setDescription(
-                    "Catalogue of stable SEB Server APIMessage codes (possible APIMessage.messageCode values).");
-            Arrays.stream(APIMessage.ErrorMessage.values())
-                    .map(errorMessage -> errorMessage.messageCode)
-                    .distinct()
-                    .sorted()
-                    .forEach(errorCodeSchema::addEnumItem);
+                    "Catalogue of stable SEB Server APIMessage codes (the possible APIMessage.messageCode values).");
+            codes.forEach(errorCodeSchema::addEnumItem);
+            errorCodeSchema.addExtension("x-enum-varnames", codes.stream().map(codeToName::get).toList());
+            errorCodeSchema.addExtension("x-enum-descriptions", codes.stream().map(codeToMessage::get).toList());
             components(openApi).addSchemas("ErrorCode", errorCodeSchema);
+        };
+    }
+
+    /** Publishes the field-validation message catalogue (the
+     * {@code sebserver.form.validation.fieldError.*} entries of {@code messages.properties}) as a
+     * root {@code x-field-validation-messages} extension, so the frontend can generate its 1200
+     * field-error text from the backend instead of re-maintaining it. */
+    @Bean
+    public OpenApiCustomizer fieldValidationMessagesOpenApiCustomizer() {
+        return openApi -> {
+            final Properties messages = new Properties();
+            try (final InputStream stream = getClass().getResourceAsStream("/messages.properties")) {
+                if (stream == null) {
+                    return;
+                }
+                messages.load(stream);
+            } catch (final IOException e) {
+                return;
+            }
+
+            final String prefix = "sebserver.form.validation.fieldError.";
+            final Map<String, String> ruleMessages = new LinkedHashMap<>();
+            messages.stringPropertyNames().stream().sorted().forEach(key -> {
+                if (key.startsWith(prefix)) {
+                    ruleMessages.put(key.substring(prefix.length()), messages.getProperty(key));
+                }
+            });
+            openApi.addExtension("x-field-validation-messages", ruleMessages);
         };
     }
 
