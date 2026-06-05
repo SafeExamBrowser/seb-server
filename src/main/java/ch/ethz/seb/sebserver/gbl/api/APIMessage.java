@@ -154,7 +154,7 @@ public class APIMessage implements Serializable {
     }
 
     /** A specific message code that can be used to identify the type of message */
-    @Schema(description = "Stable SEB Server message code.", example = "1200")
+    @Schema(description = "Stable SEB Server message code.", example = "1200", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty("messageCode")
     public final String messageCode;
 

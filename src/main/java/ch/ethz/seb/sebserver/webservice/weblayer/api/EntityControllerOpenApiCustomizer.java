@@ -10,12 +10,14 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import io.swagger.v3.core.converter.ModelConverters;
@@ -265,6 +267,24 @@ public class EntityControllerOpenApiCustomizer {
                     addSchemas(components, types.createType);
                 });
             }
+        };
+    }
+
+    /** Exposes the catalogue of stable APIMessage codes as a named {@code ErrorCode} OpenAPI enum.
+     * The frontend imports this generated enum to reference known codes instead of hard-coding them, while
+     * {@link APIMessage#messageCode} stays a free-form string so unrecognized codes never break client parsing. */
+    @Bean
+    public OpenApiCustomizer errorCodeSchemaOpenApiCustomizer() {
+        return openApi -> {
+            final StringSchema errorCodeSchema = new StringSchema();
+            errorCodeSchema.setDescription(
+                    "Catalogue of stable SEB Server APIMessage codes (possible APIMessage.messageCode values).");
+            Arrays.stream(APIMessage.ErrorMessage.values())
+                    .map(errorMessage -> errorMessage.messageCode)
+                    .distinct()
+                    .sorted()
+                    .forEach(errorCodeSchema::addEnumItem);
+            components(openApi).addSchemas("ErrorCode", errorCodeSchema);
         };
     }
 
