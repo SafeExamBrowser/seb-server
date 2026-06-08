@@ -36,69 +36,94 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "UserMod", description = "User account creation and self-registration form model.")
 public final class UserMod implements UserAccount {
 
+    @Schema(description = "User UUID. Omit this for new user creation.", nullable = true)
     @JsonProperty(USER.ATTR_UUID)
     public final String uuid;
 
     /** The foreign key identifier to the institution where the User belongs to */
+    @Schema(description = "Institution identifier the user belongs to.", example = "1")
     @NotNull(message = "user:institutionId:notNull")
     @JsonProperty(USER.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
     /** first (or full) name of the user */
+    @Schema(description = "First name of the user.", example = "Ada")
     @NotNull(message = "user:name:notNull")
     @Size(max = 255, message = "user:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_NAME)
     public final String name;
 
     /** surname of the user */
+    @Schema(description = "Surname of the user.", example = "Lovelace")
     @NotNull(message = "user:surname:notNull")
     @Size(max = 255, message = "user:surname:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_SURNAME)
     public final String surname;
 
     /** The internal user name */
+    @Schema(description = "Login username.", example = "ada.lovelace")
     @NotNull(message = "user:username:notNull")
     @Size(min = 3, max = 255, message = "user:username:size:{min}:{max}:${validatedValue}")
     @JsonProperty(USER.ATTR_USERNAME)
     public final String username;
 
     /** E-mail address of the user */
+    @Schema(description = "User email address.", format = "email", example = "ada@example.org", nullable = true)
     @Email(message = "user:email:email:_:_:${validatedValue}")
     @JsonProperty(USER.ATTR_EMAIL)
     public final String email;
 
     /** The users locale */
+    @Schema(description = "User locale.", type = "string", example = "en")
     @NotNull(message = "user:language:notNull")
     @JsonProperty(USER.ATTR_LANGUAGE)
     public final Locale language;
 
     /** The users time zone */
+    @Schema(description = "User time zone.", type = "string", example = "Europe/Zurich")
     @NotNull(message = "user:timeZone:notNull")
     @JsonProperty(USER.ATTR_TIMEZONE)
     public final DateTimeZone timeZone;
 
     /** The users roles in a unmodifiable set */
+    @ArraySchema(
+            arraySchema = @Schema(description = "Roles to assign to the user."),
+            schema = @Schema(
+                    type = "string",
+                    allowableValues = {
+                            "SEB_SERVER_ADMIN",
+                            "INSTITUTIONAL_ADMIN",
+                            "EXAM_ADMIN",
+                            "EXAM_SUPPORTER",
+                            "TEACHER" }))
     @NotNull(message = "user:userRoles:notNull")
     @NotEmpty(message = "user:userRoles:notNull")
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
+    @Schema(description = "New account password.", type = "string", format = "password", minLength = 8, maxLength = 255)
     @NotNull(message = "user:newPassword:notNull")
     @Size(min = 8, max = 255, message = "user:newPassword:size:{min}:{max}:${validatedValue}")
     @JsonProperty(PasswordChange.ATTR_NAME_NEW_PASSWORD)
     private final CharSequence newPassword;
 
+    @Schema(description = "Repeated new account password.", type = "string", format = "password")
     @NotNull(message = "user:confirmNewPassword:notNull")
     @JsonProperty(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD)
     private final CharSequence confirmNewPassword;
 
+    @Schema(description = "Whether this is a local SEB Server account.", example = "true")
     @JsonProperty(USER.ATTR_LOCAL_ACCOUNT)
     private final Boolean isLocalAccount;
 
+    @Schema(description = "Whether direct login is enabled for this account.", example = "true")
     @JsonProperty(USER.ATTR_DIRECT_LOGIN)
     private final Boolean hasDirectLogin;
 
@@ -167,6 +192,8 @@ public final class UserMod implements UserAccount {
     }
 
     @Override
+    @JsonIgnore
+    @Schema(hidden = true)
     public DateTime getCreationDate() {
         return null;
     }
@@ -234,6 +261,8 @@ public final class UserMod implements UserAccount {
         return this.roles.contains(UserRole.TEACHER.name()) && this.roles.size() == 1;
     }
 
+    @JsonIgnore
+    @Schema(hidden = true)
     public CharSequence getRetypedNewPassword() {
         return this.confirmNewPassword;
     }

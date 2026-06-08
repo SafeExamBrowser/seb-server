@@ -15,14 +15,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "EntityName", description = "Display name key for a SEB Server domain entity.")
 public class EntityName extends EntityKey {
 
     private static final long serialVersionUID = 9577137222563155L;
 
     public static final String ATTR_NAME = "name";
 
+    @Schema(description = "Human-readable entity name.", example = "Ada Lovelace")
     @JsonProperty(value = ATTR_NAME, required = true)
     public final String name;
 

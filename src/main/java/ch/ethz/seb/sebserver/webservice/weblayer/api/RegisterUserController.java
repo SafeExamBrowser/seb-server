@@ -41,9 +41,17 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import io.github.bucket4j.local.LocalBucket;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.REGISTER_ENDPOINT)
+@Tag(name = "UserAccount", description = "User account administration and current-user endpoints.")
 public class RegisterUserController {
 
     private final UserActivityLogDAO userActivityLogDAO;
@@ -74,13 +82,30 @@ public class RegisterUserController {
         this.screenProctoringService = screenProctoringService;
     }
 
+    @Operation(
+            operationId = "registerUserAccount",
+            summary = "Register a user account",
+            description = "Self-registers an EXAM_SUPPORTER account from application/x-www-form-urlencoded fields matching UserMod.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                            schema = @Schema(implementation = UserMod.class))))
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Registered user account.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserInfo.class))),
+    })
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UserInfo registerNewUser(
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
-            final HttpServletRequest request) {
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @Parameter(hidden = true) final HttpServletRequest request) {
 
         if (!registeringEnabled) {
             throw new RuntimeException("Registering is not enabled from backend!");

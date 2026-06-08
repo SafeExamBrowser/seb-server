@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -57,8 +58,20 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.USER_ACCOUNT_ENDPOINT)
+@Tag(name = "UserAccount", description = "User account administration and current-user endpoints.")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class UserAccountController extends ActivatableEntityController<UserInfo, UserMod> {
 
     private static final Logger log = LoggerFactory.getLogger(UserAccountController.class);
@@ -103,6 +116,17 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.oAuth2AuthorizationService = oAuth2AuthorizationService;
     }
 
+    @Operation(
+            operationId = "getCurrentUserAccount",
+            summary = "Get the current user account")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Current user account.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserInfo.class)))
+    })
     @RequestMapping(
             path = API.CURRENT_USER_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -114,6 +138,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getUserInfo();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.CURRENT_USER_PATH_SEGMENT + API.FEATURES_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -122,6 +147,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         return this.featureService.getCurrentUserFeatures().getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(path = API.LOGIN_PATH_SEGMENT, method = RequestMethod.POST)
     public void login() {
         this.userActivityLogDAO.logLogin(this.authorization
@@ -130,8 +156,15 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getUserInfo());
     }
 
+    @Operation(
+            operationId = "logUserAccountLogout",
+            summary = "Record current user logout",
+            description = "Attempts to revoke the current bearer token and records a logout activity.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Logout activity recorded.")
+    })
     @RequestMapping(path = API.LOGOUT_PATH_SEGMENT, method = RequestMethod.POST)
-    public void logout(final HttpServletRequest request) {
+    public void logout(@Parameter(hidden = true) final HttpServletRequest request) {
         try {
             String authHeader = request.getHeader("Authorization");
             if (authHeader != null) {
@@ -204,6 +237,21 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         return result;
     }
 
+    @Operation(
+            operationId = "getUserAccountSupervisors",
+            summary = "Get active supporter user names",
+            description = "Returns active EXAM_SUPPORTER user account names for the given institution.",
+            parameters = {
+                    @Parameter(name = API.PARAM_INSTITUTION_ID, description = "Institution identifier. Defaults to the current user's institution.")
+            })
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Active supporter user names.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            array = @ArraySchema(schema = @Schema(implementation = EntityName.class))))
+    })
     @RequestMapping(
             path = API.USER_ACCOUNT_ENDPOINT_SUPPORTER,
             method = RequestMethod.GET,
@@ -232,6 +280,22 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "changeUserAccountPassword",
+            summary = "Change a user account password",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PasswordChange.class))))
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User account after password change.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserInfo.class)))
+    })
     @RequestMapping(
             path = API.PASSWORD_PATH_SEGMENT,
             method = RequestMethod.PUT,

@@ -23,9 +23,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** This class defines API error messages that are created and responded on error and/or exceptional
  * cases within the web-service. */
+@Schema(
+        name = "APIMessage",
+        description = "Structured SEB Server API error or validation message.")
 public class APIMessage implements Serializable {
 
     @Serial
@@ -150,18 +154,22 @@ public class APIMessage implements Serializable {
     }
 
     /** A specific message code that can be used to identify the type of message */
+    @Schema(description = "Stable SEB Server message code.", example = "1200", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty("messageCode")
     public final String messageCode;
 
     /** A short system message that describes the cause */
+    @Schema(description = "Short backend-defined message for the error.", example = "Field validation error")
     @JsonProperty("systemMessage")
     public final String systemMessage;
 
     /** Message details */
+    @Schema(description = "Optional technical details for diagnostics.", nullable = true)
     @JsonProperty("details")
     public final String details;
 
     /** A list of additional attributes */
+    @Schema(description = "Optional message attributes, usually field names or validation context.")
     @JsonProperty("attributes")
     public final List<String> attributes;
 
