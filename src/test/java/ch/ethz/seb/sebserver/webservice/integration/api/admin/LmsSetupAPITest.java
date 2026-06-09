@@ -321,7 +321,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
 
         // a seb-admin is also able to get lms setup that is not the own institution
         lmsSetup = new RestAPITestHelper()
-                .withAccessToken(getSebAdminAccess())
+                .withAccessToken(getAdminInstitution2Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(id2))
                 .withExpectedStatus(HttpStatus.OK)

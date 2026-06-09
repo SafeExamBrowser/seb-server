@@ -36,7 +36,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         // create new active LmsSetup Mock with seb-admin
         final LmsSetup lmsSetup1 = createLmsSetupMock(
                 this,
-                getSebAdminAccess(),
+                getAdminInstitution1Access(),
                 "new LmsSetup 1",
                 true);
 
@@ -55,7 +55,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
 
         // for the active LmsSetup we should get the quizzes page
         Page<QuizData> quizzes = new RestAPITestHelper()
-                .withAccessToken(getSebAdminAccess())
+                .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
                 .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
@@ -79,7 +79,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
 
         // activate / deactivate
         new RestAPITestHelper()
-                .withAccessToken(getSebAdminAccess())
+                .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(String.valueOf(lmsSetup1.id)).withPath("/inactive")
                 .withMethod(HttpMethod.POST)
@@ -88,7 +88,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 });
 
         quizzes = new RestAPITestHelper()
-                .withAccessToken(getSebAdminAccess())
+                .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
                 .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
@@ -108,7 +108,7 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
                 });
 
         quizzes = new RestAPITestHelper()
-                .withAccessToken(getSebAdminAccess())
+                .withAccessToken(getAdminInstitution2Access())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
                 .withAttribute(QuizData.FILTER_ATTR_START_TIME, Utils.toDateTimeUTC(0).toString(Constants.DEFAULT_DATE_TIME_FORMAT))
                 .withExpectedStatus(HttpStatus.OK)
@@ -136,12 +136,12 @@ public class QuizDataTest extends AdministrationAPIIntegrationTester {
         // create new active LmsSetup Mock with seb-admin
         final LmsSetup lmsSetup = createLmsSetupMock(
                 this,
-                getSebAdminAccess(),
+                getAdminInstitution1Access(),
                 "new LmsSetup 1",
                 true);
 
         final QuizData quizData = new RestAPITestHelper()
-                .withAccessToken(getSebAdminAccess())
+                .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.QUIZ_DISCOVERY_ENDPOINT)
                 .withPath("quiz1")
                 .withAttribute(QuizData.QUIZ_ATTR_LMS_SETUP_ID, lmsSetup.getModelId())

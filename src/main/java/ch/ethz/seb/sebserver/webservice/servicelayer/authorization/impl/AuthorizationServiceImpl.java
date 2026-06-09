@@ -85,8 +85,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for certificates
         addPrivilege(EntityType.CERTIFICATE)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -95,8 +93,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for seb client config
         addPrivilege(EntityType.SEB_CLIENT_CONFIGURATION)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -105,8 +101,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for lms setup
         addPrivilege(EntityType.LMS_SETUP)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -119,8 +113,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for exam
         addPrivilege(EntityType.EXAM)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -135,8 +127,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for exam templates
         addPrivilege(EntityType.EXAM_TEMPLATE)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -145,8 +135,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for configuration node
         addPrivilege(EntityType.CONFIGURATION_NODE)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -157,8 +145,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for configuration
         addPrivilege(EntityType.CONFIGURATION)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -169,8 +155,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for configuration value
         addPrivilege(EntityType.CONFIGURATION_VALUE)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -193,8 +177,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for configuration orientations
         addPrivilege(EntityType.ORIENTATION)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -205,8 +187,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for SEB client connections
         addPrivilege(EntityType.CLIENT_CONNECTION)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
@@ -233,8 +213,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for batch actions
         addPrivilege(EntityType.BATCH_ACTION)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
@@ -244,8 +222,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // grants for scheduled deletions
         addPrivilege(EntityType.SCHEDULED_DELETE)
-                .forRole(UserRole.SEB_SERVER_ADMIN)
-                .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .create();

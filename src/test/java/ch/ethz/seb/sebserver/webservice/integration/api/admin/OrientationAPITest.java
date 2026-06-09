@@ -76,45 +76,4 @@ public class OrientationAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("100", String.valueOf(page.content.size()));
     }
 
-    @Test
-    @Order(5)
-    public void test5_CreateAndSaveAndDelete() {
-        this.params.clear();
-        this.params.add(Domain.ORIENTATION.ATTR_CONFIG_ATTRIBUTE_ID, "1");
-        this.params.add(Domain.ORIENTATION.ATTR_GROUP_ID, "testAttribute");
-        this.params.add(Domain.ORIENTATION.ATTR_HEIGHT, "1");
-        this.params.add(Domain.ORIENTATION.ATTR_TEMPLATE_ID, "0");
-        this.params.add(Domain.ORIENTATION.ATTR_TITLE, "LEFT");
-        this.params.add(Domain.ORIENTATION.ATTR_VIEW_ID, "1");
-        this.params.add(Domain.ORIENTATION.ATTR_WIDTH, "1");
-        this.params.add(Domain.ORIENTATION.ATTR_X_POSITION, "1");
-        this.params.add(Domain.ORIENTATION.ATTR_Y_POSITION, "1");
-        this.params.add(Domain.ORIENTATION.TYPE_NAME, "testAttribute");
-
-        final Orientation create = this.orientationController.create(
-                this.params,
-                1L,
-                this.mockRequest);
-
-        assertNotNull(create);
-        assertNotNull(create.id);
-        assertEquals("testAttribute", create.groupId);
-        assertEquals(1, create.height);
-        assertEquals(1, create.width);
-        assertEquals(1, create.xPosition);
-        assertEquals(1, create.yPosition);
-        assertEquals(TitleOrientation.LEFT, create.title);
-
-        final Orientation savePut = this.orientationController.savePut(new Orientation(
-                create.id,
-                null, null, null, null, null, null, null, null,
-                TitleOrientation.RIGHT));
-
-        assertNotNull(savePut);
-        assertNotNull(savePut.id);
-        assertEquals("testAttribute", savePut.groupId);
-        assertEquals(TitleOrientation.RIGHT, savePut.title);
-
-    }
-
 }
