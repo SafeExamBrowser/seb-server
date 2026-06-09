@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.UserCacheService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -84,6 +85,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     private final WebserviceInfo webserviceInfo;
     private final OAuth2AuthorizationService oAuth2AuthorizationService;
     private final FeatureService featureService;
+    private final UserCacheService userCacheService;
 
     public UserAccountController(
             final UserDAO userDAO,
@@ -98,7 +100,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final WebserviceInfo webserviceInfo,
             final FeatureService featureService,
             final PasswordEncoder userPasswordEncoder,
-            final OAuth2AuthorizationService oAuth2AuthorizationService) {
+            final OAuth2AuthorizationService oAuth2AuthorizationService,
+            final UserCacheService userCacheService) {
 
         super(authorization,
                 bulkActionService,
@@ -114,6 +117,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.webserviceInfo = webserviceInfo;
         this.featureService = featureService;
         this.oAuth2AuthorizationService = oAuth2AuthorizationService;
+        this.userCacheService = userCacheService;
     }
 
     @Operation(
@@ -226,6 +230,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final Activatable.ActivationAction activationAction) {
 
         final Result<UserInfo> userInfoResult = super.notifySaved(entity, activationAction);
+        this.userCacheService.evictServerUserByName(entity.username);
         this.synchronizeUserWithSPS(entity);
         return userInfoResult;
     }

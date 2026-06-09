@@ -136,7 +136,6 @@ public class UserServiceImpl implements UserService {
 
         final UserCacheService userCacheService;
         final String lmsClientId;
-        final boolean testing;
 
         DefaultUserExtractStrategy(
                 UserCacheService userCacheService,
@@ -147,7 +146,6 @@ public class UserServiceImpl implements UserService {
             this.lmsClientId = lmsClientId;
 
             HashSet<String> profiles = new HashSet<>(Arrays.asList(env.getActiveProfiles()));
-            this.testing = profiles.contains("test");
         }
 
         @Override
@@ -158,9 +156,6 @@ public class UserServiceImpl implements UserService {
                 return lmsIntegrationClient;
             }
 
-            if (testing) {
-                userCacheService.evictServerUserByName(name);
-            }
             SEBServerUser sebServerUser = userCacheService.serverUserByName(name);
             if (sebServerUser == null) {
                 throw new UsernameNotFoundException("User for name: " + name + " not found");
