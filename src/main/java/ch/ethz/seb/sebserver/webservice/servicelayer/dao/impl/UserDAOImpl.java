@@ -294,21 +294,17 @@ public class UserDAOImpl implements UserDAO {
                     checkUniqueUsername(userInfo);
                     checkUniqueMailAddress(userInfo);
 
-                    final UserRecord newRecord = new UserRecord(
-                            record.getId(),
-                            null,
-                            null,
-                            null,
-                            userInfo.name,
-                            userInfo.surname,
-                            userInfo.username,
-                            null,
-                            (userInfo.email == null) ? "" : userInfo.email,
-                            userInfo.language.toLanguageTag(),
-                            userInfo.timeZone.getID(),
-                            null, null, null);
+                    UpdateDSL.updateWithMapper(userRecordMapper::update, userRecord)
+                            .set(name).equalTo(userInfo.name)
+                            .set(surname).equalTo(userInfo.surname)
+                            .set(username).equalTo(userInfo.username)
+                            .set(email).equalTo(userInfo.email)
+                            .set(language).equalTo(userInfo.language.toLanguageTag())
+                            .set(timezone).equalTo(userInfo.timeZone.getID())
+                            .where(id, isEqualTo(record.getId()))
+                            .build()
+                            .execute();
 
-                    this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
                     updateRolesForUser(record.getId(), userInfo.roles);
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
                 })
@@ -566,6 +562,11 @@ public class UserDAOImpl implements UserDAO {
                         .collect(Collectors.toSet());
             }
 
+            String email = record.getEmail();
+            if (StringUtils.isEmpty(email)) {
+                email = null;
+            }
+
             return new UserInfo(
                     uuid,
                     record.getInstitutionId(),
@@ -573,7 +574,7 @@ public class UserDAOImpl implements UserDAO {
                     record.getName(),
                     record.getSurname(),
                     record.getUsername(),
-                    record.getEmail(),
+                    email,
                     BooleanUtils.toBooleanObject(record.getActive()),
                     BooleanUtils.toBooleanObject(record.getDirectLogin()),
                     BooleanUtils.toBooleanObject(record.getLocalAccount()),
