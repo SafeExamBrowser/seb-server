@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -59,6 +60,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 public class ExamTemplateServiceImpl implements ExamTemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateServiceImpl.class);
+
+    static final Predicate<IndicatorTemplate> NEW_UI_INDICATOR_FILTER = (IndicatorTemplate indicator) ->
+            indicator.type == IndicatorType.BATTERY_STATUS ||
+            indicator.type == IndicatorType.WLAN_STATUS;
 
     private final AdditionalAttributesDAO additionalAttributesDAO;
 
@@ -148,7 +153,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
-                        .flatMap(this::applyExamTemplateAdditionalData)
+                        .map(this::applyExamTemplateAdditionalData)
                         .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
@@ -189,7 +194,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
-                        .flatMap(this::applyExamTemplateAdditionalData)
+                        .map(this::applyExamTemplateAdditionalData)
                         .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
@@ -237,7 +242,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
-                        .flatMap(this::applyExamTemplateAdditionalData)
+                        .map(this::applyExamTemplateAdditionalData)
                         .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
@@ -285,7 +290,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         return Result.tryCatch(() -> {
             final ExamTemplate examTemplate = this.examTemplateDAO
                     .byPK(exam.examTemplateId)
-                    .flatMap(this::applyExamTemplateAdditionalData)
+                    .map(this::applyExamTemplateAdditionalData)
                     .onError(error -> log.warn("No exam template found for id: {} error: {}",
                             exam.examTemplateId,
                             error.getMessage()))
@@ -457,12 +462,12 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             this.updateConfigurationTemplate(examTemplate);
 
             return examTemplateDAO.byPK(examTemplate.id).getOrThrow();
-        }).flatMap(this::applyExamTemplateAdditionalData);
+        }).map(this::applyExamTemplateAdditionalData);
     }
 
     @Override
-    public Result<ExamTemplate> applyExamTemplateAdditionalData(ExamTemplate examTemplate) {
-        return Result.tryCatch(() -> {
+    public ExamTemplate applyExamTemplateAdditionalData(ExamTemplate examTemplate) {
+
 
             // apply SPS Settings
             final ScreenProctoringSettings spsSettings = this.proctoringServiceSettingsService
@@ -521,15 +526,35 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     clientGroupTemplates,
                     examAttributes
             );
-        });
     }
 
     @Override
-    public Result<ExamTemplate> filterLegacyData(ExamTemplate examTemplate) {
-        return Result.tryCatch(() -> {
-            // TODO filter out old indicators that are not used for Exam Templates anymore
+    public ExamTemplate filterLegacyData(final ExamTemplate examTemplate) {
+            if (!examTemplate.indicatorTemplates.isEmpty()) {
+                List<IndicatorTemplate> filteredIndicator = examTemplate.indicatorTemplates
+                        .stream()
+                        .filter(NEW_UI_INDICATOR_FILTER)
+                        .toList();
+                if (filteredIndicator.size() != examTemplate.indicatorTemplates.size()) {
+                    return new ExamTemplate(
+                            examTemplate.id,
+                            examTemplate.institutionId,
+                            examTemplate.name,
+                            examTemplate.description,
+                            examTemplate.examType,
+                            examTemplate.supporter,
+                            examTemplate.configTemplateId,
+                            examTemplate.institutionalDefault,
+                            examTemplate.lmsIntegration,
+                            examTemplate.clientConfigurationId,
+                            filteredIndicator,
+                            examTemplate.clientGroupTemplates,
+                            examTemplate.examAttributes
+                    );
+                }
+            }
+
             return examTemplate;
-        });
     }
 
     private void updateConfigurationTemplate(final ExamTemplate examTemplate) {

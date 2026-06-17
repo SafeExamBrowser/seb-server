@@ -14,7 +14,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,9 +47,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 import static ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService.clientGroupTemplatePageSort;
@@ -110,9 +107,15 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return this.entityDAO
                 .byModelId(modelId)
                 .flatMap(this::checkReadAccess)
-                .flatMap(examTemplateService::applyExamTemplateAdditionalData)
-                .flatMap(examTemplateService::filterLegacyData)
+                .flatMap(examTemplateService::prepareForNewUI)
                 .getOrThrow();
+    }
+
+    @Override
+    protected Result<Collection<ExamTemplate>> getAll(FilterMap filterMap) {
+        return super
+                .getAll(filterMap)
+                .flatMap(examTemplateService::prepareForNewUI);
     }
 
     /** Get the institutional default Exam Template with all additional data assigned.
@@ -126,7 +129,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return ((ExamTemplateDAO) this.entityDAO)
                 .getInstitutionalDefault(this.authorization.getUserService().getCurrentUser().institutionId())
                 .flatMap(this::checkReadAccess)
-                .flatMap(examTemplateService::applyExamTemplateAdditionalData)
+                .flatMap(examTemplateService::prepareForNewUI)
                 .getOrThrow();
     }
 
@@ -176,7 +179,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
                 // get source of truth from DB apply SPS Data and notify created
                 .flatMap(r -> examTemplateDAO.byPK(r.id))
-                .flatMap(examTemplateService::applyExamTemplateAdditionalData)
+                .flatMap(examTemplateService::prepareForNewUI)
                 .flatMap(this::notifyCreated)
                 .getOrThrow();
     }
