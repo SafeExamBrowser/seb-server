@@ -524,6 +524,14 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         });
     }
 
+    @Override
+    public Result<ExamTemplate> filterLegacyData(ExamTemplate examTemplate) {
+        return Result.tryCatch(() -> {
+            // TODO filter out old indicators that are not used for Exam Templates anymore
+            return examTemplate;
+        });
+    }
+
     private void updateConfigurationTemplate(final ExamTemplate examTemplate) {
         if (examTemplate.configTemplateId == null) {
             return;

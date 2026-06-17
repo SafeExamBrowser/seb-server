@@ -233,8 +233,8 @@ public final class Exam implements GrantEntity {
         this.externalId = postMap.getString(EXAM.ATTR_EXTERNAL_ID);
         this.lmsAvailable = true;
         this.name = postMap.getString(EXAM.ATTR_QUIZ_NAME);
-        this.startTime = postMap.getDateTime(EXAM.ATTR_QUIZ_START_TIME);
-        this.endTime = postMap.getDateTime(EXAM.ATTR_QUIZ_END_TIME);
+        this.startTime = postMap.getDateTimeTimestampOrDateString(EXAM.ATTR_QUIZ_START_TIME);
+        this.endTime = postMap.getDateTimeTimestampOrDateString(EXAM.ATTR_QUIZ_END_TIME);
         this.type = postMap.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.owner = postMap.getString(EXAM.ATTR_OWNER);
         this.status = postMap.getEnum(EXAM.ATTR_STATUS, ExamStatus.class, getStatusFromDate(this.startTime, this.endTime));

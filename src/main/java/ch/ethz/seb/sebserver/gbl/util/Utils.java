@@ -289,6 +289,18 @@ public final class Utils {
         return DateTime.parse(dateString, Constants.STANDARD_DATE_TIME_FORMATTER);
     }
 
+    public static DateTime toDateTimeTimestampOrDateString(final String value) {
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+
+        try {
+            return toDateTimeUTC(Long.parseLong(value));
+        } catch (Exception e) {
+            return toDateTime(value);
+        }
+    }
+
     public static DateTime toDateTimeUTC(final String dateString) {
         final DateTime dateTime = toDateTime(dateString);
         if (dateTime == null) {

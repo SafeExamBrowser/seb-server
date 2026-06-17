@@ -111,6 +111,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .byModelId(modelId)
                 .flatMap(this::checkReadAccess)
                 .flatMap(examTemplateService::applyExamTemplateAdditionalData)
+                .flatMap(examTemplateService::filterLegacyData)
                 .getOrThrow();
     }
 
