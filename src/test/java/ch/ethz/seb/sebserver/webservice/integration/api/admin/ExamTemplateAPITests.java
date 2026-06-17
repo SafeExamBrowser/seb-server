@@ -154,18 +154,7 @@ public class ExamTemplateAPITests extends AdministrationAPIIntegrationTester {
         assertFalse(content.isEmpty());
         assertEquals(1, content.size());
         assertEquals(
-                "ExamTemplate [" +
-                        "id=1, " +
-                        "institutionId=1, " +
-                        "name=Test ExamTemplate, " +
-                        "description=Test ExamTemplate, " +
-                        "examType=BYOD, supporter=[admin], " +
-                        "configTemplateId=2, " +
-                        "indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, " +
-                        "thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[], " +
-                        "examAttributes={}, " +
-                        "institutionalDefault=false, " +
-                        "lmsIntegration=false]",
+                "ExamTemplate [id=1, institutionId=1, name=Test ExamTemplate, description=Test ExamTemplate, examType=BYOD, supporter=[admin], configTemplateId=2, indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=true}, ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], examAttributes={spsCollectingStrategy=APPLY_SEB_GROUPS, spsCollectingGroupName=Fallback Group, enableScreenProctoring=true, spsSEBGroupsSelection=0}, institutionalDefault=false, lmsIntegration=false]",
                 content.iterator().next().toString());
 
         // get single with full data

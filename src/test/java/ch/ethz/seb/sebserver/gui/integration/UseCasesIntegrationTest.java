@@ -840,8 +840,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Result<Indicator> newIndicatorResult = restService
                 .getBuilder(NewIndicator.class)
                 .withFormParam(Domain.INDICATOR.ATTR_EXAM_ID, exam.getModelId())
-                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Errors")
-                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.ERROR_COUNT.name)
+                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Battery")
+                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.BATTERY_STATUS.name)
                 .withFormParam(Domain.INDICATOR.ATTR_COLOR, "000001")
                 .call();
 
@@ -849,7 +849,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(newIndicatorResult.hasError());
         final Indicator newIndicator = newIndicatorResult.get();
 
-        assertEquals("Errors", newIndicator.name);
+        assertEquals("Battery", newIndicator.name);
         assertEquals("000001", newIndicator.defaultColor);
 
         final Indicator indicatorToSave = new Indicator(
@@ -873,7 +873,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(savedIndicatorResult.hasError());
         final Indicator savedIndicator = savedIndicatorResult.get();
 
-        assertEquals("Errors", savedIndicator.name);
+        assertEquals("Battery", savedIndicator.name);
         assertEquals("000001", savedIndicator.defaultColor);
         final Collection<Threshold> thresholds = savedIndicator.getThresholds();
         assertFalse(thresholds.isEmpty());
@@ -2916,8 +2916,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         IndicatorTemplate indicatorTemplate = restService
                 .getBuilder(NewIndicatorTemplate.class)
                 .withFormParam(IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID, examTemplate.getModelId())
-                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Errors")
-                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.ERROR_COUNT.name)
+                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Battery")
+                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.BATTERY_STATUS.name)
                 .withFormParam(Domain.INDICATOR.ATTR_COLOR, "000001")
                 .withFormParams(thresholds)
                 .call()
@@ -2925,7 +2925,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(indicatorTemplate);
         assertEquals(examTemplate.id, indicatorTemplate.examTemplateId);
-        assertEquals("Errors", indicatorTemplate.name);
+        assertEquals("Battery", indicatorTemplate.name);
         assertTrue(indicatorTemplate.thresholds.size() == 3);
 
         // get indicator list for template
@@ -2990,14 +2990,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withBody(new IndicatorTemplate(
                         indicatorTemplate.id,
                         indicatorTemplate.examTemplateId,
-                        "New Errors",
+                        "New Battery",
                         indicatorTemplate.type,
                         null, null, null, null))
                 .call()
                 .getOrThrow();
 
         assertNotNull(savedIndicatorTemplate);
-        assertEquals("New Errors", savedIndicatorTemplate.name);
+        assertEquals("New Battery", savedIndicatorTemplate.name);
 
         savedTemplate = restService
                 .getBuilder(GetExamTemplate.class)
@@ -3011,7 +3011,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         savedIndicatorTemplate = savedTemplate.indicatorTemplates.iterator().next();
         assertNotNull(savedIndicatorTemplate);
-        assertEquals("New Errors", savedIndicatorTemplate.name);
+        assertEquals("New Battery", savedIndicatorTemplate.name);
 
         // create/remove indicator template
         thresholds = new LinkedMultiValueMap<>();
@@ -3021,8 +3021,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         indicatorTemplate = restService
                 .getBuilder(NewIndicatorTemplate.class)
                 .withFormParam(IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID, examTemplate.getModelId())
-                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Errors")
-                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.ERROR_COUNT.name)
+                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Battery")
+                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.BATTERY_STATUS.name)
                 .withFormParam(Domain.INDICATOR.ATTR_COLOR, "000001")
                 .withFormParams(thresholds)
                 .call()
@@ -3041,8 +3041,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Iterator<IndicatorTemplate> iterator = savedTemplate.indicatorTemplates.iterator();
         final IndicatorTemplate next1 = iterator.next();
         final IndicatorTemplate next2 = iterator.next();
-        assertEquals("New Errors", next1.name);
-        assertEquals("Errors", next2.name);
+        assertEquals("New Battery", next1.name);
+        assertEquals("Battery", next2.name);
 
         final EntityKey entityKey = restService
                 .getBuilder(DeleteIndicatorTemplate.class)
@@ -3062,7 +3062,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(savedTemplate.indicatorTemplates);
         assertFalse(savedTemplate.indicatorTemplates.isEmpty());
         assertTrue(savedTemplate.indicatorTemplates.size() == 1);
-        assertEquals("New Errors", savedTemplate.indicatorTemplates.iterator().next().name);
+        assertEquals("New Battery", savedTemplate.indicatorTemplates.iterator().next().name);
 
         // create exam from template
         // check quizzes are defined
