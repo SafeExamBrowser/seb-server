@@ -46,11 +46,11 @@ public class DAOUserServiceImpl implements DAOUserServcie {
         }
 
         final UserInfo user = authorizationService.getUserService().getUser(userUUID);
-        if (user == null) {
+        if (user == null || user.username == null) {
             return null;
         }
 
-        return user.name + " " + user.surname + " (" + user.username + ")";
+        return user.username + " (" + user.name + " " + user.surname + ")";
     }
 
 }
