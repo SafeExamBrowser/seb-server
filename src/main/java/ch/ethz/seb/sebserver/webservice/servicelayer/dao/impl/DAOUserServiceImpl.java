@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -36,6 +37,20 @@ public class DAOUserServiceImpl implements DAOUserServcie {
             log.error("Failed to get current user: {}", e.getMessage());
             return null;
         }
+    }
+
+    @Override
+    public String getUserNameForUUID(final String userUUID) {
+        if (userUUID == null) {
+            return null;
+        }
+
+        final UserInfo user = authorizationService.getUserService().getUser(userUUID);
+        if (user == null) {
+            return null;
+        }
+
+        return user.name + " " + user.surname + " (" + user.username + ")";
     }
 
 }

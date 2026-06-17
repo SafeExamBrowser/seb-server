@@ -313,7 +313,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 ConfigurationType.EXAM_CONFIG,
                 currentUser.uuid(),
                 ConfigurationStatus.CONSTRUCTION,
-                null, null);
+                null, null, null);
 
         final Configuration followup = this.beanValidationService.validateBean(configurationNode)
                 .flatMap(this.entityDAO::createNew)

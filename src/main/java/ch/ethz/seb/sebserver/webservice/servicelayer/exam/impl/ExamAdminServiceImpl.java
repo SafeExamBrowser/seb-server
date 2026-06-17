@@ -386,7 +386,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             this.configurationNodeDAO.save(
                                     new ConfigurationNode(
                                             configNodeId, null, null, null, null, null,
-                                            null, ConfigurationStatus.ARCHIVED, null, null))
+                                            null, ConfigurationStatus.ARCHIVED, null, null, null))
                                     .onError(error -> log.error("Failed to set exam configuration to archived state: ",
                                             error));
                         }

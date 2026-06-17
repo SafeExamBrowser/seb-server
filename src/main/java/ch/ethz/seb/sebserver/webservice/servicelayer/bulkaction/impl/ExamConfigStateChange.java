@@ -72,7 +72,7 @@ public class ExamConfigStateChange implements BatchActionExec {
                         node.id, null, null, null, null, null, null,
                         getTargetState(batchAction.attributes),
                         Utils.toDateTimeUTC(Utils.getMillisecondsNow()),
-                        batchAction.ownerId))
+                        batchAction.ownerId, null))
                 .flatMap(this.sebExamConfigService::checkSaveConsistency)
                 .flatMap(this.configurationNodeDAO::save)
                 .map(Entity::getEntityKey);

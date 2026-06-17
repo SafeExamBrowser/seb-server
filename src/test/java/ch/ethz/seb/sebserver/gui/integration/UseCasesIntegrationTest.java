@@ -1671,7 +1671,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 config.owner,
                 ConfigurationStatus.READY_TO_USE,
                 DateTime.now(),
-                config.owner);
+                config.owner, "user");
 
         final ConfigurationNode savedConfig = restService
                 .getBuilder(SaveExamConfig.class)

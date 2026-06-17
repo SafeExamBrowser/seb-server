@@ -155,9 +155,20 @@ public class ConfigurationDAOBatchService {
 
             this.batchConfigurationNodeRecordMapper.insert(newRecord);
             this.batchSqlSessionTemplate.flushStatements();
-            return newRecord;
-        })
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel);
+
+            return new ConfigurationNode(
+                    newRecord.getId(),
+                    newRecord.getInstitutionId(),
+                    newRecord.getTemplateId(),
+                    newRecord.getName(),
+                    newRecord.getDescription(),
+                    ConfigurationNode.ConfigurationType.valueOf(newRecord.getType()),
+                    newRecord.getOwner(),
+                    ConfigurationStatus.valueOf(newRecord.getStatus()),
+                    Utils.toDateTimeUTC(newRecord.getLastUpdateTime()),
+                    newRecord.getLastUpdateUser(),
+                    null);
+        });
     }
 
     Result<ConfigurationTableValues> saveNewTableValues(final ConfigurationTableValues value) {
@@ -382,9 +393,20 @@ public class ConfigurationDAOBatchService {
                 throw new IllegalArgumentException("Institution integrity violation");
             }
 
-            return this.copyNodeRecord(sourceNode, newOwner, copyInfo, currentUserUUID);
+            final ConfigurationNodeRecord record = this.copyNodeRecord(sourceNode, newOwner, copyInfo, currentUserUUID);
+            return new ConfigurationNode(
+                    record.getId(),
+                    record.getInstitutionId(),
+                    record.getTemplateId(),
+                    record.getName(),
+                    record.getDescription(),
+                    ConfigurationNode.ConfigurationType.valueOf(record.getType()),
+                    record.getOwner(),
+                    ConfigurationStatus.valueOf(record.getStatus()),
+                    Utils.toDateTimeUTC(record.getLastUpdateTime()),
+                    record.getLastUpdateUser(),
+                    null);
         })
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 

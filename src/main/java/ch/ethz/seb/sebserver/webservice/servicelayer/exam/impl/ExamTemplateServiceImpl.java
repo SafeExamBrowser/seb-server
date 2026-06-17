@@ -835,7 +835,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     exam.owner,
                     ConfigurationStatus.IN_USE,
                     null,
-                    null);
+                    null, null);
 
             return this.configurationNodeDAO
                     .createNew(config)
@@ -859,7 +859,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     null,
                     ConfigurationStatus.IN_USE,
                     null,
-                    null);
+                    null, null);
 
             return this.configurationNodeDAO
                     .save(config)

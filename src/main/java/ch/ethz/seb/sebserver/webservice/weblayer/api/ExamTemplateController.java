@@ -212,7 +212,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 currentUser.uuid(),
                 ConfigurationNode.ConfigurationStatus.READY_TO_USE,
                 Utils.toDateTimeUTC(Utils.getMillisecondsNow()),
-                currentUser.uuid());
+                currentUser.uuid(),
+                null);
 
         return configurationNodeDAO
                 .createNew(configurationNode)
