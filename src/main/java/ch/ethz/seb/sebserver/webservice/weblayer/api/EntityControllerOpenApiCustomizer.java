@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +16,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.function.Supplier;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -28,6 +25,7 @@ import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
@@ -275,8 +273,9 @@ public class EntityControllerOpenApiCustomizer {
     }
 
     /** Exposes the catalogue of stable APIMessage codes as a named {@code ErrorCode} OpenAPI enum.
-     * The frontend imports this generated enum to reference known codes instead of hard-coding them, while
-     * {@link APIMessage#messageCode} stays a free-form string so unrecognized codes never break client parsing. */
+     * The frontend imports this generated enum to reference known codes instead of hard-coding them and to key
+     * its error-message translations by code name, while {@link APIMessage#messageCode} stays a free-form string
+     * so unrecognized codes never break client parsing. */
     @Bean
     public OpenApiCustomizer errorCodeSchemaOpenApiCustomizer() {
         return openApi -> {
@@ -298,32 +297,150 @@ public class EntityControllerOpenApiCustomizer {
         };
     }
 
-    /** Publishes the field-validation message catalogue (the
-     * {@code sebserver.form.validation.fieldError.*} entries of {@code messages.properties}) as a
-     * root {@code x-field-validation-messages} extension, so the frontend can generate its 1200
-     * field-error text from the backend instead of re-maintaining it. */
+    private static final String API_MESSAGE_SCHEMA_REF = "#/components/schemas/APIMessage";
+    private static final String RESPONSE_COMPONENT_REF_PREFIX = "#/components/responses/";
+
+    /** Documents the common error responses that {@link APIExceptionHandler} can return, so generated clients get
+     * typed error bodies instead of an untyped {@code unknown}. springdoc only documents the success responses;
+     * inherited generic endpoints document none at all. This customizer registers the shared
+     * 400/401/403/404/429/500 responses once and references them from every operation.
+     * <p>
+     * It is a documentation-only change: it mirrors the actual wire shapes ({@link APIMessage} list for most
+     * errors, a plain-text rate-limit code for 429, and a single-or-list APIMessage for 401) without touching any
+     * runtime behaviour, so it cannot break other API consumers. An operation that already documents a status code
+     * keeps its own definition.
+     * <p>
+     * Only the cross-cutting statuses are attached globally. {@link APIExceptionHandler} can also emit
+     * domain-specific statuses — 206 (NEED_CONFIRMATION / exam-import warnings), 406
+     * (CLIENT_CONNECTION_INTEGRITY_VIOLATION) and 409 (LMS_WARNINGS) — but those originate from specific business
+     * flows (screen proctoring, SEB restriction), so attaching them to every operation would document responses
+     * that most endpoints can never return. They are intentionally left out here; document them per operation on
+     * the relevant controllers if/when those domains need typed error coverage. */
     @Bean
-    public OpenApiCustomizer fieldValidationMessagesOpenApiCustomizer() {
+    public OpenApiCustomizer apiErrorResponsesOpenApiCustomizer() {
         return openApi -> {
-            final Properties messages = new Properties();
-            try (final InputStream stream = getClass().getResourceAsStream("/messages.properties")) {
-                if (stream == null) {
-                    return;
-                }
-                messages.load(stream);
-            } catch (final IOException e) {
+            registerErrorResponses(components(openApi));
+            if (openApi.getPaths() == null) {
                 return;
             }
-
-            final String prefix = "sebserver.form.validation.fieldError.";
-            final Map<String, String> ruleMessages = new LinkedHashMap<>();
-            messages.stringPropertyNames().stream().sorted().forEach(key -> {
-                if (key.startsWith(prefix)) {
-                    ruleMessages.put(key.substring(prefix.length()), messages.getProperty(key));
-                }
-            });
-            openApi.addExtension("x-field-validation-messages", ruleMessages);
+            openApi.getPaths().values().forEach(pathItem ->
+                    pathItem.readOperations().forEach(EntityControllerOpenApiCustomizer::attachErrorResponses));
         };
+    }
+
+    /** Registers the shared error responses under {@code components/responses} (and makes sure the referenced
+     * {@code APIMessage} schema exists), so operations can reference them by {@code $ref}. */
+    private static void registerErrorResponses(final Components components) {
+        addSchemas(components, APIMessage.class);
+        for (final ApiErrorResponse error : ApiErrorResponse.values()) {
+            if (components.getResponses() != null && components.getResponses().containsKey(error.componentName)) {
+                continue;
+            }
+            components.addResponses(error.componentName, buildErrorResponse(error));
+        }
+    }
+
+    /** Attaches a {@code $ref} to each shared error response on one operation, leaving any status the operation
+     * already documents untouched. */
+    private static void attachErrorResponses(final Operation operation) {
+        ApiResponses responses = operation.getResponses();
+        if (responses == null) {
+            responses = new ApiResponses();
+            operation.setResponses(responses);
+        }
+
+        for (final ApiErrorResponse error : ApiErrorResponse.values()) {
+            if (responses.containsKey(error.statusCode)) {
+                continue;
+            }
+            responses.addApiResponse(
+                    error.statusCode,
+                    new ApiResponse().$ref(RESPONSE_COMPONENT_REF_PREFIX + error.componentName));
+        }
+    }
+
+    private static ApiResponse buildErrorResponse(final ApiErrorResponse error) {
+        return new ApiResponse()
+                .description(error.description)
+                .content(errorContent(error.contentShape));
+    }
+
+    private static Content errorContent(final ContentShape shape) {
+        return switch (shape) {
+            case API_MESSAGE_LIST -> jsonContent(apiMessageListSchema());
+            case API_MESSAGE_SINGLE_OR_LIST -> jsonContent(apiMessageSingleOrListSchema());
+            case PLAIN_STRING -> new Content().addMediaType(
+                    org.springframework.http.MediaType.TEXT_PLAIN_VALUE,
+                    new MediaType().schema(new StringSchema()));
+        };
+    }
+
+    private static Content jsonContent(final Schema<?> schema) {
+        return new Content().addMediaType(
+                org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
+                new MediaType().schema(schema));
+    }
+
+    private static Schema<?> apiMessageListSchema() {
+        return new ArraySchema().items(apiMessageRefSchema());
+    }
+
+    private static Schema<?> apiMessageSingleOrListSchema() {
+        return new Schema<>()
+                .addOneOfItem(apiMessageRefSchema())
+                .addOneOfItem(apiMessageListSchema());
+    }
+
+    private static Schema<?> apiMessageRefSchema() {
+        return new Schema<>().$ref(API_MESSAGE_SCHEMA_REF);
+    }
+
+    /** The common API error responses attached to every operation. Status codes and wire shapes mirror
+     * {@link APIExceptionHandler}; the shapes are documentation only and do not change any response. */
+    private enum ApiErrorResponse {
+        BAD_REQUEST("400", "Error400BadRequest",
+                "Bad request, e.g. field validation or an illegal argument. The body is usually a list of APIMessage, "
+                        + "but may be absent for some illegal-argument cases.",
+                ContentShape.API_MESSAGE_LIST),
+        UNAUTHORIZED("401", "Error401Unauthorized",
+                "Unauthorized. Body is an APIMessage or a list of APIMessage.",
+                ContentShape.API_MESSAGE_SINGLE_OR_LIST),
+        FORBIDDEN("403", "Error403Forbidden",
+                "Forbidden. Body is a list of APIMessage.",
+                ContentShape.API_MESSAGE_LIST),
+        NOT_FOUND("404", "Error404NotFound",
+                "Resource not found. Body is a list of APIMessage.",
+                ContentShape.API_MESSAGE_LIST),
+        TOO_MANY_REQUESTS("429", "Error429TooManyRequests",
+                "Too many requests (rate limit). Body is the rate-limit code as plain text.",
+                ContentShape.PLAIN_STRING),
+        INTERNAL_SERVER_ERROR("500", "Error500InternalServerError",
+                "Unexpected internal server error. Body is a list of APIMessage.",
+                ContentShape.API_MESSAGE_LIST);
+
+        private final String statusCode;
+        private final String componentName;
+        private final String description;
+        private final ContentShape contentShape;
+
+        ApiErrorResponse(
+                final String statusCode,
+                final String componentName,
+                final String description,
+                final ContentShape contentShape) {
+
+            this.statusCode = statusCode;
+            this.componentName = componentName;
+            this.description = description;
+            this.contentShape = contentShape;
+        }
+    }
+
+    /** The wire shape an error response carries, mirroring how {@link APIExceptionHandler} serialises each case. */
+    private enum ContentShape {
+        API_MESSAGE_LIST,
+        API_MESSAGE_SINGLE_OR_LIST,
+        PLAIN_STRING
     }
 
     /** Checks that this is exactly the inherited generic create method.
