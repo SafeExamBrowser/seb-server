@@ -12,6 +12,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,26 +27,33 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "Institution", description = "An institution managed by SEB Server.")
 public final class Institution implements GrantEntity, Activatable {
 
+    @Schema(description = "Institution identifier. Omit for creation; assigned by the server.", nullable = true)
     @JsonProperty(INSTITUTION.ATTR_ID)
     public final Long id;
 
+    @Schema(description = "Institution name.", example = "ETH Zurich", minLength = 3, maxLength = 255)
     @JsonProperty(INSTITUTION.ATTR_NAME)
     @NotNull(message = "institution:name:notNull")
     @Size(min = 3, max = 255, message = "institution:name:size:{min}:{max}:${validatedValue}")
     public final String name;
 
+    @Schema(description = "URL path suffix that routes to this institution. Empty, or 3 to 45 characters.", example = "eth", nullable = true, maxLength = 45)
     @JsonProperty(INSTITUTION.ATTR_URL_SUFFIX)
     @Pattern(regexp = "(^$|.{3,45})", message = "institution:urlSuffix:size:3:45:${validatedValue}")
     public final String urlSuffix;
 
+    @Schema(description = "Base64-encoded institution logo image.", nullable = true)
     @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE)
     public final String logoImage;
 
+    @Schema(description = "Name of the visual theme applied for this institution.", nullable = true)
     @JsonProperty(INSTITUTION.ATTR_THEME_NAME)
     public final String themeName;
 
+    @Schema(description = "Whether the institution is active.", example = "true", nullable = true)
     @JsonProperty(INSTITUTION.ATTR_ACTIVE)
     public final Boolean active;
 
