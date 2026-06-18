@@ -224,15 +224,15 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 .map(Collection::size);
     }
 
-//    @Override
-//    public Result<Long> applySettingsForTemplate(final Long templateId) {
-//
-//        // create new history entry and clear history
-//        return configurationDAO
-//                .saveToHistory(templateId)
-//                .flatMap(config -> configurationDAO.clearHistory(templateId))
-//                .map(Configuration::getId);
-//    }
+    @Override
+    public Result<Long> applySettingsForTemplate(final Long templateId) {
+
+        // create new history entry and clear history
+        return configurationDAO
+                .saveToHistory(templateId)
+                .flatMap(config -> configurationDAO.clearHistory(templateId))
+                .map(Configuration::getId);
+    }
 
     @Override
     public Result<Long> applySettingsForExam(final Long examId) {
@@ -244,14 +244,13 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 .map( all -> examId);
     }
 
-//    @Override
-//    public Result<Long> undoSettingsForTemplate(final Long templateId) {
-//        // copy the values from first rev to followup
-//        return configurationDAO
-//                .getConfigurationLastStableVersion(templateId)
-//                .flatMap(backup -> configurationDAO.restoreToVersion(templateId, backup.id))
-//                .map( config -> templateId);
-//    }
+    @Override
+    public Result<Long> undoSettingsForTemplate(final Long templateId) {
+        // copy the values from first rev to followup
+        return configurationDAO
+                .undo(templateId)
+                .map( config -> templateId);
+    }
 
     @Override
     public Result<Long> undoSettingsForExam(final Long examId) {

@@ -168,10 +168,10 @@ public interface SEBSettingsService {
 
     Result<Integer> getActiveSEBClientsForExam(Long examId);
     
-    //Result<Long> applySettingsForTemplate(Long templateId);
+    Result<Long> applySettingsForTemplate(Long templateId);
     Result<Long> applySettingsForExam(Long examId);
 
-    //Result<Long> undoSettingsForTemplate(Long templateId);
+    Result<Long> undoSettingsForTemplate(Long templateId);
     Result<Long> undoSettingsForExam(Long examId);
 
 }

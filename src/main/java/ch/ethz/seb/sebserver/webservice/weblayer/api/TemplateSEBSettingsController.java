@@ -89,31 +89,11 @@ public class TemplateSEBSettingsController {
         authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
 
         System.out.println("************ save single value: " + value + " templateId: " + templateId + " valueId: " + valueId);
-     //   throw new NoResourceFoundException(EntityType.CONFIGURATION_VALUE, "Test");
         
         return sebSettingsService
                 .saveSingleValueForTemplate(templateId, valueId, value)
                 .getOrThrow();
     }
-
-    // TODO it seems this is not used. Delete it when confirmed (3.0)
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
-//            method = RequestMethod.PUT,
-//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public SEBSettingsView.TableRowValues saveTableRowValues(
-//            @PathVariable(name =API.PARAM_MODEL_ID) final Long templateId,
-//            @RequestBody final SEBSettingsView.TableRowValues values) {
-//
-//        System.out.println("************* save row values: " + values);
-//
-//        authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
-//
-//        return sebSettingsService
-//                .saveTableRowValuesForTemplate(templateId, values)
-//                .getOrThrow();
-//    }
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT +
@@ -152,6 +132,42 @@ public class TemplateSEBSettingsController {
 
         return sebSettingsService
                 .deleteTableRowForTemplate(templateId, attributeName, index)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT +
+                    API.SEB_SETTINGS_PUBLISH,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public void publish(@PathVariable(name =API.PARAM_MODEL_ID) final Long templateId) {
+
+        authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Publish SEB Settings changes for ExamTemplate: {}", templateId);
+        }
+
+        sebSettingsService
+                .applySettingsForTemplate(templateId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT +
+                    API.SEB_SETTINGS_UNDO,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public void undoChanges(@PathVariable(name =API.PARAM_MODEL_ID) final Long templateId) {
+
+        authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Undo SEB Settings changes for ExamTemplate: {}", templateId);
+        }
+
+        sebSettingsService
+                .undoSettingsForTemplate(templateId)
                 .getOrThrow();
     }
 }
