@@ -147,7 +147,7 @@ public class ModelObjectJSONGenerator {
 
         domainObject = new ConfigurationNode(
                 1L, 1L, 1L, "name", "description", ConfigurationType.EXAM_CONFIG, "ownerUUID",
-                ConfigurationStatus.CONSTRUCTION, DateTime.now(), "user123");
+                ConfigurationStatus.CONSTRUCTION, DateTime.now(), "user123", "user123");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

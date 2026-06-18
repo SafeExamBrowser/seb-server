@@ -27,6 +27,8 @@ public final class ConfigurationNode implements GrantEntity {
 
     public static final Long DEFAULT_TEMPLATE_ID = 0L;
 
+    public static final String ATTR_LAST_UPDATE_USER_NAME = "lastUpdateUserName";
+
     public static final String FILTER_ATTR_TEMPLATE_ID = "templateId";
     public static final String FILTER_ATTR_DESCRIPTION = "description";
     public static final String FILTER_ATTR_TYPE = "type";
@@ -79,6 +81,9 @@ public final class ConfigurationNode implements GrantEntity {
     @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER)
     public final String lastUpdateUser;
 
+    @JsonProperty(ATTR_LAST_UPDATE_USER_NAME)
+    public final String lastUpdateUserName;
+
     @JsonCreator
     public ConfigurationNode(
             @JsonProperty(CONFIGURATION_NODE.ATTR_ID) final Long id,
@@ -90,7 +95,8 @@ public final class ConfigurationNode implements GrantEntity {
             @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER) final String owner,
             @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS) final ConfigurationStatus status,
             @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME) final DateTime lastUpdateTime,
-            @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER) final String lastUpdateUser) {
+            @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER) final String lastUpdateUser,
+            @JsonProperty(ATTR_LAST_UPDATE_USER_NAME) final String lastUpdateUserName) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -102,6 +108,7 @@ public final class ConfigurationNode implements GrantEntity {
         this.status = status;
         this.lastUpdateTime = lastUpdateTime;
         this.lastUpdateUser = lastUpdateUser;
+        this.lastUpdateUserName = lastUpdateUserName;
     }
 
     public ConfigurationNode(final Long institutionId, final POSTMapper postParams) {
@@ -120,9 +127,9 @@ public final class ConfigurationNode implements GrantEntity {
                 CONFIGURATION_NODE.ATTR_STATUS,
                 ConfigurationStatus.class,
                 ConfigurationStatus.CONSTRUCTION);
-        this.lastUpdateTime = postParams.getDateTime(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME);
-        this.lastUpdateUser = postParams.getString(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER);
-
+        this.lastUpdateTime = null;
+        this.lastUpdateUser = null;
+        this.lastUpdateUserName = null;
     }
 
     @Override
@@ -216,6 +223,7 @@ public final class ConfigurationNode implements GrantEntity {
                 null,
                 ConfigurationStatus.CONSTRUCTION,
                 null,
+                null,
                 null);
     }
 
@@ -229,6 +237,7 @@ public final class ConfigurationNode implements GrantEntity {
                 ConfigurationType.TEMPLATE,
                 null,
                 ConfigurationStatus.CONSTRUCTION,
+                null,
                 null,
                 null);
     }

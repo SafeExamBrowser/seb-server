@@ -711,6 +711,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         // NO LMS based exam is possible since v1.6
         if (quizId == null) {
+            postParams.putIfAbsent(EXAM.ATTR_EXTERNAL_ID, UUID.randomUUID().toString());
             ExamUtils.newExamFieldValidation(postParams);
             return new Exam(postParams);
         } else {

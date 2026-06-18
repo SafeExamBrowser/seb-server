@@ -211,7 +211,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 null,
                 ConfigurationStatus.IN_USE,
                 null,
-                null))
+                null, null))
                 .map(id -> entity);
 
     }
@@ -232,7 +232,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
                 null,
                 ConfigurationStatus.READY_TO_USE,
                 null,
-                null))
+                null, null))
                 .map(id -> pair);
     }
 

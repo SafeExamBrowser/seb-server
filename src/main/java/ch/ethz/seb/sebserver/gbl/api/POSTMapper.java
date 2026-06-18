@@ -245,6 +245,15 @@ public class POSTMapper {
         return Utils.toDateTime(value);
     }
 
+    public DateTime getDateTimeTimestampOrDateString(final String name) {
+        final String value = this.params.getFirst(name);
+        if (value == null) {
+            return null;
+        }
+
+        return Utils.toDateTimeTimestampOrDateString(value);
+    }
+
     public Map<String, String> getSubMap(final Set<String> actionAttributes) {
         return this.params
                 .keySet()

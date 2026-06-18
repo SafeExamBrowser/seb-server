@@ -76,7 +76,23 @@ public interface ExamTemplateService {
 
     Result<ExamTemplate> saveAdditionalData(ExamTemplate examTemplate);
 
-    Result<ExamTemplate> applyExamTemplateAdditionalData(ExamTemplate examTemplate);
+    ExamTemplate applyExamTemplateAdditionalData(ExamTemplate examTemplate);
+
+    ExamTemplate filterLegacyData(ExamTemplate examTemplate);
+
+    default Result<ExamTemplate> prepareForNewUI(final ExamTemplate examTemplate) {
+        return Result.tryCatch(() -> {
+           final ExamTemplate allData =  applyExamTemplateAdditionalData(examTemplate);
+           return filterLegacyData(allData);
+        });
+    }
+
+    default Result<Collection<ExamTemplate>> prepareForNewUI(final Collection<ExamTemplate> all) {
+        return Result.tryCatch(() ->  all.stream()
+                .map(this::applyExamTemplateAdditionalData)
+                .map(this::filterLegacyData)
+                .toList());
+    }
 
     /** Creates a new client group template
      *

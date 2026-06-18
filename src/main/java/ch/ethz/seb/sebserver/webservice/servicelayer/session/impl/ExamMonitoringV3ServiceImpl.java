@@ -267,16 +267,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         return cc -> {
             // state filter
             final boolean isMissing = cc.getMissingPing();
-            if (missing && !isMissing) {
-                if (states.isEmpty()) {
-                    return false;
-                } else {
-                    if (checkStates && !states.contains(cc.clientConnection.status)) {
-                        return false;
-                    }
-                }
-            }
-            if (!missing && checkStates && !states.contains(cc.clientConnection.status)) {
+            if (!(missing && isMissing || (!isMissing && checkStates && states.contains(cc.clientConnection.status)))) {
                 return false;
             }
 

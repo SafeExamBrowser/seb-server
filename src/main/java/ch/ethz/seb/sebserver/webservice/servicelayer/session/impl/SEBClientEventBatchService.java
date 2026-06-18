@@ -148,6 +148,7 @@ public class SEBClientEventBatchService {
             this.eventDataQueue.drainTo(events);
 
             if (events.isEmpty()) {
+                log.info("-----> Unexpected empty event list after waiting queue drain, worker: {}", workerName);
                 return;
             }
 

@@ -12,4 +12,6 @@ public interface DAOUserServcie {
 
     String getCurrentUserUUID();
 
+    String getUserNameForUUID(String UUID);
+
 }

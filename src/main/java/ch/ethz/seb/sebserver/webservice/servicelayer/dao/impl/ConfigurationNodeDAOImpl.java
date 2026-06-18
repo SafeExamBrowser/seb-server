@@ -110,7 +110,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Transactional(readOnly = true)
     public Result<ConfigurationNode> byPK(final Long id) {
         return recordById(id)
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel);
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(ConfigurationNodeDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .collect(Collectors.toList());
         });
@@ -186,7 +186,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(ConfigurationNodeDAOImpl::toDomainModel)
+                    .map(this::toDomainModel)
                     .flatMap(DAOLoggingSupport::logAndSkipOnError)
                     .filter(predicate)
                     .collect(Collectors.toList());
@@ -247,7 +247,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
                     return this.configurationNodeRecordMapper.selectByPrimaryKey(data.id);
                 })
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -299,7 +299,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             return this.configurationNodeRecordMapper.selectByPrimaryKey(newRecord.getId());
 
          })
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
+                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -472,18 +472,25 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         });
     }
 
-    static Result<ConfigurationNode> toDomainModel(final ConfigurationNodeRecord record) {
-        return Result.tryCatch(() -> new ConfigurationNode(
-                record.getId(),
-                record.getInstitutionId(),
-                record.getTemplateId(),
-                record.getName(),
-                record.getDescription(),
-                ConfigurationType.valueOf(record.getType()),
-                record.getOwner(),
-                ConfigurationStatus.valueOf(record.getStatus()),
-                Utils.toDateTimeUTC(record.getLastUpdateTime()),
-                record.getLastUpdateUser()));
+    Result<ConfigurationNode> toDomainModel(final ConfigurationNodeRecord record) {
+        return Result.tryCatch(() -> {
+            final String lastUpdateUser = record.getLastUpdateUser();
+            final String lastUpdateUserName = this.daoUserServcie.getUserNameForUUID(lastUpdateUser);
+
+            return new ConfigurationNode(
+                    record.getId(),
+                    record.getInstitutionId(),
+                    record.getTemplateId(),
+                    record.getName(),
+                    record.getDescription(),
+                    ConfigurationType.valueOf(record.getType()),
+                    record.getOwner(),
+                    ConfigurationStatus.valueOf(record.getStatus()),
+                    Utils.toDateTimeUTC(record.getLastUpdateTime()),
+                    lastUpdateUser,
+                    lastUpdateUserName);
+
+        });
     }
 
     private Result<ConfigCreationInfo> checkCorrectCopyName(final ConfigCreationInfo copyInfo) {
