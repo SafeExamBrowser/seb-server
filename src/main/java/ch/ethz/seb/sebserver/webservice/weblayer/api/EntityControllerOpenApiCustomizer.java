@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
@@ -64,7 +65,10 @@ public class EntityControllerOpenApiCustomizer {
                     stringFilter(UserInfo.FILTER_ATTR_EMAIL, "Filters user accounts by email address."),
                     stringFilter(UserInfo.FILTER_ATTR_LANGUAGE, "Filters user accounts by language."),
                     stringFilter(UserInfo.FILTER_ATTR_ROLE, "Filters user accounts by role."),
-                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters user accounts by active state.")));
+                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters user accounts by active state.")),
+            Institution.class, List.of(
+                    stringFilter(Entity.FILTER_ATTR_NAME, "Filters institutions by name."),
+                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters institutions by active state.")));
 
     private final ApplicationContext applicationContext;
 
