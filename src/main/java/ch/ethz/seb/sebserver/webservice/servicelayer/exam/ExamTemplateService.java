@@ -80,14 +80,32 @@ public interface ExamTemplateService {
 
     ExamTemplate filterLegacyData(ExamTemplate examTemplate);
 
-    default Result<ExamTemplate> prepareForNewUI(final ExamTemplate examTemplate) {
+    /** If the given ExamTemplate has no Configuration Template assigned to it, this will create one
+     *  with the default SEB Settings for it, store all the data and returns the ExamTemplate with the new
+     *  Configuration Template assignment.
+     * @param examTemplate The exam template to create missing Configuration Template
+     * @return ExamTemplate with Configuration Template assignment */
+    ExamTemplate createConfigurationTemplateWhenMissing(ExamTemplate examTemplate);
+
+    /** This is used to prepare a given ExamTemplate for SEB Server v3 needs if is not already up to date.
+     *  First it checks if there is a Configuration Template assigned. This is mandatory since V3 and
+     *  if not, this preparation will create a new default Configuration Template for the given Exam Template
+     *  and sore all the data for this.
+     *  Then add all additional data needed to support the new V3 UI to the Exam Template model.
+     *  And last but not least, filters out all legacy data that is not used by the new V3 UI anymore
+     *  and also cannot handle it anymore.
+     *
+     * @param examTemplate The exam template to prepare for new version V3
+     * @return prepared Exam Template that works for new version V3 */
+    default Result<ExamTemplate> prepareForV3(final ExamTemplate examTemplate) {
         return Result.tryCatch(() -> {
-           final ExamTemplate allData =  applyExamTemplateAdditionalData(examTemplate);
-           return filterLegacyData(allData);
+            final ExamTemplate withConfigurationTemplate = createConfigurationTemplateWhenMissing(examTemplate);
+            final ExamTemplate allData =  applyExamTemplateAdditionalData(withConfigurationTemplate);
+            return filterLegacyData(allData);
         });
     }
 
-    default Result<Collection<ExamTemplate>> prepareForNewUI(final Collection<ExamTemplate> all) {
+    default Result<Collection<ExamTemplate>> applyForV3(final Collection<ExamTemplate> all) {
         return Result.tryCatch(() ->  all.stream()
                 .map(this::applyExamTemplateAdditionalData)
                 .map(this::filterLegacyData)

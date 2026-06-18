@@ -14,13 +14,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -46,13 +50,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 
 @Lazy
@@ -66,9 +63,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             indicator.type == IndicatorType.WLAN_STATUS;
 
     private final AdditionalAttributesDAO additionalAttributesDAO;
-
     private final ExamTemplateDAO examTemplateDAO;
-
     private final ProctoringAdminService proctoringAdminService;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
@@ -78,6 +73,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private final WebserviceInfo webserviceInfo;
     private final ProctoringAdminService proctoringServiceSettingsService;
     private final BeanValidationService beanValidationService;
+    private final DAOUserServcie daoUserServcie;
 
     private final String defaultIndicatorName;
     private final String defaultIndicatorType;
@@ -98,6 +94,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final WebserviceInfo webserviceInfo,
             final ProctoringAdminService proctoringServiceSettingsService,
             final BeanValidationService beanValidationService,
+            final DAOUserServcie daoUserServcie,
 
             @Value("${sebserver.webservice.api.exam.indicator.name:}") final String defaultIndicatorName,
             @Value("${sebserver.webservice.api.exam.indicator.type:}") final String defaultIndicatorType,
@@ -117,6 +114,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         this.webserviceInfo = webserviceInfo;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
         this.beanValidationService = beanValidationService;
+        this.daoUserServcie = daoUserServcie;
 
         this.defaultIndicatorName = defaultIndicatorName;
         this.defaultIndicatorType = defaultIndicatorType;
@@ -555,6 +553,62 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             }
 
             return examTemplate;
+    }
+
+    @Override
+    public ExamTemplate createConfigurationTemplateWhenMissing(ExamTemplate examTemplate) {
+        try {
+
+            if (examTemplate.configTemplateId != null) {
+                return examTemplate;
+            }
+
+            log.info("Create new default ConfigurationTemplate for Exam Template: {}", examTemplate);
+
+            final String currentUserUUID = this.daoUserServcie.getCurrentUserUUID();
+            ConfigurationNode newConfigurationTemplate = configurationNodeDAO.createNew(new ConfigurationNode(
+                    null,
+                    examTemplate.institutionId,
+                    null,
+                    examTemplate.name,
+                    examTemplate.description,
+                    ConfigurationType.TEMPLATE,
+                    currentUserUUID,
+                    ConfigurationStatus.READY_TO_USE,
+                    Utils.toDateTimeUTC(Utils.getMillisecondsNow()),
+                    currentUserUUID,
+                    null
+            )).getOrThrow();
+
+            ExamTemplate newExamTemplate = new ExamTemplate(
+                    examTemplate.id,
+                    examTemplate.institutionId ,
+                    examTemplate.name,
+                    examTemplate.description ,
+                    examTemplate.examType,
+                    examTemplate.supporter ,
+                    newConfigurationTemplate.id,
+                    examTemplate.institutionalDefault ,
+                    examTemplate.lmsIntegration ,
+                    examTemplate.clientConfigurationId,
+                    examTemplate.indicatorTemplates ,
+                    examTemplate.clientGroupTemplates ,
+                    examTemplate.examAttributes
+            );
+
+            examTemplateDAO
+                    .save(newExamTemplate)
+                    .getOrThrow();
+
+            return newExamTemplate;
+
+        } catch (Exception e) {
+            log.error("Failed to create missing Configuration Template for Exam Template: {} cause: {}",
+                    examTemplate,
+                    e.getMessage());
+
+            return examTemplate;
+        }
     }
 
     private void updateConfigurationTemplate(final ExamTemplate examTemplate) {

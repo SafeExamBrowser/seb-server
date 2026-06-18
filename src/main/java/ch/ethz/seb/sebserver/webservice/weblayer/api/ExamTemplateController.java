@@ -107,7 +107,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return this.entityDAO
                 .byModelId(modelId)
                 .flatMap(this::checkReadAccess)
-                .flatMap(examTemplateService::prepareForNewUI)
+                .flatMap(examTemplateService::prepareForV3)
                 .getOrThrow();
     }
 
@@ -115,7 +115,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     protected Result<Collection<ExamTemplate>> getAll(FilterMap filterMap) {
         return super
                 .getAll(filterMap)
-                .flatMap(examTemplateService::prepareForNewUI);
+                .flatMap(examTemplateService::applyForV3);
     }
 
     /** Get the institutional default Exam Template with all additional data assigned.
@@ -129,7 +129,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return ((ExamTemplateDAO) this.entityDAO)
                 .getInstitutionalDefault(this.authorization.getUserService().getCurrentUser().institutionId())
                 .flatMap(this::checkReadAccess)
-                .flatMap(examTemplateService::prepareForNewUI)
+                .flatMap(examTemplateService::prepareForV3)
                 .getOrThrow();
     }
 
@@ -179,7 +179,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
                 // get source of truth from DB apply SPS Data and notify created
                 .flatMap(r -> examTemplateDAO.byPK(r.id))
-                .flatMap(examTemplateService::prepareForNewUI)
+                .flatMap(examTemplateService::prepareForV3)
                 .flatMap(this::notifyCreated)
                 .getOrThrow();
     }
