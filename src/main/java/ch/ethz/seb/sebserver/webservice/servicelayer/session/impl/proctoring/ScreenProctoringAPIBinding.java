@@ -325,10 +325,6 @@ public class ScreenProctoringAPIBinding {
         }
     }
 
-//    public void synchronizeGroups(final Exam exam) {
-//        synchronizeGroups(exam, this.getSPSData(exam.id));
-//    }
-
     public void synchronizeGroups(final Exam exam, final SPSData spsData) {
         try {
             
@@ -1022,41 +1018,47 @@ public class ScreenProctoringAPIBinding {
         }
     }
 
-    public Collection<GroupSessionCount> getActiveGroupSessionCounts() {
-        try {
+// NOTE: This might not be needed anymore for the new UI and when it is needed than in a
+//       improved form that can directly be accesses from SPS by the UI
+//       See: SEBSERV-950
 
-            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
+// TODO anhefti SEBSERV-950
 
-            final String uri = UriComponentsBuilder
-                    .fromUriString(apiTemplate.spsServiceURL)
-                    .path(GROUP_COUNT_ENDPOINT)
-                    .build()
-                    .toUriString();
-
-
-            final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.POST);
-            if (exchange.getStatusCode() != HttpStatus.OK) {
-                log.warn("Failed to request active group session counts: {}", exchange);
-                return Collections.emptyList();
-            }
-
-            return this.jsonMapper.readValue(
-                    exchange.getBody(),
-                    new TypeReference<>() {
-                    });
-
-        } catch (final Exception e) {
-            if (!e.getMessage().contains("Open CircuitBreaker")) {
-                final String message = e.getMessage();
-                if (message.contains("503 SERVICE_UNAVAILABLE")) {
-                    log.warn("SPS Service not available!");
-                } else {
-                    log.warn("Failed to get active group session counts: {}", e.getMessage());
-                }
-            }
-            return Collections.emptyList();
-        }
-    }
+//    public Collection<GroupSessionCount> getActiveGroupSessionCounts() {
+//        try {
+//
+//            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
+//
+//            final String uri = UriComponentsBuilder
+//                    .fromUriString(apiTemplate.spsServiceURL)
+//                    .path(GROUP_COUNT_ENDPOINT)
+//                    .build()
+//                    .toUriString();
+//
+//
+//            final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.POST);
+//            if (exchange.getStatusCode() != HttpStatus.OK) {
+//                log.warn("Failed to request active group session counts: {}", exchange);
+//                return Collections.emptyList();
+//            }
+//
+//            return this.jsonMapper.readValue(
+//                    exchange.getBody(),
+//                    new TypeReference<>() {
+//                    });
+//
+//        } catch (final Exception e) {
+//            if (!e.getMessage().contains("Open CircuitBreaker")) {
+//                final String message = e.getMessage();
+//                if (message.contains("503 SERVICE_UNAVAILABLE")) {
+//                    log.warn("SPS Service not available!");
+//                } else {
+//                    log.warn("Failed to get active group session counts: {}", e.getMessage());
+//                }
+//            }
+//            return Collections.emptyList();
+//        }
+//    }
 
     //******************************************************************************************************************
     //**** Scheduled Delete API

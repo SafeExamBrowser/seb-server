@@ -285,24 +285,28 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void updateActiveGroups() {
-        try {
-            
-            if (!webserviceInfo.isMaster()) {
-                return;
-            }
+        // NOTE: This might not be needed anymore for the new UI and when it is needed than in a
+        //       improved form that can directly be accesses from SPS by the UI
+        //       See: SEBSERV-950
 
-            // TODO make this more performant (batch update, check if size has changed, caching...
-            if (screenProctoringGroupDAO.hasActiveGroups()) {
-                screenProctoringAPIBinding
-                        .getActiveGroupSessionCounts()
-                        .forEach(groupCount -> screenProctoringGroupDAO.updateGroupSize(
-                                groupCount.groupUUID,
-                                groupCount.activeCount,
-                                groupCount.totalCount));
-            }
-        } catch (final Exception e) {
-            log.warn("Failed to update actual group session counts.");
-        }
+        // TODO anhefti SEBSERV-950
+//        try {
+//
+//            if (!webserviceInfo.isMaster()) {
+//                return;
+//            }
+//
+//            if (screenProctoringGroupDAO.hasActiveGroups()) {
+//                screenProctoringAPIBinding
+//                        .getActiveGroupSessionCounts()
+//                        .forEach(groupCount -> screenProctoringGroupDAO.updateGroupSize(
+//                                groupCount.groupUUID,
+//                                groupCount.activeCount,
+//                                groupCount.totalCount));
+//            }
+//        } catch (final Exception e) {
+//            log.warn("Failed to update actual group session counts.");
+//        }
     }
 
     @Override
