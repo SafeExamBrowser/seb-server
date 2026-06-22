@@ -228,7 +228,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                         );
                         final LmsSetupTestResult result = this.lmsTestService.testAdHoc(adHocLMSSetup);
                         if (result.hasAnyError()) {
-                            log.warn("Deny active LMS Setup save because of connection errors: {}", adHocLMSSetup);
+                            log.warn("Deny active LMS Setup save because of connection errors. LMS Setup {}, Errors: {}", adHocLMSSetup, result);
                             if (!result.missingLMSSetupAttribute.isEmpty()) {
                                 throw new APIMessageException(result.missingLMSSetupAttribute);
                             } else if (result.hasError(ErrorType.TOKEN_REQUEST)) {
