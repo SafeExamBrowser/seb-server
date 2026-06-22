@@ -8,11 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -261,6 +257,11 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
             final CharSequence plainClientId = this.apiTemplateDataSupplier.getLmsClientCredentials().clientId;
             if (plainClientId == null || plainClientId.length() <= 0) {
                 throw new IllegalAccessException("Wrong client credential");
+            }
+
+            CharSequence accessToken = this.apiTemplateDataSupplier.getLmsClientCredentials().accessToken;
+            if (Objects.equals(accessToken, "123")) {
+                System.out.println("***********************");
             }
 
             return true;
