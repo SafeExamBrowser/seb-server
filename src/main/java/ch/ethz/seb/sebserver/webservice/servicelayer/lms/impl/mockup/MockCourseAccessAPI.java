@@ -259,11 +259,6 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 throw new IllegalAccessException("Wrong client credential");
             }
 
-            CharSequence accessToken = this.apiTemplateDataSupplier.getLmsClientCredentials().accessToken;
-            if (Objects.equals(accessToken, "123")) {
-                System.out.println("***********************");
-            }
-
             return true;
         } catch (final Exception e) {
             log.info("Authentication failed: ", e);

@@ -65,9 +65,6 @@ public class LmsTestServiceImpl implements LmsTestService {
 
     @Override
     public LmsSetupTestResult testAdHoc(final LmsSetup lmsSetup) {
-
-        log.info("Test Ad Hoc: {}", lmsSetup);
-
         final Result<LmsAPITemplate> _lmsSetupTemplate = lmsAPITemplateCacheService
                 .createInMemoryLmsAPITemplate(lmsSetup);
         if (_lmsSetupTemplate.hasError()) {
@@ -79,15 +76,10 @@ public class LmsTestServiceImpl implements LmsTestService {
         }
         
         final LmsAPITemplate lmsSetupTemplate = _lmsSetupTemplate.get();
-
-        log.info("Test Ad Hoc: {}", lmsSetupTemplate);
-
         final LmsSetupTestResult testCourseAccessAPI = lmsSetupTemplate.testCourseAccessAPI();
         if (!testCourseAccessAPI.isOk()) {
             return testCourseAccessAPI;
         }
-
-        log.info("Test Ad Hoc  Res1: {}", testCourseAccessAPI);
 
         final LmsSetup.LmsType lmsType = lmsSetupTemplate.lmsSetup().getLmsType();
         if (lmsType.features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
@@ -96,13 +88,7 @@ public class LmsTestServiceImpl implements LmsTestService {
                 return lmsSetupTestResult;
             }
         }
-
-//        final LmsSetupTestResult lmsSetupTestResult = fullIntegrationTest(lmsSetupTemplate);
-//        if (lmsSetupTestResult != null) {
-//            return lmsSetupTestResult;
-//        }
-
-
+        
         log.info("Test Ad Hoc  OK: {}", lmsSetup);
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
     }
