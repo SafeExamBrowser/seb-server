@@ -12,6 +12,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
@@ -207,7 +208,24 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                     final LmsSetup existingLMSSetup = this.entityDAO.byPK(lmsSetup.id).getOrThrow();
                     if (existingLMSSetup.isActive()) {
                         // apply ad hoc test with new settings. If not valid deny save
-                        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(lmsSetup);
+                        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(new LmsSetup(
+                                0,
+                                existingLMSSetup.institutionId,
+                                lmsSetup.name,
+                                existingLMSSetup.lmsType,
+                                lmsSetup.lmsAuthName,
+                                lmsSetup.lmsAuthSecret,
+                                lmsSetup.lmsApiUrl,
+                                lmsSetup.lmsRestApiToken,
+                                lmsSetup.proxyHost,
+                                lmsSetup.proxyPort,
+                                lmsSetup.proxyAuthUsername,
+                                lmsSetup.proxyAuthSecret,
+                                false,
+                                null,
+                                existingLMSSetup.connectionId,
+                                existingLMSSetup.integrationActive,
+                        ));
                         if (result.hasAnyError()) {
                             log.warn("Deny active LMS Setup save because of connection errors: {}", lmsSetup);
                             throw new APIMessageException(result.missingLMSSetupAttribute);
