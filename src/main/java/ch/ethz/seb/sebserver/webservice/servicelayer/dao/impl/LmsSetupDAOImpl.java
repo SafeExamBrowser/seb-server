@@ -229,27 +229,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                             .build()
                             .execute();
 
-
-                    
-//                    final LmsSetupRecord newRecord = new LmsSetupRecord(
-//                            lmsSetup.id,
-//                            rec.getInstitutionId(),
-//                            lmsSetup.name,
-//                            rec.getLmsType(),
-//                            lmsSetup.lmsApiUrl,
-//                            lmsSetup.lmsAuthName,
-//                            this.encryptForSave(lmsSetup.lmsAuthSecret),
-//                            this.encryptForSave(lmsSetup.lmsRestApiToken),
-//                            lmsSetup.getProxyHost(),
-//                            lmsSetup.getProxyPort(),
-//                            lmsSetup.proxyAuthUsername,
-//                            this.encryptForSave(lmsSetup.proxyAuthSecret),
-//                            System.currentTimeMillis(),
-//                            rec.getActive(),
-//                            createConnectionIdIfNotExists(lmsSetup.id),
-//                            rec.getIntegrationActive());
-
- //                   this.lmsSetupRecordMapper.updateByPrimaryKey(newRecord);
                     return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
                 })
                 .flatMap(this::toDomainModel)

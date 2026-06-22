@@ -200,6 +200,25 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     }
 
     @Override
+    protected Result<LmsSetup> validForSave(final LmsSetup entity) {
+        return super
+                .validForSave(entity)
+                .map(lmsSetup -> {
+
+                    if (lmsSetup.isActive()) {
+                        // apply ad hoc test with new settings. If not valid deny save
+                        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(lmsSetup);
+                        if (result.hasAnyError()) {
+                            log.warn("Deny active LMS Setup save because of connection errors: {}", lmsSetup);
+                            throw new APIMessageException(result.missingLMSSetupAttribute);
+                        }
+                    }
+
+                    return lmsSetup;
+                });
+    }
+
+    @Override
     protected Result<LmsSetup> notifySaved(final LmsSetup entity, final Activatable.ActivationAction activation) {
         // NOTE: When this save notification is called, the save (or activation/deactivation) has already happened
         //       In the case of deactivation this means the involved exams are already marked as inactive
