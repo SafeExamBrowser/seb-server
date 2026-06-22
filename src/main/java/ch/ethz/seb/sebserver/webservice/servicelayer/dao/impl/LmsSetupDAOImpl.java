@@ -210,26 +210,46 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     public Result<LmsSetup> save(final LmsSetup lmsSetup) {
         return recordById(lmsSetup.id)
                 .map(rec -> {
-                    
-                    final LmsSetupRecord newRecord = new LmsSetupRecord(
-                            lmsSetup.id,
-                            rec.getInstitutionId(),
-                            lmsSetup.name,
-                            rec.getLmsType(),
-                            lmsSetup.lmsApiUrl,
-                            lmsSetup.lmsAuthName,
-                            this.encryptForSave(lmsSetup.lmsAuthSecret),
-                            this.encryptForSave(lmsSetup.lmsRestApiToken),
-                            lmsSetup.getProxyHost(),
-                            lmsSetup.getProxyPort(),
-                            lmsSetup.proxyAuthUsername,
-                            this.encryptForSave(lmsSetup.proxyAuthSecret),
-                            System.currentTimeMillis(),
-                            rec.getActive(),
-                            createConnectionIdIfNotExists(lmsSetup.id),
-                            rec.getIntegrationActive());
 
-                    this.lmsSetupRecordMapper.updateByPrimaryKey(newRecord);
+                    UpdateDSL.updateWithMapper(lmsSetupRecordMapper::update, lmsSetupRecord)
+                            .set(name).equalTo(lmsSetup.name)
+                            .set(lmsUrl).equalTo(lmsSetup.lmsApiUrl)
+                            .set(lmsClientname).equalTo(lmsSetup.lmsAuthName)
+                            .set(lmsClientsecret).equalTo(this.encryptForSave(lmsSetup.lmsAuthSecret))
+                            .set(lmsRestApiToken).equalTo(this.encryptForSave(lmsSetup.lmsRestApiToken))
+                            .set(lmsProxyHost).equalTo(lmsSetup.getProxyHost())
+                            .set(lmsProxyPort).equalTo(lmsSetup.getProxyPort())
+                            .set(lmsProxyAuthUsername).equalTo(lmsSetup.proxyAuthUsername)
+                            .set(lmsProxyAuthSecret).equalTo(this.encryptForSave(lmsSetup.proxyAuthSecret))
+                            .set(updateTime).equalTo(System.currentTimeMillis())
+                            .set(LmsSetupRecordDynamicSqlSupport.active).equalTo(BooleanUtils.toIntegerObject(lmsSetup.isActive()))
+                            .set(connectionId).equalToWhenPresent(createConnectionIdIfNotExists(lmsSetup.id))
+                            .set(integrationActive).equalTo(rec.getIntegrationActive())
+                            .where(LmsSetupRecordDynamicSqlSupport.id, isIn(lmsSetup.id))
+                            .build()
+                            .execute();
+
+
+                    
+//                    final LmsSetupRecord newRecord = new LmsSetupRecord(
+//                            lmsSetup.id,
+//                            rec.getInstitutionId(),
+//                            lmsSetup.name,
+//                            rec.getLmsType(),
+//                            lmsSetup.lmsApiUrl,
+//                            lmsSetup.lmsAuthName,
+//                            this.encryptForSave(lmsSetup.lmsAuthSecret),
+//                            this.encryptForSave(lmsSetup.lmsRestApiToken),
+//                            lmsSetup.getProxyHost(),
+//                            lmsSetup.getProxyPort(),
+//                            lmsSetup.proxyAuthUsername,
+//                            this.encryptForSave(lmsSetup.proxyAuthSecret),
+//                            System.currentTimeMillis(),
+//                            rec.getActive(),
+//                            createConnectionIdIfNotExists(lmsSetup.id),
+//                            rec.getIntegrationActive());
+
+ //                   this.lmsSetupRecordMapper.updateByPrimaryKey(newRecord);
                     return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
                 })
                 .flatMap(this::toDomainModel)
