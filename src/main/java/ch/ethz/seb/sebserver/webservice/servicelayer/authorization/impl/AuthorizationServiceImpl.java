@@ -131,6 +131,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for configuration node
