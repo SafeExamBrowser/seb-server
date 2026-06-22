@@ -15,11 +15,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserService;
 
 @Lazy
 @Service
-public class DAOUserServiceImpl implements DAOUserServcie {
+public class DAOUserServiceImpl implements DAOUserService {
 
     private static final Logger log = LoggerFactory.getLogger(DAOUserServiceImpl.class);
 
@@ -34,7 +34,7 @@ public class DAOUserServiceImpl implements DAOUserServcie {
         try {
             return this.authorizationService.getUserService().getCurrentUser().uuid();
         } catch (final Exception e) {
-            log.error("Failed to get current user: {}", e.getMessage());
+            log.warn("Failed to get current user: {}", e.getMessage());
             return null;
         }
     }

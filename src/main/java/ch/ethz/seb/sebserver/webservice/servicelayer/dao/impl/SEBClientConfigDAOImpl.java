@@ -54,7 +54,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.SebClientConfigRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
@@ -68,7 +68,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;
     private final ClientCredentialService clientCredentialService;
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
-    private final DAOUserServcie daoUserServcie;
+    private final DAOUserService daoUserServcie;
     private final CacheManager cacheManager;
     private final Cryptor cryptor;
 
@@ -76,7 +76,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
             final ClientCredentialService clientCredentialService,
             final AdditionalAttributesDAOImpl additionalAttributesDAO,
-            final DAOUserServcie daoUserServcie,
+            final DAOUserService daoUserServcie,
             final CacheManager cacheManager,
             final Cryptor cryptor) {
 

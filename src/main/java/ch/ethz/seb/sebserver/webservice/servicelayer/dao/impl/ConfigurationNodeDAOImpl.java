@@ -62,7 +62,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeR
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -78,7 +78,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final ViewRecordMapper viewRecordMapper;
     private final OrientationRecordMapper orientationRecordMapper;
-    private final DAOUserServcie daoUserServcie;
+    private final DAOUserService daoUserService;
 
     protected ConfigurationNodeDAOImpl(
             final ConfigurationRecordMapper configurationRecordMapper,
@@ -89,7 +89,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             final ExamTemplateRecordMapper examTemplateRecordMapper,
             final ViewRecordMapper viewRecordMapper,
             final OrientationRecordMapper orientationRecordMapper,
-            final DAOUserServcie daoUserServcie) {
+            final DAOUserService daoUserService) {
 
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
@@ -98,7 +98,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         this.examTemplateRecordMapper = examTemplateRecordMapper;
         this.viewRecordMapper = viewRecordMapper;
         this.orientationRecordMapper = orientationRecordMapper;
-        this.daoUserServcie = daoUserServcie;
+        this.daoUserService = daoUserService;
     }
 
     @Override
@@ -221,7 +221,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Override
     public Result<ConfigurationNode> createNew(final ConfigurationNode data) {
         return this.configurationDAOBatchService
-                .createNewConfiguration(data, daoUserServcie.getCurrentUserUUID())
+                .createNewConfiguration(data, daoUserService.getCurrentUserUUID())
                 .flatMap(this.configurationDAOBatchService::createInitialConfiguration)
                 .onError(TransactionHandler::rollback);
     }
@@ -242,7 +242,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                             null,
                             (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name(),
                             Utils.getMillisecondsNow(),
-                            this.daoUserServcie.getCurrentUserUUID());
+                            this.daoUserService.getCurrentUserUUID());
 
                     this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
                     return this.configurationNodeRecordMapper.selectByPrimaryKey(data.id);
@@ -263,7 +263,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                         institutionId,
                         newOwner,
                         cInfo,
-                        daoUserServcie.getCurrentUserUUID())
+                        daoUserService.getCurrentUserUUID())
                 );
     }
 
@@ -293,7 +293,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     null,
                     null,
                     Utils.getMillisecondsNow(),
-                    this.daoUserServcie.getCurrentUserUUID());
+                    this.daoUserService.getCurrentUserUUID());
 
             this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.configurationNodeRecordMapper.selectByPrimaryKey(newRecord.getId());
@@ -388,7 +388,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         this.configurationNodeRecordMapper.updateByExampleSelective(
                 new ConfigurationNodeRecord(null, null, 0L, null, null, null, null, null,
                         Utils.getMillisecondsNow(),
-                        this.daoUserServcie.getCurrentUserUUID()))
+                        this.daoUserService.getCurrentUserUUID()))
                 .where(ConfigurationNodeRecordDynamicSqlSupport.templateId, isIn(configurationIds))
                 .build()
                 .execute();
@@ -475,7 +475,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     Result<ConfigurationNode> toDomainModel(final ConfigurationNodeRecord record) {
         return Result.tryCatch(() -> {
             final String lastUpdateUser = record.getLastUpdateUser();
-            final String lastUpdateUserName = this.daoUserServcie.getUserNameForUUID(lastUpdateUser);
+            final String lastUpdateUserName = this.daoUserService.getUserNameForUUID(lastUpdateUser);
 
             return new ConfigurationNode(
                     record.getId(),

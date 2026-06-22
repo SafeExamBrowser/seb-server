@@ -14,17 +14,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -73,7 +70,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private final WebserviceInfo webserviceInfo;
     private final ProctoringAdminService proctoringServiceSettingsService;
     private final BeanValidationService beanValidationService;
-    private final DAOUserServcie daoUserServcie;
+    private final DAOUserService daoUserServcie;
 
     private final String defaultIndicatorName;
     private final String defaultIndicatorType;
@@ -94,7 +91,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final WebserviceInfo webserviceInfo,
             final ProctoringAdminService proctoringServiceSettingsService,
             final BeanValidationService beanValidationService,
-            final DAOUserServcie daoUserServcie,
+            final DAOUserService daoUserServcie,
 
             @Value("${sebserver.webservice.api.exam.indicator.name:}") final String defaultIndicatorName,
             @Value("${sebserver.webservice.api.exam.indicator.type:}") final String defaultIndicatorType,
