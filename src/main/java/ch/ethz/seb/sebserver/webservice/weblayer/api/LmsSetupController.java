@@ -204,8 +204,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         return super
                 .validForSave(entity)
                 .map(lmsSetup -> {
-
-                    if (lmsSetup.isActive()) {
+                    final LmsSetup existingLMSSetup = this.entityDAO.byPK(lmsSetup.id).getOrThrow();
+                    if (existingLMSSetup.isActive()) {
                         // apply ad hoc test with new settings. If not valid deny save
                         final LmsSetupTestResult result = this.lmsTestService.testAdHoc(lmsSetup);
                         if (result.hasAnyError()) {
