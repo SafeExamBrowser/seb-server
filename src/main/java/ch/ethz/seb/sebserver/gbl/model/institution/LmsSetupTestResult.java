@@ -161,13 +161,11 @@ public final class LmsSetupTestResult {
 
         @Override
         public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("Error [errorType=");
-            builder.append(this.errorType);
-            builder.append(", message=");
-            builder.append(this.message);
-            builder.append("]");
-            return builder.toString();
+            return "Error [errorType=" +
+                    this.errorType +
+                    ", message=" +
+                    this.message +
+                    "]";
         }
     }
 
