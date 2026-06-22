@@ -209,7 +209,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                     if (existingLMSSetup.isActive()) {
                         // apply ad hoc test with new settings. If not valid deny save
                         final LmsSetupTestResult result = this.lmsTestService.testAdHoc(new LmsSetup(
-                                0,
+                                null,
                                 existingLMSSetup.institutionId,
                                 lmsSetup.name,
                                 existingLMSSetup.lmsType,
@@ -224,7 +224,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                                 false,
                                 null,
                                 existingLMSSetup.connectionId,
-                                existingLMSSetup.integrationActive,
+                                existingLMSSetup.integrationActive
                         ));
                         if (result.hasAnyError()) {
                             log.warn("Deny active LMS Setup save because of connection errors: {}", lmsSetup);
