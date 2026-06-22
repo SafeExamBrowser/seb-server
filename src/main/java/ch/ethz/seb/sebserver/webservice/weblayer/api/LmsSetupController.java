@@ -208,7 +208,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                     final LmsSetup existingLMSSetup = this.entityDAO.byPK(lmsSetup.id).getOrThrow();
                     if (existingLMSSetup.isActive()) {
                         // apply ad hoc test with new settings. If not valid deny save
-                        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(new LmsSetup(
+                        LmsSetup adHocLMSSetup = new LmsSetup(
                                 null,
                                 existingLMSSetup.institutionId,
                                 lmsSetup.name,
@@ -225,9 +225,10 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                                 null,
                                 existingLMSSetup.connectionId,
                                 existingLMSSetup.integrationActive
-                        ));
+                        );
+                        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(adHocLMSSetup);
                         if (result.hasAnyError()) {
-                            log.warn("Deny active LMS Setup save because of connection errors: {}", lmsSetup);
+                            log.warn("Deny active LMS Setup save because of connection errors: {}", adHocLMSSetup);
                             throw new APIMessageException(result.missingLMSSetupAttribute);
                         }
                     }

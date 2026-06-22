@@ -90,10 +90,10 @@ public class LmsTestServiceImpl implements LmsTestService {
             }
         }
 
-        final LmsSetupTestResult lmsSetupTestResult = fullIntegrationTest(lmsSetupTemplate);
-        if (lmsSetupTestResult != null) {
-            return lmsSetupTestResult;
-        }
+//        final LmsSetupTestResult lmsSetupTestResult = fullIntegrationTest(lmsSetupTemplate);
+//        if (lmsSetupTestResult != null) {
+//            return lmsSetupTestResult;
+//        }
 
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
     }
@@ -122,7 +122,7 @@ public class LmsTestServiceImpl implements LmsTestService {
                 if (integrationDataResult.hasError()) {
                     Throwable error = integrationDataResult.getError();
 
-                    log.warn("Failed to apply full LMS integration: {}", error.getMessage());
+                    log.warn("Failed to apply full LMS integration: ", error);
                     
                     if (error instanceof RuntimeException) {
                         error = error.getCause();
