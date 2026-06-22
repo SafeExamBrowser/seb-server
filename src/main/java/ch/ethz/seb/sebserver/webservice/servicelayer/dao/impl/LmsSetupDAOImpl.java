@@ -223,7 +223,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                             .set(lmsProxyAuthSecret).equalTo(this.encryptForSave(lmsSetup.proxyAuthSecret))
                             .set(updateTime).equalTo(System.currentTimeMillis())
                             .set(connectionId).equalToWhenPresent(createConnectionIdIfNotExists(lmsSetup.id))
-                            .set(integrationActive).equalTo(rec.getIntegrationActive())
                             .where(LmsSetupRecordDynamicSqlSupport.id, isIn(lmsSetup.id))
                             .build()
                             .execute();
