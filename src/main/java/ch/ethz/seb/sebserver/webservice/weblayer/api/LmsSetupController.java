@@ -12,7 +12,6 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
@@ -152,7 +151,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 EntityType.LMS_SETUP,
                 institutionId);
 
-        final LmsSetupTestResult result = this.lmsAPIService
+        return this.lmsAPIService
                 .getLmsAPITemplate(modelId)
                 .map(this.lmsTestService::test)
                 .onErrorDo(error -> {
@@ -162,8 +161,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                             new LmsSetupTestResult.LmsSetupError(ErrorType.TEMPLATE_CREATION, error.getMessage()));
                 })
                 .get();
-
-        return result;
     }
 
     @RequestMapping(

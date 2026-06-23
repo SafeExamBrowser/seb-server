@@ -407,18 +407,18 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         // test LMS connection should fail because there is no server set yet
-        List<APIMessage> errors = new RestAPITestHelper()
+        LmsSetupTestResult errors = new RestAPITestHelper()
                 .withAccessToken(getSebAdminAccess())
                 .withPath(API.LMS_SETUP_ENDPOINT)
                 .withPath(API.LMS_SETUP_TEST_PATH_SEGMENT)
                 .withPath(lmsSetup.getModelId())
                 .withMethod(HttpMethod.GET)
-                .withExpectedStatus(HttpStatus.BAD_REQUEST)
-                .getAsObject(new TypeReference<List<APIMessage>>() {
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetupTestResult>() {
                 });
 
         assertNotNull(errors);
-        assertTrue(errors.size() == 3);
+        assertTrue(errors.missingLMSSetupAttribute.size() == 3);
 
         // save (wrong) LMS server and credentials
         lmsSetup = new LmsSetup(
@@ -453,13 +453,13 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 .withPath(API.LMS_SETUP_TEST_PATH_SEGMENT)
                 .withPath(lmsSetup.getModelId())
                 .withMethod(HttpMethod.GET)
-                .withExpectedStatus(HttpStatus.BAD_REQUEST)
-                .getAsObject(new TypeReference<List<APIMessage>>() {
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<LmsSetupTestResult>() {
                 });
 
         assertNotNull(errors);
-        assertTrue(errors.size() == 1);
-        assertEquals("[lmsSetup, lmsClientsecret, notNull]", String.valueOf(errors.get(0).attributes));
+        assertTrue(errors.missingLMSSetupAttribute.size() == 1);
+        assertEquals("[lmsSetup, lmsClientsecret, notNull]", String.valueOf(errors.missingLMSSetupAttribute.iterator().next().attributes));
 
         // save correct LMS server and credentials
         lmsSetup = new LmsSetup(
