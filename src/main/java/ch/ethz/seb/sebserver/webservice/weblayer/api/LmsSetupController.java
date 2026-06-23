@@ -163,10 +163,6 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 })
                 .get();
 
-        if (result.missingLMSSetupAttribute != null && !result.missingLMSSetupAttribute.isEmpty()) {
-            throw new APIMessageException(result.missingLMSSetupAttribute);
-        }
-
         return result;
     }
 
