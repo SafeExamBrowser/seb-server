@@ -219,6 +219,12 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     }
 
     @Override
+    protected Result<UserInfo> notifyCreated(UserInfo entity) {
+        return super.notifyCreated(entity)
+                .flatMap(account -> this.userDAO.setActive(account, true));
+    }
+
+    @Override
     protected Result<UserInfo> validForSave(final UserInfo userInfo) {
         return super.validForSave(userInfo)
                 .flatMap(this::additionalConsistencyChecks);
