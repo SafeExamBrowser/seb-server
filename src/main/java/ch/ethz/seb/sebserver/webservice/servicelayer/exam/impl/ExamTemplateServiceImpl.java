@@ -247,29 +247,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     return exam;
                 }
 
-                if (examTemplate.configTemplateId != null) {
-
-                    final ConfigurationNode examConfig = createOrReuseConfig(exam, examTemplate);
-
-                    // map the exam configuration to the exam
-                    this.examConfigurationMapDAO.createNew(new ExamConfigurationMap(
-                            exam.institutionId,
-                            exam.id,
-                            examConfig.id,
-                            null))
-                            .onError(error -> log.error(
-                                    "Failed to create exam configuration mapping for exam: {} for exam config: {}",
-                                    exam,
-                                    examConfig,
-                                    error))
-                            .getOrThrow(error -> new APIMessageException(
-                                    ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING,
-                                    error));
-                }
+                mapConfigurationNodeToExam(exam,  createOrReuseConfig(exam, examTemplate));
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Not exam template defined for exam: {}", exam.externalId);
-                }
+                log.info("Not exam template defined for exam: {}, create Exam Configuration with default SEB Settings", exam.externalId);
+                mapConfigurationNodeToExam(exam, createOrReuseConfig(exam, null));
             }
 
             return exam;
@@ -868,7 +849,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         // create new configuration if we don't have an old config that is on READY_TO_USE or the template has changed
         if (examConfig == null ||
                 examConfig.status != ConfigurationStatus.READY_TO_USE ||
-                !Objects.equals(examConfig.templateId, examTemplate.configTemplateId)) {
+                !(examTemplate != null && Objects.equals(examConfig.templateId, examTemplate.configTemplateId))) {
 
             final String newName = (examConfig != null && examConfig.name.equals(configName))
                     ? examConfig.name + "_" + 
@@ -879,7 +860,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final ConfigurationNode config = new ConfigurationNode(
                     null,
                     exam.institutionId,
-                    examTemplate.configTemplateId,
+                    (examTemplate != null) ? examTemplate.configTemplateId : null,
                     newName,
                     replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
                     ConfigurationType.EXAM_CONFIG,
@@ -893,7 +874,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .onError(error -> log.error(
                             "Failed to create exam configuration for exam: {} from template: {} examConfig: {} error: {}",
                             exam.name,
-                            examTemplate.name,
+                            (examTemplate != null) ? examTemplate.name : "--",
                             config,
                             error.getMessage()))
                     .getOrThrow(error -> new APIMessageException(
@@ -917,7 +898,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .onError(error -> log.error(
                             "Failed to save exam configuration for exam: {} from template: {} examConfig: {}",
                             exam.name,
-                            examTemplate.name,
+                            (examTemplate != null) ? examTemplate.name : "--",
                             config,
                             error))
                     .getOrThrow(error -> new APIMessageException(
@@ -1038,7 +1019,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         ? exam.startTime.toString(Constants.STANDARD_DATE_FORMATTER)
                         : currentDate);
         vars.put(VAR_EXAM_NAME, exam.name);
-        vars.put(VAR_EXAM_TEMPLATE_NAME, examTemplate.name);
+        if (examTemplate != null) {
+            vars.put(VAR_EXAM_TEMPLATE_NAME, examTemplate.name);
+        }
 
         return Utils.replaceAll(template, vars);
     }
@@ -1073,6 +1056,22 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         } catch (Exception e) {
             log.error("Failed to cleanup temporary ConfigurationTemplates: ", e);
         }
+    }
+
+    private void mapConfigurationNodeToExam(final Exam exam, final ConfigurationNode examConfig) {
+        this.examConfigurationMapDAO.createNew(new ExamConfigurationMap(
+                        exam.institutionId,
+                        exam.id,
+                        examConfig.id,
+                        null))
+                .onError(error -> log.error(
+                        "Failed to create exam configuration mapping for exam: {} for exam config: {}",
+                        exam,
+                        examConfig,
+                        error))
+                .getOrThrow(error -> new APIMessageException(
+                        ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING,
+                        error));
     }
 
 }

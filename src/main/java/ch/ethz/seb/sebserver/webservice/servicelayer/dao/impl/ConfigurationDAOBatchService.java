@@ -122,8 +122,6 @@ public class ConfigurationDAOBatchService {
 
         return Result.tryCatch(() -> {
 
-            // TODO this might be slow when there are a lot if config nodes!?!?
-            //      but should not
             final Long count = this.batchConfigurationNodeRecordMapper.countByExample()
                     .where(
                             ConfigurationNodeRecordDynamicSqlSupport.name,

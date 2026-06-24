@@ -48,6 +48,10 @@ public class InitialProhibitedProcesses implements AdditionalDefaultValueProvide
                     configurationId,
                     attributeResolver,
                     this.configFile);
+
+            if (cache.isEmpty()) {
+                cache = null;
+            }
         }
 
         if (this.cache == null) {

@@ -1172,11 +1172,12 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(GetExamConfigNodePage.class)
                 .call();
 
-        // there should be no configuration (for this institution of examAdmin2) now
+        // there should be a default configuration now
         assertNotNull(pageResponse);
         assertFalse(pageResponse.hasError());
         final Page<ConfigurationNode> page = pageResponse.get();
-        assertTrue(page.content.isEmpty());
+        assertFalse(page.content.isEmpty());
+        assertTrue(page.content.size() == 1);
 
         final Result<ConfigurationNode> newConfigResponse = restService
                 .getBuilder(NewExamConfig.class)
@@ -1365,7 +1366,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Page<ConfigurationNode> page = pageResponse.get();
         assertFalse(page.content.isEmpty());
 
-        final ConfigurationNode configurationNode = page.content.get(0);
+        final ConfigurationNode configurationNode = page.content.stream().filter(c -> "New Exam Config".equals(c.name)).findFirst().get();
         assertEquals("New Exam Config", configurationNode.name);
 
         // get follow-up configuration
@@ -1494,7 +1495,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Page<ConfigurationNode> page = pageResponse.get();
         assertFalse(page.content.isEmpty());
 
-        final ConfigurationNode configurationNode = page.content.get(0);
+        final ConfigurationNode configurationNode =  page.content.stream().filter(c -> "New Exam Config".equals(c.name)).findFirst().get();
         assertEquals("New Exam Config", configurationNode.name);
 
         final Configuration followup = restService
@@ -1641,8 +1642,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final ConfigurationNode config = restService
                 .getBuilder(GetExamConfigNodePage.class)
                 .call()
-                .getOrThrow().content
-                        .get(0);
+                .getOrThrow().content.stream().filter(c -> "New Exam Config".equals(c.name)).findFirst().get();;
         assertEquals("New Exam Config", config.name);
 
         final ConfigurationNode newConfig = new ConfigurationNode(
@@ -1722,7 +1722,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Page<ConfigurationNode> page = pageResponse.get();
         assertFalse(page.content.isEmpty());
 
-        final ConfigurationNode configurationNode = page.content.get(0);
+        final ConfigurationNode configurationNode =  page.content.stream().filter(c -> "New Exam Config".equals(c.name)).findFirst().get();
         assertEquals("New Exam Config", configurationNode.name);
 
         final ConfigCreationInfo copyInfo = new ConfigCreationInfo(
@@ -1903,16 +1903,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("Demo Quiz 1 (MOCKUP)", exam.name);
         // check that the exam is running
         assertNull(exam.endTime);
-        // check that the exam is marked with missing configuration alert
-        final Collection<APIMessage> alerts = restService.getBuilder(CheckExamConsistency.class)
-                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
-                .call()
-                .getOr(Collections.emptyList());
-        assertNotNull(alerts);
-        assertFalse(alerts.isEmpty());
-        final APIMessage message = alerts.iterator().next();
-        assertNotNull(message);
-        assertEquals("No SEB Exam Configuration defined for the Exam", message.systemMessage);
 
         // get available exam configs for mapping
         final Result<List<EntityName>> configs = restService.getBuilder(GetExamConfigNodeNames.class)
@@ -1931,7 +1921,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final EntityName configName = list.get(0);
         assertEquals("New Exam Config", configName.name);
 
-        // get config mapping page and check there is no mapping yet
+        // get config mapping page and delete mapping if there is one
         final Result<Page<ExamConfigurationMap>> mappings = restService
                 .getBuilder(GetExamConfigMappingsPage.class)
                 .call();
@@ -1939,7 +1929,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(mappings);
         assertFalse(mappings.hasError());
         final Page<ExamConfigurationMap> mappingsPage = mappings.get();
-        assertTrue(mappingsPage.isEmpty());
+        assertFalse(mappingsPage.isEmpty());
+        assertTrue(mappingsPage.content.size() == 1);
+        ExamConfigurationMap examConfigurationMap1 = mappingsPage.content.get(0);
+
+        // delete the existing configuration mapping
+        restService.getBuilder(DeleteExamConfigMapping.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examConfigurationMap1.getModelId())
+                .call();
 
         // create new config node mapping
         Result<ExamConfigurationMap> newExamConfigMap = restService.getBuilder(NewExamConfigMapping.class)
@@ -2436,6 +2433,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE]"
 //                        + "CLIENT_CONNECTION, "
 //                        + "CLIENT_CONNECTION, "
@@ -2503,7 +2501,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[EXAM_CONFIGURATION_MAP, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE]",
+                "[EXAM_CONFIGURATION_MAP, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with exam and configuration dependencies
@@ -2524,6 +2522,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "INDICATOR, "
                         + "CLIENT_GROUP, "
                         + "EXAM_CONFIGURATION_MAP, "
+                        + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
@@ -2603,6 +2602,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 //                        + "CLIENT_CONNECTION, "
 //                        + "CLIENT_CONNECTION, "
                         + "CLIENT_GROUP, "
+                        + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
@@ -3341,7 +3341,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call()
                 .getOrThrow();
 
-        assertFalse(check);
+        assertTrue(check);
 
         // get restriction settings
         SEBRestriction restriction = restService
@@ -3353,7 +3353,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(restriction);
         assertEquals(exam.id.toString(), restriction.examId.toString());
         assertEquals(
-                "[]",
+                "[04d9ae317d7242f90eca36b2e681f1fd]",
                 restriction.configKeys.toString());
         assertEquals(
                 "[]",
@@ -3382,7 +3382,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(restriction);
         assertEquals(exam.id.toString(), restriction.examId.toString());
         assertEquals(
-                "[]",
+                "[04d9ae317d7242f90eca36b2e681f1fd]",
                 restriction.configKeys.toString());
         assertEquals(
                 "[exam-key]",
@@ -3878,7 +3878,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow().content
                         .get(0);
         assertNotNull(config);
-        assertEquals("READY_TO_USE", config.status.toString());
+        assertEquals("IN_USE", config.status.toString());
 
         // apply batch action
         final Result<BatchAction> doBatchAction = restService
