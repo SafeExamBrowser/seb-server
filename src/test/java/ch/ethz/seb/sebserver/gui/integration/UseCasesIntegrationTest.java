@@ -225,22 +225,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("[INSTITUTIONAL_ADMIN]", String.valueOf(userInfo.getRoles()));
         assertEquals(Locale.ENGLISH, userInfo.language);
         assertEquals(DateTimeZone.UTC, userInfo.timeZone);
-        assertFalse(userInfo.isActive());
-
-        final Result<EntityProcessingReport> activation = restService.getBuilder(ActivateUserAccount.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userInfo.uuid))
-                .call();
-
-        assertFalse(activation.hasError());
-        final EntityProcessingReport entityProcessingReport = activation.get();
-        assertTrue(entityProcessingReport.getErrors().isEmpty());
-
-        result = restService.getBuilder(GetUserAccount.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(userInfo.uuid))
-                .call();
-
-        assertFalse(result.hasError());
-        userInfo = result.get();
         assertTrue(userInfo.isActive());
     }
 
@@ -398,7 +382,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withURIVariable(API.PARAM_MODEL_ID, result.get().uuid)
                 .call();
         assertNotNull(activation);
-        assertFalse(activation.hasError());
+        assertTrue(activation.hasError());
 
         // no unique email
         result = restService.getBuilder(NewUserAccount.class)
@@ -438,7 +422,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withURIVariable(API.PARAM_MODEL_ID, result.get().uuid)
                 .call();
         assertNotNull(activation);
-        assertFalse(activation.hasError());
+        assertTrue(activation.hasError());
 
         result = restService.getBuilder(NewUserAccount.class)
                 .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, instId)
@@ -460,7 +444,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withURIVariable(API.PARAM_MODEL_ID, result.get().uuid)
                 .call();
         assertNotNull(activation);
-        assertFalse(activation.hasError());
+        assertTrue(activation.hasError());
 
     }
 

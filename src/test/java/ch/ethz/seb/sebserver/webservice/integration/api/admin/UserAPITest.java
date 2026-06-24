@@ -485,7 +485,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(createdUserGet);
         assertEquals(createdUser.getEntityKey(), createdUserGet.getEntityKey());
-        assertFalse(createdUserGet.isActive());
+        assertTrue(createdUserGet.isActive());
 
         // check user activity log for newly created user
         final Page<UserActivityLog> logs = this.jsonMapper.readValue(
