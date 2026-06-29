@@ -21,8 +21,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundExceptio
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ScheduledDeleteDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.swagger.v3.core.util.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,22 +97,35 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
             final FilterMap filterMap,
             final Predicate<ScheduledDelete> predicate) {
 
-        return Result.tryCatch(() -> this.scheduledDeleteRecordMapper
-                .selectByExample()
-                .where(
-                        ScheduledDeleteRecordDynamicSqlSupport.institutionId,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
+        return Result.tryCatch(() -> {
+            QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ScheduledDeleteRecord>>>.QueryExpressionWhereBuilder query = this.scheduledDeleteRecordMapper
+                    .selectByExample()
+                    .where(
+                            ScheduledDeleteRecordDynamicSqlSupport.institutionId,
+                            SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()));
+
+            String state = filterMap.getString(Domain.SCHEDULED_DELETE.ATTR_STATE);
+            if (StringUtils.isNotBlank(state)) {
+                List<String> states = new ArrayList<>(Arrays.stream(StringUtils.split(state, Constants.COMMA)).toList());
+                if (states.contains(ScheduledDelete.State.RUNNING.name())) {
+                    states.add(ScheduledDelete.State.SPS_RUNNING.name());
+                }
+
+                query = query.and(
                         ScheduledDeleteRecordDynamicSqlSupport.state,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getString(Domain.SCHEDULED_DELETE.TYPE_NAME)))
-                .and(
-                        ScheduledDeleteRecordDynamicSqlSupport.deleteDueTime,
-                        SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getLong(Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .collect(Collectors.toList()));
+                        SqlBuilder.isIn(states));
+            }
+
+            return query
+                    .and(
+                            ScheduledDeleteRecordDynamicSqlSupport.deleteDueTime,
+                            SqlBuilder.isLessThanOrEqualToWhenPresent(filterMap.getLong(Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

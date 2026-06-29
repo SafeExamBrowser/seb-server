@@ -60,8 +60,9 @@ public class ScheduledDeleteController {
             @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
-        authorizationService.check(PrivilegeType.READ, EntityType.SCHEDULED_DELETE);
         final Long institutionId = authorizationService.getUserService().getCurrentUser().institutionId();
+
+        authorizationService.check(PrivilegeType.READ, EntityType.SCHEDULED_DELETE, institutionId);
         final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
         // if current user has no read access for specified entity type within other institution then its own institution,
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
