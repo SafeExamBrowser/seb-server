@@ -68,7 +68,7 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
     @Transactional(readOnly = true)
     public Result<ScheduledDelete> byPK(final Long id) {
         return recordByPK(id)
-                .map(this::toDomainModel);
+                .map(r -> this.toDomainModel(r, true));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(this::toDomainModel)
+                    .map(r -> this.toDomainModel(r, false))
                     .collect(Collectors.toList());
         });
     }
@@ -123,7 +123,7 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(this::toDomainModel)
+                    .map(r -> this.toDomainModel(r, false))
                     .collect(Collectors.toList());
         });
     }
@@ -142,7 +142,7 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(this::toDomainModel)
+                    .map(r -> this.toDomainModel(r, true))
                     .toList();
 
             // NOTE: there should only be one pending schedule or none
@@ -195,35 +195,35 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
             return scheduledDeleteRecordMapper.selectByPrimaryKey(scheduledDeleteRecord.getId());
 
         })
-                .map(this::toDomainModel)
+                .map(r -> this.toDomainModel(r, true))
                 .onError(TransactionHandler::rollback);
     }
 
-    @Override
-    @Transactional
-    public Result<ScheduledDelete> addInfo(
-            final Long scheduledDeleteId,
-            final Collection<ScheduledDeleteInfo> info) {
-
-        return Result.tryCatch(() -> {
-            if (info != null && !info.isEmpty()) {
-                info.forEach(infoData ->  {
-                    this.scheduledDeleteInfoRecordMapper.insert(new ScheduledDeleteInfoRecord(
-                            null,
-                            scheduledDeleteId,
-                            ScheduledDeleteInfo.State.PENDING.toString(),
-                            putDeletionInfo(infoData),
-                            infoData.examUUID(),
-                            null
-                    ));
-                });
-            }
-
-            return scheduledDeleteRecordMapper.selectByPrimaryKey(scheduledDeleteId);
-        })
-                .map(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
-    }
+//    @Override
+//    @Transactional
+//    public Result<ScheduledDelete> addInfo(
+//            final Long scheduledDeleteId,
+//            final Collection<ScheduledDeleteInfo> info) {
+//
+//        return Result.tryCatch(() -> {
+//            if (info != null && !info.isEmpty()) {
+//                info.forEach(infoData ->  {
+//                    this.scheduledDeleteInfoRecordMapper.insert(new ScheduledDeleteInfoRecord(
+//                            null,
+//                            scheduledDeleteId,
+//                            ScheduledDeleteInfo.State.PENDING.toString(),
+//                            putDeletionInfo(infoData),
+//                            infoData.examUUID(),
+//                            null
+//                    ));
+//                });
+//            }
+//
+//            return scheduledDeleteRecordMapper.selectByPrimaryKey(scheduledDeleteId);
+//        })
+//                .map(r -> this.toDomainModel(r, true))
+//                .onError(TransactionHandler::rollback);
+//    }
 
     @Override
     @Transactional
@@ -363,20 +363,22 @@ public class ScheduledDeleteDAOBatis implements ScheduledDeleteDAO {
                 .execute());
     }
 
-    private ScheduledDelete toDomainModel(final ScheduledDeleteRecord rec) {
-        Collection<ScheduledDeleteInfo> info = infoByPK(rec.getId())
-                .getOrThrow()
-                .stream()
-                .map(info_rec ->
-                        new ScheduledDeleteInfo(
-                                info_rec.getId(),
-                                info_rec.getScheduledDeleteId(),
-                                ScheduledDeleteInfo.State.valueOf(info_rec.getState()),
-                                info_rec.getExamUuid(),
-                                getDeletionInfo(info_rec),
-                                info_rec.getErrorInfo()
-                        ))
-                .toList();
+    private ScheduledDelete toDomainModel(final ScheduledDeleteRecord rec, final boolean withInfo) {
+        Collection<ScheduledDeleteInfo> info = withInfo
+                ? infoByPK(rec.getId())
+                        .getOrThrow()
+                        .stream()
+                        .map(info_rec ->
+                                new ScheduledDeleteInfo(
+                                        info_rec.getId(),
+                                        info_rec.getScheduledDeleteId(),
+                                        ScheduledDeleteInfo.State.valueOf(info_rec.getState()),
+                                        info_rec.getExamUuid(),
+                                        getDeletionInfo(info_rec),
+                                        info_rec.getErrorInfo()
+                                ))
+                        .toList()
+                : Collections.emptyList();
 
         return new ScheduledDelete(
                 rec.getId(),
