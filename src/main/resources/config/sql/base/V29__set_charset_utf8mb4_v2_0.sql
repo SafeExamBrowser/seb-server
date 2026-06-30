@@ -202,7 +202,7 @@ ALTER TABLE `webservice_server_info` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_
 -- Table `client_instruction`
 -- -----------------------------------------------------
 ALTER TABLE `client_instruction` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
-  CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
+--   CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `attributes` `attributes` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
 -- -----------------------------------------------------
