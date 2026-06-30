@@ -202,10 +202,6 @@ ALTER TABLE `webservice_server_info` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_
 -- Table `client_instruction`
 -- -----------------------------------------------------
 ALTER TABLE `client_instruction` CHARACTER SET = utf8mb4, COLLATE = utf8mb4_general_ci,
--- `connection_token` is the FK child of `instructionConnectionRef` -> `client_connection`(`connection_token`).
--- Altering an FK column is rejected by MariaDB 11.4+ (ER_FK_COLUMN_CANNOT_CHANGE), so it is left at its original
--- charset to stay consistent with the (already commented out) parent column above. The token is ASCII, so the
--- utf8mb4 conversion is irrelevant for its content.
 --   CHANGE COLUMN `connection_token` `connection_token` VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NOT NULL,
   CHANGE COLUMN `attributes` `attributes` VARCHAR(4000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci' NULL;
 
