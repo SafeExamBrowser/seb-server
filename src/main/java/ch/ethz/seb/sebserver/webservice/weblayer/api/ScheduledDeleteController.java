@@ -61,7 +61,6 @@ public class ScheduledDeleteController {
             final HttpServletRequest request) {
 
         final Long institutionId = authorizationService.getUserService().getCurrentUser().institutionId();
-
         authorizationService.check(PrivilegeType.READ, EntityType.SCHEDULED_DELETE, institutionId);
         final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
         // if current user has no read access for specified entity type within other institution then its own institution,
@@ -87,7 +86,8 @@ public class ScheduledDeleteController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ScheduledDeleteReport getFullReportById(@PathVariable final String modelId) {
 
-        authorizationService.check(PrivilegeType.READ, EntityType.SCHEDULED_DELETE);
+        final Long institutionId = authorizationService.getUserService().getCurrentUser().institutionId();
+        authorizationService.check(PrivilegeType.READ, EntityType.SCHEDULED_DELETE, institutionId);
         return this.scheduledDeleteService
                 .getReportById(modelId)
                 .map(this::checkReadAccess)
