@@ -13,7 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDelete;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,16 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
 
 @Lazy
 @Service
@@ -414,6 +406,26 @@ public class PaginationServiceImpl implements PaginationService {
         this.defaultSortColumn.put(
                 ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord.tableNameAtRuntime(),
                 ClientConnection.FILTER_ATTR_SESSION_ID);
+
+        // Scheduled Deletion Mapping
+
+        final Map<String, String> sdTableMap = new HashMap<>();
+        sdTableMap.put(
+                Domain.SCHEDULED_DELETE.ATTR_SCHEDULE_TIME,
+                ScheduledDeleteRecordDynamicSqlSupport.scheduleTime.name());
+        sdTableMap.put(
+                Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME,
+                ScheduledDeleteRecordDynamicSqlSupport.deleteDueTime.name());
+        sdTableMap.put(
+                Domain.SCHEDULED_DELETE.ATTR_STATE,
+                ScheduledDeleteRecordDynamicSqlSupport.state.name());
+
+        this.sortColumnMapping.put(
+                ScheduledDeleteRecordDynamicSqlSupport.scheduledDeleteRecord.tableNameAtRuntime(),
+                sdTableMap);
+        this.defaultSortColumn.put(
+                ScheduledDeleteRecordDynamicSqlSupport.scheduledDeleteRecord.tableNameAtRuntime(),
+                Domain.SCHEDULED_DELETE.ATTR_SCHEDULE_TIME);
     }
 
 }

@@ -73,7 +73,7 @@ public class ScheduledDeleteController {
         final Page<ScheduledDelete> page = this.paginationService.getPage(
                         pageNumber,
                         pageSize,
-                        sort,
+                        sort != null ? sort : "-" + Domain.SCHEDULED_DELETE.ATTR_SCHEDULE_TIME,
                         ScheduledDeleteRecordDynamicSqlSupport.scheduledDeleteRecord.tableNameAtRuntime(),
                         () -> scheduledDeleteService.getAll(filterMap))
                 .getOrThrow();
