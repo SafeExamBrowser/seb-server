@@ -865,8 +865,8 @@ CREATE TABLE IF NOT EXISTS `scheduled_delete_info` (
   `scheduled_delete_id` BIGINT UNSIGNED NOT NULL,
   `state` VARCHAR(45) NOT NULL,
   `exam_uuid` VARCHAR(45) NOT NULL,
-  `deletion_info` MEDIUMTEXT NULL,
-  `error_info` TEXT NULL,
+  `deletion_info` VARCHAR(4000) NULL,
+  `error_info` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`),
   INDEX `scheduled_delete_ref_idx` (`scheduled_delete_id` ASC),
   CONSTRAINT `scheduled_delete_ref`
