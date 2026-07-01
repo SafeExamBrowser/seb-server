@@ -25,6 +25,14 @@ public record ScheduledDeleteInfo(
         ERROR
     }
 
+    public enum ErrorType {
+        UNDEFINED,
+        SERVER_ERROR,
+        DATABASE_CONSTRAINT_ERROR,
+        DATA_INCONSISTENCY_ERROR,
+        EXCLUDED_FROM_DELETION
+    };
+
     public static final String ATTR_EXAM_NAME = "examName";
     public static final String ATTR_EXAM_START_TIME = "examStartTimestamp";
     public static final String ATTR_EXAM_OWNER = "examOwner";
@@ -45,6 +53,26 @@ public record ScheduledDeleteInfo(
         this.examUUID = examUUID;
         this.deletionInfo = deletionInfo;
         this.errorInfo = errorInfo;
+    }
+
+    @JsonProperty("errorType")
+    public ErrorType getErrorType() {
+        if (errorInfo == null) {
+            return null;
+        }
+
+        if (errorInfo.contains("SQL")) {
+            return ErrorType.DATABASE_CONSTRAINT_ERROR;
+        }
+
+        if (errorInfo.contains("APIMessageError")) {
+            if (errorInfo.contains("1101") || errorInfo.contains("1200") || errorInfo.contains("1002")) {
+                return ErrorType.DATA_INCONSISTENCY_ERROR;
+            }
+            return ErrorType.SERVER_ERROR;
+        }
+
+        return ErrorType.UNDEFINED;
     }
 
     @Override

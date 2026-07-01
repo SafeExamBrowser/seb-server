@@ -67,7 +67,9 @@ public record ScheduledDeleteReport(
                         startTime != null ? Long.parseLong(startTime) : null,
                         infos.get(ScheduledDeleteInfo.ATTR_NUM_OF_SESSIONS),
                         spsInfos.get("name"),
-                        extractGroupNames(spsInfos)));
+                        extractGroupNames(spsInfos),
+                        sebServerData.errorInfo(),
+                        sebServerData.getErrorType()));
             } else {
                 // only SEB Server data available
                 final String startTime = infos.get(ScheduledDeleteInfo.ATTR_EXAM_START_TIME);
@@ -75,7 +77,9 @@ public record ScheduledDeleteReport(
                         sebServerData.examUUID(),
                         infos.get(ScheduledDeleteInfo.ATTR_EXAM_NAME),
                         startTime != null ? Long.parseLong(startTime) : null,
-                        infos.get(ScheduledDeleteInfo.ATTR_NUM_OF_SESSIONS)));
+                        infos.get(ScheduledDeleteInfo.ATTR_NUM_OF_SESSIONS),
+                        sebServerData.errorInfo(),
+                        sebServerData.getErrorType()));
             }
         });
 
@@ -84,7 +88,9 @@ public record ScheduledDeleteReport(
             final Map<String, String> spsInfos = spsData.deletionInfo();
             spsOnlyDeletions.add(new ScheduledDeleteViewInfo(
                     spsInfos.get("name"),
-                    extractGroupNames(spsInfos)));
+                    extractGroupNames(spsInfos),
+                    spsData.errorInfo(),
+                    spsData.getErrorType()));
         });
 
         return new ScheduledDeleteReport(
@@ -99,7 +105,6 @@ public record ScheduledDeleteReport(
                 sebServerDeletions,
                 spsOnlyDeletions);
     }
-
 
     private static Collection<String> extractGroupNames(final Map<String, String> spsInfos) {
         final Set<String> groupKeys = spsInfos.keySet()

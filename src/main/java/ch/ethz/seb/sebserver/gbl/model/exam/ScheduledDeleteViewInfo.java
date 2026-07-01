@@ -10,24 +10,30 @@ import java.util.Collection;
 public class ScheduledDeleteViewInfo {
 
 
+
     @JsonProperty("examUUID")
-    final String examUUID;
+    public final String examUUID;
 
     @JsonProperty("examName")
-    final String examName;
+    public final String examName;
 
     @JsonProperty("examStartTime")
-    final Long examStartTime;
+    public final Long examStartTime;
 
     @JsonProperty("numberOfSessions")
-    final String numberOfSessions;
-
+    public final String numberOfSessions;
 
     @JsonProperty("spsExamName")
-    final String spsExamName;
+    public final String spsExamName;
 
     @JsonProperty("spsGroups")
-    final Collection<String> spsGroups;
+    public final Collection<String> spsGroups;
+
+    @JsonProperty("error")
+    public final String error;
+
+    @JsonProperty("errorType")
+    public final ScheduledDeleteInfo.ErrorType errorType;
 
     @JsonCreator
     public ScheduledDeleteViewInfo(
@@ -36,7 +42,9 @@ public class ScheduledDeleteViewInfo {
             @JsonProperty("examStartTime") final Long examStartTime,
             @JsonProperty("numberOfSessions") final String numberOfSessions,
             @JsonProperty("spsExamName") final String spsExamName,
-            @JsonProperty("spsGroupNames") final Collection<String> spsGroups) {
+            @JsonProperty("spsGroupNames") final Collection<String> spsGroups,
+            @JsonProperty("error") final String error,
+            @JsonProperty("errorType") final ScheduledDeleteInfo.ErrorType errorType) {
 
         this.examUUID = examUUID;
         this.examName = examName;
@@ -44,13 +52,17 @@ public class ScheduledDeleteViewInfo {
         this.numberOfSessions = numberOfSessions;
         this.spsExamName = spsExamName;
         this.spsGroups = spsGroups;
+        this.error = error;
+        this.errorType = errorType;
     }
 
     public ScheduledDeleteViewInfo(
             final String examUUID,
             final String examName,
             final Long examStartTime,
-            final String numberOfSessions) {
+            final String numberOfSessions,
+            final String error,
+            final ScheduledDeleteInfo.ErrorType errorType) {
 
         this.examUUID = examUUID;
         this.examName = examName;
@@ -58,11 +70,15 @@ public class ScheduledDeleteViewInfo {
         this.numberOfSessions = numberOfSessions;
         this.spsExamName = null;
         this.spsGroups = null;
+        this.error = error;
+        this.errorType = errorType;
     }
 
     public ScheduledDeleteViewInfo(
             final String spsExamName,
-            final Collection<String> spsGroups) {
+            final Collection<String> spsGroups,
+            final String error,
+            final ScheduledDeleteInfo.ErrorType errorType) {
 
         this.examUUID = null;
         this.examName = null;
@@ -70,6 +86,8 @@ public class ScheduledDeleteViewInfo {
         this.numberOfSessions = null;
         this.spsExamName = spsExamName;
         this.spsGroups = spsGroups;
+        this.error = error;
+        this.errorType = errorType;
     }
 
     public boolean hasSEBServerData() {
@@ -79,4 +97,6 @@ public class ScheduledDeleteViewInfo {
     public boolean hasSPSData() {
         return spsExamName != null;
     }
+
+
 }
