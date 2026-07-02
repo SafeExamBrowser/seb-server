@@ -129,7 +129,7 @@ public class ModelObjectJSONGenerator {
                 1L, 1L, "name", ConfigPurpose.CONFIGURE_CLIENT,
                 1000L,
                 VDIType.NO, null, null, null,
-                true, "fallbackStartURL", 20000L, (short) 3, (short) 1000, "fallbackPassword",
+                true, "fallbackStartURL", 20000L, 3L,  1000L, "fallbackPassword",
                 "fallbackPasswordConfirm",
                 "quitPassword",
                 "quitPasswordConfirm",
