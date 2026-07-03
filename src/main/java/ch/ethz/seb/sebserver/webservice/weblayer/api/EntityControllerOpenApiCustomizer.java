@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import io.swagger.v3.core.converter.ModelConverters;
@@ -72,7 +73,11 @@ public class EntityControllerOpenApiCustomizer {
                     booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters institutions by active state.")),
             SEBClientConfig.class, List.of(
                     stringFilter(Entity.FILTER_ATTR_NAME, "Filters connection configurations by name."),
-                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters connection configurations by active state.")));
+                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters connection configurations by active state.")),
+            LmsSetup.class, List.of(
+                    stringFilter(Entity.FILTER_ATTR_NAME, "Filters assessment tools by name."),
+                    stringFilter(LmsSetup.FILTER_ATTR_LMS_TYPE, "Filters assessment tools by LMS type."),
+                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters assessment tools by active state.")));
 
     private final ApplicationContext applicationContext;
 
