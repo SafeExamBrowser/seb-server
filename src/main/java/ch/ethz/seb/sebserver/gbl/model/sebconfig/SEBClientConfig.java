@@ -21,6 +21,7 @@ import org.joda.time.DateTimeZone;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -100,6 +101,11 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public final Long id;
 
     @NotNull
+    // Required on the persisted entity + read response, but assigned server-side on create,
+    // so the client omits it on the create body. Keep @NotNull for runtime validation and
+    // document it as not-required so the generated create/edit body doesn't demand it
+    // (mirrors how `id` is optional in the schema and promoted in the frontend model).
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
@@ -143,24 +149,33 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     @JsonProperty(ATTR_FALLBACK_ATTEMPT_INTERVAL)
     public final Long fallbackAttemptInterval;
 
+    // CharSequence password/secret fields are written as plain strings but read back as
+    // hash-presence indicators; pin them to `string` so the generated schema types them as
+    // write strings instead of an opaque object.
+    @Schema(type = "string")
     @JsonProperty(ATTR_FALLBACK_PASSWORD)
     public final CharSequence fallbackPassword;
 
+    @Schema(type = "string")
     @JsonProperty(ATTR_FALLBACK_PASSWORD_CONFIRM)
     public final CharSequence fallbackPasswordConfirm;
 
+    @Schema(type = "string")
     @JsonProperty(ATTR_QUIT_PASSWORD)
     public final CharSequence quitPassword;
 
+    @Schema(type = "string")
     @JsonProperty(ATTR_QUIT_PASSWORD_CONFIRM)
     public final CharSequence quitPasswordConfirm;
 
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_DATE)
     public final DateTime date;
 
+    @Schema(type = "string")
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET)
     public final CharSequence encryptSecret;
 
+    @Schema(type = "string")
     @JsonProperty(ATTR_ENCRYPT_SECRET_CONFIRM)
     public final CharSequence encryptSecretConfirm;
 

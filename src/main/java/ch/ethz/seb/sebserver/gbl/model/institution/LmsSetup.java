@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -89,6 +90,11 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public final Long id;
 
     @NotNull
+    // Required on the persisted entity + read response, but assigned server-side on create,
+    // so the client omits it on the create body. Keep @NotNull for runtime validation and
+    // document it as not-required so the generated create/edit body doesn't demand it
+    // (mirrors how `id` is optional in the schema and promoted in the frontend model).
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @JsonProperty(LMS_SETUP.ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
