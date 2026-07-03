@@ -9,8 +9,6 @@ import java.util.Collection;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ScheduledDeleteViewInfo {
 
-
-
     @JsonProperty("examUUID")
     public final String examUUID;
 
@@ -27,7 +25,7 @@ public class ScheduledDeleteViewInfo {
     public final String spsExamName;
 
     @JsonProperty("spsGroups")
-    public final Collection<String> spsGroups;
+    public final Collection<GroupInfo> spsGroups;
 
     @JsonProperty("error")
     public final String error;
@@ -42,7 +40,7 @@ public class ScheduledDeleteViewInfo {
             @JsonProperty("examStartTime") final Long examStartTime,
             @JsonProperty("numberOfSessions") final String numberOfSessions,
             @JsonProperty("spsExamName") final String spsExamName,
-            @JsonProperty("spsGroupNames") final Collection<String> spsGroups,
+            @JsonProperty("spsGroupNames") final Collection<GroupInfo> spsGroups,
             @JsonProperty("error") final String error,
             @JsonProperty("errorType") final ScheduledDeleteInfo.ErrorType errorType) {
 
@@ -76,7 +74,7 @@ public class ScheduledDeleteViewInfo {
 
     public ScheduledDeleteViewInfo(
             final String spsExamName,
-            final Collection<String> spsGroups,
+            final Collection<GroupInfo> spsGroups,
             final String error,
             final ScheduledDeleteInfo.ErrorType errorType) {
 
@@ -98,5 +96,9 @@ public class ScheduledDeleteViewInfo {
         return spsExamName != null;
     }
 
-
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record GroupInfo(
+            @JsonProperty("groupName") String groupName,
+            @JsonProperty("numberOfSessions") String numberOfSessions) {
+    }
 }

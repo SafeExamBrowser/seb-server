@@ -472,10 +472,10 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         ? Long.parseLong(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_TIMEOUT).getValue())
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS)
-                        ? Short.parseShort(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS).getValue())
+                        ? Long.parseLong(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS).getValue())
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL)
-                        ? Short.parseShort(
+                        ? Long.parseLong(
                                 additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL).getValue())
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_PASSWORD)

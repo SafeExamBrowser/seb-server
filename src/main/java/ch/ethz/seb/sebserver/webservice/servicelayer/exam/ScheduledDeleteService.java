@@ -2,14 +2,17 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDelete;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteInfo;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteReport;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDeleteViewInfo;
 import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.util.Nullable;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public interface ScheduledDeleteService {
 
@@ -69,5 +72,95 @@ public interface ScheduledDeleteService {
             String searchName,
             Long deleteDueTimestampUTC,
             Set<String> excludes);
+
+    static ScheduledDeleteReport createFormInfos(
+            final ScheduledDelete scheduledDelete,
+            final Collection<ScheduledDeleteInfo> spsDeletions
+    ) {
+
+        final Collection<ScheduledDeleteInfo> examDeletions = scheduledDelete.info();
+        final Map<String, ScheduledDeleteInfo> spsMap = spsDeletions.stream()
+                .collect(Collectors.toMap(ScheduledDeleteInfo::examUUID, Function.identity()));
+
+        final List<ScheduledDeleteViewInfo> sebServerDeletions = new ArrayList<>();
+        final List<ScheduledDeleteViewInfo> spsOnlyDeletions = new ArrayList<>();
+
+        examDeletions.forEach(sebServerData -> {
+            final Map<String, String> infos = sebServerData.deletionInfo();
+            final ScheduledDeleteInfo spsData = spsMap.remove(sebServerData.examUUID());
+            if (spsData != null) {
+                final Map<String, String> spsInfos = spsData.deletionInfo();
+                // SEB Server and SPS Data
+                final String startTime = infos.get(ScheduledDeleteInfo.ATTR_EXAM_START_TIME);
+                sebServerDeletions.add(new ScheduledDeleteViewInfo(
+                        sebServerData.examUUID(),
+                        infos.get(ScheduledDeleteInfo.ATTR_EXAM_NAME),
+                        startTime != null ? Long.parseLong(startTime) : null,
+                        infos.get(ScheduledDeleteInfo.ATTR_NUM_OF_SESSIONS),
+                        spsInfos.get("name"),
+                        extractGroupNames(spsInfos),
+                        sebServerData.errorInfo(),
+                        sebServerData.getErrorType()));
+            } else {
+                // only SEB Server data available
+                final String startTime = infos.get(ScheduledDeleteInfo.ATTR_EXAM_START_TIME);
+                sebServerDeletions.add(new ScheduledDeleteViewInfo(
+                        sebServerData.examUUID(),
+                        infos.get(ScheduledDeleteInfo.ATTR_EXAM_NAME),
+                        startTime != null ? Long.parseLong(startTime) : null,
+                        infos.get(ScheduledDeleteInfo.ATTR_NUM_OF_SESSIONS),
+                        sebServerData.errorInfo(),
+                        sebServerData.getErrorType()));
+            }
+        });
+
+        // remaining in spsMap has only SPS Data
+        spsMap.values().forEach(spsData -> {
+            final Map<String, String> spsInfos = spsData.deletionInfo();
+            spsOnlyDeletions.add(new ScheduledDeleteViewInfo(
+                    spsInfos.get("name"),
+                    extractGroupNames(spsInfos),
+                    spsData.errorInfo(),
+                    spsData.getErrorType()));
+        });
+
+        return new ScheduledDeleteReport(
+                scheduledDelete.id(),
+                scheduledDelete.spsId(),
+                scheduledDelete.state(),
+                scheduledDelete.deleteDueTime(),
+                scheduledDelete.scheduleTime(),
+                scheduledDelete.startTime(),
+                scheduledDelete.endTime(),
+                scheduledDelete.institutionId(),
+                sebServerDeletions,
+                spsOnlyDeletions);
+    }
+
+    private static Collection<ScheduledDeleteViewInfo.GroupInfo> extractGroupNames(final Map<String, String> spsInfos) {
+        final Set<String> groupKeys = spsInfos.keySet()
+                .stream()
+                .filter(key -> key.startsWith("group"))
+                .map(key -> key.substring(0, key.lastIndexOf("_")))
+                .collect(Collectors.toSet());
+
+        return groupKeys.stream().map( key -> {
+            try {
+                return new ScheduledDeleteViewInfo.GroupInfo(
+                        spsInfos.get(key + "_name"),
+                        spsInfos.get(key + "_sessionCount"));
+            } catch (Exception e) {
+                try {
+                    return new ScheduledDeleteViewInfo.GroupInfo(
+                            spsInfos.get(key + "_name"),
+                            "");
+                } catch (Exception ee) {
+                    return new ScheduledDeleteViewInfo.GroupInfo(
+                            "",
+                            "");
+                }
+            }
+        } ).toList();
+    }
 
 }

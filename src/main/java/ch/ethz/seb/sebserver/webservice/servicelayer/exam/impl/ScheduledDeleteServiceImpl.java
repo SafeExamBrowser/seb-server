@@ -123,7 +123,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                         .getOrThrow();
             }
 
-            return ScheduledDeleteReport.createFormInfos(
+            return ScheduledDeleteService.createFormInfos(
                     sebServerDeletions,
                     spsDeletions != null ? spsDeletions.info() : Collections.emptyList());
         });
@@ -454,7 +454,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
         ).getOrThrow();
 
         // provide full report as result
-        return ScheduledDeleteReport.createFormInfos(
+        return ScheduledDeleteService.createFormInfos(
                 sebServerDelete,
                 hasSPSDataToDelete ? spsDelete.info() : Collections.emptyList());
     }

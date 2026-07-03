@@ -11,11 +11,9 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.Collection;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.URL;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -146,10 +144,10 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public final Long fallbackTimeout;
 
     @JsonProperty(ATTR_FALLBACK_ATTEMPTS)
-    public final Short fallbackAttempts;
+    public final Long fallbackAttempts;
 
     @JsonProperty(ATTR_FALLBACK_ATTEMPT_INTERVAL)
-    public final Short fallbackAttemptInterval;
+    public final Long fallbackAttemptInterval;
 
     // CharSequence password/secret fields are written as plain strings but read back as
     // hash-presence indicators; pin them to `string` so the generated schema types them as
@@ -214,8 +212,8 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
             @JsonProperty(ATTR_FALLBACK) final Boolean fallback,
             @JsonProperty(ATTR_FALLBACK_START_URL) final String fallbackStartURL,
             @JsonProperty(ATTR_FALLBACK_TIMEOUT) final Long fallbackTimeout,
-            @JsonProperty(ATTR_FALLBACK_ATTEMPTS) final Short fallbackAttempts,
-            @JsonProperty(ATTR_FALLBACK_ATTEMPT_INTERVAL) final Short fallbackAttemptInterval,
+            @JsonProperty(ATTR_FALLBACK_ATTEMPTS) final Long fallbackAttempts,
+            @JsonProperty(ATTR_FALLBACK_ATTEMPT_INTERVAL) final Long fallbackAttemptInterval,
             @JsonProperty(ATTR_FALLBACK_PASSWORD) final CharSequence fallbackPassword,
             @JsonProperty(ATTR_FALLBACK_PASSWORD_CONFIRM) final CharSequence fallbackPasswordConfirm,
             @JsonProperty(ATTR_QUIT_PASSWORD) final CharSequence quitPassword,
@@ -292,8 +290,8 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.fallback = postParams.getBoolean(ATTR_FALLBACK);
         this.fallbackStartURL = postParams.getString(ATTR_FALLBACK_START_URL);
         this.fallbackTimeout = postParams.getLong(ATTR_FALLBACK_TIMEOUT);
-        this.fallbackAttempts = postParams.getShort(ATTR_FALLBACK_ATTEMPTS);
-        this.fallbackAttemptInterval = postParams.getShort(ATTR_FALLBACK_ATTEMPT_INTERVAL);
+        this.fallbackAttempts = postParams.getLong(ATTR_FALLBACK_ATTEMPTS);
+        this.fallbackAttemptInterval = postParams.getLong(ATTR_FALLBACK_ATTEMPT_INTERVAL);
         this.fallbackPassword = postParams.getCharSequence(ATTR_FALLBACK_PASSWORD);
         this.fallbackPasswordConfirm = postParams.getCharSequence(ATTR_FALLBACK_PASSWORD_CONFIRM);
         this.quitPassword = postParams.getCharSequence(ATTR_QUIT_PASSWORD);
@@ -356,11 +354,11 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         return this.fallbackTimeout;
     }
 
-    public Short getFallbackAttempts() {
+    public Long getFallbackAttempts() {
         return this.fallbackAttempts;
     }
 
-    public Short getFallbackAttemptInterval() {
+    public Long getFallbackAttemptInterval() {
         return this.fallbackAttemptInterval;
     }
 
