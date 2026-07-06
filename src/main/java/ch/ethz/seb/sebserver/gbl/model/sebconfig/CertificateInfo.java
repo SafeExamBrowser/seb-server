@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -75,6 +76,7 @@ public class CertificateInfo implements Entity {
     public static final String ATTR_VALIDITY_TO = "validityTo";
     public static final String ATTR_CERT_TYPE = "certType";
 
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(ATTR_ALIAS)
     public final String alias;
 
