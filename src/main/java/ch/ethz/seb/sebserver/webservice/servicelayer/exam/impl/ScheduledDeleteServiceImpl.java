@@ -470,7 +470,9 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
         final ArrayList<ScheduledDeleteInfo> spsDeleteInfos = new ArrayList<>();
 
-        log.info("Filter given SPS deletion infos: {}", sourceSPSDeleteInfos);
+        if (log.isDebugEnabled()) {
+            log.debug("Filter given SPS deletion infos: {}", sourceSPSDeleteInfos);
+        }
 
         sourceSPSDeleteInfos.forEach(spsDeleteInfo -> {
             final String examUUID = spsDeleteInfo.examUUID();
