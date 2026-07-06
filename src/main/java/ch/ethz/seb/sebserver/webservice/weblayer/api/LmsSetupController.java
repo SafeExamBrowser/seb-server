@@ -200,8 +200,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 .map(lmsSetup -> {
                     final LmsSetup existingLMSSetup = this.entityDAO.byPK(lmsSetup.id).getOrThrow();
                     if (existingLMSSetup.isActive()) {
-                        // apply ad hoc test with new settings. If not valid deny save
-                        LmsSetup adHocLMSSetup = new LmsSetup(
+                        testActiveLMSSetup(new LmsSetup(
                                 null,
                                 existingLMSSetup.institutionId,
                                 lmsSetup.name,
@@ -218,20 +217,22 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                                 null,
                                 existingLMSSetup.connectionId,
                                 existingLMSSetup.integrationActive
-                        );
-                        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(adHocLMSSetup);
-                        if (result.hasAnyError()) {
-                            log.warn("Deny active LMS Setup save because of connection errors. LMS Setup {}, Errors: {}", adHocLMSSetup, result);
-                            if (!result.missingLMSSetupAttribute.isEmpty()) {
-                                throw new APIMessageException(result.missingLMSSetupAttribute);
-                            } else if (result.hasError(ErrorType.TOKEN_REQUEST)) {
-                                throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("Failed to gain access to LMS"));
-                            } else {
-                                throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of(result.errors.toString()));
-                            }
-                        }
+                        ));
                     }
 
+                    return lmsSetup;
+                });
+    }
+
+    @Override
+    protected Result<LmsSetup> validForActivation(LmsSetup entity, boolean activation) {
+        return super
+                .validForActivation(entity, activation)
+                .map(lmsSetup ->  {
+                    if (activation) {
+                        testActiveLMSSetup(entity);
+                        return entity;
+                    }
                     return lmsSetup;
                 });
     }
@@ -281,5 +282,20 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             }
             return entity;
         });
+    }
+
+    private void testActiveLMSSetup(final LmsSetup adHocLMSSetup) {
+        // apply ad hoc test with new settings. If not valid deny save
+        final LmsSetupTestResult result = this.lmsTestService.testAdHoc(adHocLMSSetup);
+        if (result.hasAnyError()) {
+            log.warn("Deny active LMS Setup save because of connection errors. LMS Setup {}, Errors: {}", adHocLMSSetup, result);
+            if (!result.missingLMSSetupAttribute.isEmpty()) {
+                throw new APIMessageException(result.missingLMSSetupAttribute);
+            } else if (result.hasError(ErrorType.TOKEN_REQUEST)) {
+                throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("Failed to gain access to LMS"));
+            } else {
+                throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of(result.errors.toString()));
+            }
+        }
     }
 }
