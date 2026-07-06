@@ -459,13 +459,13 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getName(),
                 LmsType.valueOf(record.getLmsType()),
                 record.getLmsClientname(),
-                record.getLmsClientsecret(),
+                decryptForView(record.getLmsClientsecret()),
                 record.getLmsUrl(),
-                record.getLmsRestApiToken(),
+                decryptForView(record.getLmsRestApiToken()),
                 record.getLmsProxyHost(),
                 record.getLmsProxyPort(),
                 record.getLmsProxyAuthUsername(),
-                record.getLmsProxyAuthSecret(),
+                decryptForView(record.getLmsProxyAuthSecret()),
                 BooleanUtils.toBooleanObject(record.getActive()),
                 record.getUpdateTime(),
                 record.getConnectionId(),
@@ -482,6 +482,17 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         } else {
             return input;
         }
+    }
+
+    private String decryptForView(final String input) {
+        if (StringUtils.isBlank(input)) {
+            return input;
+        }
+
+        return this.clientCredentialService
+                .decrypt(input)
+                .map(String::valueOf)
+                .getOr(input);
     }
 
     // check if same name already exists for the same institution
