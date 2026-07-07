@@ -834,10 +834,6 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
         return webserviceInfo.getExternalServerURL() + lmsAPIEndpoint;
     }
 
-    private String getAutoLoginURL() {
-        return webserviceInfo.getExternalServerURL() + webserviceInfo.getAutoLoginEndpoint();
-    }
-
     private Exam logExamCreated(final Exam exam) {
         this.userActivityLogDAO
                 .logCreate(exam)

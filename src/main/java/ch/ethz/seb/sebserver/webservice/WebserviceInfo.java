@@ -112,9 +112,7 @@ public class WebserviceInfo {
         this.webserviceUUID = UUID.randomUUID().toString()
                 + Constants.UNDERLINE
                 + this.sebServerVersion;
-        this.autoLoginEndpoint = environment.getProperty(
-                SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT,
-                "/auto_login");
+
 
         this.distributedUpdateInterval = environment.getProperty(
                 "sebserver.webservice.distributed.updateInterval",
@@ -144,11 +142,12 @@ public class WebserviceInfo {
             builder.path(this.subPath);
         }
         this.serverURLPrefix = builder.toUriString();
+
+        this.autoLoginEndpoint = environment.getProperty(
+                SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT,
+                "/login");
         String guiAutologinURL = environment.getProperty(WEB_SERVICE_GUI_AUTOLOGIN_URL_KEY, builder.toUriString());
-        if (StringUtils.isBlank(guiAutologinURL)) {
-            guiAutologinURL = builder.toUriString();
-        }
-        this.guiAutologinURL = guiAutologinURL;
+        this.guiAutologinURL = guiAutologinURL + autoLoginEndpoint;
 
         this.isLightSetup = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.light.setup",
@@ -251,10 +250,6 @@ public class WebserviceInfo {
 
     public String getDiscoveryEndpoint() {
         return this.discoveryEndpoint;
-    }
-
-    public String getAutoLoginEndpoint() {
-        return autoLoginEndpoint;
     }
 
     public String getDiscoveryEndpointAddress() {
