@@ -527,12 +527,15 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final String quizId) {
 
         return lmsAPITemplate -> {
-            // TODO this will not work for other integrations then Moodle. Must be checked before other LMS Integrations are applied
-            final String internalQuizId = MoodleUtils.getInternalQuizId(
-                    quizId,
-                    courseId,
-                    null,
-                    null);
+            final String internalQuizId = switch (lmsAPITemplate.getType()) {
+                case MOODLE_PLUGIN, MOODLE ->  MoodleUtils.getInternalQuizId(
+                        quizId,
+                        courseId,
+                        null,
+                        null);
+                case MOCKUP -> quizId;
+                default -> quizId;
+            };
 
             return lmsAPITemplate
                     .getQuiz(internalQuizId)

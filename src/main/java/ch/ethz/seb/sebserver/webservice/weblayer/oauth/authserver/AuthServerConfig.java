@@ -14,6 +14,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.authserver.pwdgrant.OAuth2PasswordGrantAuthenticationConverter;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.authserver.pwdgrant.OAuth2PasswordGrantAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -54,6 +55,8 @@ public class AuthServerConfig {
     private WebServiceUserDetails webServiceUserDetails;
     @Autowired
     private UserDAO userDAO;
+
+    @Value("${sebserver.webservice.lms.api.clientId}") String clientId;
     
     
     @Bean
@@ -68,7 +71,7 @@ public class AuthServerConfig {
         OAuth2PasswordGrantAuthenticationProvider oAuth2PasswordGrantAuthenticationProvider =
                 new OAuth2PasswordGrantAuthenticationProvider(authenticationManager, authorizationService);
         OAuth2ClientCredentialsGrantProvider oAuth2ClientCredentialsGrantProvider =
-                new OAuth2ClientCredentialsGrantProvider(authorizationService);
+                new OAuth2ClientCredentialsGrantProvider(authorizationService, clientId);
         
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .authorizationEndpoint(c -> c.authenticationProviders( providers -> {

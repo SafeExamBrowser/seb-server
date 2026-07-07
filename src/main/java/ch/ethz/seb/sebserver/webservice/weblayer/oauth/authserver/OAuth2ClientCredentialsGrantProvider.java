@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.util.Assert;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -38,11 +39,15 @@ public class OAuth2ClientCredentialsGrantProvider implements AuthenticationProvi
     private static final Logger logger = LoggerFactory.getLogger(OAuth2ClientCredentialsGrantProvider.class);
     
     private final OAuth2AuthorizationService authorizationService;
+    private final String lmsClientName;
     private OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
     private Consumer<OAuth2ClientCredentialsAuthenticationContext> authenticationValidator = new OAuth2ClientCredentialsAuthenticationValidator();
 
-    public OAuth2ClientCredentialsGrantProvider(OAuth2AuthorizationService authorizationService) {
+    public OAuth2ClientCredentialsGrantProvider(
+            final OAuth2AuthorizationService authorizationService,
+            final String lmsClientName) {
         this.authorizationService = authorizationService;
+        this.lmsClientName = lmsClientName;
     }
 
     public void init(HttpSecurity http) {
@@ -67,7 +72,13 @@ public class OAuth2ClientCredentialsGrantProvider implements AuthenticationProvi
             OAuth2ClientCredentialsAuthenticationContext authenticationContext = OAuth2ClientCredentialsAuthenticationContext.with(clientCredentialsAuthentication).registeredClient(registeredClient).build();
             this.authenticationValidator.accept(authenticationContext);
             Set<String> authorizedScopes = new LinkedHashSet<>(clientCredentialsAuthentication.getScopes());
-            authorizedScopes.add(API.SEB_API_SCOPE_NAME);
+            final String clientName = authenticationContext.getRegisteredClient().getClientId();
+            if (Objects.equals(clientName, this.lmsClientName)) {
+                authorizedScopes.add(API.LMS_API_SCOPE_NAME);
+            } else {
+                authorizedScopes.add(API.SEB_API_SCOPE_NAME);
+            }
+
             if (logger.isTraceEnabled()) {
                 logger.trace("Validated token request parameters");
             }

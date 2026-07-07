@@ -220,6 +220,7 @@ public class ScreenProctoringAPIBinding {
 
                     synchronizeUserAccounts(exam);
                     synchronizeGroups(exam, spsData);
+                    updateExam(exam, spsData);
 
                     return exam;
                 }
