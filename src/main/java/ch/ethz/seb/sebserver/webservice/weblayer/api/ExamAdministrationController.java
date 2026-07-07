@@ -793,7 +793,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                         .filter(s -> s.contains(TeacherAccountService.AD_HOC_TEACHER_ID_PREFIX) || authorization.isTeacherOnly(s))
                         .toList();
                 if (!teacherAccounts.isEmpty()) {
-                    final ArrayList<String> supporterAndTeacher = new ArrayList<>(teacherAccounts);
+                    final Set<String> supporterAndTeacher = new HashSet<>(teacherAccounts);
                     supporterAndTeacher.addAll(exam.supporter);
                 
                     return new Exam(
