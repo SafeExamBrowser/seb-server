@@ -63,6 +63,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for user account
@@ -133,6 +135,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for configuration node
@@ -142,6 +146,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
@@ -153,6 +159,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for configuration value
@@ -162,6 +170,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
@@ -175,6 +185,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for configuration orientations
@@ -184,6 +196,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
@@ -195,6 +209,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withOwnerPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for SEB client events
@@ -203,6 +219,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withOwnerPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.TEACHER)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
 
         // grants for user activity logs
