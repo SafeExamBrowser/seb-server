@@ -317,7 +317,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
         final String subjectClaim = UUID.randomUUID().toString();
         userDAO.changePassword(account.uuid, subjectClaim);
-        this.screenProctoringService.updateExamOnScreenProctoringService(examId);
+        this.screenProctoringService.synchronizeSPSUserWait(account.uuid);
+        //this.screenProctoringService.updateExamOnScreenProctoringService(examId);
 
         final Map<String, Object> claims = new HashMap<>();
         claims.put(USER_CLAIM, account.uuid);
