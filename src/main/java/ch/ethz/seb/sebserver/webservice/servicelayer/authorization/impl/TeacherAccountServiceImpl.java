@@ -304,7 +304,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         if (!exam.supporter.contains(account.uuid)) {
             this.examDAO
                     .applySupporter(exam, account.uuid)
-                    .map(e -> screenProctoringService.updateExamOnScreenProctoringService(e.id))
+                    .map(e -> screenProctoringService.updateExamOnScreenProctoringService(e.id).getOrThrow())
                     .onError(error -> log.error(
                             "Failed to apply ad-hoc-teacher account to supporter list of exam: {} user: {}",
                             exam, account, error));
