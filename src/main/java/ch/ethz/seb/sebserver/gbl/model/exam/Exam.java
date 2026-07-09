@@ -411,6 +411,7 @@ public final class Exam implements GrantEntity {
         return this.name;
     }
 
+    @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION)
     public String getDescription() {
         return this.getAdditionalAttribute(QuizData.QUIZ_ATTR_DESCRIPTION);
     }
@@ -423,6 +424,7 @@ public final class Exam implements GrantEntity {
         return this.endTime;
     }
 
+    @JsonProperty(QuizData.QUIZ_ATTR_START_URL)
     public String getStartURL() {
         return this.getAdditionalAttribute(QuizData.QUIZ_ATTR_START_URL);
     }
