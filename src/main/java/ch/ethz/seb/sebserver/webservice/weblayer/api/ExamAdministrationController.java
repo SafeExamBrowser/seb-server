@@ -12,13 +12,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.DeleteExamAction;
 import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamImportService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -69,6 +69,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+
+import static ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService.AD_HOC_TEACHER_ID_PREFIX;
 
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_ADMINISTRATION_ENDPOINT)
@@ -130,7 +132,29 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected SqlTable getSQLTableOfEntity() {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
-    
+
+    // NOTE: This is overwritten to apply adaptSupporterForUI ot the outgoing UI Model
+    public Exam getBy(@PathVariable final String modelId) {
+        return this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this::checkReadAccess)
+                .map(this::adaptSupporterForUI)
+                .getOrThrow();
+    }
+
+    // NOTE: This is overwritten to apply adaptSupporterForUI ot the outgoing UI Model
+    public Exam savePut(@Valid @RequestBody final Exam modifyData) {
+        return this.checkModifyAccess(modifyData)
+                .flatMap(this::validForSave)
+                .flatMap(this.entityDAO::save)
+                .flatMap(this::logModify)
+                .flatMap(this::notifySaved)
+                .map(this::adaptSupporterForUI)
+                .getOrThrow();
+    }
+
+
+
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,
@@ -790,7 +814,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             if (oldExam.supporter != null) {
                 final List<String> teacherAccounts = oldExam.supporter
                         .stream()
-                        .filter(s -> s.contains(TeacherAccountService.AD_HOC_TEACHER_ID_PREFIX) || authorization.isTeacherOnly(s))
+                        .filter(s -> s.contains(AD_HOC_TEACHER_ID_PREFIX) || authorization.isTeacherOnly(s))
                         .toList();
                 if (!teacherAccounts.isEmpty()) {
                     final Set<String> supporterAndTeacher = new HashSet<>(teacherAccounts);
@@ -981,6 +1005,41 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             }
             return list;
         };
+    }
+
+    /** This filters out supporters that are ad-hoc teacher accounts and accounts that do not exist anymore
+     *
+     * @param exam The exam to adapt supporters for UI usage
+     * @return Exam with adapted supporter ids for UI usage (no teachers no invalid user accounts) */
+    private Exam adaptSupporterForUI(final Exam exam) {
+        List<String> uiSupporter = exam.supporter
+                .stream()
+                .filter(uuid -> {
+                    try {
+                        // check if user exists
+                        Result<UserInfo> userInfoResult = userDAO.byModelId(uuid);
+                        if (userInfoResult.hasError()) {
+                            return false;
+                        }
+
+                        // if teacher user skip
+                        if (uuid.startsWith(AD_HOC_TEACHER_ID_PREFIX)) {
+                            return false;
+                        }
+
+                        return true;
+                    } catch (Exception e) {
+                        log.error("Failed to adapt supporter for Exam: {}, userId: {}, cause: {}", exam.externalId, uuid, e.getMessage());
+                        return true;
+                    }
+                })
+                .toList();
+
+        if (exam.supporter.size() == uiSupporter.size()) {
+            return exam;
+        }
+
+        return exam.withSupporter(uiSupporter);
     }
     
 }

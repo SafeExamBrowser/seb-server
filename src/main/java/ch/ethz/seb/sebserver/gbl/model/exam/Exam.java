@@ -517,6 +517,33 @@ public final class Exam implements GrantEntity {
                 "]";
     }
 
+    public Exam withSupporter(final Collection<String> supporter) {
+        return new Exam(
+                this.id,
+                this.institutionId,
+                this.lmsSetupId,
+                this.externalId,
+                this.lmsAvailable,
+                this.name,
+                this.startTime,
+                this.endTime,
+                this.type,
+                this.owner,
+                supporter,
+                this.status,
+                this.quitPassword,
+                this.sebRestriction,
+                this.browserExamKeys,
+                this.active,
+                this.lastUpdate,
+                this.examTemplateId,
+                this.lastModified,
+                this.followUpId,
+                this.excludeFromDeletion,
+                this.additionalAttributes
+        );
+    }
+
     public static ExamStatus getStatusFromDate(final DateTime startTime, final DateTime endTime) {
         final DateTime now = DateTime.now(DateTimeZone.UTC);
         if (startTime != null && now.isBefore(startTime)) {
