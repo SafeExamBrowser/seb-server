@@ -92,15 +92,15 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
             // used timestamps (UTC)
             final Long scheduleTime = Utils.calcTimeToMidnight(scheduledTimestampUTC, refTimeZone);
-            final Long deleteTimeUTCAtStartOfDay = Utils.calcTimeAtStartOfDay(deleteDueTimestampUTC, refTimeZone);
+            final Long deleteTimeUTCAtEndOfDay = Utils.calcTimeAtEndOfDay(deleteDueTimestampUTC, refTimeZone);
 
             log.info("Schedule delete for dueTime: {} -- UTC: {} schedule at: {} -- UTC: {}",
-                    Utils.formatDate(new DateTime(deleteTimeUTCAtStartOfDay, refTimeZone)),
-                    Utils.formatDate(new DateTime(deleteTimeUTCAtStartOfDay, DateTimeZone.UTC)),
+                    Utils.formatDate(new DateTime(deleteTimeUTCAtEndOfDay, refTimeZone)),
+                    Utils.formatDate(new DateTime(deleteTimeUTCAtEndOfDay, DateTimeZone.UTC)),
                     Utils.formatDate(new DateTime(scheduleTime,refTimeZone)),
                     Utils.formatDate(new DateTime(scheduleTime,DateTimeZone.UTC)));
 
-            return createScheduledDeleteInternal(deleteTimeUTCAtStartOfDay, scheduleTime);
+            return createScheduledDeleteInternal(deleteTimeUTCAtEndOfDay, scheduleTime);
         });
     }
 
@@ -362,7 +362,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
     }
 
     private ScheduledDeleteReport createScheduledDeleteInternal(
-            final Long deleteTimeUTCAtStartOfDay,
+            final Long deleteTimeUTCAtEndOfDay,
             final Long scheduleTime) {
 
         final SEBServerUser currentUser = userService.getCurrentUser();
@@ -370,7 +370,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
         // get all possibly involved Exams from all institutions and filter them
         final Map<String, Exam> includeExams = examDAO
-                .getExamsForScheduledDeletion(deleteTimeUTCAtStartOfDay)
+                .getExamsForScheduledDeletion(deleteTimeUTCAtEndOfDay)
                 .map(e -> e.stream().filter(exam -> !BooleanUtils.isTrue(exam.excludeFromDeletion)).toList())
                 .getOrThrow()
                 .stream()
@@ -381,7 +381,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
         // request scheduled deletion on SPS, compare and refine it with this data and store on SPS
         final ScheduledDelete requestedSPSDelete = screenProctoringAPIBinding
-                .requestScheduledDelete(deleteTimeUTCAtStartOfDay, institutionId)
+                .requestScheduledDelete(deleteTimeUTCAtEndOfDay, institutionId)
                 .getOrThrow();
 
         // filter scheduled delete from SPS according to given includeExams and excludeExams maps we have
@@ -398,7 +398,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                         null,
                         null,
                         requestedSPSDelete.state(),
-                        deleteTimeUTCAtStartOfDay,
+                        deleteTimeUTCAtEndOfDay,
                         scheduleTime,
                         null,
                         null,
@@ -444,7 +444,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                         null,
                         hasSPSDataToDelete ? spsDelete.id() : null,
                         ScheduledDelete.State.PENDING,
-                        deleteTimeUTCAtStartOfDay,
+                        deleteTimeUTCAtEndOfDay,
                         scheduleTime,
                         null,
                         null,
@@ -553,7 +553,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
                 final SEBServerUser currentUser = userService.getCurrentUser();
                 final DateTimeZone userTimeZone = currentUser.getUserInfo().timeZone;
                 final DateTimeZone refTimeZone = userTimeZone != null ? userTimeZone : DateTimeZone.UTC;
-                return Utils.calcTimeAtStartOfDay(deleteDueTimestampUTC, refTimeZone);
+                return Utils.calcTimeAtEndOfDay(deleteDueTimestampUTC, refTimeZone);
             } catch (Exception e) {
                 log.error("Failed to get userTime for: {} cause: {}", deleteDueTimestampUTC, e.getMessage());
                 return null;

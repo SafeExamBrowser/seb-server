@@ -468,6 +468,9 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
             final String status = config.getStatus();
 
             final ExamRecord exam = examRecordMapper.selectByPrimaryKey(record.getExamId());
+            final String configPWD = (record.getEncryptSecret() != null)
+                    ? this.clientCredentialService.decrypt(record.getEncryptSecret()).getOr(record.getEncryptSecret()).toString()
+                    : null;
 
             return new ExamConfigurationMap(
                     record.getId(),
@@ -480,7 +483,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     (exam != null) ? Exam.ExamStatus.valueOf(exam.getStatus()) : null,
                     record.getConfigurationNodeId(),
                     record.getClientGroupId(),
-                    record.getEncryptSecret(),
+                    configPWD,
                     null,
                     config.getName(),
                     config.getDescription(),

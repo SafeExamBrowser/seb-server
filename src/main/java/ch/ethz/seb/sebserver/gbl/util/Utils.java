@@ -951,6 +951,18 @@ public final class Utils {
                 .getMillis();
     }
 
+    public static Long calcTimeAtEndOfDay(
+            final Long referenceTimeStampUTC,
+            final DateTimeZone referenceTimezone) {
+
+        return new DateTime(referenceTimeStampUTC, DateTimeZone.UTC)
+                .toDateTime(referenceTimezone)           // shift to reference time zone
+                .plusDays(1)                           // add one day and...
+                .withTimeAtStartOfDay()                   // go back to start of day still in reference time zone
+                .toDateTime(DateTimeZone.UTC)             // now convert back to UTC
+                .getMillis();
+    }
+
     public static void checkPasswordTrailing(final String quitSecret) {
         // check new quit password has no invalid trailing chars
         if (quitSecret != null && !Objects.equals(quitSecret, StringUtils.trim(quitSecret))) {

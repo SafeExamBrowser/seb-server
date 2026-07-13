@@ -12,6 +12,7 @@ import java.util.*;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
@@ -72,14 +73,20 @@ public class ExamSEBSettingsController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_EXAM_CONFIG_MAPPING,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<ExamConfigurationMap> getExamConfigMappings(
+    public ExamConfigurationMap getExamConfigMappings(
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
         authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
 
-        return examConfigurationMapDAO
+        Collection<ExamConfigurationMap> allMappings = examConfigurationMapDAO
                 .allOfExam(examId)
                 .getOrThrow();
+
+        if (allMappings.isEmpty()) {
+            throw new NoResourceFoundException(EntityType.EXAM_CONFIGURATION_MAP, "for exam: " + examId);
+        }
+
+        return allMappings.iterator().next();
     }
 
     @RequestMapping(
