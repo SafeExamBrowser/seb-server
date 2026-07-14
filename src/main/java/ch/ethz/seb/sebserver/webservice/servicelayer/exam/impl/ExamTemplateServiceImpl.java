@@ -928,6 +928,11 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 }
 
                 examTemplate.indicatorTemplates
+                        .stream()
+                        // SEBSERV-947 - filter out and create only BATTERY_STATUS and WLAN_STATUS indicators since 3.0
+                        .filter(indicatorTemplate ->
+                                indicatorTemplate.type == IndicatorType.BATTERY_STATUS ||
+                                indicatorTemplate.type == IndicatorType.WLAN_STATUS)
                         .forEach(it -> createIndicatorFromTemplate(it, exam));
             }
 
