@@ -11,13 +11,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isNotEqualTo;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -782,23 +780,29 @@ public class ConfigurationDAOBatchService {
             final ConfigurationRecord config) {
 
         final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
+
+        // Pre-select and map then query the map instead of the DB
+        Map<Pair<Long, Integer>, ConfigurationValueRecord> values = this.batchConfigurationValueRecordMapper
+                .selectByExample()
+                .where(
+                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                        isEqualTo(config.getId()))
+                .build()
+                .execute()
+                .stream()
+                .collect(Collectors.toMap(
+                        rec -> new Pair<>(rec.getConfigurationAttributeId(), rec.getListIndex()),
+                        Function.identity()));
+
+
         templateValues.forEach(templateValue -> {
-            final Long existingId = this.batchConfigurationValueRecordMapper
-                    .selectIdsByExample()
-                    .where(
-                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                            isEqualTo(config.getId()))
-                    .and(
-                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                            isEqualTo(templateValue.getConfigurationAttributeId()))
-                    .and(
-                            ConfigurationValueRecordDynamicSqlSupport.listIndex,
-                            isEqualTo(templateValue.getListIndex()))
-                    .build()
-                    .execute()
-                    .stream()
-                    .findFirst()
-                    .orElse(null);
+            final ConfigurationValueRecord existingRec = values.get(new Pair<>(
+                    templateValue.getConfigurationAttributeId(),
+                    templateValue.getListIndex()));
+
+            Long existingId = (existingRec != null)
+                    ? existingRec.getId()
+                    : null;
 
             final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
                     existingId,
