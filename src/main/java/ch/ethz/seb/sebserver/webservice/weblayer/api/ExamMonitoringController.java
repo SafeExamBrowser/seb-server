@@ -223,12 +223,11 @@ public class ExamMonitoringController {
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
-        this.authorization.checkRole(
-                institutionId,
+
+        this.authorization.check(
+                PrivilegeType.READ,
                 EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER,
-                UserRole.TEACHER,
-                UserRole.EXAM_ADMIN);
+                institutionId);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
 
@@ -680,7 +679,7 @@ public class ExamMonitoringController {
         final UserInfo userInfo = this.authorization.getUserService().getCurrentUser().getUserInfo();
         final String userId = userInfo.uuid;
         return exam.institutionId.equals(institution)
-                && (exam.isOwnerOrSupporter(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN));
+                && (exam.isOwnerOrSupporter(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN) || userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN));
     }
 
     private Predicate<ClientConnectionData> noneActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
