@@ -88,7 +88,7 @@ public class TemplateSEBSettingsController {
 
         authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
 
-        System.out.println("************ save single value: " + value + " templateId: " + templateId + " valueId: " + valueId);
+        //System.out.println("************ save single value: " + value + " templateId: " + templateId + " valueId: " + valueId);
         
         return sebSettingsService
                 .saveSingleValueForTemplate(templateId, valueId, value)
