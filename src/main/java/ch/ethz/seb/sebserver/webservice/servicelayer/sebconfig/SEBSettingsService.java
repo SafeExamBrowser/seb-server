@@ -50,7 +50,7 @@ public interface SEBSettingsService {
                         28L, 29L, 804L, 812L, 951L, 952L, 953L,
                         950L, 974L, 975L, 1595L, 1660L, 1661L,
                         1662L, 1663L, 1664L, 1665L, 17L, 902L, 926L, 927L,
-                        931L, 932L, 1565L, 1566L, 1572L, 1573L, 1640L))
+                        931L, 932L, 1565L, 1566L, 1572L, 1573L, 1640L, 1673L))
         );
 
         /* Ids of all SEB Setting/Configuration Attributes for the BROWSER view */
@@ -89,7 +89,7 @@ public interface SEBSettingsService {
                         73L, 74L, 75L, 76L, 77L, 78L, 79L, 81L, 82L, 85L,
                         86L, 87L, 88L, 89L, 90L, 91L, 93L, 94L, 95L,
                         96L, 97L, 98L, 99L, 100L, 1200L, 1577L, 1630L,
-                        1631L, 1632L, 1633L, 1634L, 944L))
+                        1631L, 1632L, 1633L, 1634L, 944L, 1675L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the Network vew */
@@ -113,7 +113,8 @@ public interface SEBSettingsService {
                         318L,319L,320L,321L,322L,501L,971L,1578L,1551L,
                         1567L,1550L,909L,1552L,948L,1557L,943L,945L,
                         1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L,
-                        1553L, 1554L, 1555L, 1556L, 1571L, 911L, 912L, 913L, 914L))
+                        1553L, 1554L, 1555L, 1556L, 1571L, 911L, 912L, 913L, 914L,
+                        1671L, 1672L, 1674L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the REGISTRY vew */
@@ -138,7 +139,7 @@ public interface SEBSettingsService {
                 SEBSettingsView.ViewType.PROCTORING,
                 Utils.immutableSetOf( Arrays.asList(
                         1129L, 1300L, 1301L, 1302L, 1303L, 1305L, 1306L,
-                        1320L, 1321L, 1322L, 1323L, 1326L))
+                        1320L, 1321L, 1322L, 1323L, 1326L, 1670L))
         );
 
     }
