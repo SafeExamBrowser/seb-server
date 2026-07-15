@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.*;
+import ch.ethz.seb.sebserver.gbl.model.user.GuiAbilities;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
@@ -149,6 +150,32 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UserFeatures getCurrentUserFeatures() {
         return this.featureService.getCurrentUserFeatures().getOrThrow();
+    }
+
+    @Operation(
+            operationId = "getCurrentUserGuiAbilities",
+            summary = "Get the effective GUI abilities of the current user",
+            description = "GUI components and actions merged over the current user's roles. "
+                    + "Presentation configuration for the GUI only; the webservice authorizes every request independently.")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "The effective GUI abilities of the current user.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = GuiAbilities.class)))
+    })
+    @RequestMapping(
+            path = API.CURRENT_USER_PATH_SEGMENT + API.GUI_ABILITIES_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public GuiAbilities getCurrentUserGuiAbilities() {
+        return GuiAbilitiesDefinition.abilitiesFor(
+                this.authorization
+                        .getUserService()
+                        .getCurrentUser()
+                        .getUserInfo()
+                        .getUserRoles());
     }
 
     @Operation(hidden = true)
