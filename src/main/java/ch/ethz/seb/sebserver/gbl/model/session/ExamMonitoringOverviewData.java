@@ -79,7 +79,7 @@ public record ExamMonitoringOverviewData(
         @JsonProperty(Domain.CLIENT_GROUP.ATTR_ID) public final Long id;
         @JsonProperty(Domain.CLIENT_GROUP.ATTR_NAME) public final String name;
         @JsonProperty("clientAmount") public int clientAmount;
-        //@JsonProperty("clientSPSAmount") public int clientSPSAmount;
+        @JsonProperty("activeClients") public int activeClients;
         @JsonProperty("spsGroupUUID") public final String spsGroupUUID;
         @JsonProperty("type") public final String type;
         @JsonProperty("typeValue") public final String typeValue;

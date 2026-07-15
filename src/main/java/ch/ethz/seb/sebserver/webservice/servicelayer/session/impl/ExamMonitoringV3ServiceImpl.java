@@ -176,17 +176,25 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                             for (Long group : cc.groups) {
                                 ClientGroup clientGroup = groups.get(group);
                                 clientGroup.clientAmount++;
+                                if (cc.clientConnection.status.establishedStatus) {
+                                    clientGroup.activeClients++;
+                                }
                                 if (clientGroup.spsGroupUUID != null) {
                                     checkSPSFallback = false;
                                 }
                             }
                             if (checkSPSFallback && screenProctoringEnabled && groups.containsKey(-1L) &&
                                     cc.clientConnection.status.clientActiveStatus && cc.clientConnection.screenProctoringGroupId != null) {
-                                groups.get(-1L).clientAmount++;
+                                ClientGroup clientGroup = groups.get(-1L);
+                                if (clientGroup != null) {
+                                    clientGroup.clientAmount++;
+                                    if (cc.clientConnection.status.establishedStatus) {
+                                        clientGroup.activeClients++;
+                                    }
+                                }
                             }
                         }
                     } catch (final Exception e) {
-                        // TODO remove this after testing
                         log.error("Failed to process groups: {}", e.getMessage());
                     }
                 });
