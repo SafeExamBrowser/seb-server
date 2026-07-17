@@ -116,28 +116,12 @@ public class ExamSEBSettingsController {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
 
+        System.out.println("************ save single value: " + value + " examId: " + examId + " valueId: " + valueId);
+
         return sebSettingsService
                 .saveSingleValueForExam(examId, valueId, value)
                 .getOrThrow();
     }
-
-    // TODO it seems this is not used. Delete it when confirmed (3.0)
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_PATH_SEGMENT + API.SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT,
-//            method = RequestMethod.PUT,
-//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public SEBSettingsView.TableRowValues saveTableRowValues(
-//            @PathVariable(name =API.PARAM_MODEL_ID) final Long examId,
-//            @RequestBody final SEBSettingsView.TableRowValues values) {
-//
-//        final Exam exam = examDAO.byPK(examId).getOrThrow();
-//        authorizationService.hasModifyGrant(exam);
-//
-//        return sebSettingsService
-//                .saveTableRowValuesForExam(examId, values)
-//                .getOrThrow();
-//    }
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + 
