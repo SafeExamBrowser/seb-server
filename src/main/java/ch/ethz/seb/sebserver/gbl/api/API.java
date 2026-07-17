@@ -86,6 +86,7 @@ public final class API {
     public static final String LOGOUT_PATH_SEGMENT = "/logout";
 
     public static final String FEATURES_PATH_SEGMENT = "/features";
+    public static final String GUI_ABILITIES_PATH_SEGMENT = "/gui-abilities";
 
     public static final String SEB_VERSION_PAGE_ENDPOINT = "/seb-version-info";
     public static final String SEB_VERSION_SELECTED_EXAM = "selected-exam";
