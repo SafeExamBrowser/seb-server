@@ -39,7 +39,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.BatisConfig;
@@ -55,7 +54,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationAttri
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitService;
@@ -65,7 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
  * intensive write operation on Configuration domain. */
 @Lazy
 @Component
-@WebServiceProfile
 @DependsOn("batisConfig")
 public class ConfigurationDAOBatchService {
 
@@ -156,9 +153,20 @@ public class ConfigurationDAOBatchService {
 
             this.batchConfigurationNodeRecordMapper.insert(newRecord);
             this.batchSqlSessionTemplate.flushStatements();
-            return newRecord;
-        })
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel);
+
+            return new ConfigurationNode(
+                    newRecord.getId(),
+                    newRecord.getInstitutionId(),
+                    newRecord.getTemplateId(),
+                    newRecord.getName(),
+                    newRecord.getDescription(),
+                    ConfigurationNode.ConfigurationType.valueOf(newRecord.getType()),
+                    newRecord.getOwner(),
+                    ConfigurationStatus.valueOf(newRecord.getStatus()),
+                    Utils.toDateTimeUTC(newRecord.getLastUpdateTime()),
+                    newRecord.getLastUpdateUser(),
+                    null);
+        });
     }
 
     Result<ConfigurationTableValues> saveNewTableValues(final ConfigurationTableValues value) {
@@ -272,7 +280,7 @@ public class ConfigurationDAOBatchService {
                     .build()
                     .execute();
 
-            return configs.get(configs.size() - 1);
+            return configs.getLast();
         })
                 .flatMap(rec -> restoreToVersion(configurationNodeId, rec.getId()));
     }
@@ -383,9 +391,20 @@ public class ConfigurationDAOBatchService {
                 throw new IllegalArgumentException("Institution integrity violation");
             }
 
-            return this.copyNodeRecord(sourceNode, newOwner, copyInfo, currentUserUUID);
+            final ConfigurationNodeRecord record = this.copyNodeRecord(sourceNode, newOwner, copyInfo, currentUserUUID);
+            return new ConfigurationNode(
+                    record.getId(),
+                    record.getInstitutionId(),
+                    record.getTemplateId(),
+                    record.getName(),
+                    record.getDescription(),
+                    ConfigurationNode.ConfigurationType.valueOf(record.getType()),
+                    record.getOwner(),
+                    ConfigurationStatus.valueOf(record.getStatus()),
+                    Utils.toDateTimeUTC(record.getLastUpdateTime()),
+                    record.getLastUpdateUser(),
+                    null);
         })
-                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -422,7 +441,11 @@ public class ConfigurationDAOBatchService {
             configs.forEach(configRec -> this.copyConfiguration(
                     configRec.getInstitutionId(),
                     configRec.getId(),
-                    newNodeRec.getId()));
+                    newNodeRec.getId())
+                    .onError(error -> log.error(
+                            "Failed to copy configuration: {}, cause: {}",
+                            configRec,
+                            error.getMessage())));
         } else {
             configs
                     .stream()
@@ -522,6 +545,8 @@ public class ConfigurationDAOBatchService {
                         fromRec.getListIndex(),
                         fromRec.getValue()))
                 .forEach(this.batchConfigurationValueRecordMapper::insert);
+
+        this.batchSqlSessionTemplate.flushStatements();
     }
 
     private ConfigurationRecord getFollowupConfigurationRecord(final Long configurationNodeId) {
@@ -621,7 +646,7 @@ public class ConfigurationDAOBatchService {
                 // update
                 this.batchConfigurationValueRecordMapper.updateByPrimaryKey(
                         new ConfigurationValueRecord(
-                                valuePK.iterator().next(),
+                                valuePK.getFirst(),
                                 value.institutionId,
                                 value.configurationId,
                                 tableValue.attributeId,
@@ -727,6 +752,9 @@ public class ConfigurationDAOBatchService {
                             attrRec.getId(),
                             0,
                             attrRec.getDefaultValue())));
+
+            this.batchSqlSessionTemplate.flushStatements();
+
 
             // override with template values if available
             if (configNode.templateId == null || configNode.templateId.equals(ConfigurationNode.DEFAULT_TEMPLATE_ID)) {
