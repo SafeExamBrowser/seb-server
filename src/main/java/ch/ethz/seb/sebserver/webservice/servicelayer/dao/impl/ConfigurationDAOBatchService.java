@@ -779,47 +779,65 @@ public class ConfigurationDAOBatchService {
             final ConfigurationNode configNode,
             final ConfigurationRecord config) {
 
-        final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
+        try {
 
-        // Pre-select and map then query the map instead of the DB
-        Map<Pair<Long, Integer>, ConfigurationValueRecord> values = this.batchConfigurationValueRecordMapper
-                .selectByExample()
-                .where(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                        isEqualTo(config.getId()))
-                .build()
-                .execute()
-                .stream()
-                .collect(Collectors.toMap(
-                        rec -> new Pair<>(rec.getConfigurationAttributeId(), rec.getListIndex()),
-                        Function.identity()));
+            final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
+
+            // Pre-select and map then query the map instead of the DB
+            Map<Pair<Long, Integer>, ConfigurationValueRecord> values = this.batchConfigurationValueRecordMapper
+                    .selectByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(config.getId()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            rec -> new Pair<>(rec.getConfigurationAttributeId(), rec.getListIndex()),
+                            Function.identity()));
 
 
-        templateValues.forEach(templateValue -> {
-            final ConfigurationValueRecord existingRec = values.get(new Pair<>(
-                    templateValue.getConfigurationAttributeId(),
-                    templateValue.getListIndex()));
+            templateValues.forEach(templateValue -> {
+                final Pair<Long, Integer> key = new Pair<>(
+                        templateValue.getConfigurationAttributeId(),
+                        templateValue.getListIndex());
 
-            Long existingId = (existingRec != null)
-                    ? existingRec.getId()
-                    : null;
+                final ConfigurationValueRecord existingRec = values.get(key);
 
-            final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
-                    existingId,
-                    configNode.institutionId,
-                    config.getId(),
-                    templateValue.getConfigurationAttributeId(),
-                    templateValue.getListIndex(),
-                    templateValue.getValue());
+                Long existingId = (existingRec != null)
+                        ? existingRec.getId()
+                        : null;
 
-            if (existingId != null) {
-                this.batchConfigurationValueRecordMapper.updateByPrimaryKey(valueRec);
-            } else {
-                this.batchConfigurationValueRecordMapper.insert(valueRec);
-            }
-        });
+                final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
+                        existingId,
+                        configNode.institutionId,
+                        config.getId(),
+                        templateValue.getConfigurationAttributeId(),
+                        templateValue.getListIndex(),
+                        templateValue.getValue());
 
-        this.batchSqlSessionTemplate.flushStatements();
+                if (existingId != null) {
+
+                    if (log.isTraceEnabled()) {
+                        log.debug("Apply value from configuration template to exam configuration: {}", valueRec);
+                    }
+
+                    this.batchConfigurationValueRecordMapper.updateByPrimaryKey(valueRec);
+                } else {
+
+                    if (log.isTraceEnabled()) {
+                        log.debug("Apply missing value from configuration template to exam configuration: {}", valueRec);
+                    }
+
+                    this.batchConfigurationValueRecordMapper.insert(valueRec);
+                }
+            });
+
+            this.batchSqlSessionTemplate.flushStatements();
+
+        } catch (Exception e) {
+            log.error("Error while try to writeTemplateValues to Exam Config: {} ConfigNode: {} cause:", config, configNode.name, e);
+        }
     }
 
     private static boolean filterChildAttribute(final ConfigurationAttributeRecord rec) {
