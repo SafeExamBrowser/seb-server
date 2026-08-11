@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableValue;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.BatisConfig;
@@ -54,6 +55,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationAttri
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitService;
@@ -63,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  * intensive write operation on Configuration domain. */
 @Lazy
 @Component
+@WebServiceProfile
 @DependsOn("batisConfig")
 public class ConfigurationDAOBatchService {
 
@@ -153,20 +156,9 @@ public class ConfigurationDAOBatchService {
 
             this.batchConfigurationNodeRecordMapper.insert(newRecord);
             this.batchSqlSessionTemplate.flushStatements();
-
-            return new ConfigurationNode(
-                    newRecord.getId(),
-                    newRecord.getInstitutionId(),
-                    newRecord.getTemplateId(),
-                    newRecord.getName(),
-                    newRecord.getDescription(),
-                    ConfigurationNode.ConfigurationType.valueOf(newRecord.getType()),
-                    newRecord.getOwner(),
-                    ConfigurationStatus.valueOf(newRecord.getStatus()),
-                    Utils.toDateTimeUTC(newRecord.getLastUpdateTime()),
-                    newRecord.getLastUpdateUser(),
-                    null);
-        });
+            return newRecord;
+        })
+                .flatMap(ConfigurationNodeDAOImpl::toDomainModel);
     }
 
     Result<ConfigurationTableValues> saveNewTableValues(final ConfigurationTableValues value) {
@@ -280,7 +272,7 @@ public class ConfigurationDAOBatchService {
                     .build()
                     .execute();
 
-            return configs.getLast();
+            return configs.get(configs.size() - 1);
         })
                 .flatMap(rec -> restoreToVersion(configurationNodeId, rec.getId()));
     }
@@ -391,20 +383,9 @@ public class ConfigurationDAOBatchService {
                 throw new IllegalArgumentException("Institution integrity violation");
             }
 
-            final ConfigurationNodeRecord record = this.copyNodeRecord(sourceNode, newOwner, copyInfo, currentUserUUID);
-            return new ConfigurationNode(
-                    record.getId(),
-                    record.getInstitutionId(),
-                    record.getTemplateId(),
-                    record.getName(),
-                    record.getDescription(),
-                    ConfigurationNode.ConfigurationType.valueOf(record.getType()),
-                    record.getOwner(),
-                    ConfigurationStatus.valueOf(record.getStatus()),
-                    Utils.toDateTimeUTC(record.getLastUpdateTime()),
-                    record.getLastUpdateUser(),
-                    null);
+            return this.copyNodeRecord(sourceNode, newOwner, copyInfo, currentUserUUID);
         })
+                .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -441,11 +422,7 @@ public class ConfigurationDAOBatchService {
             configs.forEach(configRec -> this.copyConfiguration(
                     configRec.getInstitutionId(),
                     configRec.getId(),
-                    newNodeRec.getId())
-                    .onError(error -> log.error(
-                            "Failed to copy configuration: {}, cause: {}",
-                            configRec,
-                            error.getMessage())));
+                    newNodeRec.getId()));
         } else {
             configs
                     .stream()
@@ -545,8 +522,6 @@ public class ConfigurationDAOBatchService {
                         fromRec.getListIndex(),
                         fromRec.getValue()))
                 .forEach(this.batchConfigurationValueRecordMapper::insert);
-
-        this.batchSqlSessionTemplate.flushStatements();
     }
 
     private ConfigurationRecord getFollowupConfigurationRecord(final Long configurationNodeId) {
@@ -646,7 +621,7 @@ public class ConfigurationDAOBatchService {
                 // update
                 this.batchConfigurationValueRecordMapper.updateByPrimaryKey(
                         new ConfigurationValueRecord(
-                                valuePK.getFirst(),
+                                valuePK.iterator().next(),
                                 value.institutionId,
                                 value.configurationId,
                                 tableValue.attributeId,
@@ -753,9 +728,6 @@ public class ConfigurationDAOBatchService {
                             0,
                             attrRec.getDefaultValue())));
 
-            this.batchSqlSessionTemplate.flushStatements();
-
-
             // override with template values if available
             if (configNode.templateId == null || configNode.templateId.equals(ConfigurationNode.DEFAULT_TEMPLATE_ID)) {
                 initAdditionalDefaultValues(configNode, config);
@@ -807,47 +779,65 @@ public class ConfigurationDAOBatchService {
             final ConfigurationNode configNode,
             final ConfigurationRecord config) {
 
-        final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
+        try {
 
-        // Pre-select and map then query the map instead of the DB
-        Map<Pair<Long, Integer>, ConfigurationValueRecord> values = this.batchConfigurationValueRecordMapper
-                .selectByExample()
-                .where(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                        isEqualTo(config.getId()))
-                .build()
-                .execute()
-                .stream()
-                .collect(Collectors.toMap(
-                        rec -> new Pair<>(rec.getConfigurationAttributeId(), rec.getListIndex()),
-                        Function.identity()));
+            final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
+
+            // Pre-select and map then query the map instead of the DB
+            Map<Pair<Long, Integer>, ConfigurationValueRecord> values = this.batchConfigurationValueRecordMapper
+                    .selectByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(config.getId()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            rec -> new Pair<>(rec.getConfigurationAttributeId(), rec.getListIndex()),
+                            Function.identity()));
 
 
-        templateValues.forEach(templateValue -> {
-            final ConfigurationValueRecord existingRec = values.get(new Pair<>(
-                    templateValue.getConfigurationAttributeId(),
-                    templateValue.getListIndex()));
+            templateValues.forEach(templateValue -> {
+                final Pair<Long, Integer> key = new Pair<>(
+                        templateValue.getConfigurationAttributeId(),
+                        templateValue.getListIndex());
 
-            Long existingId = (existingRec != null)
-                    ? existingRec.getId()
-                    : null;
+                final ConfigurationValueRecord existingRec = values.get(key);
 
-            final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
-                    existingId,
-                    configNode.institutionId,
-                    config.getId(),
-                    templateValue.getConfigurationAttributeId(),
-                    templateValue.getListIndex(),
-                    templateValue.getValue());
+                Long existingId = (existingRec != null)
+                        ? existingRec.getId()
+                        : null;
 
-            if (existingId != null) {
-                this.batchConfigurationValueRecordMapper.updateByPrimaryKey(valueRec);
-            } else {
-                this.batchConfigurationValueRecordMapper.insert(valueRec);
-            }
-        });
+                final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
+                        existingId,
+                        configNode.institutionId,
+                        config.getId(),
+                        templateValue.getConfigurationAttributeId(),
+                        templateValue.getListIndex(),
+                        templateValue.getValue());
 
-        this.batchSqlSessionTemplate.flushStatements();
+                if (existingId != null) {
+
+                    if (log.isTraceEnabled()) {
+                        log.debug("Apply value from configuration template to exam configuration: {}", valueRec);
+                    }
+
+                    this.batchConfigurationValueRecordMapper.updateByPrimaryKey(valueRec);
+                } else {
+
+                    if (log.isTraceEnabled()) {
+                        log.debug("Apply missing value from configuration template to exam configuration: {}", valueRec);
+                    }
+
+                    this.batchConfigurationValueRecordMapper.insert(valueRec);
+                }
+            });
+
+            this.batchSqlSessionTemplate.flushStatements();
+
+        } catch (Exception e) {
+            log.error("Error while try to writeTemplateValues to Exam Config: {} ConfigNode: {} cause:", config, configNode.name, e);
+        }
     }
 
     private static boolean filterChildAttribute(final ConfigurationAttributeRecord rec) {
