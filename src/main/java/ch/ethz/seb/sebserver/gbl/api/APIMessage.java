@@ -139,7 +139,7 @@ public class APIMessage implements Serializable {
         public ResponseEntity<List<APIMessage>> createErrorResponse() {
             final APIMessage message = of();
             return new ResponseEntity<>(
-                    Arrays.asList(message),
+                    List.of(message),
                     Utils.createJsonContentHeader(),
                     this.httpStatus);
         }
@@ -147,7 +147,7 @@ public class APIMessage implements Serializable {
         public ResponseEntity<Object> createErrorResponse(final String details, final String... attributes) {
             final APIMessage message = of(details, attributes);
             return new ResponseEntity<>(
-                    Arrays.asList(message),
+                    List.of(message),
                     Utils.createJsonContentHeader(),
                     this.httpStatus);
         }

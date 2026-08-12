@@ -70,7 +70,7 @@ public interface CertificateService {
      *
      * @param certificates certificates
      * @return Result refer to list of CertificateInfo or to an error when happened. */
-    Result<Collection<CertificateInfo>> toCertificateInfo(Certificates certificates);
+    Result<Collection<CertificateInfo>> toCertificateInfo(Long institutionId, Certificates certificates);
 
     /** Get the certificate as base 64 encoded String value.
      *

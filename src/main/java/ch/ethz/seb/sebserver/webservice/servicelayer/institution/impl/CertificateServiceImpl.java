@@ -23,6 +23,7 @@ import java.util.Enumeration;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.CertificateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
-import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Service
@@ -73,7 +73,7 @@ public class CertificateServiceImpl implements CertificateService {
 
         return this.certificateDAO
                 .getCertificates(institutionId)
-                .map(certs -> this.getDataFromCertificates(certs, createFilter(filterMap)));
+                .map(certs -> this.getDataFromCertificates(institutionId, certs, createFilter(filterMap)));
     }
 
     @Override
@@ -117,24 +117,16 @@ public class CertificateServiceImpl implements CertificateService {
 
     @Override
     public Result<EntityKey> removeCertificate(final Long institutionId, final String alias) {
-
-        // TODO check if certificate is in use
-        if (this.sebClientConfigDAO.all(institutionId, true)
-                .getOr(Collections.emptyList())
-                .stream()
-                .filter(config -> alias.equals(config.encryptCertificateAlias))
-                .findFirst()
-                .isPresent()) {
-
-            throw new APIMessageException(APIMessage.ErrorMessage.INTEGRITY_VALIDATION);
-        }
-
+        // check if certificate is in use
+        checkNotUsed(institutionId, alias);
         return this.certificateDAO.removeCertificate(institutionId, alias);
     }
 
     @Override
-    public Result<Collection<CertificateInfo>> toCertificateInfo(final Certificates certificates) {
-        return Result.tryCatch(() -> getDataFromCertificates(certificates));
+    public Result<Collection<CertificateInfo>> toCertificateInfo(
+            final Long institutionId,
+            final Certificates certificates) {
+        return Result.tryCatch(() -> getDataFromCertificates(institutionId, certificates));
     }
 
     @Override
@@ -154,6 +146,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     private Collection<CertificateInfo> getDataFromCertificates(
+            final Long institutionId,
             final Certificates certificates,
             final Predicate<CertificateInfo> predicate) {
 
@@ -162,11 +155,14 @@ public class CertificateServiceImpl implements CertificateService {
                 .map(alias -> this.certificateDAO.getDataFromCertificate(certificates, alias))
                 .flatMap(Result::onErrorLogAndSkip)
                 .filter(predicate)
+                .map(cert -> setInUse(institutionId, cert))
                 .collect(Collectors.toList());
     }
 
-    private Collection<CertificateInfo> getDataFromCertificates(final Certificates certificates) {
-        return getDataFromCertificates(certificates, data -> true);
+    private Collection<CertificateInfo> getDataFromCertificates(
+            final Long institutionId,
+            final Certificates certificates) {
+        return getDataFromCertificates(institutionId, certificates, data -> true);
     }
 
     private Result<X509Certificate> loadCertFromPEM(final InputStream in) {
@@ -189,6 +185,26 @@ public class CertificateServiceImpl implements CertificateService {
             final PrivateKey pKey = (PrivateKey) ks.getKey(alias, Utils.toCharArray(password));
             return new Pair<>(certificate, pKey);
         });
+    }
+
+    private CertificateInfo setInUse(final Long institutionId, final CertificateInfo cert) {
+        try {
+            checkNotUsed(institutionId, cert.alias);
+            cert.setInUse(false);
+        } catch (Exception e) {
+            cert.setInUse(true);
+        }
+        return cert;
+    }
+
+    private void checkNotUsed(final Long institutionId, final String alias) {
+        if (this.sebClientConfigDAO.all(institutionId, true)
+                .getOr(Collections.emptyList())
+                .stream()
+                .anyMatch(config -> alias.equals(config.encryptCertificateAlias))) {
+
+            throw new APIMessageException(APIMessage.ErrorMessage.INTEGRITY_VALIDATION);
+        }
     }
 
 }

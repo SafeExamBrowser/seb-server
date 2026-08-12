@@ -18,7 +18,6 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -172,17 +171,21 @@ public class CertificateDAOImpl implements CertificateDAO {
     @Override
     public Result<CertificateInfo> getDataFromCertificate(final Certificates certificates, final String alias) {
         return Result.tryCatch(() -> {
-            final X509Certificate certificate = (X509Certificate) certificates.keyStore.engineGetCertificate(alias);
-            if (certificate != null) {
-                
-                return new CertificateInfo(
-                        StringUtils.isNotBlank(alias) ? alias : extractAlias(certificate),
-                        new DateTime(certificate.getNotBefore()),
-                        new DateTime(certificate.getNotAfter()),
-                        getTypes(certificates, certificate));
+            if (certificates.keyStore != null) {
+                final X509Certificate certificate = (X509Certificate) certificates.keyStore.engineGetCertificate(alias);
+                if (certificate != null) {
 
+                    return new CertificateInfo(
+                            StringUtils.isNotBlank(alias) ? alias : extractAlias(certificate),
+                            new DateTime(certificate.getNotBefore()),
+                            new DateTime(certificate.getNotAfter()),
+                            getTypes(certificates, certificate));
+
+                } else {
+                    throw new NoSuchElementException("X509Certificate with alias: " + alias);
+                }
             } else {
-                throw new NoSuchElementException("X509Certificate with alias: " + alias);
+                throw new RuntimeException("No certificate keystore available");
             }
         });
     }
@@ -406,7 +409,7 @@ public class CertificateDAOImpl implements CertificateDAO {
 
     private Collection<String> joinAliases(final String aliases, final String newAlias) {
         if (StringUtils.isBlank(aliases)) {
-            return Arrays.asList(newAlias);
+            return Collections.singletonList(newAlias);
         } else {
             final Collection<String> listFromString = new ArrayList<>(Utils.getListFromString(aliases));
             listFromString.add(newAlias);
@@ -451,7 +454,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                     .execute();
 
             if (result != null && !result.isEmpty()) {
-                return result.get(0);
+                return result.getFirst();
             } else {
                 throw new ResourceNotFoundException(EntityType.CERTIFICATE, String.valueOf(institutionId));
             }

@@ -290,8 +290,7 @@ public class CertificateController {
 
         this.checkWritePrivilege(institutionId);
 
-        return Arrays.asList(StringUtils.split(aliases, Constants.LIST_SEPARATOR))
-                .stream()
+        return Arrays.stream(StringUtils.split(aliases, Constants.LIST_SEPARATOR))
                 .map(alias -> this.certificateService
                         .removeCertificate(institutionId, alias))
                 .flatMap(Result::onErrorLogAndSkip)
