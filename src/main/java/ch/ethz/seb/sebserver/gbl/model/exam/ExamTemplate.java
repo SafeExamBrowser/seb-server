@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.*;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -28,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "ExamTemplate", description = "Exam template read, create and update model.")
 public class ExamTemplate implements GrantEntity {
 
     public static final String FILTER_ATTR_EXAM_TYPE = EXAM_TEMPLATE.ATTR_EXAM_TYPE;
@@ -35,46 +38,70 @@ public class ExamTemplate implements GrantEntity {
     public static final String ATTR_EXAM_ATTRIBUTES = "EXAM_ATTRIBUTES";
     public static final String ATTR_QUIT_PASSWORD = "quitPassword";
 
+    @Schema(description = "Exam template identifier (PK). Not set on create.", example = "1")
     @JsonProperty(EXAM_TEMPLATE.ATTR_ID)
     public final Long id;
 
+    @Schema(
+            description = "Institution identifier the exam template belongs to. Derived from the current user on create; required on update.",
+            example = "1",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTION_ID)
     @NotNull
     public final Long institutionId;
 
+    @Schema(description = "Unique name of the exam template.", example = "Semester End BYOD")
     @NotNull(message = "configurationNode:name:notNull")
     @Size(min = 3, max = 255, message = "examTemplate:name:size:{min}:{max}:${validatedValue}")
     @JsonProperty(EXAM_TEMPLATE.ATTR_NAME)
     public final String name;
 
+    @Schema(description = "Free-text description of the exam template.", nullable = true)
     @Size(max = 4000, message = "examTemplate:description:size:{min}:{max}:${validatedValue}")
     @JsonProperty(EXAM_TEMPLATE.ATTR_DESCRIPTION)
     public final String description;
 
+    @Schema(description = "Exam type preset applied to exams created from this template.", example = "BYOD", nullable = true)
     @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_TYPE)
     public final ExamType examType;
 
+    @ArraySchema(arraySchema = @Schema(description = "UUIDs of the user accounts preselected as exam supporters."))
     @JsonProperty(EXAM_TEMPLATE.ATTR_SUPPORTER)
     public final Collection<String> supporter;
 
+    @Schema(description = "Identifier of the configuration template holding the SEB settings.", example = "4", nullable = true)
     @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID)
     public final Long configTemplateId;
 
+    @ArraySchema(arraySchema = @Schema(
+            description = "Indicator templates applied to exams created from this template. Always present; ignored on update.",
+            requiredMode = Schema.RequiredMode.REQUIRED))
+    @NotNull
     @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES)
     public final Collection<IndicatorTemplate> indicatorTemplates;
 
+    @ArraySchema(arraySchema = @Schema(
+            description = "Client group templates applied to exams created from this template. Always present; ignored on update.",
+            requiredMode = Schema.RequiredMode.REQUIRED))
+    @NotNull
     @JsonProperty(ATTR_CLIENT_GROUP_TEMPLATES)
     public final Collection<ClientGroupTemplate> clientGroupTemplates;
 
+    @Schema(
+            description = "Additional exam attributes as key-value pairs (enableScreenProctoring, spsCollectingStrategy, spsCollectingGroupName, spsSEBGroupsSelection, quitPassword). Always present.",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(ATTR_EXAM_ATTRIBUTES)
     public final Map<String, String> examAttributes;
 
+    @Schema(description = "Whether this is the institutional default exam template.", example = "false", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT)
     public final Boolean institutionalDefault;
 
+    @Schema(description = "Whether assessment tool (LMS) integration is enabled for exams created from this template.", example = "false", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(EXAM_TEMPLATE.ATTR_LMS_INTEGRATION)
     public final Boolean lmsIntegration;
 
+    @Schema(description = "Identifier of the preselected connection configuration.", example = "1", nullable = true)
     @JsonProperty(EXAM_TEMPLATE.ATTR_CLIENT_CONFIGURATION_ID)
     public final Long clientConfigurationId;
 

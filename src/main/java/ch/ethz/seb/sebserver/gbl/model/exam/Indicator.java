@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -266,15 +267,19 @@ public final class Indicator implements Entity {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @Schema(name = "Threshold", description = "Indicator threshold with value and display color.")
     public static final class Threshold implements Comparable<Threshold> {
 
+        @Schema(description = "Threshold value; percent (0-100) for battery and WLAN indicators.", example = "50.0")
         @JsonProperty(THRESHOLD.ATTR_VALUE)
         @NotNull
         public final Double value;
 
+        @Schema(description = "RGB color (hex, without leading '#') shown when the threshold is reached.", example = "ff9800", nullable = true)
         @JsonProperty(THRESHOLD.ATTR_COLOR)
         public final String color;
 
+        @Schema(description = "Icon shown when the threshold is reached.", nullable = true)
         @JsonProperty(THRESHOLD.ATTR_ICON)
         public final String icon;
 

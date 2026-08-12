@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import java.util.Collection;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -31,34 +33,46 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "IndicatorTemplate", description = "Indicator template of an exam template.")
 public class IndicatorTemplate implements Entity {
 
     public static final String ATTR_EXAM_TEMPLATE_ID = "examTemplateId";
 
+    @Schema(description = "Indicator template identifier (PK). Not set on create.", example = "1")
     @JsonProperty(INDICATOR.ATTR_ID)
     public final Long id;
 
+    @Schema(description = "Identifier of the exam template this indicator template belongs to. Not set for indicator templates embedded in a full-create request.", example = "1")
     @JsonProperty(ATTR_EXAM_TEMPLATE_ID)
     public final Long examTemplateId;
 
+    @Schema(description = "Name of the indicator shown in monitoring.", example = "Battery")
     @JsonProperty(INDICATOR.ATTR_NAME)
     @NotNull(message = "indicator:name:notNull")
     @Size(min = 3, max = 255, message = "indicator:name:size:{min}:{max}:${validatedValue}")
     public final String name;
 
+    @Schema(description = "Indicator type.", example = "BATTERY_STATUS")
     @JsonProperty(INDICATOR.ATTR_TYPE)
     @NotNull(message = "indicator:type:notNull")
     public final IndicatorType type;
 
+    @Schema(description = "Default RGB color (hex, without leading '#') of the indicator.", example = "44a2c6", nullable = true)
     @JsonProperty(INDICATOR.ATTR_COLOR)
     public final String defaultColor;
 
+    @Schema(description = "Default icon name of the indicator.", nullable = true)
     @JsonProperty(INDICATOR.ATTR_ICON)
     public final String defaultIcon;
 
+    @Schema(description = "Comma-separated tags for log-based indicators.", nullable = true)
     @JsonProperty(INDICATOR.ATTR_TAGS)
     public final String tags;
 
+    @ArraySchema(arraySchema = @Schema(
+            description = "Thresholds defining value ranges and their display colors. Always present.",
+            requiredMode = Schema.RequiredMode.REQUIRED))
+    @NotNull
     @JsonProperty(THRESHOLD.REFERENCE_NAME)
     public final List<Threshold> thresholds;
 

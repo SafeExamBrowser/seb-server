@@ -17,6 +17,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServe
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -54,6 +58,8 @@ import static ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateSer
 
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_TEMPLATE_ENDPOINT)
+@Tag(name = "ExamTemplate", description = "Exam template administration endpoints.")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class ExamTemplateController extends EntityController<ExamTemplate, ExamTemplate> {
 
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateController.class);
@@ -121,6 +127,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     /** Get the institutional default Exam Template with all additional data assigned.
      *
      * @return ExamTemplate with all additional data*/
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -139,6 +146,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
      * @param institutionId the institution id of the user
      * @param examTemplate ExamTemplate model with all data for creation
      * @return created ExamTemplate*/
+    @Operation(
+            operationId = "fullCreateExamTemplate",
+            summary = "Creates a new exam template with all sub-templates in one call.",
+            description = "Used by the exam template wizard to create the exam template together with its indicator templates, client group templates and exam attributes at once. If no configuration template is assigned, a default one is created.")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_FULL_CREATE,
             method = RequestMethod.POST,
@@ -189,6 +200,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
      *  of the Configuration Template will be changed to the name of the Exam Template as soon as the Exam Template
      *  gets stored.
      * @return ConfigurationNode model of the new created Configuration Template*/
+    @Operation(
+            operationId = "createTemporaryConfigTemplate",
+            summary = "Creates a temporary configuration template for a new exam template.",
+            description = "Holds the SEB settings during the exam template wizard; it is renamed to the exam template name as soon as the exam template gets stored.")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CREATE_TEMP_CONFIG_TEMPLATE,
             method = RequestMethod.POST,
@@ -224,6 +239,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
      *
      * @param modelId The model identifier of the existing ExamTemplate that should be copied.
      * @return Copy of existing ExamTemplate within the new ExamTemplate model.*/
+    @Operation(
+            operationId = "copyExamTemplate",
+            summary = "Creates a full copy of the given exam template.",
+            description = "Copies the exam template together with its configuration template under a generated copy name.")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_TEMPLATE_COPY,
             method = RequestMethod.POST,
@@ -296,6 +315,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Indicator Templates
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
@@ -331,6 +351,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 indicatorTemplatePageSort(sort));
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
@@ -360,8 +381,13 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
-    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
+    @Operation(
+            operationId = "createIndicatorTemplate",
+            summary = "Creates a new indicator template for the given exam template.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(
+                            mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                            schema = @Schema(implementation = IndicatorTemplate.class)) }))
     @RequestMapping(
             path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -391,6 +417,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "saveIndicatorTemplate",
+            summary = "Saves changes to an existing indicator template.")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -413,6 +442,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "deleteIndicatorTemplate",
+            summary = "Deletes the given indicator template of the given exam template.")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
@@ -440,6 +472,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Client Group Templates
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
@@ -467,6 +500,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 clientGroupTemplatePageSort(sort));
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
@@ -491,8 +525,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .orElseThrow(() -> new ResourceNotFoundException(EntityType.CLIENT_GROUP, parentModelId));
     }
 
-    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
+    @Operation(
+            hidden = true,
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -522,6 +558,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -544,6 +581,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
@@ -571,6 +609,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Screen Proctoring
 
+    @Operation(
+            operationId = "getExamTemplateScreenProctoringSettings",
+            summary = "Gets the screen proctoring settings of the given exam template.")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
@@ -589,6 +630,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
