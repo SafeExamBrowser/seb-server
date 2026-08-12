@@ -142,13 +142,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         "clientSecret",
                         "screenProctoringSettings:spsAccountPassword:notNull"));
             }
-            
-            if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS &&
-            StringUtils.isBlank(screenProctoringSettings.sebGroupsSelection)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "spsSEBGroupsSelection",
-                        "screenProctoringSettings:spsSEBGroupsSelection:notNull"));
-            }
 
             if (!fieldChecks.isEmpty()) {
                 throw new APIMessageException(fieldChecks);
@@ -162,17 +155,17 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 }
 
                 // get existing groups 
-                final Collection<ScreenProctoringGroup> existingGroups = this
-                        .getCollectingGroups(screenProctoringSettings.examId)
-                        .getOr(Collections.emptyList());
+//                final Collection<ScreenProctoringGroup> existingGroups = this
+//                        .getCollectingGroups(screenProctoringSettings.examId)
+//                        .getOr(Collections.emptyList());
                 
-                if (!existingGroups.isEmpty()) {
-                    // if we have a confirmChangeStrategy then we can apply the changing settings otherwise not
-                    if (!screenProctoringSettings.confirmChangeStrategy) {
-                        // just check if there are differences?
-                        throw new APIMessageException(APIMessage.ErrorMessage.NEED_CONFIRMATION.of());
-                    }
-                }
+//                if (!existingGroups.isEmpty()) {
+//                    // if we have a confirmChangeStrategy then we can apply the changing settings otherwise not
+//                    if (!screenProctoringSettings.confirmChangeStrategy) {
+//                        // just check if there are differences?
+//                        throw new APIMessageException(APIMessage.ErrorMessage.NEED_CONFIRMATION.of());
+//                    }
+//                }
             }
 
             final ScreenProctoringSettings proctoringServiceSettings = new ScreenProctoringSettings(

@@ -562,7 +562,7 @@ public class ScreenProctoringAPIBinding {
                 ? spsGroups.get(localGroup.uuid)
                 : null;
 
-        if (spsGroup == null) {
+        if (spsGroup == null && localGroup != null) {
             // try re-create group on SPS
             logGroupDataMismatch(exam, localGroup);
             try {
@@ -582,17 +582,19 @@ public class ScreenProctoringAPIBinding {
             } catch (final Exception e) {
                 log.error("Failed to synchronize SEB Group on SPS: {}", localGroup, e);
             }
-            return;
         }
-        
-        // if name has changed synchronize locally
-        if (!Objects.equals(localGroup.name, settings.collectingGroupName)) {
-            this.screenProctoringGroupDAO.updateName(localGroup.id, settings.collectingGroupName);
-        }
-        // if name has changed synchronize on SPS
-        if (!Objects.equals(spsGroup.name(), settings.collectingGroupName)) {
-            updateGroupOnSPS(spsData, settings.collectingGroupName, apiTemplate, spsGroup);
-        }
+
+// NOTE: since we cannot change the default group name anymore on exam level (only on template) this is not needed
+// TODO anhefti check if this is true and delete the code if so
+
+//        // if name has changed synchronize locally
+//        if (!Objects.equals(localGroup.name, settings.collectingGroupName)) {
+//            this.screenProctoringGroupDAO.updateName(localGroup.id, settings.collectingGroupName);
+//        }
+//        // if name has changed synchronize on SPS
+//        if (!Objects.equals(spsGroup.name(), settings.collectingGroupName)) {
+//            updateGroupOnSPS(spsData, settings.collectingGroupName, apiTemplate, spsGroup);
+//        }
     }
 
     private void updateGroupOnSPS(
