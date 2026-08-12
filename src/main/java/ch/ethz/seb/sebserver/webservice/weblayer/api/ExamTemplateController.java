@@ -609,7 +609,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Screen Proctoring
 
-    @Operation(hidden = true)
+    @Operation(
+            operationId = "getExamTemplateScreenProctoringSettings",
+            summary = "Gets the screen proctoring settings of the given exam template.")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
