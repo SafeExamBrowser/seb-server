@@ -93,7 +93,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         if (spsGroups.containsKey(-1L)) {
             final ScreenProctoringGroup spsFallbackGroup = spsGroups.get(-1L);
             groups.put(-1L, new ClientGroup(
-                    1L,
+                    0L,
                     spsFallbackGroup.name,
                     spsFallbackGroup.uuid,
                     "SP_FALLBACK_GROUP",
@@ -266,7 +266,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         final boolean checkStates = !states.isEmpty();
         final boolean missing = missingFilter;
         final boolean checkGroups = showInClientGroups != null && !showInClientGroups.isEmpty();
-        final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(-1L);
+        final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(0L);
         final boolean showWLANIncident = showIndicators != null && showIndicators.contains(IndicatorType.WLAN_STATUS.name);
         final boolean showBatteryIncident = showIndicators != null && showIndicators.contains(IndicatorType.BATTERY_STATUS.name);
         final boolean showLockScreenNotifications = showNotifications != null && showNotifications.contains(NotificationType.LOCK_SCREEN.name());
