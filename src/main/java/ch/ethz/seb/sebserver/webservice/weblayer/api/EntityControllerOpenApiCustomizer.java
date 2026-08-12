@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
@@ -77,7 +78,10 @@ public class EntityControllerOpenApiCustomizer {
             LmsSetup.class, List.of(
                     stringFilter(Entity.FILTER_ATTR_NAME, "Filters assessment tools by name."),
                     stringFilter(LmsSetup.FILTER_ATTR_LMS_TYPE, "Filters assessment tools by LMS type."),
-                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters assessment tools by active state.")));
+                    booleanFilter(Entity.FILTER_ATTR_ACTIVE, "Filters assessment tools by active state.")),
+            ExamTemplate.class, List.of(
+                    stringFilter(Entity.FILTER_ATTR_NAME, "Filters exam templates by name."),
+                    stringFilter(ExamTemplate.FILTER_ATTR_EXAM_TYPE, "Filters exam templates by exam type.")));
 
     private final ApplicationContext applicationContext;
 
