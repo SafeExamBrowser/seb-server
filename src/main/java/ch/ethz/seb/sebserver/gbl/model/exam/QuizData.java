@@ -232,27 +232,25 @@ public final class QuizData implements GrantEntity {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("QuizData [id=");
-        builder.append(this.id);
-        builder.append(", institutionId=");
-        builder.append(this.institutionId);
-        builder.append(", lmsSetupId=");
-        builder.append(this.lmsSetupId);
-        builder.append(", lmsType=");
-        builder.append(this.lmsType);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", description=");
-        builder.append(this.description);
-        builder.append(", startTime=");
-        builder.append(this.startTime);
-        builder.append(", endTime=");
-        builder.append(this.endTime);
-        builder.append(", startURL=");
-        builder.append(this.startURL);
-        builder.append("]");
-        return builder.toString();
+        return "QuizData [id=" +
+                this.id +
+                ", institutionId=" +
+                this.institutionId +
+                ", lmsSetupId=" +
+                this.lmsSetupId +
+                ", lmsType=" +
+                this.lmsType +
+                ", name=" +
+                this.name +
+                ", description=" +
+                Utils.truncateText(this.description, 32) +
+                ", startTime=" +
+                this.startTime +
+                ", endTime=" +
+                this.endTime +
+                ", startURL=" +
+                this.startURL +
+                "]";
     }
 
     public static Comparator<QuizData> getComparator(final String sort) {

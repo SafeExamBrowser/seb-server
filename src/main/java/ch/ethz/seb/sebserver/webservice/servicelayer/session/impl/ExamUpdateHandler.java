@@ -520,6 +520,25 @@ public class ExamUpdateHandler implements ExamUpdateTask {
     private void recoverSuccess(final String updateId, final Exam exam, final QuizData recoveredQuizData) {
         if (recoveredQuizData != null) {
 
+            // check if internal id really has changed if not skip, otherwise update and log
+            if (Objects.equals(exam.externalId, recoveredQuizData.id)) {
+
+                // skip update since ids are the same (false trigger)
+                log.info(
+                        "Quiz recovery successful, no ID change found for examId: {}, quizId: {}, no update is applied for exam: {}",
+                        exam.externalId,
+                        recoveredQuizData.id,
+                        exam.name);
+
+                return;
+            } else {
+
+                log.info(
+                        "Quiz recovery, found Id differences in  examId: {}, quizId: {}. Apply Update Exam from QuizData",
+                        exam.externalId,
+                        recoveredQuizData.id);
+            }
+
             // save exam with new external id and quit data
             this.examDAO
                     .updateQuizData(exam.id, recoveredQuizData, updateId)
