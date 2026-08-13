@@ -740,7 +740,7 @@ public final class Utils {
         if (s1.endsWith("...")) {
             return Objects.equals(truncateText(s1, 1000), truncateText(s2, 1000));
         } else {
-            return Objects.equals(s1, s2);
+            return isEqualsWithEmptyCheck(s1, s2);
         }
     }
 
