@@ -29,14 +29,21 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.QUIZ_DISCOVERY_ENDPOINT)
+@Tag(name = "Quiz", description = "LMS quiz discovery endpoints.")
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class QuizController {
 
@@ -73,6 +80,35 @@ public class QuizController {
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
 
+    @Operation(
+            operationId = "getQuizzes",
+            summary = "Gets a page of quizzes discovered on an assessment tool (LMS).",
+            description = "The quiz lookup runs asynchronously on the LMS: while the returned page's 'complete' flag is false, only a partial result set is available and the same page should be polled again.",
+            parameters = {
+                    @Parameter(
+                            name = Entity.FILTER_ATTR_NAME,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters quizzes by name.",
+                            schema = @Schema(type = "string")),
+                    @Parameter(
+                            name = QuizData.FILTER_ATTR_START_TIME_MILLIS,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters quizzes by start time; unix timestamp in milliseconds.",
+                            schema = @Schema(type = "integer", format = "int64")),
+                    @Parameter(
+                            name = LmsSetup.FILTER_ATTR_LMS_SETUP,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Identifier of the assessment tool (LMS setup) to discover quizzes on.",
+                            schema = @Schema(type = "integer", format = "int64")),
+                    @Parameter(
+                            name = API.LMS_LOOKUP_NEW_SEARCH,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Forces a new LMS lookup instead of serving the cached result of the previous search.",
+                            schema = @Schema(type = "boolean")) })
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -84,8 +120,8 @@ public class QuizController {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
-            final HttpServletRequest request) {
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @Parameter(hidden = true) final HttpServletRequest request) {
 
         this.authorization.checkNotOnlyTeacher(EntityType.EXAM);
         this.authorization.check(
@@ -125,6 +161,7 @@ public class QuizController {
                 .getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
