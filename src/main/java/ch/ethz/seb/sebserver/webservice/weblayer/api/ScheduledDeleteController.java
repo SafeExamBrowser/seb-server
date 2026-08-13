@@ -18,8 +18,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ScheduledDeleteService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -30,6 +35,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SCHEDULED_DELETE_ENDPOINT)
+@Tag(name = "ScheduledDelete", description = "Scheduled exam deletion administration endpoints.")
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class ScheduledDeleteController {
 
@@ -50,6 +56,24 @@ public class ScheduledDeleteController {
         this.userActivityLogDAO = userActivityLogDAO;
     }
 
+    @Operation(
+            operationId = "getScheduledDeletes",
+            summary = "Gets a page of scheduled deletions.",
+            description = "Sorted by schedule time (descending) unless a sort parameter is given.",
+            parameters = {
+                    @Parameter(
+                            name = "dueTimestamp",
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters scheduled deletions by delete-due time; unix timestamp in milliseconds.",
+                            schema = @Schema(type = "integer", format = "int64")),
+                    @Parameter(
+                            name = "state",
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters scheduled deletions by state.",
+                            schema = @Schema(type = "string", allowableValues = {
+                                    "PENDING", "SPS_RUNNING", "RUNNING", "FINISHED" })) })
     @RequestMapping(
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -57,8 +81,8 @@ public class ScheduledDeleteController {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> filterCriteria,
-            final HttpServletRequest request) {
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> filterCriteria,
+            @Parameter(hidden = true) final HttpServletRequest request) {
 
         final Long institutionId = authorizationService.getUserService().getCurrentUser().institutionId();
         authorizationService.check(PrivilegeType.READ, EntityType.SCHEDULED_DELETE, institutionId);
@@ -80,6 +104,9 @@ public class ScheduledDeleteController {
         return page;
     }
 
+    @Operation(
+            operationId = "getScheduledDeleteReport",
+            summary = "Gets the full report of the given scheduled deletion, including the affected exams.")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -95,8 +122,19 @@ public class ScheduledDeleteController {
     }
 
     @Operation(
+        operationId = "createScheduledDelete",
+        summary = "Schedules a new deletion of all exams that ended before the given due time.",
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
+                content = { @Content(
+                        mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                        schema = @Schema(type = "object", requiredProperties = { "deleteDueTime" }),
+                        schemaProperties = {
+                                @SchemaProperty(
+                                        name = Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME,
+                                        schema = @Schema(
+                                                type = "integer",
+                                                format = "int64",
+                                                description = "Exams that ended before this time get deleted; unix timestamp in milliseconds.")) }) })
     )
     @RequestMapping(
             method = RequestMethod.POST,
@@ -117,6 +155,9 @@ public class ScheduledDeleteController {
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "deleteScheduledDelete",
+            summary = "Deletes (cancels) the given pending scheduled deletion.")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE ,
@@ -148,6 +189,8 @@ public class ScheduledDeleteController {
     }
 
     @Operation(
+            operationId = "markExcludeFromDeletion",
+            summary = "Excludes the given exam from scheduled deletions and recalculates a pending deletion.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
     )
@@ -160,6 +203,8 @@ public class ScheduledDeleteController {
     }
 
     @Operation(
+            operationId = "unmarkExcludeFromDeletion",
+            summary = "Includes the given exam in scheduled deletions again and recalculates a pending deletion.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) })
     )

@@ -3,10 +3,12 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Collection;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "ScheduledDeleteViewInfo", description = "Deletion details of one exam affected by a scheduled deletion.")
 public class ScheduledDeleteViewInfo {
 
     @JsonProperty("examUUID")
