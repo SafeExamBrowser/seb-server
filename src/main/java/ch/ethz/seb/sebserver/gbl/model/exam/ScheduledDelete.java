@@ -14,16 +14,17 @@ import java.util.Collection;
 import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "ScheduledDelete", description = "A scheduled deletion of all exams that ended before its delete-due time.")
 public record ScheduledDelete(
-        @Schema(accessMode = Schema.AccessMode.READ_ONLY) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_ID) Long id,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_SPS_ID) Long spsId,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_STATE) State state,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME) Long deleteDueTime,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_SCHEDULE_TIME) Long scheduleTime,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_START_TIME) Long startTime,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_END_TIME) Long endTime,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_OWNER) String ownerUUID,
-        @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_INSTITUTION_ID) Long institutionId,
+        @Schema(description = "Scheduled deletion identifier (PK).", accessMode = Schema.AccessMode.READ_ONLY, requiredMode = Schema.RequiredMode.REQUIRED) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_ID) Long id,
+        @Schema(description = "Identifier of the corresponding deletion on the screen proctoring service.", nullable = true) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_SPS_ID) Long spsId,
+        @Schema(description = "Processing state of the scheduled deletion.", requiredMode = Schema.RequiredMode.REQUIRED) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_STATE) State state,
+        @Schema(description = "Exams that ended before this time get deleted; unix timestamp in milliseconds.", requiredMode = Schema.RequiredMode.REQUIRED) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_DELETE_DUE_TIME) Long deleteDueTime,
+        @Schema(description = "Time the deletion runs; unix timestamp in milliseconds.", requiredMode = Schema.RequiredMode.REQUIRED) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_SCHEDULE_TIME) Long scheduleTime,
+        @Schema(description = "Time the deletion run started; unix timestamp in milliseconds.", nullable = true) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_START_TIME) Long startTime,
+        @Schema(description = "Time the deletion run finished; unix timestamp in milliseconds.", nullable = true) @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_END_TIME) Long endTime,
+        @Schema(description = "UUID of the user account that scheduled the deletion.") @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_OWNER) String ownerUUID,
+        @Schema(description = "Institution identifier the scheduled deletion belongs to.") @JsonProperty(Domain.SCHEDULED_DELETE.ATTR_INSTITUTION_ID) Long institutionId,
         @JsonProperty(ATTR_INFO) Collection<ScheduledDeleteInfo> info) implements Entity {
 
     public static final String ATTR_INFO = "info";

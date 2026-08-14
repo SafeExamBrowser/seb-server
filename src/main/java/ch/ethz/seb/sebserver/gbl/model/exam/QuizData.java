@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import io.swagger.v3.oas.annotations.media.Schema;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
@@ -30,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@Schema(name = "QuizData", description = "Quiz (course) data as discovered on an LMS.")
 public final class QuizData implements GrantEntity {
 
     public static final String FILTER_ATTR_QUIZ_NAME = "quiz_name";
@@ -55,33 +57,43 @@ public final class QuizData implements GrantEntity {
     public static final String ATTR_ADDITIONAL_SUMMARY = "course_summary";
     public static final String ATTR_ADDITIONAL_TIME_LIMIT = "time_limit";
 
+    @Schema(description = "LMS-side identifier of the quiz.", example = "quiz10", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(QUIZ_ATTR_ID)
     public final String id;
 
+    @Schema(description = "Institution identifier the assessment tool of this quiz belongs to.", example = "1")
     @JsonProperty(QUIZ_ATTR_INSTITUTION_ID)
     public final Long institutionId;
 
+    @Schema(description = "Identifier of the assessment tool (LMS setup) the quiz was discovered on.", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(QUIZ_ATTR_LMS_SETUP_ID)
     public final Long lmsSetupId;
 
+    @Schema(description = "Type of the LMS the quiz was discovered on.", example = "MOODLE")
     @JsonProperty(QUIZ_ATTR_LMS_TYPE)
     public final LmsType lmsType;
 
+    @Schema(description = "Name of the quiz.", example = "Semester End Quiz", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(QUIZ_ATTR_NAME)
     public final String name;
 
+    @Schema(description = "Description of the quiz.", nullable = true)
     @JsonProperty(QUIZ_ATTR_DESCRIPTION)
     public final String description;
 
+    @Schema(description = "Start time of the quiz.", type = "string", format = "date-time", nullable = true)
     @JsonProperty(QUIZ_ATTR_START_TIME)
     public final DateTime startTime;
 
+    @Schema(description = "End time of the quiz.", type = "string", format = "date-time", nullable = true)
     @JsonProperty(QUIZ_ATTR_END_TIME)
     public final DateTime endTime;
 
+    @Schema(description = "URL under which the quiz starts on the LMS.", nullable = true)
     @JsonProperty(QUIZ_ATTR_START_URL)
     public final String startURL;
 
+    @Schema(description = "Additional LMS-specific quiz attributes as key-value pairs.", nullable = true)
     @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
     public final Map<String, String> additionalAttributes;
 
