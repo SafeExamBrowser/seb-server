@@ -343,7 +343,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     final boolean spsEnabled = BooleanUtils.toBoolean(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
                     final CollectingStrategy collectingStrategy = examTemplate.examAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)
                             ? CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY))
-                            : CollectingStrategy.EXAM;
+                            : CollectingStrategy.APPLY_SEB_GROUPS;
                     String groupSelection = examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_SEB_GROUPS_SELECTION);
                     if (StringUtils.isBlank(groupSelection) && !groupIdsWithSPS.isEmpty()) {
                         groupSelection = StringUtils.join(groupIdsWithSPS, Constants.LIST_SEPARATOR);

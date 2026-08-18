@@ -153,19 +153,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 if (this.clientConnectionDAO.hasActiveSEBConnections(screenProctoringSettings.examId)) {
                     throw new APIMessageException(APIMessage.ErrorMessage.CLIENT_CONNECTION_INTEGRITY_VIOLATION.of());
                 }
-
-                // get existing groups 
-//                final Collection<ScreenProctoringGroup> existingGroups = this
-//                        .getCollectingGroups(screenProctoringSettings.examId)
-//                        .getOr(Collections.emptyList());
-                
-//                if (!existingGroups.isEmpty()) {
-//                    // if we have a confirmChangeStrategy then we can apply the changing settings otherwise not
-//                    if (!screenProctoringSettings.confirmChangeStrategy) {
-//                        // just check if there are differences?
-//                        throw new APIMessageException(APIMessage.ErrorMessage.NEED_CONFIRMATION.of());
-//                    }
-//                }
             }
 
             final ScreenProctoringSettings proctoringServiceSettings = new ScreenProctoringSettings(

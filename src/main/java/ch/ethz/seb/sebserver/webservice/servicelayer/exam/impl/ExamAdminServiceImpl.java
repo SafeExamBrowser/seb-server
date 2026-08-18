@@ -241,10 +241,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final String clientGroupSelection = StringUtils.isNotBlank(groupIds)
                     ? groupIds
                     : null;
-            
-            final CollectingStrategy strategy = (clientGroupSelection == null) 
-                    ? CollectingStrategy.EXAM
-                    : CollectingStrategy.APPLY_SEB_GROUPS;
 
             proctoringAdminService.saveScreenProctoringSettings(
                     exam.getEntityKey(),
@@ -256,7 +252,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             settings.spsAPISecret,
                             settings.spsAccountId,
                             settings.spsAccountPassword,
-                            strategy,
+                            settings.collectingStrategy,
                             defaultGroupName,
                             settings.collectingGroupSize,
                             clientGroupSelection,

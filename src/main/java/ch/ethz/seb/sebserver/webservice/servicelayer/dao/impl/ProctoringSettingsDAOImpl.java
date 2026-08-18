@@ -258,7 +258,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
             return CollectingStrategy
                     .valueOf(mapping.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY).getValue());
         } else {
-            return CollectingStrategy.EXAM;
+            return CollectingStrategy.APPLY_SEB_GROUPS;
         }
     }
 
