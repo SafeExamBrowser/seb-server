@@ -42,19 +42,18 @@ public class ScreenProctoringUserSyncInit {
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info("------> Check SPS User Account synchronization");
         SEBServerInit.INIT_LOGGER.info("--------> Wait to become master and SPS availability for at least 3 minutes");
+        SEBServerInit.INIT_LOGGER.info("------>");
 
         executor.execute(this::syncSPSUsers);
     }
 
     private void syncSPSUsers() {
         try {
-            final long inThenMin = Utils.getMillisecondsNow() + 3 * Constants.MINUTE_IN_MILLIS;
+            final long waitUntil = Utils.getMillisecondsNow() + 3 * Constants.MINUTE_IN_MILLIS;
 
             boolean master = this.webserviceInfo.isMaster();
             boolean spsAvailable = false;
             boolean timeUp = false;
-
-
 
             while (!(master && spsAvailable || timeUp)) {
                 try {
@@ -68,13 +67,11 @@ public class ScreenProctoringUserSyncInit {
                     spsAvailable = screenProctoringService.isAvailable();
                 }
 
-                timeUp = Utils.getMillisecondsNow() > inThenMin;
+                timeUp = Utils.getMillisecondsNow() > waitUntil;
             }
 
-
-
             if (!master) {
-                SEBServerInit.INIT_LOGGER.warn("------> This service has not become master. Skip User Account synchronization");
+                SEBServerInit.INIT_LOGGER.info("------> This service has not become master. Skip User Account synchronization");
                 return;
             }
 

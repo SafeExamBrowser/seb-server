@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
 public enum CollectingStrategy {
-    EXAM,
+    EXAM, // Deprecated since 3.0 but must serve for backward compatibility
     APPLY_SEB_GROUPS,
-   // FIX_SIZE
 }
