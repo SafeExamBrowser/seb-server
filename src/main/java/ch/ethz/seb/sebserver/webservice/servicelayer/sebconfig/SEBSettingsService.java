@@ -13,8 +13,10 @@ import java.util.*;
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import org.springframework.context.event.EventListener;
 
 public interface SEBSettingsService {
@@ -29,7 +31,7 @@ public interface SEBSettingsService {
     Set<Long> PASSWORD_TYPE_ATTRIBUTES = new HashSet<>(Arrays.asList(1L, 4L));
 
     @EventListener(SEBServerInitEvent.class)
-    default void init() {
+    default void init(final SEBServerInitEvent event) {
 
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info("------> Initialize SEB Settings Service...");
@@ -135,12 +137,21 @@ public interface SEBSettingsService {
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the PROCTORING vew */
-        VIEW_ATTRIBUTE_MAPPINGS.put(
-                SEBSettingsView.ViewType.PROCTORING,
-                Utils.immutableSetOf( Arrays.asList(
-                        1129L, 1300L, 1301L, 1302L, 1303L, 1305L, 1306L,
-                        1320L, 1321L, 1322L, 1323L, 1326L, 1670L))
-        );
+        if (event.webserviceInit.isEnabledByConfig(UserFeatures.Feature.SPS_SHOW_DISCLAIMER_SEB_SETTING)) {
+            VIEW_ATTRIBUTE_MAPPINGS.put(
+                    SEBSettingsView.ViewType.PROCTORING,
+                    Utils.immutableSetOf( Arrays.asList(
+                            1129L, 1300L, 1301L, 1302L, 1303L, 1305L, 1306L,
+                            1320L, 1321L, 1322L, 1323L, 1326L, 1670L))
+            );
+        } else {
+            VIEW_ATTRIBUTE_MAPPINGS.put(
+                    SEBSettingsView.ViewType.PROCTORING,
+                    Utils.immutableSetOf( Arrays.asList(
+                            1129L, 1300L, 1301L, 1302L, 1303L, 1305L, 1306L,
+                            1320L, 1321L, 1322L, 1323L, 1326L))
+            );
+        }
 
     }
 

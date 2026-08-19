@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import jakarta.annotation.PreDestroy;
 
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -37,6 +39,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     private final WebserviceInfoDAO webserviceInfoDAO;
     private final DBIntegrityChecker dbIntegrityChecker;
     private final SEBServerMigrationStrategy sebServerMigrationStrategy;
+    private final FeatureService featureService;
 
     protected WebserviceInit(
             final SEBServerInit sebServerInit,
@@ -46,7 +49,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
             final WebserviceInfoDAO webserviceInfoDAO,
             final DBIntegrityChecker dbIntegrityChecker,
             final ApplicationContext applicationContext,
-            final SEBServerMigrationStrategy sebServerMigrationStrategy) {
+            final SEBServerMigrationStrategy sebServerMigrationStrategy, FeatureService featureService) {
 
         this.applicationContext = applicationContext;
         this.sebServerInit = sebServerInit;
@@ -57,6 +60,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.webserviceInfoDAO = webserviceInfoDAO;
         this.dbIntegrityChecker = dbIntegrityChecker;
         this.sebServerMigrationStrategy = sebServerMigrationStrategy;
+        this.featureService = featureService;
     }
 
     public ApplicationContext getApplicationContext() {
@@ -222,4 +226,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> Webservice down");
     }
 
+    public boolean isEnabledByConfig(final UserFeatures.Feature feature) {
+        return featureService.isEnabledByConfig(feature);
+    }
 }

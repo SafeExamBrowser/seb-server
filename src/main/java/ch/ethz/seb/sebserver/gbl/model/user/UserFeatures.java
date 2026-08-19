@@ -68,6 +68,8 @@ public class UserFeatures {
 
         SEB_CLIENT_VERSION_RESTRICTION_REDIRECT ( "seb.client.version.restriction.redirect"),
 
+        SPS_SHOW_DISCLAIMER_SEB_SETTING ("seb.screenProctoring.settings.show.disclaimer")
+
         ;
 
         public final String featureName;
