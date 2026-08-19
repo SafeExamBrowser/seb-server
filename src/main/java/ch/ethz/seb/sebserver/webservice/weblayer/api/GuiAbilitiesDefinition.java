@@ -56,7 +56,6 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.SCREEN_PROCTORING_SEARCH,
                     GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH,
                     GuiComponent.ANALYZE_EXAMS,
-                    GuiComponent.ARCHIVE_EXAMS,
                     GuiComponent.EXAMS),
 
             UserRole.EXAM_SUPPORTER, Set.of(
