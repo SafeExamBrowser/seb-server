@@ -128,7 +128,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             final InstitutionRecord newRecord = new InstitutionRecord(
                     institution.id,
                     institution.name,
-                    institution.urlSuffix,
+                    null,
                     institution.themeName,
                     null,
                     institution.logoImage);
@@ -150,7 +150,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             final InstitutionRecord newRecord = new InstitutionRecord(
                     null,
                     institution.name,
-                    institution.urlSuffix,
+                    null,
                     institution.themeName,
                     BooleanUtils.toInteger(false),
                     institution.logoImage);
@@ -264,7 +264,6 @@ public class InstitutionDAOImpl implements InstitutionDAO {
         return Result.tryCatch(() -> new Institution(
                 record.getId(),
                 record.getName(),
-                record.getUrlSuffix(),
                 record.getLogoImage(),
                 record.getThemeName(),
                 BooleanUtils.toBooleanObject(record.getActive())));

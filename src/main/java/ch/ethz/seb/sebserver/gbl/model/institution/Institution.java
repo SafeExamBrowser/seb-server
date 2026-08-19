@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl.model.institution;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,11 +39,6 @@ public final class Institution implements GrantEntity, Activatable {
     @Size(min = 3, max = 255, message = "institution:name:size:{min}:{max}:${validatedValue}")
     public final String name;
 
-    @Schema(description = "URL path suffix that routes to this institution. Empty, or 3 to 45 characters.", example = "eth", nullable = true, maxLength = 45)
-    @JsonProperty(INSTITUTION.ATTR_URL_SUFFIX)
-    @Pattern(regexp = "(^$|.{3,45})", message = "institution:urlSuffix:size:3:45:${validatedValue}")
-    public final String urlSuffix;
-
     @Schema(description = "Base64-encoded institution logo image.", nullable = true)
     @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE)
     public final String logoImage;
@@ -61,14 +55,12 @@ public final class Institution implements GrantEntity, Activatable {
     public Institution(
             @JsonProperty(INSTITUTION.ATTR_ID) final Long id,
             @JsonProperty(INSTITUTION.ATTR_NAME) final String name,
-            @JsonProperty(INSTITUTION.ATTR_URL_SUFFIX) final String urlSuffix,
             @JsonProperty(INSTITUTION.ATTR_LOGO_IMAGE) final String logoImage,
             @JsonProperty(INSTITUTION.ATTR_THEME_NAME) final String themeName,
             @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
         this.name = name;
-        this.urlSuffix = urlSuffix;
         this.logoImage = logoImage;
         this.themeName = themeName;
         this.active = active;
@@ -77,7 +69,6 @@ public final class Institution implements GrantEntity, Activatable {
     public Institution(final String modelId, final POSTMapper mapper) {
         this.id = (modelId != null) ? Long.parseLong(modelId) : null;
         this.name = mapper.getString(INSTITUTION.ATTR_NAME);
-        this.urlSuffix = mapper.getString(INSTITUTION.ATTR_URL_SUFFIX);
         this.logoImage = mapper.getString(INSTITUTION.ATTR_LOGO_IMAGE);
         this.themeName = mapper.getString(INSTITUTION.ATTR_THEME_NAME);
         this.active = false;
@@ -110,10 +101,6 @@ public final class Institution implements GrantEntity, Activatable {
         return this.name;
     }
 
-    public String getUrlSuffix() {
-        return this.urlSuffix;
-    }
-
     public String getLogoImage() {
         return this.logoImage;
     }
@@ -131,7 +118,6 @@ public final class Institution implements GrantEntity, Activatable {
         return new Institution(
                 this.id,
                 this.name,
-                this.urlSuffix,
                 Constants.EMPTY_NOTE,
                 this.themeName,
                 this.active);
@@ -139,25 +125,21 @@ public final class Institution implements GrantEntity, Activatable {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Institution [id=");
-        builder.append(this.id);
-        builder.append(", name=");
-        builder.append(this.name);
-        builder.append(", urlSuffix=");
-        builder.append(this.urlSuffix);
-        builder.append(", logoImage=");
-        builder.append(this.logoImage);
-        builder.append(", themeName=");
-        builder.append(this.themeName);
-        builder.append(", active=");
-        builder.append(this.active);
-        builder.append("]");
-        return builder.toString();
+        return "Institution [id=" +
+                this.id +
+                ", name=" +
+                this.name +
+                ", logoImage=" +
+                this.logoImage +
+                ", themeName=" +
+                this.themeName +
+                ", active=" +
+                this.active +
+                "]";
     }
 
     public static Institution createNew() {
-        return new Institution(null, null, null, null, null, false);
+        return new Institution(null, null, null, null, false);
     }
 
 }

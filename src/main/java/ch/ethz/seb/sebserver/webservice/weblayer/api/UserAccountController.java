@@ -47,7 +47,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -78,7 +77,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
     private static final Logger log = LoggerFactory.getLogger(UserAccountController.class);
 
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final UserDAO userDAO;
     private final PasswordEncoder userPasswordEncoder;
     private final ScreenProctoringService screenProctoringService;
@@ -94,7 +92,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BulkActionService bulkActionService,
-            final ApplicationEventPublisher applicationEventPublisher,
             final BeanValidationService beanValidationService,
             final ScreenProctoringService screenProctoringService,
             final AdditionalAttributesDAO additionalAttributesDAO,
@@ -110,7 +107,6 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
-        this.applicationEventPublisher = applicationEventPublisher;
         this.userDAO = userDAO;
         this.userPasswordEncoder = userPasswordEncoder;
         this.screenProctoringService = screenProctoringService;

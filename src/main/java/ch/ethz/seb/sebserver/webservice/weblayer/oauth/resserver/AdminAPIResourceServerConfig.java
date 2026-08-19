@@ -49,7 +49,6 @@ public class AdminAPIResourceServerConfig {
         http.securityMatcher(adminAPIEndpoint + "/**")
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(
-                                adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**",
                                 adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**",
                                 adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT,
                                 adminAPIEndpoint + API.REGISTER_ENDPOINT,
