@@ -44,12 +44,16 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.EDIT_ASSESSMENT_TOOL,
                     GuiComponent.CREATE_ASSESSMENT_TOOL,
 
+                    // 04 Connection Configuration
+                    GuiComponent.CONNECTION_CONFIGURATIONS,
+                    GuiComponent.EDIT_CONNECTION_CONFIGURATION,
+                    GuiComponent.CREATE_CONNECTION_CONFIGURATION,
+
                     // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
                     GuiComponent.SETTINGS,
                     GuiComponent.USER_ACCOUNTS,
-                    GuiComponent.CONNECTION_CONFIGS,
                     GuiComponent.CERTIFICATES,
                     GuiComponent.EXAM_TEMPLATE,
                     GuiComponent.EXAMS,
@@ -89,6 +93,7 @@ public final class GuiAbilitiesDefinition {
             UserRole.SEB_SERVER_ADMIN, Set.of(),
 
             // 03 Assessment Tool: no actions — the ASSESSMENT_TOOLS page gate covers all controls
+            // 04 Connection Configuration: no actions — the CONNECTION_CONFIGURATIONS page gate covers all controls
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
                     // not yet tabled
                     GuiAction.ARCHIVE_EXAM,

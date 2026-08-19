@@ -22,6 +22,9 @@ public enum GuiAction {
     // 03 Assessment Tool
     // (no actions — the ASSESSMENT_TOOLS page gate covers all assessment-tool controls)
 
+    // 04 Connection Configuration
+    // (no actions — the CONNECTION_CONFIGURATIONS page gate covers all connection-configuration controls)
+
     // not yet tabled
     EDIT_EXAM_SETTINGS,
     ARCHIVE_EXAM,
