@@ -39,12 +39,17 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.USER_ACCOUNTS),
 
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
+                    // 03 Assessment Tool
+                    GuiComponent.ASSESSMENT_TOOLS,
+                    GuiComponent.EDIT_ASSESSMENT_TOOL,
+                    GuiComponent.CREATE_ASSESSMENT_TOOL,
+
+                    // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
                     GuiComponent.SETTINGS,
                     GuiComponent.USER_ACCOUNTS,
                     GuiComponent.CONNECTION_CONFIGS,
-                    GuiComponent.LMS_SETUPS,
                     GuiComponent.CERTIFICATES,
                     GuiComponent.EXAM_TEMPLATE,
                     GuiComponent.EXAMS,
@@ -83,7 +88,9 @@ public final class GuiAbilitiesDefinition {
             // 02 Institution: no actions — the INSTITUTIONS page gate covers all controls
             UserRole.SEB_SERVER_ADMIN, Set.of(),
 
+            // 03 Assessment Tool: no actions — the ASSESSMENT_TOOLS page gate covers all controls
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
+                    // not yet tabled
                     GuiAction.ARCHIVE_EXAM,
                     GuiAction.DELETE_EXAM,
                     GuiAction.EDIT_FULL_SEB_SETTINGS, // TODO just for testing yet

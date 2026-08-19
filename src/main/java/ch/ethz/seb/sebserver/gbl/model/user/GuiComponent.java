@@ -21,6 +21,11 @@ public enum GuiComponent {
     EDIT_INSTITUTION,
     CREATE_INSTITUTION,
 
+    // 03 Assessment Tool
+    ASSESSMENT_TOOLS,
+    EDIT_ASSESSMENT_TOOL,
+    CREATE_ASSESSMENT_TOOL,
+
     // not yet tabled
     NAVIGATION_OVERVIEW,
     HOME,
@@ -28,7 +33,6 @@ public enum GuiComponent {
     SETTINGS,
     USER_ACCOUNTS,
     CONNECTION_CONFIGS,
-    LMS_SETUPS,
     CERTIFICATES,
 
     EXAM_TEMPLATE,

@@ -19,6 +19,9 @@ public enum GuiAction {
     // 02 Institution
     // (no actions — the INSTITUTIONS page gate covers all institution controls)
 
+    // 03 Assessment Tool
+    // (no actions — the ASSESSMENT_TOOLS page gate covers all assessment-tool controls)
+
     // not yet tabled
     EDIT_EXAM_SETTINGS,
     ARCHIVE_EXAM,
