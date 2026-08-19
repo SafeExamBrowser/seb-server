@@ -53,4 +53,13 @@ public class DAOUserServiceImpl implements DAOUserService {
         return user.username + " (" + user.name + " " + user.surname + ")";
     }
 
+    @Override
+    public String getCurrentUserUUIDOrAnonymousUser() {
+        try {
+            return this.authorizationService.getUserService().getCurrentUser().uuid();
+        } catch (final Exception e) {
+            return this.authorizationService.getAnonymousUserUUID();
+        }
+    }
+
 }

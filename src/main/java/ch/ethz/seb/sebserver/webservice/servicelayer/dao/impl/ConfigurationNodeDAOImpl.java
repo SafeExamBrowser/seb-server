@@ -221,7 +221,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Override
     public Result<ConfigurationNode> createNew(final ConfigurationNode data) {
         return this.configurationDAOBatchService
-                .createNewConfiguration(data, daoUserService.getCurrentUserUUID())
+                .createNewConfiguration(data, daoUserService.getCurrentUserUUIDOrAnonymousUser())
                 .flatMap(this.configurationDAOBatchService::createInitialConfiguration)
                 .onError(TransactionHandler::rollback);
     }
