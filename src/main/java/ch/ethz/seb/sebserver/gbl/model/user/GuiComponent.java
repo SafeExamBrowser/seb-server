@@ -16,11 +16,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * released; they grow as the GUI adds gated components. */
 @Schema(name = "GuiComponent", description = "Identifier of one GUI component (view, page or navigation entry).")
 public enum GuiComponent {
+    // 02 Institution
+    INSTITUTIONS,
+    EDIT_INSTITUTION,
+    CREATE_INSTITUTION,
+
+    // not yet tabled
     NAVIGATION_OVERVIEW,
     HOME,
 
     SETTINGS,
-    INSTITUTIONS,
     USER_ACCOUNTS,
     CONNECTION_CONFIGS,
     LMS_SETUPS,

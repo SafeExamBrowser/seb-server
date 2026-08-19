@@ -28,10 +28,15 @@ public final class GuiAbilitiesDefinition {
     static final Map<UserRole, Set<GuiComponent>> COMPONENTS_BY_ROLE = Map.of(
 
             UserRole.SEB_SERVER_ADMIN, Set.of(
+                    // 02 Institution
+                    GuiComponent.INSTITUTIONS,
+                    GuiComponent.EDIT_INSTITUTION,
+                    GuiComponent.CREATE_INSTITUTION,
+
+                    // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.SETTINGS,
-                    GuiComponent.USER_ACCOUNTS,
-                    GuiComponent.INSTITUTIONS),
+                    GuiComponent.USER_ACCOUNTS),
 
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
                     GuiComponent.NAVIGATION_OVERVIEW,
@@ -76,6 +81,7 @@ public final class GuiAbilitiesDefinition {
 
     static final Map<UserRole, Set<GuiAction>> ACTIONS_BY_ROLE = Map.of(
 
+            // 02 Institution: no actions — the INSTITUTIONS page gate covers all controls
             UserRole.SEB_SERVER_ADMIN, Set.of(),
 
             UserRole.INSTITUTIONAL_ADMIN, Set.of(

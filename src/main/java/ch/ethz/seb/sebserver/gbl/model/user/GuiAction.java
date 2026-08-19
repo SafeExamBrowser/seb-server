@@ -16,6 +16,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * released; they grow as the GUI adds gated actions. */
 @Schema(name = "GuiAction", description = "Identifier of one GUI action (button, switch or workflow step).")
 public enum GuiAction {
+    // 02 Institution
+    // (no actions — the INSTITUTIONS page gate covers all institution controls)
+
+    // not yet tabled
     EDIT_EXAM_SETTINGS,
     ARCHIVE_EXAM,
     DELETE_EXAM,
