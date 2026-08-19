@@ -247,8 +247,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
 
     @Override
     protected Result<UserInfo> notifyCreated(UserInfo entity) {
-        return super.notifyCreated(entity)
-                .flatMap(account -> this.userDAO.setActive(account, true));
+        return super
+                .notifyCreated(entity)
+                .flatMap(account -> this.userDAO.setActive(account, true))
+                .map(this::synchronizeUserWithSPS);
     }
 
     @Override
