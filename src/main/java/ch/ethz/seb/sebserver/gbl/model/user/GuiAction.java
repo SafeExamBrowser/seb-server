@@ -25,6 +25,9 @@ public enum GuiAction {
     // 04 Connection Configuration
     // (no actions — the CONNECTION_CONFIGURATIONS page gate covers all connection-configuration controls)
 
+    // 05 Certificate
+    // (no actions — the CERTIFICATES page gate covers all certificate controls)
+
     // not yet tabled
     EDIT_EXAM_SETTINGS,
     ARCHIVE_EXAM,

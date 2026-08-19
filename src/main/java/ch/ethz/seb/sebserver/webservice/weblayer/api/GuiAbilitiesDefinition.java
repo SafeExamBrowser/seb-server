@@ -49,12 +49,14 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.EDIT_CONNECTION_CONFIGURATION,
                     GuiComponent.CREATE_CONNECTION_CONFIGURATION,
 
+                    // 05 Certificate
+                    GuiComponent.CERTIFICATES,
+
                     // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
                     GuiComponent.SETTINGS,
                     GuiComponent.USER_ACCOUNTS,
-                    GuiComponent.CERTIFICATES,
                     GuiComponent.EXAM_TEMPLATE,
                     GuiComponent.EXAMS,
                     GuiComponent.ANALYZE_EXAMS,
@@ -94,6 +96,7 @@ public final class GuiAbilitiesDefinition {
 
             // 03 Assessment Tool: no actions — the ASSESSMENT_TOOLS page gate covers all controls
             // 04 Connection Configuration: no actions — the CONNECTION_CONFIGURATIONS page gate covers all controls
+            // 05 Certificate: no actions — the CERTIFICATES page gate covers all controls
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
                     // not yet tabled
                     GuiAction.ARCHIVE_EXAM,

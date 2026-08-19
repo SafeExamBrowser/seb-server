@@ -31,13 +31,15 @@ public enum GuiComponent {
     EDIT_CONNECTION_CONFIGURATION,
     CREATE_CONNECTION_CONFIGURATION,
 
+    // 05 Certificate
+    CERTIFICATES,
+
     // not yet tabled
     NAVIGATION_OVERVIEW,
     HOME,
 
     SETTINGS,
     USER_ACCOUNTS,
-    CERTIFICATES,
 
     EXAM_TEMPLATE,
     PREPARE_EXAM,
