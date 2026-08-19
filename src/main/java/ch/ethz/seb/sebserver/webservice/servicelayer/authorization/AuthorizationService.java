@@ -346,4 +346,6 @@ public interface AuthorizationService {
         }
         return user.hasRole(UserRole.TEACHER);
     }
+
+    String getAnonymousUserUUID();
 }

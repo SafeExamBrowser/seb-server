@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
@@ -255,6 +256,24 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             return exam;
         }).onError(error -> log.error("Failed to create exam configuration defined by template for exam: ", error));
+    }
+
+    @Override
+    public void repairExamConfiguration(final Exam exam) {
+        try {
+
+            final Collection<Long> configurationNodeIds = examConfigurationMapDAO
+                    .getConfigurationNodeIds(exam.id)
+                    .getOrThrow();
+
+            if (configurationNodeIds == null || configurationNodeIds.isEmpty()) {
+                log.info("--------> Repair Exam with missing Exam Configuration. Apply default SEB Settings to Exam --> {} ({})", exam.name, exam.id);
+                mapConfigurationNodeToExam(exam, createOrReuseConfig(exam, null));
+            }
+
+        } catch (Exception e) {
+            log.error("------> !!! Failed to apply default Exam Configuration for Exam: {} cause:", exam, e);
+        }
     }
 
     @Override

@@ -149,6 +149,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return collection of all currently running exam identifiers */
     Result<Collection<Long>> allRunningExamIds();
 
+    Result<Collection<Long>> allNoneArchivedExamIds();
+
     /** This is used to place an internal (write)lock for the specified exam.
      * The exam will be marked as locked on the persistence level to prevent other running web-service instances
      * to write concurrently to the specified exam while it is been updated by an internal batch process.

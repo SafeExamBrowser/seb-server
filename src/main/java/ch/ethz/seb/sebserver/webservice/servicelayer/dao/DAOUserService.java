@@ -20,4 +20,9 @@ public interface DAOUserService {
      * @return display name of the User */
     String getUserNameForUUID(String UUID);
 
+    /** Gets the UUID of current logged-in User. If no user is logged in and this is called by a background task,
+     * gets the anonymous server user UUID "anonymous" back
+     *
+     * @return current users UUID or "anonymous" */
+    String getCurrentUserUUIDOrAnonymousUser();
 }

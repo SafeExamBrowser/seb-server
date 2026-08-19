@@ -250,12 +250,6 @@ public class ExamRecordDAO {
                         .and(
                                 ExamRecordDynamicSqlSupport.status,
                                 isIn(stateNames));
-            } else {
-                // for default the archived state is not presented only on explicit request
-                whereClause = whereClause
-                        .and(
-                                ExamRecordDynamicSqlSupport.status,
-                                isNotEqualTo(ExamStatus.ARCHIVED.name()));
             }
 
             // Start time clause... when FILTER_ATTR_START_TIME_MILLIS is available restrict search on user day span

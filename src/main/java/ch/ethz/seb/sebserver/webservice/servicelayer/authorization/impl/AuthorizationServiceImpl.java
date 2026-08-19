@@ -288,6 +288,10 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     }
 
+    @Override
+    public String getAnonymousUserUUID() {
+        return userService.getAnonymousUser().uuid();
+    }
 
 
     private PrivilegeBuilder addPrivilege(final EntityType entityType) {

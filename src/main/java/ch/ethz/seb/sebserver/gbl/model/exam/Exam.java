@@ -80,11 +80,6 @@ public final class Exam implements GrantEntity {
         VDI
     }
 
-    public static final EnumSet<ExamStatus> ACTIVE_STATES =  EnumSet.of(
-            ExamStatus.UP_COMING,
-            ExamStatus.TEST_RUN,
-            ExamStatus.RUNNING);
-
     public static final List<String> ACTIVE_STATE_NAMES = Arrays.asList(
             ExamStatus.UP_COMING.name(),
             ExamStatus.TEST_RUN.name(),
