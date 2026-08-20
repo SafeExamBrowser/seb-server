@@ -28,19 +28,43 @@ public final class GuiAbilitiesDefinition {
     static final Map<UserRole, Set<GuiComponent>> COMPONENTS_BY_ROLE = Map.of(
 
             UserRole.SEB_SERVER_ADMIN, Set.of(
-                    GuiComponent.NAVIGATION_OVERVIEW,
-                    GuiComponent.SETTINGS,
+                    // 02 Institution
+                    GuiComponent.INSTITUTIONS,
+                    GuiComponent.EDIT_INSTITUTION,
+                    GuiComponent.CREATE_INSTITUTION,
+
+                    // 06 User Account
                     GuiComponent.USER_ACCOUNTS,
-                    GuiComponent.INSTITUTIONS),
+                    GuiComponent.EDIT_USER_ACCOUNT,
+                    GuiComponent.CREATE_USER_ACCOUNT,
+
+                    // not yet tabled
+                    GuiComponent.NAVIGATION_OVERVIEW,
+                    GuiComponent.SETTINGS),
 
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
+                    // 03 Assessment Tool
+                    GuiComponent.ASSESSMENT_TOOLS,
+                    GuiComponent.EDIT_ASSESSMENT_TOOL,
+                    GuiComponent.CREATE_ASSESSMENT_TOOL,
+
+                    // 04 Connection Configuration
+                    GuiComponent.CONNECTION_CONFIGURATIONS,
+                    GuiComponent.EDIT_CONNECTION_CONFIGURATION,
+                    GuiComponent.CREATE_CONNECTION_CONFIGURATION,
+
+                    // 05 Certificate
+                    GuiComponent.CERTIFICATES,
+
+                    // 06 User Account
+                    GuiComponent.USER_ACCOUNTS,
+                    GuiComponent.EDIT_USER_ACCOUNT,
+                    GuiComponent.CREATE_USER_ACCOUNT,
+
+                    // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
                     GuiComponent.SETTINGS,
-                    GuiComponent.USER_ACCOUNTS,
-                    GuiComponent.CONNECTION_CONFIGS,
-                    GuiComponent.LMS_SETUPS,
-                    GuiComponent.CERTIFICATES,
                     GuiComponent.EXAM_TEMPLATE,
                     GuiComponent.EXAMS,
                     GuiComponent.ANALYZE_EXAMS,
@@ -75,9 +99,18 @@ public final class GuiAbilitiesDefinition {
 
     static final Map<UserRole, Set<GuiAction>> ACTIONS_BY_ROLE = Map.of(
 
-            UserRole.SEB_SERVER_ADMIN, Set.of(),
+            // 02 Institution: no actions — the INSTITUTIONS page gate covers all controls
+            UserRole.SEB_SERVER_ADMIN, Set.of(
+                    // 06 User Account
+                    GuiAction.SHOW_INSTITUTION_COLUMN,
+                    GuiAction.OFFER_SERVER_ADMIN_ROLE,
+                    GuiAction.CHOOSE_INSTITUTION),
 
+            // 03 Assessment Tool: no actions — the ASSESSMENT_TOOLS page gate covers all controls
+            // 04 Connection Configuration: no actions — the CONNECTION_CONFIGURATIONS page gate covers all controls
+            // 05 Certificate: no actions — the CERTIFICATES page gate covers all controls
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
+                    // not yet tabled
                     GuiAction.ARCHIVE_EXAM,
                     GuiAction.DELETE_EXAM,
                     GuiAction.EDIT_FULL_SEB_SETTINGS, // TODO just for testing yet
