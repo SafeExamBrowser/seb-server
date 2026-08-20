@@ -41,15 +41,15 @@ public class InstitutionTest {
     @Test
     public void pageOfInstituions() throws Exception {
         final Page<Institution> page = new Page<>(2, 1, 3, "name", Arrays.asList(
-                new Institution(1L, "InstOne", "one", "", "", true),
-                new Institution(2L, "InstTwo", "two", "", "", true),
-                new Institution(3L, "InstThree", "three", "", "", true)));
+                new Institution(1L, "InstOne", "one", "", true),
+                new Institution(2L, "InstTwo", "two", "", true),
+                new Institution(3L, "InstThree", "three", "", true)));
 
         final JSONMapper jsonMapper = new JSONMapper();
         //final ObjectWriter writerWithDefaultPrettyPrinter = jsonMapper.writerWithDefaultPrettyPrinter();
         String json = jsonMapper.writeValueAsString(page);
         assertEquals(
-                "{\"number_of_pages\":2,\"page_number\":1,\"page_size\":3,\"sort\":\"name\",\"content\":[{\"id\":1,\"name\":\"InstOne\",\"urlSuffix\":\"one\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true},{\"id\":2,\"name\":\"InstTwo\",\"urlSuffix\":\"two\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true},{\"id\":3,\"name\":\"InstThree\",\"urlSuffix\":\"three\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true}],\"complete\":true}",
+                "{\"number_of_pages\":2,\"page_number\":1,\"page_size\":3,\"sort\":\"name\",\"content\":[{\"id\":1,\"name\":\"InstOne\",\"logoImage\":\"one\",\"themeName\":\"\",\"active\":true},{\"id\":2,\"name\":\"InstTwo\",\"logoImage\":\"two\",\"themeName\":\"\",\"active\":true},{\"id\":3,\"name\":\"InstThree\",\"logoImage\":\"three\",\"themeName\":\"\",\"active\":true}],\"complete\":true}",
                 json);
 
         final List<EntityName> namesList = page.content.stream()
@@ -66,9 +66,9 @@ public class InstitutionTest {
     public void testNullValues() throws Exception {
         final JSONMapper jsonMapper = new JSONMapper();
 
-        final Institution inst = new Institution(1L, null, "suffix", "logo", "theme", null);
+        final Institution inst = new Institution(1L, null, "logo", "theme", null);
         final String jsonString = jsonMapper.writeValueAsString(inst);
-        assertEquals("{\"id\":1,\"urlSuffix\":\"suffix\",\"logoImage\":\"logo\",\"themeName\":\"theme\"}", jsonString);
+        assertEquals("{\"id\":1,\"logoImage\":\"logo\",\"themeName\":\"theme\"}", jsonString);
     }
 
 }

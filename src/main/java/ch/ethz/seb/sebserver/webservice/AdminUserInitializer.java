@@ -125,7 +125,6 @@ class AdminUserInitializer {
                             this.orgName,
                             null,
                             null,
-                            null,
                             true))
                             .map(inst -> this.institutionDAO.setActive(inst, true).getOrThrow())
                             .map(Institution::getInstitutionId)

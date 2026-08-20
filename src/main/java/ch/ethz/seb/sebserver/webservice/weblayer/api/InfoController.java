@@ -47,25 +47,6 @@ public class InfoController {
         this.webserviceInfo = webserviceInfo;
     }
 
-    @Operation(hidden = true)
-    @RequestMapping(
-            path = API.INSTITUTIONAL_LOGO_PATH,
-            method = RequestMethod.GET,
-            produces = MediaType.IMAGE_PNG_VALUE + ";base64")
-    public String logo(@PathVariable final String urlSuffix) {
-        if (urlSuffix == null) {
-            return null;
-        }
-
-        return this.institutionDAO
-                .all(null, true)
-                .getOrThrow()
-                .stream()
-                .filter(inst -> urlSuffix.equals(inst.urlSuffix))
-                .findFirst()
-                .map(inst -> inst.logoImage)
-                .orElse(null);
-    }
 
     @Operation(
             operationId = "getInstitutionInfo",
@@ -85,22 +66,6 @@ public class InfoController {
                 .collect(Collectors.toList());
     }
 
-    @Operation(hidden = true)
-    @RequestMapping(
-            path = API.INFO_INST_ENDPOINT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<EntityName> getInstitutionInfo(@PathVariable final String urlSuffix) {
-        return this.institutionDAO
-                .all(null, true)
-                .getOrThrow()
-                .stream()
-                .filter(inst -> BooleanUtils.isTrue(inst.active) &&
-                        inst.urlSuffix != null &&
-                        urlSuffix.equals(inst.urlSuffix))
-                .map(inst -> new EntityName(inst.getEntityKey(), inst.name))
-                .collect(Collectors.toList());
-    }
 
     @Operation(hidden = true)
     @RequestMapping(
