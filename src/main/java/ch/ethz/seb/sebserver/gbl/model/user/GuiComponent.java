@@ -39,6 +39,15 @@ public enum GuiComponent {
     EDIT_USER_ACCOUNT,
     CREATE_USER_ACCOUNT,
 
+    // 07 Exam
+    EXAMS,
+    ADD_EXAM_WITH_URL,
+    CREATE_EXAM_WIZARD,
+    EXAM_DETAIL,
+
+    // 13 Monitoring
+    MONITORING,
+
     // not yet tabled
     NAVIGATION_OVERVIEW,
     HOME,
@@ -46,10 +55,6 @@ public enum GuiComponent {
     SETTINGS,
 
     EXAM_TEMPLATE,
-    PREPARE_EXAM,
-    ADD_EXAM_WITH_URL,
-
-    EXAMS,
 
     RUNNING_EXAMS,
     SCREEN_PROCTORING,

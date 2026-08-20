@@ -61,37 +61,66 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.EDIT_USER_ACCOUNT,
                     GuiComponent.CREATE_USER_ACCOUNT,
 
+                    // 07 Exam
+                    GuiComponent.EXAMS,
+                    GuiComponent.ADD_EXAM_WITH_URL,
+                    GuiComponent.CREATE_EXAM_WIZARD,
+                    GuiComponent.EXAM_DETAIL,
+
+                    // 13 Monitoring
+                    GuiComponent.MONITORING,
+
                     // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
                     GuiComponent.SETTINGS,
                     GuiComponent.EXAM_TEMPLATE,
-                    GuiComponent.EXAMS,
                     GuiComponent.ANALYZE_EXAMS,
                     GuiComponent.ARCHIVE_EXAMS,
                     GuiComponent.SCHEDULED_DELETION),
 
             UserRole.EXAM_ADMIN, Set.of(
-                    GuiComponent.HOME,
-                    GuiComponent.PREPARE_EXAM,
+                    // 07 Exam
+                    GuiComponent.EXAMS,
                     GuiComponent.ADD_EXAM_WITH_URL,
+                    GuiComponent.CREATE_EXAM_WIZARD,
+                    GuiComponent.EXAM_DETAIL,
+
+                    // 13 Monitoring
+                    GuiComponent.MONITORING,
+
+                    // not yet tabled
+                    GuiComponent.HOME,
                     GuiComponent.RUNNING_EXAMS,
                     GuiComponent.SCREEN_PROCTORING,
                     GuiComponent.SCREEN_PROCTORING_SEARCH,
                     GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH,
-                    GuiComponent.ANALYZE_EXAMS,
-                    GuiComponent.EXAMS),
+                    GuiComponent.ANALYZE_EXAMS),
 
             UserRole.EXAM_SUPPORTER, Set.of(
-                    GuiComponent.HOME,
+                    // 07 Exam
                     GuiComponent.EXAMS,
+                    GuiComponent.EXAM_DETAIL,
+
+                    // 13 Monitoring
+                    GuiComponent.MONITORING,
+
+                    // not yet tabled
+                    GuiComponent.HOME,
                     GuiComponent.RUNNING_EXAMS,
                     GuiComponent.SCREEN_PROCTORING,
                     GuiComponent.SCREEN_PROCTORING_SEARCH,
                     GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH),
 
             UserRole.TEACHER, Set.of(
+                    // 07 Exam
                     GuiComponent.EXAMS,
+                    GuiComponent.EXAM_DETAIL,
+
+                    // 13 Monitoring
+                    GuiComponent.MONITORING,
+
+                    // not yet tabled
                     GuiComponent.RUNNING_EXAMS,
                     GuiComponent.SCREEN_PROCTORING,
                     GuiComponent.SCREEN_PROCTORING_SEARCH,
@@ -110,49 +139,47 @@ public final class GuiAbilitiesDefinition {
             // 04 Connection Configuration: no actions — the CONNECTION_CONFIGURATIONS page gate covers all controls
             // 05 Certificate: no actions — the CERTIFICATES page gate covers all controls
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
-                    // not yet tabled
-                    GuiAction.ARCHIVE_EXAM,
+                    // 07 Exam
+                    GuiAction.EXCLUDE_FROM_DELETION,
+                    GuiAction.EDIT_FULL_SEB_SETTINGS,
+                    GuiAction.EDIT_BASIC_SETTINGS,
+                    GuiAction.EDIT_SCREEN_PROCTORING,
+                    GuiAction.EDIT_SEB_KEYS,
+                    GuiAction.EDIT_SUPERVISORS,
+                    GuiAction.EDIT_CLIENT_GROUPS,
+                    GuiAction.APPLY_DISABLE_TEST_RUN,
+                    GuiAction.APPLY_SEB_LOCK,
+                    GuiAction.DOWNLOAD_EXAM_CONNECTION,
                     GuiAction.DELETE_EXAM,
-                    GuiAction.EDIT_FULL_SEB_SETTINGS, // TODO just for testing yet
-                    GuiAction.VIEW_ASK_SETTINGS,
-                    GuiAction.EXCLUDE_FROM_DELETION),
+
+                    // not yet tabled
+                    GuiAction.ARCHIVE_EXAM),
 
             UserRole.EXAM_ADMIN, Set.of(
-                    GuiAction.EDIT_EXAM_SETTINGS,
-                    GuiAction.ARCHIVE_EXAM,
-                    GuiAction.DELETE_EXAM,
-                    GuiAction.APPLY_TEST_RUN,
-                    GuiAction.DISABLE_TEST_RUN,
-                    GuiAction.EXPORT_EXAM_CLIENT_CONFIG,
-                    GuiAction.VIEW_ASK_SETTINGS,
-                    GuiAction.EDIT_ASK_SETTINGS,
-                    GuiAction.EDIT_SCREEN_PROCTORING,
-                    GuiAction.EDIT_SEB_SETTINGS,
+                    // 07 Exam
+                    GuiAction.EDIT_RESTRICTED_SEB_SETTINGS,
+                    GuiAction.EDIT_BASIC_SETTINGS,
+                    GuiAction.EDIT_SEB_KEYS,
                     GuiAction.EDIT_SUPERVISORS,
-                    GuiAction.EDIT_INDICATORS,
                     GuiAction.EDIT_CLIENT_GROUPS,
-                    GuiAction.APPLY_SEB_RESTRICTION,
-                    GuiAction.SHOW_MONITORING,
+                    GuiAction.APPLY_DISABLE_TEST_RUN,
+                    GuiAction.APPLY_SEB_LOCK,
+                    GuiAction.DOWNLOAD_EXAM_CONNECTION,
+                    GuiAction.DELETE_EXAM,
+
+                    // not yet tabled
+                    GuiAction.EDIT_INDICATORS,
                     GuiAction.SHOW_FINISHED_EXAM_DATA),
 
-            // to clarify: EDIT_SCREEN_PROCTORING, EDIT_CLIENT_GROUPS, EDIT_SUPERVISORS
             UserRole.EXAM_SUPPORTER, Set.of(
-                    GuiAction.EDIT_EXAM_SETTINGS,
-                    GuiAction.APPLY_TEST_RUN,
-                    GuiAction.DISABLE_TEST_RUN,
-                    GuiAction.EXPORT_EXAM_CLIENT_CONFIG,
-                    GuiAction.VIEW_ASK_SETTINGS,
-                    GuiAction.EDIT_ASK_SETTINGS,
-                    GuiAction.EDIT_SEB_SETTINGS,
-                    GuiAction.APPLY_SEB_RESTRICTION,
-                    GuiAction.SHOW_MONITORING,
+                    // not yet tabled
                     GuiAction.SHOW_FINISHED_EXAM_DATA),
 
             UserRole.TEACHER, Set.of(
-                    GuiAction.APPLY_TEST_RUN,
-                    GuiAction.DISABLE_TEST_RUN,
-                    GuiAction.VIEW_ASK_SETTINGS,
-                    GuiAction.SHOW_MONITORING));
+                    // 07 Exam
+                    GuiAction.EDIT_RESTRICTED_SEB_SETTINGS,
+                    GuiAction.EDIT_CLIENT_GROUPS,
+                    GuiAction.APPLY_DISABLE_TEST_RUN));
 
     private GuiAbilitiesDefinition() {
     }

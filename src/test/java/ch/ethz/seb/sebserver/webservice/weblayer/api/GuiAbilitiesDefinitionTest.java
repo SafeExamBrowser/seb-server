@@ -56,7 +56,7 @@ public class GuiAbilitiesDefinitionTest {
 
         assertTrue(abilities.components().contains(GuiComponent.INSTITUTIONS));
         assertTrue(abilities.components().contains(GuiComponent.RUNNING_EXAMS));
-        assertTrue(abilities.actions().contains(GuiAction.SHOW_MONITORING));
+        assertTrue(abilities.actions().contains(GuiAction.APPLY_DISABLE_TEST_RUN));
     }
 
     @Test
