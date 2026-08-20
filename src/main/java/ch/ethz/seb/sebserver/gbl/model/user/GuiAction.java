@@ -28,6 +28,11 @@ public enum GuiAction {
     // 05 Certificate
     // (no actions — the CERTIFICATES page gate covers all certificate controls)
 
+    // 06 User Account
+    SHOW_INSTITUTION_COLUMN,
+    OFFER_SERVER_ADMIN_ROLE,
+    CHOOSE_INSTITUTION,
+
     // not yet tabled
     EDIT_EXAM_SETTINGS,
     ARCHIVE_EXAM,

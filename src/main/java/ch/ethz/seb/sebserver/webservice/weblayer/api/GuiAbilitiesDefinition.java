@@ -33,10 +33,14 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.EDIT_INSTITUTION,
                     GuiComponent.CREATE_INSTITUTION,
 
+                    // 06 User Account
+                    GuiComponent.USER_ACCOUNTS,
+                    GuiComponent.EDIT_USER_ACCOUNT,
+                    GuiComponent.CREATE_USER_ACCOUNT,
+
                     // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
-                    GuiComponent.SETTINGS,
-                    GuiComponent.USER_ACCOUNTS),
+                    GuiComponent.SETTINGS),
 
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
                     // 03 Assessment Tool
@@ -52,11 +56,15 @@ public final class GuiAbilitiesDefinition {
                     // 05 Certificate
                     GuiComponent.CERTIFICATES,
 
+                    // 06 User Account
+                    GuiComponent.USER_ACCOUNTS,
+                    GuiComponent.EDIT_USER_ACCOUNT,
+                    GuiComponent.CREATE_USER_ACCOUNT,
+
                     // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
                     GuiComponent.SETTINGS,
-                    GuiComponent.USER_ACCOUNTS,
                     GuiComponent.EXAM_TEMPLATE,
                     GuiComponent.EXAMS,
                     GuiComponent.ANALYZE_EXAMS,
@@ -92,7 +100,11 @@ public final class GuiAbilitiesDefinition {
     static final Map<UserRole, Set<GuiAction>> ACTIONS_BY_ROLE = Map.of(
 
             // 02 Institution: no actions — the INSTITUTIONS page gate covers all controls
-            UserRole.SEB_SERVER_ADMIN, Set.of(),
+            UserRole.SEB_SERVER_ADMIN, Set.of(
+                    // 06 User Account
+                    GuiAction.SHOW_INSTITUTION_COLUMN,
+                    GuiAction.OFFER_SERVER_ADMIN_ROLE,
+                    GuiAction.CHOOSE_INSTITUTION),
 
             // 03 Assessment Tool: no actions — the ASSESSMENT_TOOLS page gate covers all controls
             // 04 Connection Configuration: no actions — the CONNECTION_CONFIGURATIONS page gate covers all controls

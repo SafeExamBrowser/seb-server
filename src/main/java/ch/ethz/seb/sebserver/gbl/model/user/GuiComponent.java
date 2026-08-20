@@ -34,12 +34,16 @@ public enum GuiComponent {
     // 05 Certificate
     CERTIFICATES,
 
+    // 06 User Account
+    USER_ACCOUNTS,
+    EDIT_USER_ACCOUNT,
+    CREATE_USER_ACCOUNT,
+
     // not yet tabled
     NAVIGATION_OVERVIEW,
     HOME,
 
     SETTINGS,
-    USER_ACCOUNTS,
 
     EXAM_TEMPLATE,
     PREPARE_EXAM,
