@@ -28,6 +28,9 @@ public final class GuiAbilitiesDefinition {
     static final Map<UserRole, Set<GuiComponent>> COMPONENTS_BY_ROLE = Map.of(
 
             UserRole.SEB_SERVER_ADMIN, Set.of(
+                    // 01 Navigation Overview
+                    GuiComponent.NAVIGATION_OVERVIEW,
+
                     // 02 Institution
                     GuiComponent.INSTITUTIONS,
                     GuiComponent.EDIT_INSTITUTION,
@@ -38,11 +41,16 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.EDIT_USER_ACCOUNT,
                     GuiComponent.CREATE_USER_ACCOUNT,
 
+                    // 12 Profile
+                    GuiComponent.PROFILE,
+
                     // not yet tabled
-                    GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.SETTINGS),
 
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
+                    // 01 Navigation Overview
+                    GuiComponent.NAVIGATION_OVERVIEW,
+
                     // 03 Assessment Tool
                     GuiComponent.ASSESSMENT_TOOLS,
                     GuiComponent.EDIT_ASSESSMENT_TOOL,
@@ -83,11 +91,28 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.CREATE_SCHEDULED_DELETION,
                     GuiComponent.SCHEDULED_DELETION_REPORT,
 
+                    // 12 Profile
+                    GuiComponent.PROFILE,
+
                     // 13 Monitoring
                     GuiComponent.MONITORING,
+                    GuiComponent.MONITORING_DETAIL,
+                    GuiComponent.MONITORING_CLIENTS,
+                    GuiComponent.MONITORING_CLIENT_DETAIL,
+
+                    // 14 Application Search
+                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH,
+
+                    // 15 Gallery
+                    GuiComponent.GALLERY,
+
+                    // 16 SP Recording
+                    GuiComponent.SCREEN_PROCTORING_RECORDING,
+
+                    // 17 SP Search
+                    GuiComponent.SCREEN_PROCTORING_SEARCH,
 
                     // not yet tabled
-                    GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
                     GuiComponent.SETTINGS),
 
@@ -97,53 +122,98 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.CREATE_EXAM_WIZARD,
                     GuiComponent.EXAM_DETAIL,
 
+                    // 12 Profile
+                    GuiComponent.PROFILE,
+
                     // 13 Monitoring
                     GuiComponent.MONITORING,
+                    GuiComponent.MONITORING_DETAIL,
+                    GuiComponent.MONITORING_CLIENTS,
+                    GuiComponent.MONITORING_CLIENT_DETAIL,
+
+                    // 14 Application Search
+                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH,
+
+                    // 15 Gallery
+                    GuiComponent.GALLERY,
+
+                    // 16 SP Recording
+                    GuiComponent.SCREEN_PROCTORING_RECORDING,
+
+                    // 17 SP Search
+                    GuiComponent.SCREEN_PROCTORING_SEARCH,
 
                     // not yet tabled
-                    GuiComponent.HOME,
-                    GuiComponent.RUNNING_EXAMS,
-                    GuiComponent.SCREEN_PROCTORING,
-                    GuiComponent.SCREEN_PROCTORING_SEARCH,
-                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH),
+                    GuiComponent.HOME),
 
             UserRole.EXAM_SUPPORTER, Set.of(
                     // 07 Exam
                     GuiComponent.EXAMS,
                     GuiComponent.EXAM_DETAIL,
 
+                    // 12 Profile
+                    GuiComponent.PROFILE,
+
                     // 13 Monitoring
                     GuiComponent.MONITORING,
+                    GuiComponent.MONITORING_DETAIL,
+                    GuiComponent.MONITORING_CLIENTS,
+                    GuiComponent.MONITORING_CLIENT_DETAIL,
+
+                    // 14 Application Search
+                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH,
+
+                    // 15 Gallery
+                    GuiComponent.GALLERY,
+
+                    // 16 SP Recording
+                    GuiComponent.SCREEN_PROCTORING_RECORDING,
+
+                    // 17 SP Search
+                    GuiComponent.SCREEN_PROCTORING_SEARCH,
 
                     // not yet tabled
-                    GuiComponent.HOME,
-                    GuiComponent.RUNNING_EXAMS,
-                    GuiComponent.SCREEN_PROCTORING,
-                    GuiComponent.SCREEN_PROCTORING_SEARCH,
-                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH),
+                    GuiComponent.HOME),
 
             UserRole.TEACHER, Set.of(
                     // 07 Exam
                     GuiComponent.EXAMS,
                     GuiComponent.EXAM_DETAIL,
 
+                    // 12 Profile
+                    GuiComponent.PROFILE,
+
                     // 13 Monitoring
                     GuiComponent.MONITORING,
+                    GuiComponent.MONITORING_DETAIL,
+                    GuiComponent.MONITORING_CLIENTS,
+                    GuiComponent.MONITORING_CLIENT_DETAIL,
 
-                    // not yet tabled
-                    GuiComponent.RUNNING_EXAMS,
-                    GuiComponent.SCREEN_PROCTORING,
-                    GuiComponent.SCREEN_PROCTORING_SEARCH,
-                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH));
+                    // 14 Application Search
+                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH,
+
+                    // 15 Gallery
+                    GuiComponent.GALLERY,
+
+                    // 16 SP Recording
+                    GuiComponent.SCREEN_PROCTORING_RECORDING,
+
+                    // 17 SP Search
+                    GuiComponent.SCREEN_PROCTORING_SEARCH));
 
     static final Map<UserRole, Set<GuiAction>> ACTIONS_BY_ROLE = Map.of(
 
+            // 01 Navigation Overview: no actions — items derive from their target page components
             // 02 Institution: no actions — the INSTITUTIONS page gate covers all controls
             UserRole.SEB_SERVER_ADMIN, Set.of(
                     // 06 User Account
                     GuiAction.SHOW_INSTITUTION_COLUMN,
                     GuiAction.OFFER_SERVER_ADMIN_ROLE,
-                    GuiAction.CHOOSE_INSTITUTION),
+                    GuiAction.CHOOSE_INSTITUTION,
+
+                    // 12 Profile
+                    GuiAction.EDIT_PROFILE_FIELDS,
+                    GuiAction.CHANGE_OWN_PASSWORD),
 
             // 03 Assessment Tool: no actions — the ASSESSMENT_TOOLS page gate covers all controls
             // 04 Connection Configuration: no actions — the CONNECTION_CONFIGURATIONS page gate covers all controls
@@ -152,6 +222,7 @@ public final class GuiAbilitiesDefinition {
             // 09 Archive: no actions — the ARCHIVE_EXAMS page gate covers all controls
             // 10 Exam Template: no actions — the exam-template page gates cover all controls
             // 11 Scheduled Deletion: no actions — the scheduled-deletion page gates cover all controls
+            // 14-17 Screen Proctoring: no actions — the page gates cover all controls
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
                     // 07 Exam
                     GuiAction.EXCLUDE_FROM_DELETION,
@@ -164,7 +235,15 @@ public final class GuiAbilitiesDefinition {
                     GuiAction.APPLY_DISABLE_TEST_RUN,
                     GuiAction.APPLY_SEB_LOCK,
                     GuiAction.DOWNLOAD_EXAM_CONNECTION,
-                    GuiAction.DELETE_EXAM),
+                    GuiAction.DELETE_EXAM,
+
+                    // 12 Profile
+                    GuiAction.EDIT_PROFILE_FIELDS,
+                    GuiAction.CHANGE_OWN_PASSWORD,
+
+                    // 13 Monitoring
+                    GuiAction.QUIT_ALL_CLIENTS,
+                    GuiAction.QUIT_CLIENTS),
 
             UserRole.EXAM_ADMIN, Set.of(
                     // 07 Exam
@@ -178,11 +257,23 @@ public final class GuiAbilitiesDefinition {
                     GuiAction.DOWNLOAD_EXAM_CONNECTION,
                     GuiAction.DELETE_EXAM,
 
+                    // 12 Profile
+                    GuiAction.EDIT_PROFILE_FIELDS,
+                    GuiAction.CHANGE_OWN_PASSWORD,
+
+                    // 13 Monitoring
+                    GuiAction.QUIT_ALL_CLIENTS,
+                    GuiAction.QUIT_CLIENTS,
+
                     // not yet tabled
                     GuiAction.EDIT_INDICATORS,
                     GuiAction.SHOW_FINISHED_EXAM_DATA),
 
             UserRole.EXAM_SUPPORTER, Set.of(
+                    // 12 Profile
+                    GuiAction.EDIT_PROFILE_FIELDS,
+                    GuiAction.CHANGE_OWN_PASSWORD,
+
                     // not yet tabled
                     GuiAction.SHOW_FINISHED_EXAM_DATA),
 

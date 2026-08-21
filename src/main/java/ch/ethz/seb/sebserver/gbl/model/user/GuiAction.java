@@ -16,6 +16,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * released; they grow as the GUI adds gated actions. */
 @Schema(name = "GuiAction", description = "Identifier of one GUI action (button, switch or workflow step).")
 public enum GuiAction {
+    // 01 Navigation Overview
+    // (no actions — every item derives from its target page's GuiComponent)
+
     // 02 Institution
     // (no actions — the INSTITUTIONS page gate covers all institution controls)
 
@@ -58,6 +61,26 @@ public enum GuiAction {
 
     // 11 Scheduled Deletion
     // (no actions — the scheduled-deletion page gates cover all scheduled-deletion controls)
+
+    // 12 Profile
+    EDIT_PROFILE_FIELDS,
+    CHANGE_OWN_PASSWORD,
+
+    // 13 Monitoring
+    QUIT_ALL_CLIENTS,
+    QUIT_CLIENTS,
+
+    // 14 Application Search
+    // (no actions — the SCREEN_PROCTORING_APPLICATION_SEARCH page gate covers all controls)
+
+    // 15 Gallery
+    // (no actions — the GALLERY page gate covers all gallery controls)
+
+    // 16 SP Recording
+    // (no actions — the SCREEN_PROCTORING_RECORDING page gate covers all recording controls)
+
+    // 17 SP Search
+    // (no actions — the SCREEN_PROCTORING_SEARCH page gate covers all controls)
 
     // not yet tabled
     EDIT_INDICATORS,
