@@ -67,17 +67,29 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.CREATE_EXAM_WIZARD,
                     GuiComponent.EXAM_DETAIL,
 
+                    // 08 Analyze
+                    GuiComponent.ANALYZE_EXAMS,
+
+                    // 09 Archive
+                    GuiComponent.ARCHIVE_EXAMS,
+
+                    // 10 Exam Template
+                    GuiComponent.EXAM_TEMPLATES,
+                    GuiComponent.CREATE_EXAM_TEMPLATE,
+                    GuiComponent.EXAM_TEMPLATE_DETAIL,
+
+                    // 11 Scheduled Deletion
+                    GuiComponent.SCHEDULED_DELETIONS,
+                    GuiComponent.CREATE_SCHEDULED_DELETION,
+                    GuiComponent.SCHEDULED_DELETION_REPORT,
+
                     // 13 Monitoring
                     GuiComponent.MONITORING,
 
                     // not yet tabled
                     GuiComponent.NAVIGATION_OVERVIEW,
                     GuiComponent.HOME,
-                    GuiComponent.SETTINGS,
-                    GuiComponent.EXAM_TEMPLATE,
-                    GuiComponent.ANALYZE_EXAMS,
-                    GuiComponent.ARCHIVE_EXAMS,
-                    GuiComponent.SCHEDULED_DELETION),
+                    GuiComponent.SETTINGS),
 
             UserRole.EXAM_ADMIN, Set.of(
                     // 07 Exam
@@ -93,8 +105,7 @@ public final class GuiAbilitiesDefinition {
                     GuiComponent.RUNNING_EXAMS,
                     GuiComponent.SCREEN_PROCTORING,
                     GuiComponent.SCREEN_PROCTORING_SEARCH,
-                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH,
-                    GuiComponent.ANALYZE_EXAMS),
+                    GuiComponent.SCREEN_PROCTORING_APPLICATION_SEARCH),
 
             UserRole.EXAM_SUPPORTER, Set.of(
                     // 07 Exam
@@ -137,6 +148,10 @@ public final class GuiAbilitiesDefinition {
             // 03 Assessment Tool: no actions — the ASSESSMENT_TOOLS page gate covers all controls
             // 04 Connection Configuration: no actions — the CONNECTION_CONFIGURATIONS page gate covers all controls
             // 05 Certificate: no actions — the CERTIFICATES page gate covers all controls
+            // 08 Analyze: no actions — the ANALYZE_EXAMS page gate covers all controls
+            // 09 Archive: no actions — the ARCHIVE_EXAMS page gate covers all controls
+            // 10 Exam Template: no actions — the exam-template page gates cover all controls
+            // 11 Scheduled Deletion: no actions — the scheduled-deletion page gates cover all controls
             UserRole.INSTITUTIONAL_ADMIN, Set.of(
                     // 07 Exam
                     GuiAction.EXCLUDE_FROM_DELETION,
@@ -149,10 +164,7 @@ public final class GuiAbilitiesDefinition {
                     GuiAction.APPLY_DISABLE_TEST_RUN,
                     GuiAction.APPLY_SEB_LOCK,
                     GuiAction.DOWNLOAD_EXAM_CONNECTION,
-                    GuiAction.DELETE_EXAM,
-
-                    // not yet tabled
-                    GuiAction.ARCHIVE_EXAM),
+                    GuiAction.DELETE_EXAM),
 
             UserRole.EXAM_ADMIN, Set.of(
                     // 07 Exam
