@@ -55,7 +55,7 @@ public class GuiAbilitiesDefinitionTest {
                 EnumSet.of(UserRole.SEB_SERVER_ADMIN, UserRole.TEACHER));
 
         assertTrue(abilities.components().contains(GuiComponent.INSTITUTIONS));
-        assertTrue(abilities.components().contains(GuiComponent.RUNNING_EXAMS));
+        assertTrue(abilities.components().contains(GuiComponent.MONITORING));
         assertTrue(abilities.actions().contains(GuiAction.APPLY_DISABLE_TEST_RUN));
     }
 
