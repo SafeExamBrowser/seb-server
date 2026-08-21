@@ -47,8 +47,19 @@ public enum GuiAction {
     DOWNLOAD_EXAM_CONNECTION,
     DELETE_EXAM,
 
+    // 08 Analyze
+    // (no actions — the ANALYZE_EXAMS page gate covers all analyze controls)
+
+    // 09 Archive
+    // (no actions — the ARCHIVE_EXAMS page gate covers all archive controls)
+
+    // 10 Exam Template
+    // (no actions — the exam-template page gates cover all exam-template controls)
+
+    // 11 Scheduled Deletion
+    // (no actions — the scheduled-deletion page gates cover all scheduled-deletion controls)
+
     // not yet tabled
-    ARCHIVE_EXAM,
     EDIT_INDICATORS,
     SHOW_FINISHED_EXAM_DATA
 }
