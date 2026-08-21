@@ -82,7 +82,6 @@ public final class GuiAbilitiesDefinition {
             UserRole.EXAM_ADMIN, Set.of(
                     // 07 Exam
                     GuiComponent.EXAMS,
-                    GuiComponent.ADD_EXAM_WITH_URL,
                     GuiComponent.CREATE_EXAM_WIZARD,
                     GuiComponent.EXAM_DETAIL,
 
