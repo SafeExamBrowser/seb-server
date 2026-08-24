@@ -284,10 +284,8 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             // groups filter
             if (checkGroups) {
                 if (cc.groups != null && !cc.groups.isEmpty()) {
-                    for (final Long gId : cc.groups) {
-                        if (!showInClientGroups.contains(gId)) {
-                            return false;
-                        }
+                    if (Collections.disjoint(cc.groups, showInClientGroups)) {
+                        return false;
                     }
                 } else {
                     if (!showFallbackGroup) {
@@ -310,8 +308,6 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                 }
             }
 
-
-            
             // notifications filter
             if (showLockScreenNotifications || showRaiseHandNotifications) {
                 // notifications only make sense for active status
