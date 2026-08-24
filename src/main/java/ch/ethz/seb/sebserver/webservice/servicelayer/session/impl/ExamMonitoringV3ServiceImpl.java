@@ -41,7 +41,6 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringV3ServiceImpl.class);
     private final ExamSessionCacheService examSessionCacheService;
-    private final SEBClientNotificationService sebClientNotificationService;
     private final ExamAdminService examAdminService;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientGroupDAO clientGroupDAO;
@@ -49,14 +48,12 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
     public ExamMonitoringV3ServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
-            final SEBClientNotificationService sebClientNotificationService,
             final ExamAdminService examAdminService,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientGroupDAO clientGroupDAO, 
             final ExamSessionService examSessionService) {
         
         this.examSessionCacheService = examSessionCacheService;
-        this.sebClientNotificationService = sebClientNotificationService;
         this.examAdminService = examAdminService;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientGroupDAO = clientGroupDAO;
@@ -154,17 +151,11 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                         indicatorProbe.probe(cc, indicators);
 
                         // notifications, only relevant for active connections
-                        if (cc.pendingNotification()) {
-                            sebClientNotificationService
-                                    .getPendingNotifications(cc.getConnectionId())
-                                    .getOr(Collections.emptyList())
-                                    .forEach( n -> {
-                                        switch (n.notificationType) {
-                                            case LOCK_SCREEN -> notifications.LOCK_SCREEN++;
-                                            case RAISE_HAND -> notifications.RAISE_HAND++;
-                                            default -> {}
-                                        }
-                                    });
+                        if (cc.pendingLockScreen()) {
+                            notifications.LOCK_SCREEN++;
+                        }
+                        if (cc.pendingRaiseHand()) {
+                            notifications.RAISE_HAND++;
                         }
                         notifications.calcTotal();
                     }
@@ -310,21 +301,12 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
             // notifications filter
             if (showLockScreenNotifications || showRaiseHandNotifications) {
-                // notifications only make sense for active status
-                if (!cc.clientConnection.status.clientActiveStatus) {
-                    return false;
-                }
-
-                if (cc.pendingNotification()) {
-
-                    final boolean lock = showLockScreenNotifications && sebClientNotificationService
-                            .hasPendingNotification(cc.clientConnection, NotificationType.LOCK_SCREEN );
-                    final boolean raise =  showRaiseHandNotifications && sebClientNotificationService
-                            .hasPendingNotification(cc.clientConnection, NotificationType.RAISE_HAND );
-
-                    return lock || raise;
+                final boolean lock = showLockScreenNotifications && !cc.pendingLockScreen();
+                final boolean raise = showRaiseHandNotifications && !cc.pendingRaiseHand();
+                if (showLockScreenNotifications && showRaiseHandNotifications) {
+                    return !(lock && raise);
                 } else {
-                    return false;
+                    return !(lock || raise);
                 }
             }
             

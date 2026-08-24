@@ -8,13 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -73,7 +67,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.PendingNotificationIndication;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 
 public class ModelObjectJSONGenerator {
@@ -120,8 +113,8 @@ public class ModelObjectJSONGenerator {
 
         domainObject = new LmsSetupTestResult(
                 LmsType.MOCKUP,
-                Arrays.asList(new LmsSetupTestResult.LmsSetupError(ErrorType.QUIZ_ACCESS_API_REQUEST, "No Access")),
-                Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of()));
+                List.of(new LmsSetupTestResult.LmsSetupError(ErrorType.QUIZ_ACCESS_API_REQUEST, "No Access")),
+                List.of(APIMessage.ErrorMessage.UNEXPECTED.of()));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -277,6 +270,7 @@ public class ModelObjectJSONGenerator {
         domainObject = new ClientConnectionData(
                 false,
                 false,
+                false,
                 new ClientConnection(
                         1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
                         "user-account-1", "86.119.30.213",
@@ -302,12 +296,7 @@ public class ModelObjectJSONGenerator {
                         123L, false, 123L,
                         true,
                         false, null, null),
-                new PendingNotificationIndication() {
-                    @Override
-                    public boolean notificationPending() {
-                        return false;
-                    }
-                },
+                (type) -> false,
                 Arrays.asList(
                         new ClientIndicatorTestImpl(1L, 1.0),
                         new ClientIndicatorTestImpl(2L, 2.0),
@@ -341,9 +330,9 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new EntityProcessingReport(
-                Arrays.asList(new EntityKey(1L, EntityType.EXAM)),
-                Arrays.asList(new EntityKey(1L, EntityType.INDICATOR), new EntityKey(2L, EntityType.INDICATOR)),
-                Arrays.asList(new EntityProcessingReport.ErrorEntry(new EntityKey(2L, EntityType.INDICATOR),
+                List.of(new EntityKey(1L, EntityType.EXAM)),
+                List.of(new EntityKey(1L, EntityType.INDICATOR), new EntityKey(2L, EntityType.INDICATOR)),
+                List.of(new EntityProcessingReport.ErrorEntry(new EntityKey(2L, EntityType.INDICATOR),
                         APIMessage.ErrorMessage.UNEXPECTED.of())),
                 BulkActionType.HARD_DELETE);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
@@ -371,7 +360,6 @@ public class ModelObjectJSONGenerator {
 
         @Override
         public Long getIndicatorId() {
-            // TODO Auto-generated method stub
             return this.indicatorId;
         }
 

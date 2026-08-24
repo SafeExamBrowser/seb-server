@@ -57,15 +57,15 @@ public class InternalClientConnectionDataFactory {
             // dispose notification indication for closed or disabled connection
             result = new ClientConnectionDataInternal(
                     clientConnection,
-                    () -> false,
+                    (type) -> false,
                     this.clientIndicatorFactory.createFor(clientConnection),
                     getGroupIds(clientConnection));
         } else {
 
             result = new ClientConnectionDataInternal(
                     clientConnection,
-                    () -> this.sebClientNotificationService
-                            .hasAnyPendingNotification(clientConnection),
+                    (type) -> this.sebClientNotificationService
+                            .hasPendingNotification(clientConnection, type),
                     this.clientIndicatorFactory.createFor(clientConnection),
                     getGroupIds(clientConnection));
         }

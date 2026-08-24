@@ -30,10 +30,11 @@ public interface ClientMonitoringDataView {
     String ATTR_NOTIFICATION_FLAG = "nf";
 
     int FLAG_MISSING_PING = 1;
-    int FLAG_PENDING_NOTIFICATION = 2;
+    int FLAG_PENDING_LOCK_SCREEN = 2;
     int FLAG_GRANT_NOT_CHECKED = 4;
     int FLAG_GRANT_DENIED = 8;
     int FLAG_INVALID_SEB_VERSION = 16;
+    int FLAG_PENDING_RAISE_HAND = 32;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     Long getId();
@@ -70,9 +71,14 @@ public interface ClientMonitoringDataView {
         return notificationFlag != null && (notificationFlag & FLAG_INVALID_SEB_VERSION) > 0;
     }
 
-    default boolean isPendingNotification() {
+    default boolean hasPendingLockScreen() {
         final Integer notificationFlag = notificationFlag();
-        return notificationFlag != null && (notificationFlag & FLAG_PENDING_NOTIFICATION) > 0;
+        return notificationFlag != null && (notificationFlag & FLAG_PENDING_LOCK_SCREEN) > 0;
+    }
+
+    default boolean hasPendingRaiseHand() {
+        final Integer notificationFlag = notificationFlag();
+        return notificationFlag != null && (notificationFlag & FLAG_PENDING_RAISE_HAND) > 0;
     }
 
     static Predicate<ClientMonitoringDataView> getStatusPredicate(final ConnectionStatus... status) {

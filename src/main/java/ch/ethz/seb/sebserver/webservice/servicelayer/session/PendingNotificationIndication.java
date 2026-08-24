@@ -8,9 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
+
 @FunctionalInterface
 public interface PendingNotificationIndication {
 
-    boolean notificationPending();
+    boolean notificationPending(ClientNotification.NotificationType type);
 
 }

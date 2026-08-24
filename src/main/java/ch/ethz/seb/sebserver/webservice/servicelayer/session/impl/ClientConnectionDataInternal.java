@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.session.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +20,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientStaticData;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PendingNotificationIndication;
@@ -102,18 +99,27 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     }
 
     @Override
-    @JsonProperty(ATTR_PENDING_NOTIFICATION)
-    public final Boolean pendingNotification() {
+    @JsonProperty(ATTR_PENDING_LOCK_SCREEN)
+    public Boolean pendingLockScreen() {
         if (!clientConnection.status.clientActiveStatus) {
             return false;
         }
-        return this.pendingNotificationIndication.notificationPending();
+        return this.pendingNotificationIndication.notificationPending(ClientNotification.NotificationType.LOCK_SCREEN);
+    }
+
+    @Override
+    @JsonProperty(ATTR_PENDING_RISE_HAND)
+    public Boolean pendingRaiseHand() {
+        if (!clientConnection.status.clientActiveStatus) {
+            return false;
+        }
+        return this.pendingNotificationIndication.notificationPending(ClientNotification.NotificationType.RAISE_HAND);
     }
 
     @Override
     @JsonIgnore
     public final boolean hasAnyIncident() {
-        return getMissingPing() || pendingNotification() || hasIncident();
+        return getMissingPing() || pendingLockScreen() || pendingRaiseHand() || hasIncident();
     }
 
     @JsonIgnore
@@ -184,10 +190,11 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         @Override
         public Integer notificationFlag() {
             final int flag = (isMissingPing() ? ClientMonitoringDataView.FLAG_MISSING_PING : 0)
-                    | (isPendingNotification() ? ClientMonitoringDataView.FLAG_PENDING_NOTIFICATION : 0)
+                    | (hasPendingLockScreen() ? ClientMonitoringDataView.FLAG_PENDING_LOCK_SCREEN : 0)
                     | (!isGrantChecked() ? ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED : 0)
                     | (isGrantDenied() ? ClientMonitoringDataView.FLAG_GRANT_DENIED : 0)
-                    | (isSEBVersionDenied() ? ClientMonitoringDataView.FLAG_INVALID_SEB_VERSION : 0);
+                    | (isSEBVersionDenied() ? ClientMonitoringDataView.FLAG_INVALID_SEB_VERSION : 0)
+                    | (hasPendingRaiseHand() ? ClientMonitoringDataView.FLAG_PENDING_RAISE_HAND : 0);
             
             return (flag > 0) ? flag : null;
         }
@@ -200,8 +207,14 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
         @Override
         @JsonIgnore
-        public boolean isPendingNotification() {
-            return BooleanUtils.isTrue(pendingNotification());
+        public boolean hasPendingLockScreen() {
+            return BooleanUtils.isTrue(ClientConnectionDataInternal.this.pendingLockScreen());
+        }
+
+        @Override
+        @JsonIgnore
+        public boolean hasPendingRaiseHand() {
+            return BooleanUtils.isTrue(ClientConnectionDataInternal.this.pendingRaiseHand());
         }
 
         @Override
