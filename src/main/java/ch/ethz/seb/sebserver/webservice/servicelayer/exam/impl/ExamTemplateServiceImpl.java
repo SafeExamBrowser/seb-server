@@ -168,7 +168,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         : null;
                 examTemplate.clientGroupTemplates
                         .stream()
-                        .filter( it -> selectedClientGroupIds == null || selectedClientGroupIds.contains(it.id))
+                        .filter( it -> selectedClientGroupIds != null && selectedClientGroupIds.contains(it.id))
                         .forEach(it -> createClientGroupFromTemplate(it, exam));
             }
 
