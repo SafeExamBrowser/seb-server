@@ -81,4 +81,6 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
      * @param configTemplateId The Configuration Template identifier
      * @return true if there exists any Exam Template that uses the Configuration Template with given id */
     boolean hasAnyExamTemplateWithConfigTemplate(Long configTemplateId);
+
+    Result<Collection<Long>> getAllIds();
 }

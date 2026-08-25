@@ -420,16 +420,16 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 // if we change to APPLY_SEB_GROUPS strategy and there are no sebGroupsSelection we set all SEB groups
                 // to avoid data inconsistency
-                String sebGroupsSelection = currentSPSSettings.sebGroupsSelection;
-                if (collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS && sebGroupsSelection == null) {
-                    sebGroupsSelection = examTemplateDAO
-                            .getClientGroupTemplates(examTemplate.id)
-                            .map(groups ->
-                                    StringUtils.join(groups.stream().map(
-                                            ClientGroupTemplate::getModelId).toList(),
-                                            Constants.LIST_SEPARATOR))
-                            .getOr(null);
-                }
+                final String sebGroupsSelection = currentSPSSettings.sebGroupsSelection;
+//                if (collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS && sebGroupsSelection == null) {
+//                    sebGroupsSelection = examTemplateDAO
+//                            .getClientGroupTemplates(examTemplate.id)
+//                            .map(groups ->
+//                                    StringUtils.join(groups.stream().map(
+//                                            ClientGroupTemplate::getModelId).toList(),
+//                                            Constants.LIST_SEPARATOR))
+//                            .getOr(null);
+//                }
 
                 final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
                         currentSPSSettings.examId,
@@ -461,8 +461,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     }
 
     @Override
-    public ExamTemplate applyExamTemplateAdditionalData(ExamTemplate examTemplate) {
-
+    public ExamTemplate applyExamTemplateAdditionalData(final ExamTemplate examTemplate) {
 
             // apply SPS Settings
             final ScreenProctoringSettings spsSettings = this.proctoringServiceSettingsService
@@ -608,6 +607,27 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         }
     }
 
+    @Override
+    public void fixForV3(final Long templateId) {
+        try {
+
+            final ExamTemplate examTemplate = examTemplateDAO
+                    .byPK(templateId)
+                    .map(this::applyExamTemplateAdditionalData)
+                    .getOrThrow();
+
+            final Map<String, String> examAttributes = examTemplate.getExamAttributes();
+            final String strategy = examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY);
+
+            System.out.println("************** templateId: " + templateId + " strategy: " + strategy);
+
+        } catch (Exception e) {
+            log.error("Failed to repair Exam Template for V3.0 and apply valid SPS collection strategy. ExamTemplate id: {}, cause: {}",
+                    templateId,
+                    e.getMessage());
+        }
+    }
+
     private void updateConfigurationTemplate(final ExamTemplate examTemplate) {
         if (examTemplate.configTemplateId == null) {
             return;
@@ -673,6 +693,11 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         } catch (Exception e) {
             log.error("Failed to delete configuration template for exam template: {} cause: {}", event.getExamTemplate(), e.getMessage());
         }
+    }
+
+    @Override
+    public Result<Collection<Long>> getAllIds() {
+        return examTemplateDAO.getAllIds();
     }
 
 

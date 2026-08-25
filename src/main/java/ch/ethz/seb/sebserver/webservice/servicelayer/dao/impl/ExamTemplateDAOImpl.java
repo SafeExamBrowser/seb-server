@@ -555,6 +555,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean hasAnyExamTemplateWithConfigTemplate(final Long configTemplateId) {
         try {
 
@@ -576,6 +577,16 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
         // return true for safety reasons
         return true;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> getAllIds() {
+        return Result.tryCatch(() ->  this.examTemplateRecordMapper
+                .selectIdsByExample()
+                .build()
+                .execute()
+        );
     }
 
     private Result<ExamTemplateRecord> recordById(final Long id) {

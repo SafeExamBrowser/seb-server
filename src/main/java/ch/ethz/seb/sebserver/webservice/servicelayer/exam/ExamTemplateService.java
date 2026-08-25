@@ -118,6 +118,11 @@ public interface ExamTemplateService {
                 .toList());
     }
 
+    /** This fixes old legacy Exam Templates for V3.0.
+     * Checks if deprecated SPS collection strategy "EXAM" is set and if so, apply valid  SPS collection strategy "APPLY_SEB_GROUPS"
+     * @param templateId the PK of the ExamTemplate to repair. */
+    void fixForV3(Long templateId);
+
     /** Creates a new client group template
      *
      * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)
@@ -199,4 +204,5 @@ public interface ExamTemplateService {
         return ConfigurationNodeDAO.TEMPORARY_TEMPLATE_PREFIX + UUID.randomUUID();
     }
 
+    Result<Collection<Long>> getAllIds();
 }

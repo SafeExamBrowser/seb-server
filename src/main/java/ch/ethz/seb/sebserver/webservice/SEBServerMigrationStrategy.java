@@ -29,19 +29,13 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
     private final boolean cleanDBOnStartup;
     private final ApplicationContext applicationContext;
-//    private final WebserviceInfo webserviceInfo;
-//    private final WebserviceInfoDAO webserviceInfoDAO;
     private Flyway flyway;
 
     public SEBServerMigrationStrategy(
-//            final WebserviceInfo webserviceInfo,
-//            final WebserviceInfoDAO webserviceInfoDAO,
             final ApplicationContext applicationContext,
             @Value("${sebserver.webservice.clean-db-on-startup:false}") final boolean cleanDBOnStartup) {
-        this.applicationContext = applicationContext;
 
-//        this.webserviceInfo = webserviceInfo;
-//        this.webserviceInfoDAO = webserviceInfoDAO;
+        this.applicationContext = applicationContext;
         this.cleanDBOnStartup = cleanDBOnStartup;
     }
 
