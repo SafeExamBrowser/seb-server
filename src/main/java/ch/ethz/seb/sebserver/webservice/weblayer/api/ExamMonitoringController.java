@@ -602,7 +602,7 @@ public class ExamMonitoringController {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @RequestParam(name = API.EXAM_MONITORING_UNLOCK_SCREENS_TOKENS, required = true) final String connectionTokens) {
+            @RequestParam(name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN, required = true) final String connectionTokens) {
 
         checkPrivileges(institutionId, examId);
 
@@ -610,7 +610,7 @@ public class ExamMonitoringController {
             return;
         }
 
-        final Set<String> tokens = new HashSet<>(Arrays.asList(StringUtils.split(connectionTokens)));
+        final Set<String> tokens = new HashSet<>(Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR_CHAR)));
 
         this.sebClientNotificationService
                 .unlockScreens(examId, tokens)
