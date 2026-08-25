@@ -72,5 +72,11 @@ public interface SEBClientNotificationService {
             String connectionToken);
 
 
+    /** For all connections defined by the set of connectionTokens, unlocks the screen when there is a pending
+     * lock screen notification for each client connection
+     *
+     * @param examId the Exam identifier (PK)
+     * @param connectionTokens Set of connectionToken values
+     * @return List of all pending notifications that has been confirmed by this action */
     Result<Collection<ClientNotification>> unlockScreens(Long examId, Set<String> connectionTokens);
 }

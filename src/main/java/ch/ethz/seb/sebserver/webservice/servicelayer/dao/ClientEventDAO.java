@@ -56,6 +56,10 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
      * @return Result refer to the list of pending notifications or to an error when happened */
     Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
 
+    /** Get all pending notifications of lock screen for a given set client connection PKs.
+     *
+     * @param connectionIds The set of client connection identifier
+     * @return Result refer to the list of pending notifications or to an error when happened */
     Result<List<ClientNotification>> getPendingLockScreenNotifications(Set<Long> connectionIds);
 
     /** Get all identifiers (PKs) of client connections of a given exam that has any pending notification
