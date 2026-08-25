@@ -13,7 +13,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamImportService {
 
-    Result<Exam> applyExamImportInitialization(Exam exam);
+    Result<Exam> applyExamImportInitialization(Exam exam, final boolean applyAllGroups);
 
     /** Initializes initial additional attributes for a yet created exam.
      *

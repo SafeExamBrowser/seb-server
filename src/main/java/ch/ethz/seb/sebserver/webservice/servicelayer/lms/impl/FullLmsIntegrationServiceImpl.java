@@ -592,7 +592,7 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             final Exam exam = new Exam(null, quizData, post);
             return examDAO
                     .createNew(exam)
-                    .flatMap(examImportService::applyExamImportInitialization)
+                    .flatMap(e -> examImportService.applyExamImportInitialization(e, true))
                     .map( e -> this.applyQuitLinkToSEBConfig(e, showQuitLink))
                     .map(this::logExamCreated)
                     .getOrThrow();

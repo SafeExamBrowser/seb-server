@@ -81,7 +81,7 @@ public class ExamImportServiceImpl implements ExamImportService {
 
 
     @Override
-    public Result<Exam> applyExamImportInitialization(final Exam exam) {
+    public Result<Exam> applyExamImportInitialization(final Exam exam, final boolean applyAllGroups) {
         final List<APIMessage> errors = new ArrayList<>();
 
         this.initAdditionalAttributes(exam)
@@ -105,13 +105,13 @@ public class ExamImportServiceImpl implements ExamImportService {
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
                 .flatMap(examAdminService::applyQuitPassword)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_QUIT_PASSWORD))
-                .flatMap(examTemplateService::applyScreenProctoringSettingsForExam)
+                .flatMap(e -> examTemplateService.applyScreenProctoringSettingsForExam(e, applyAllGroups))
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS))
                 .flatMap(examAdminService::applySPSEnabled)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED));
 
         if (!errors.isEmpty()) {
-            errors.add(0, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
+            errors.addFirst(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
                     exam.getModelId(),
                     API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + exam.getModelId()));
 
