@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
@@ -622,6 +621,24 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             System.out.println("************** templateId: " + templateId + " strategy: " + strategy);
 
+            if (Objects.equals(strategy, CollectingStrategy.EXAM.name())) {
+
+                if (examTemplate.id == 0L) {
+                    log.info("**** Change collecting strategy form 'EXAM' to 'APPLY_SEB_GROUPS' for: {}", examTemplate);
+
+                    final EntityKey entityKey = examTemplate.getEntityKey();
+                    final ScreenProctoringSettings screenProctoringSettings = proctoringAdminService
+                            .getScreenProctoringSettings(entityKey)
+                            .getOrThrow();
+
+                    this.saveSPSSettings(
+                            Collections.emptySet(),
+                            entityKey,
+                            CollectingStrategy.APPLY_SEB_GROUPS,
+                            screenProctoringSettings);
+                }
+            }
+
         } catch (Exception e) {
             log.error("Failed to repair Exam Template for V3.0 and apply valid SPS collection strategy. ExamTemplate id: {}, cause: {}",
                     templateId,
@@ -745,7 +762,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 spsGroupIds.remove(String.valueOf(clientGroupTemplate.id));
             }
 
-            saveSPSSettings(spsGroupIds, templateKey, screenProctoringSettings);
+            saveSPSSettings(spsGroupIds, templateKey, null, screenProctoringSettings);
 
         } catch (Exception e) {
             log.error(
@@ -774,7 +791,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             // update SPS Group mapping
             spsGroupIds.remove(entityKey.modelId);
-            saveSPSSettings(spsGroupIds, templateKey, screenProctoringSettings);
+            saveSPSSettings(spsGroupIds, templateKey, null, screenProctoringSettings);
 
         } catch (Exception e) {
             log.error(
@@ -789,7 +806,12 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private void saveSPSSettings(
             final Set<String> spsGroupIds,
             final EntityKey templateKey,
+            final CollectingStrategy newCollectingStrategy,
             final ScreenProctoringSettings screenProctoringSettings) {
+
+        final CollectingStrategy collectingStrategy = (newCollectingStrategy != null)
+                ? newCollectingStrategy
+                : screenProctoringSettings.collectingStrategy;
 
         final String newSPSGroupIds = !spsGroupIds.isEmpty()
                 ? StringUtils.join(spsGroupIds, Constants.LIST_SEPARATOR_CHAR)
@@ -806,7 +828,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                                 screenProctoringSettings.spsAPISecret,
                                 screenProctoringSettings.spsAccountId,
                                 screenProctoringSettings.spsAccountPassword,
-                                screenProctoringSettings.collectingStrategy,
+                                collectingStrategy,
                                 screenProctoringSettings.collectingGroupName,
                                 screenProctoringSettings.collectingGroupSize,
                                 newSPSGroupIds,
