@@ -418,6 +418,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         ? CollectingStrategy.valueOf(examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY))
                         : currentSPSSettings.collectingStrategy;
 
+                // TODO test this and remove of not necessary: SEBSERV-977
                 // if we change to APPLY_SEB_GROUPS strategy and there are no sebGroupsSelection we set all SEB groups
                 // to avoid data inconsistency
                 final String sebGroupsSelection = currentSPSSettings.sebGroupsSelection;
