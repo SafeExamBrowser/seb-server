@@ -75,9 +75,8 @@ public interface ExamTemplateService {
      * The Exam Template is referenced by the Exam itself.
      *
      * @param exam The exam to apply the screen proctoring settings from Exam  related Exam Template.
-     * @param applyAllGroups indicates that all groups shall be applied if there is no group selection
      * @return Result refer to teh Exam with applied SPS settings */
-    Result<Exam> applyScreenProctoringSettingsForExam(Exam exam, boolean applyAllGroups);
+    Result<Exam> applyScreenProctoringSettingsForExam(Exam exam);
 
     Result<ExamTemplate> createExamTemplateAdditionalData(Long createdTemplateId, ExamTemplate examTemplate);
 

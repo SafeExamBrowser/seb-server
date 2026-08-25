@@ -277,7 +277,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     }
 
     @Override
-    public  Result<Exam> applyScreenProctoringSettingsForExam(final Exam exam, final boolean applyAllGroups) {
+    public  Result<Exam> applyScreenProctoringSettingsForExam(final Exam exam) {
         if (exam.examTemplateId == null) {
             return Result.of(exam);
         }
@@ -297,7 +297,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             if (!screenProctoringSettings.hasError()) {
                 return screenProctoringSettings
-                        .map(settings -> convertSPSTemplateSettings(exam, examTemplate, settings, applyAllGroups))
+                        .map(settings -> convertSPSTemplateSettings(exam, examTemplate, settings))
                         .map(settings -> proctoringAdminService
                                 .saveScreenProctoringSettings(exam.getEntityKey(), settings)
                                 .getOrThrow())
@@ -841,20 +841,12 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private ScreenProctoringSettings convertSPSTemplateSettings(
             final Exam exam,
             final ExamTemplate examTemplate,
-            final ScreenProctoringSettings screenProctoringSettings,
-            final boolean applyAllGroups) {
+            final ScreenProctoringSettings screenProctoringSettings) {
 
         if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS) {
-            final Set<Long> selectedTemplateIds = new HashSet<>();
 
-            if (StringUtils.isBlank(screenProctoringSettings.sebGroupsSelection)) {
-                if (applyAllGroups) {
-                    // add all groups as selected
-                    examTemplate.getClientGroupTemplates().forEach(group -> {
-                        selectedTemplateIds.add(group.id);
-                    });
-                }
-            } else {
+            final Set<Long> selectedTemplateIds = new HashSet<>();
+            if (!StringUtils.isBlank(screenProctoringSettings.sebGroupsSelection)) {
                 // in this case we need to map the selected template client groups to the just created exam client groups
                 selectedTemplateIds.addAll(Arrays.stream(StringUtils.split(
                                 screenProctoringSettings.sebGroupsSelection,

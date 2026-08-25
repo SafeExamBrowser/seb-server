@@ -105,7 +105,7 @@ public class ExamImportServiceImpl implements ExamImportService {
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
                 .flatMap(examAdminService::applyQuitPassword)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_QUIT_PASSWORD))
-                .flatMap(e -> examTemplateService.applyScreenProctoringSettingsForExam(e, applyAllGroups))
+                .flatMap(examTemplateService::applyScreenProctoringSettingsForExam)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SCREEN_PROCTORING_SETTINGS))
                 .flatMap(examAdminService::applySPSEnabled)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED));
