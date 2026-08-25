@@ -88,7 +88,7 @@ public class ExamImportServiceImpl implements ExamImportService {
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
                 .flatMap(this.examTemplateService::addDefinedIndicators)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR))
-                .flatMap(this.examTemplateService::addDefinedClientGroups)
+                .flatMap(e -> this.examTemplateService.addDefinedClientGroups(e, applyAllGroups))
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS))
                 .flatMap(this.examTemplateService::initAdditionalTemplateAttributes)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))

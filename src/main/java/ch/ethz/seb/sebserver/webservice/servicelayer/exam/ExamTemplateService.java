@@ -49,7 +49,7 @@ public interface ExamTemplateService {
      *
      * @param exam The Exam to add the client groups
      * @return Result refer to the Exam with added client groups or to an error if happened */
-    Result<Exam> addDefinedClientGroups(Exam exam);
+    Result<Exam> addDefinedClientGroups(Exam exam, boolean applyAllGroups);
 
     /** Initializes additional exam template attributes for a specified Exam on creation.
      *

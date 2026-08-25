@@ -136,7 +136,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     }
 
     @Override
-    public Result<Exam> addDefinedClientGroups(final Exam exam) {
+    public Result<Exam> addDefinedClientGroups(final Exam exam, final boolean applyAllGroups) {
         return Result.tryCatch(() -> {
 
             if (exam.examTemplateId != null) {
@@ -165,9 +165,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                                 .map(Long::parseLong)
                                 .collect(Collectors.toSet())
                         : null;
+
                 examTemplate.clientGroupTemplates
                         .stream()
-                        .filter( it -> selectedClientGroupIds != null && selectedClientGroupIds.contains(it.id))
+                        .filter( it -> applyAllGroups || (selectedClientGroupIds != null && selectedClientGroupIds.contains(it.id)))
                         .forEach(it -> createClientGroupFromTemplate(it, exam));
             }
 
