@@ -56,6 +56,8 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
      * @return Result refer to the list of pending notifications or to an error when happened */
     Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
 
+    Result<List<ClientNotification>> getPendingLockScreenNotifications(Set<Long> connectionIds);
+
     /** Get all identifiers (PKs) of client connections of a given exam that has any pending notification
      *
      * @param examId the exam identifier
@@ -75,5 +77,6 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
     Result<Set<EntityKey>> getNotificationIdsForExam(Long examId);
 
     Result<Collection<EntityKey>> deleteClientNotification(Set<EntityKey> keys);
+
 
 }

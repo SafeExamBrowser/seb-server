@@ -10,12 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -715,7 +710,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 throw new IllegalStateException("Only one ClientConnection expected but there are: " + list.size());
             }
 
-            return list.get(0);
+            return list.getFirst();
         })
                 .flatMap(ClientConnectionDAOImpl::toDomainModel);
     }
@@ -834,7 +829,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, clientName);
             }
 
-            return records.get(0);
+            return records.getFirst();
         });
     }
 
@@ -1007,6 +1002,24 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .where(ClientConnectionRecordDynamicSqlSupport.examUserSessionId, SqlBuilder.isLike(Utils.toSQLWildcard(searchName)))
                     .build()
                     .execute();
+        });
+    }
+
+    @Override
+    public Result<Map<Long, String>> getAllIdsForConnectionTokens(final Long examId, final Set<String> connectionTokens) {
+        return Result.tryCatch(() -> {
+            if (connectionTokens == null || connectionTokens.isEmpty()) {
+                return Collections.emptyMap();
+            }
+
+            return clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .and(ClientConnectionRecordDynamicSqlSupport.connectionToken, isIn(connectionTokens))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Collectors.toMap(ClientConnectionRecord::getId, ClientConnectionRecord::getConnectionToken));
         });
     }
 
@@ -1193,7 +1206,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .map(ClientConnectionRecord::getConnectionToken)
                 .collect(Collectors.toList());
 
-        if (connectionTokens != null && !connectionTokens.isEmpty()) {
+        if (!connectionTokens.isEmpty()) {
 
             this.clientInstructionRecordMapper.deleteByExample()
                     .where(

@@ -277,6 +277,8 @@ public final class API {
     public static final String EXAM_MONITORING_STATIC_CLIENT_DATA = "/static-client-data";
     public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
     public static final String EXAM_MONITORING_NOTIFICATION_ENDPOINT = "/notification";
+    public static final String EXAM_MONITORING_UNLOCK_SCREENS_ENDPOINT = "/notification/unlock-screens";
+    public static final String EXAM_MONITORING_UNLOCK_SCREENS_TOKENS = "connection-tokens";
     public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";
     public static final String EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT = "/signature";
     public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";

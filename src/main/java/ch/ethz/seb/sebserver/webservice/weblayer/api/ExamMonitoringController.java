@@ -593,6 +593,35 @@ public class ExamMonitoringController {
 
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_UNLOCK_SCREENS_ENDPOINT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public void unlockScreens(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @RequestParam(name = API.EXAM_MONITORING_UNLOCK_SCREENS_TOKENS, required = true) final String connectionTokens) {
+
+        checkPrivileges(institutionId, examId);
+
+        if (StringUtils.isBlank(connectionTokens)) {
+            return;
+        }
+
+        final Set<String> tokens = new HashSet<>(Arrays.asList(StringUtils.split(connectionTokens)));
+
+        this.sebClientNotificationService
+                .unlockScreens(examId, tokens)
+                .onError(error -> {
+                    log.error("Failed to unlock screens for exam: {} connections: {} cause: {}",
+                             examId, tokens, error.getMessage());
+                });
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)

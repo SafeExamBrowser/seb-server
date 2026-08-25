@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -69,5 +71,6 @@ public interface SEBClientNotificationService {
             Long examId,
             String connectionToken);
 
-   
+
+    Result<Collection<ClientNotification>> unlockScreens(Long examId, Set<String> connectionTokens);
 }

@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -261,4 +262,13 @@ public interface ClientConnectionDAO extends
     Long numberOfConnectionsOfExam(Long examId);
 
     Result<Collection<ClientConnectionRecord>> getAllForUserSessionNameLike(String searchName);
+
+    /** Get all PK ids for given connection tokens and map the PK to the connection token.
+     *  If there is no connection for a given connection token, the request is ignored and no PK is added to the result set.
+     *  So it is possible that the result is a set of less PKs then the given set of connection tokens
+     *
+     * @param connectionTokens Set of connectinTokens to get the ids from
+     * @param examId The exam id
+     * @return Map of all ids extracted PKs from the given set of connection tokens */
+    Result<Map<Long, String>> getAllIdsForConnectionTokens(Long examId, Set<String> connectionTokens);
 }
