@@ -875,6 +875,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .filter(g -> selectedNames.contains(g.name))
                     .map(g -> String.valueOf(g.id))
                     .toList();
+
+            System.out.println("*********************** selectedTemplateIds: " + selectedTemplateIds);
+            System.out.println("*********************** selectedInstances: " + selectedInstances);
             
             return new ScreenProctoringSettings(
                     exam.id,
