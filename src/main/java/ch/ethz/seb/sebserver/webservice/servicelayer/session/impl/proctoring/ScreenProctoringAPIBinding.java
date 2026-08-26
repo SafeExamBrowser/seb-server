@@ -1309,6 +1309,9 @@ public class ScreenProctoringAPIBinding {
         if (userInfo.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
             spsUserRoles.add(SPSUserRole.ADMIN.name());
         }
+        if (userInfo.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name())) {
+            spsUserRoles.add(SPSUserRole.INST_ADMIN.name());
+        }
 
         return new UserMod(
                 userInfo.uuid,

@@ -29,6 +29,7 @@ interface SPS_API {
     
     enum SPSUserRole {
         ADMIN,
+        INST_ADMIN,
         PROCTOR
     }
 
