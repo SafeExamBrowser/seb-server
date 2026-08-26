@@ -622,20 +622,19 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             if (Objects.equals(strategy, CollectingStrategy.EXAM.name())) {
 
-                if (examTemplate.id == 3L) {
-                    log.info("**** Change collecting strategy form 'EXAM' to 'APPLY_SEB_GROUPS' for: {}", examTemplate);
+                log.info("**** Change collecting strategy form 'EXAM' to 'APPLY_SEB_GROUPS' for: {}", examTemplate.name);
 
-                    final EntityKey entityKey = examTemplate.getEntityKey();
-                    final ScreenProctoringSettings screenProctoringSettings = proctoringAdminService
-                            .getScreenProctoringSettings(entityKey)
-                            .getOrThrow();
+                final EntityKey entityKey = examTemplate.getEntityKey();
+                final ScreenProctoringSettings screenProctoringSettings = proctoringAdminService
+                        .getScreenProctoringSettings(entityKey)
+                        .getOrThrow();
 
-                    this.saveSPSSettings(
-                            Collections.emptySet(),
-                            entityKey,
-                            CollectingStrategy.APPLY_SEB_GROUPS,
-                            screenProctoringSettings);
-                }
+                this.saveSPSSettings(
+                        Collections.emptySet(),
+                        entityKey,
+                        CollectingStrategy.APPLY_SEB_GROUPS,
+                        screenProctoringSettings);
+
             }
 
         } catch (Exception e) {
