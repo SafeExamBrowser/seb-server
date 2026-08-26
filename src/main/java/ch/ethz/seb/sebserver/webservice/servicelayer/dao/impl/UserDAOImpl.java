@@ -430,7 +430,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     @Transactional
-    public void updateUserRoles(Long userId, Set<UserRole> roles) {
+    public void updateUserRoles(Long userId, EnumSet<UserRole> roles) {
         final Set<String> roleNames = roles.stream().map(UserRole::getName).collect(Collectors.toSet());
         updateRolesForUser(userId, roleNames);
     }

@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.EnumSet;
 import java.util.concurrent.Executor;
 
 /** 1. Since 3.0 Every new imported Exam has an Exam Configuration from import process
@@ -110,18 +111,27 @@ public class V30_LegacyData_RepairTasks {
                                     (!user.roles.contains(UserRole.EXAM_ADMIN.name()) ||
                                      !user.roles.contains(UserRole.EXAM_SUPPORTER.name()))) {
 
-                                System.out.println("********* fix user Role: " + user);
+                                final EnumSet<UserRole> roles = EnumSet.of(
+                                        UserRole.INSTITUTIONAL_ADMIN,
+                                        UserRole.EXAM_ADMIN,
+                                        UserRole.EXAM_SUPPORTER);
+
+                                updateUserRoles(user, roles);
 
                             } else if (user.roles.contains(UserRole.EXAM_ADMIN.name()) &&
                                     !user.roles.contains(UserRole.EXAM_SUPPORTER.name())) {
 
-                                System.out.println("********* fix user Role: " + user);
+                                final EnumSet<UserRole> roles = EnumSet.of(
+                                        UserRole.EXAM_ADMIN,
+                                        UserRole.EXAM_SUPPORTER);
+
+                                updateUserRoles(user, roles);
                             }
                         }
                     }))
                     .getOrThrow();
 
-            additionalAttributesDAO.saveAdditionalAttribute(EntityType.EXAM, 0L, USER_ROLE_REPAIR_DONE_ATTR_NAME, "true");
+            additionalAttributesDAO.saveAdditionalAttribute(EntityType.USER, 0L, USER_ROLE_REPAIR_DONE_ATTR_NAME, "true");
 
             SEBServerInit.INIT_LOGGER.info("------> Successfully finished repairing legacy User Roles and ");
 
@@ -242,5 +252,18 @@ public class V30_LegacyData_RepairTasks {
         }
 
         return true;
+    }
+
+    private void updateUserRoles(final UserInfo user, final EnumSet<UserRole> roles) {
+        SEBServerInit.INIT_LOGGER.info("--------> Update User Roles for user: {}", user);
+
+        userDAO
+                .pkForModelId(user.getModelId())
+                .onSuccess(id -> userDAO.updateUserRoles(id, roles));
+
+        final UserInfo updatedUser = userDAO.byModelId(user.getModelId()).getOr(null);
+        if (updatedUser != null) {
+            SEBServerInit.INIT_LOGGER.info("--------> Successfully update User Roles for user: {}", updatedUser);
+        }
     }
 }

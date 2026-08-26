@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -76,6 +77,6 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      *
      * @param userId The user Id to update the User Roles
      * @param roles Set of User Roles */
-    void updateUserRoles(Long userId, @NotNull Set<UserRole> roles);
+    void updateUserRoles(Long userId, @NotNull EnumSet<UserRole> roles);
 
 }
