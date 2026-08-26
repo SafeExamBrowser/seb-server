@@ -191,6 +191,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 });
     }
 
+
     @Override
     public Result<Exam> enableScreenProctoringForExam(final Exam exam, final boolean enableSP) {
         return Result.tryCatch(() -> {
@@ -293,28 +294,28 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                         .getExamProctoringService(settings.serverType));
     }
 
-    @Override
-    public Result<Exam> resetProctoringSettings(final Exam exam) {
-
-        // first delete all proctoring settings
-
-        return getProctoringServiceSettings(exam.id)
-                .map(settings -> {
-                    final ProctoringServiceSettings resetSettings;
-                    if (exam.examTemplateId != null) {
-                        // get settings from origin template
-                        resetSettings = this.proctoringAdminService
-                                .getProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE))
-                                .map(template -> new ProctoringServiceSettings(exam.id, template))
-                                .getOr(new ProctoringServiceSettings(exam.id));
-                    } else {
-                        // create new reseted settings
-                        resetSettings = new ProctoringServiceSettings(exam.id);
-                    }
-                    return resetSettings;
-                }).flatMap(settings -> saveProctoringServiceSettings(exam.id, settings))
-                .map(settings -> exam);
-    }
+//    @Override
+//    public Result<Exam> resetProctoringSettings(final Exam exam) {
+//
+//        // first delete all proctoring settings
+//
+//        return getProctoringServiceSettings(exam.id)
+//                .map(settings -> {
+//                    final ProctoringServiceSettings resetSettings;
+//                    if (exam.examTemplateId != null) {
+//                        // get settings from origin template
+//                        resetSettings = this.proctoringAdminService
+//                                .getProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE))
+//                                .map(template -> new ProctoringServiceSettings(exam.id, template))
+//                                .getOr(new ProctoringServiceSettings(exam.id));
+//                    } else {
+//                        // create new reseted settings
+//                        resetSettings = new ProctoringServiceSettings(exam.id);
+//                    }
+//                    return resetSettings;
+//                }).flatMap(settings -> saveProctoringServiceSettings(exam.id, settings))
+//                .map(settings -> exam);
+//    }
 
     @Override
     public Result<Exam>  notifyExamSaved(final Exam exam) {

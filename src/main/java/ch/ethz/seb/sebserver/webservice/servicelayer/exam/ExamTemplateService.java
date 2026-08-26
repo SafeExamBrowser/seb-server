@@ -57,7 +57,7 @@ public interface ExamTemplateService {
      * @return Result refer to the created exam or to an error when happened */
     Result<Exam> initAdditionalTemplateAttributes(Exam exam);
 
-    /** Initializes a pre defined exam configuration. The configuration template to create a exam configuration
+    /** Initializes a pre defined exam configuration. The configuration template to create an exam configuration
      * is defined by a given linked exam template. This is used to create the exam configuration and automatically
      * link it to the newly created exam
      *

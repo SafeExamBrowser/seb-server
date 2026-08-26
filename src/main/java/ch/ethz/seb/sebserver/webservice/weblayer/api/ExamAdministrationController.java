@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.DeleteExamAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
@@ -139,6 +140,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .byModelId(modelId)
                 .flatMap(this::checkReadAccess)
                 .map(this::adaptSupporterForUI)
+//                .map(exam -> {
+//                    examTemplateService.repairExamConfiguration(exam);
+//                    return exam;
+//                })
                 .getOrThrow();
     }
 
@@ -1012,34 +1017,42 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
      * @param exam The exam to adapt supporters for UI usage
      * @return Exam with adapted supporter ids for UI usage (no teachers no invalid user accounts) */
     private Exam adaptSupporterForUI(final Exam exam) {
-        List<String> uiSupporter = exam.supporter
-                .stream()
-                .filter(uuid -> {
-                    try {
-                        // check if user exists
-                        Result<UserInfo> userInfoResult = userDAO.byModelId(uuid);
-                        if (userInfoResult.hasError()) {
-                            return false;
+        try {
+            List<String> uiSupporter = exam.supporter
+                    .stream()
+                    .filter(uuid -> {
+                        try {
+                            // check if user exists
+                            Result<UserInfo> userInfoResult = userDAO.byModelId(uuid);
+                            if (userInfoResult.hasError()) {
+                                return false;
+                            }
+
+                            // if teacher user skip
+                            if (uuid.startsWith(AD_HOC_TEACHER_ID_PREFIX)) {
+                                return false;
+                            }
+
+                            return true;
+                        } catch (Exception e) {
+                            log.error("Failed to adapt supporter for Exam: {}, userId: {}, cause: {}", exam.externalId, uuid, e.getMessage());
+                            return true;
                         }
+                    })
+                    .toList();
 
-                        // if teacher user skip
-                        if (uuid.startsWith(AD_HOC_TEACHER_ID_PREFIX)) {
-                            return false;
-                        }
+            if (exam.supporter.size() == uiSupporter.size()) {
+                return exam;
+            }
 
-                        return true;
-                    } catch (Exception e) {
-                        log.error("Failed to adapt supporter for Exam: {}, userId: {}, cause: {}", exam.externalId, uuid, e.getMessage());
-                        return true;
-                    }
-                })
-                .toList();
-
-        if (exam.supporter.size() == uiSupporter.size()) {
+            return exam.withSupporter(uiSupporter);
+        } catch (Exception e) {
+            log.warn(
+                    "Failed to adapt Exam supporters for new UI (remove teacher accounts). Exam: {} Cause: {}"
+                    , exam.name
+                    , e.getMessage());
             return exam;
         }
-
-        return exam.withSupporter(uiSupporter);
     }
     
 }

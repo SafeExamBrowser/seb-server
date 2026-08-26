@@ -138,11 +138,11 @@ public interface ExamAdminService {
      * @return ExamProctoringService instance */
     Result<RemoteProctoringService> getExamProctoringService(Long examId);
 
-    /** This resets the proctoring settings for a given exam and stores the default settings.
-     *
-     * @param exam The exam reference
-     * @return Result refer to the given exam or to an error when happened */
-    Result<Exam> resetProctoringSettings(Exam exam);
+//    /** This resets the proctoring settings for a given exam and stores the default settings.
+//     *
+//     * @param exam The exam reference
+//     * @return Result refer to the given exam or to an error when happened */
+//    Result<Exam> resetProctoringSettings(Exam exam);
 
     /** This archives a finished exam and set it to archived state as well as the assigned
      * exam configurations that are also set to archived state.

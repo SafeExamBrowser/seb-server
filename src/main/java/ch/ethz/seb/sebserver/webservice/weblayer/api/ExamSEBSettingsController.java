@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.*;
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBSettingsService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
@@ -39,19 +40,22 @@ public class ExamSEBSettingsController {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamDAO examDAO;
     private final UserActivityLogDAO userActivityLogDAO;
+    private final ExamTemplateService examTemplateService;
 
     public ExamSEBSettingsController(
             final SEBSettingsService sebSettingsService,
             final AuthorizationService authorizationService,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
-            final ExamDAO examDAO, 
-            final UserActivityLogDAO userActivityLogDAO) {
+            final ExamDAO examDAO,
+            final UserActivityLogDAO userActivityLogDAO,
+            final ExamTemplateService examTemplateService) {
         
         this.sebSettingsService = sebSettingsService;
         this.authorizationService = authorizationService;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examDAO = examDAO;
         this.userActivityLogDAO = userActivityLogDAO;
+        this.examTemplateService = examTemplateService;
     }
 
     @RequestMapping(
@@ -76,14 +80,24 @@ public class ExamSEBSettingsController {
     public ExamConfigurationMap getExamConfigMappings(
             @PathVariable(name =API.PARAM_MODEL_ID) final Long examId) {
 
-        authorizationService.hasReadGrant(examDAO.byPK(examId).getOrThrow());
+        Exam exam = examDAO.byPK(examId).getOrThrow();
+        authorizationService.hasReadGrant(exam);
 
         Collection<ExamConfigurationMap> allMappings = examConfigurationMapDAO
                 .allOfExam(examId)
                 .getOrThrow();
 
         if (allMappings.isEmpty()) {
-            throw new NoResourceFoundException(EntityType.EXAM_CONFIGURATION_MAP, "for exam: " + examId);
+
+            // Try to repair the Exam by creating default SEB Settings
+            examTemplateService.repairExamConfiguration(exam);
+            allMappings = examConfigurationMapDAO
+                    .allOfExam(examId)
+                    .getOrThrow();
+
+            if (allMappings.isEmpty()) {
+                throw new NoResourceFoundException(EntityType.EXAM_CONFIGURATION_MAP, "for exam: " + examId);
+            }
         }
 
         return allMappings.iterator().next();

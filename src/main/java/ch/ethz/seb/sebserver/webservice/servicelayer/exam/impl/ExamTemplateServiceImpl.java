@@ -250,7 +250,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 mapConfigurationNodeToExam(exam,  createOrReuseConfig(exam, examTemplate));
             } else {
-                log.info("Not exam template defined for exam: {}, create Exam Configuration with default SEB Settings", exam.externalId);
+                log.info("No exam template defined for exam: {}, create Exam Configuration with default SEB Settings", exam.externalId);
                 mapConfigurationNodeToExam(exam, createOrReuseConfig(exam, null));
             }
 
@@ -927,9 +927,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 !(examTemplate != null && Objects.equals(examConfig.templateId, examTemplate.configTemplateId))) {
 
             final String newName = (examConfig != null && examConfig.name.equals(configName))
-                    ? examConfig.name + "_" + 
-                        DateTime.now(DateTimeZone.UTC).toString(Constants.STANDARD_DATE_FORMATTER) +
-                        "_(" + allConfigs.size() + ")"
+                    ? examConfig.name +
+                        "(" + allConfigs.size() + ")"
                     : configName;
 
             final ConfigurationNode config = new ConfigurationNode(
