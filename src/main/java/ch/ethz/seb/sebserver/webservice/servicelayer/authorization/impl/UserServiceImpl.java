@@ -10,10 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl;
 
 import java.beans.PropertyEditorSupport;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -116,6 +113,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfo getUser(final String userId) {
+        if (Objects.equals(userId, LMS_INTEGRATION_CLIENT_UUID)) {
+            return createLMSIntegrationClientUser().getUserInfo();
+        }
+
         final UserInfo user = this.userDAO
                 .byModelId(userId)
                 .onError(error -> log.error("Failed to find user for id: {} error: {}", userId, error.getMessage()))
@@ -166,29 +167,33 @@ public class UserServiceImpl implements UserService {
 
         private SEBServerUser isLMSIntegrationClient(final String name) {
             if (lmsClientId.equals(name)) {
-                return new SEBServerUser(
-                        -1L,
-                        new UserInfo(
-                                LMS_INTEGRATION_CLIENT_UUID,
-                                -1L,
-                                null,
-                                LMS_INTEGRATION_CLIENT_NAME,
-                                LMS_INTEGRATION_CLIENT_NAME,
-                                LMS_INTEGRATION_CLIENT_NAME, null,
-                                false,
-                                false,
-                                true,
-                                null, null,
-                                Arrays.stream(UserRole.values())
-                                        .map(Enum::name)
-                                        .collect(Collectors.toSet()),
-                                Collections.emptyList(),
-                                Collections.emptyList()),
-                        null);
+                return createLMSIntegrationClientUser();
             }
             return null;
         }
 
+    }
+
+    private static SEBServerUser createLMSIntegrationClientUser() {
+        return new SEBServerUser(
+                -1L,
+                new UserInfo(
+                        LMS_INTEGRATION_CLIENT_UUID,
+                        -1L,
+                        null,
+                        LMS_INTEGRATION_CLIENT_NAME,
+                        LMS_INTEGRATION_CLIENT_NAME,
+                        LMS_INTEGRATION_CLIENT_NAME, null,
+                        false,
+                        false,
+                        true,
+                        null, null,
+                        Arrays.stream(UserRole.values())
+                                .map(Enum::name)
+                                .collect(Collectors.toSet()),
+                        Collections.emptyList(),
+                        Collections.emptyList()),
+                null);
     }
 
     // 2. Separated thread strategy
