@@ -9,13 +9,16 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
+import jakarta.validation.constraints.NotNull;
 
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data
@@ -67,4 +70,12 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      *
      * @return Result with List of all active user account UUIDs or an error when happened */
     Result<Collection<String>> getAllActiveUsersUUID();
+
+    /** Used to update User Roles of a given user. This is used for repair tasks for V30
+     * This does not make a merge, it deletes the old roles and inserts the new given roles.
+     *
+     * @param userId The user Id to update the User Roles
+     * @param roles Set of User Roles */
+    void updateUserRoles(Long userId, @NotNull Set<UserRole> roles);
+
 }

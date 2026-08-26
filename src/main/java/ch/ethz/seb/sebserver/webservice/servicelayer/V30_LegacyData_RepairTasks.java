@@ -6,11 +6,14 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,23 +34,27 @@ import java.util.concurrent.Executor;
 @Component
 public class V30_LegacyData_RepairTasks {
 
+    private static final String USER_ROLE_REPAIR_DONE_ATTR_NAME = "V3_USER_ROLE_REPAIR_DONE";
     private static final String EXAM_REPAIR_DONE_ATTR_NAME = "V3_EXAM_REPAIR_DONE";
     private static final String EXAM_TEMPLATE_REPAIR_DONE_ATTR_NAME = "V3_EXAM_TEMPLATE_REPAIR_DONE";
 
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ExamDAO examDAO;
+    private final UserDAO userDAO;
     private final ExamTemplateService examTemplateService;
     private final WebserviceInfo webserviceInfo;
     private final Executor executor;
 
     public V30_LegacyData_RepairTasks(
             final AdditionalAttributesDAO additionalAttributesDAO, final ExamDAO examDAO,
+            final UserDAO userDAO,
             final ExamTemplateService examTemplateService,
             final WebserviceInfo webserviceInfo,
             final @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) Executor executor) {
 
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.examDAO = examDAO;
+        this.userDAO = userDAO;
         this.examTemplateService = examTemplateService;
         this.webserviceInfo = webserviceInfo;
         this.executor = executor;
@@ -68,8 +75,59 @@ public class V30_LegacyData_RepairTasks {
         SEBServerInit.INIT_LOGGER.info("------> Check to apply reparation task for legacy Data for version 3.0");
         SEBServerInit.INIT_LOGGER.info("------>");
 
-        executor.execute(this::repairExams);
-        executor.execute(this::repairExamTemplates);
+        repairUserRoles();
+        repairExams();
+        repairExamTemplates();
+    }
+
+    private void repairUserRoles() {
+        try {
+
+            try {
+
+                AdditionalAttributeRecord attr = additionalAttributesDAO
+                        .getAdditionalAttribute(EntityType.USER, 0L, USER_ROLE_REPAIR_DONE_ATTR_NAME)
+                        .getOr(null);
+
+                if (attr != null && BooleanUtils.toBoolean(attr.getValue())) {
+                    SEBServerInit.INIT_LOGGER.info("--------> User Riles already repaired, skip repair task.");
+                    return;
+                }
+
+            } catch (Exception e) {
+                SEBServerInit.INIT_LOGGER.error("------> Failed to check if User Roles repair task already applied. Cause: ", e);
+                return;
+            }
+
+            SEBServerInit.INIT_LOGGER.info("------> Start repairing legacy User Riles and add subsequent roles for InstitutionalAdmin and ExamAdmin if needed");
+
+            userDAO
+                    .getAllActiveUsersUUID()
+                    .onSuccess(all -> all.forEach(userId -> {
+                        final UserInfo user = userDAO.byModelId(userId).getOr(null);
+                        if (user != null) {
+                            if (user.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name()) &&
+                                    (!user.roles.contains(UserRole.EXAM_ADMIN.name()) ||
+                                     !user.roles.contains(UserRole.EXAM_SUPPORTER.name()))) {
+
+                                System.out.println("********* fix user Role: " + user);
+
+                            } else if (user.roles.contains(UserRole.EXAM_ADMIN.name()) &&
+                                    !user.roles.contains(UserRole.EXAM_SUPPORTER.name())) {
+
+                                System.out.println("********* fix user Role: " + user);
+                            }
+                        }
+                    }))
+                    .getOrThrow();
+
+            additionalAttributesDAO.saveAdditionalAttribute(EntityType.EXAM, 0L, USER_ROLE_REPAIR_DONE_ATTR_NAME, "true");
+
+            SEBServerInit.INIT_LOGGER.info("------> Successfully finished repairing legacy User Roles and ");
+
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("------> !!! Failed to repair legacy User Roles, error: ", e);
+        }
     }
 
     /** Since 3.0 Every new imported Exam has an Exam Configuration from import process
@@ -95,7 +153,7 @@ public class V30_LegacyData_RepairTasks {
                 return;
             }
 
-            SEBServerInit.INIT_LOGGER.info("------> Start repairing legacy Exams and add default Exam Configuration for all active Exams that has none yet...");
+            SEBServerInit.INIT_LOGGER.info("------> Start repairing legacy Exams add default Exam Configuration for all active Exams that has none yet...");
 
             // get all active exams and check for each if it has a Exam Config applied
             examDAO
@@ -116,7 +174,7 @@ public class V30_LegacyData_RepairTasks {
 
             additionalAttributesDAO.saveAdditionalAttribute(EntityType.EXAM, 0L, EXAM_REPAIR_DONE_ATTR_NAME, "true");
 
-            SEBServerInit.INIT_LOGGER.info("------> Successfully finished repairing legacy Exams and add default Exam Configuration for all active Exams");
+            SEBServerInit.INIT_LOGGER.info("------> Successfully finished repairing legacy Exams add default Exam Configuration for all active Exams");
 
         } catch (Exception e) {
             SEBServerInit.INIT_LOGGER.error("------> !!! Failed to repair legacy Exams with no Exam Configuration due to unexpected error: ", e);
@@ -144,7 +202,7 @@ public class V30_LegacyData_RepairTasks {
                 return;
             }
 
-            SEBServerInit.INIT_LOGGER.info("------> Start repairing legacy Exam Templates and add set 'apply to groups' SPS collecting strategy if not set already...");
+            SEBServerInit.INIT_LOGGER.info("------> Start repairing legacy Exam Templates add set 'apply to groups' SPS collecting strategy if not set already...");
 
             // get all ExamTemplates and check for each if collection strategy needs to be changed
             examTemplateService

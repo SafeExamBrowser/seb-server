@@ -33,13 +33,11 @@ import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
@@ -431,6 +429,13 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    @Transactional
+    public void updateUserRoles(Long userId, Set<UserRole> roles) {
+        final Set<String> roleNames = roles.stream().map(UserRole::getName).collect(Collectors.toSet());
+        updateRolesForUser(userId, roleNames);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // all of institution
@@ -490,6 +495,24 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+
+
+    private void updateRolesForUser(final Long userId, @NotNull final Set<String> roles) {
+        try {
+            // first delete old roles
+            this.roleRecordMapper.deleteByExample()
+                    .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(userId))
+                    .build()
+                    .execute();
+
+            insertRolesForUser(userId, roles);
+        } catch (Exception e) {
+            log.error("Failed to update User Roles for user: {} cause: {}", userId, e.getMessage());
+        }
+    }
+
+
+
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> this.userRecordMapper.selectByExample()
                 .where(UserRecordDynamicSqlSupport.institutionId,
@@ -503,16 +526,6 @@ public class UserDAOImpl implements UserDAO {
                         rec.getName(),
                         rec.getSurname()))
                 .collect(Collectors.toList()));
-    }
-
-    private void updateRolesForUser(final Long userId, @NotNull final Set<String> roles) {
-        // first delete old roles
-        this.roleRecordMapper.deleteByExample()
-                .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(userId))
-                .build()
-                .execute();
-
-        insertRolesForUser(userId, roles);
     }
 
     private void insertRolesForUser(final Long userId, final Set<String> roles) {
