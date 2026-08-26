@@ -620,11 +620,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final Map<String, String> examAttributes = examTemplate.getExamAttributes();
             final String strategy = examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY);
 
-            System.out.println("************** templateId: " + templateId + " strategy: " + strategy);
-
             if (Objects.equals(strategy, CollectingStrategy.EXAM.name())) {
 
-                if (examTemplate.id == 0L) {
+                if (examTemplate.id == 3L) {
                     log.info("**** Change collecting strategy form 'EXAM' to 'APPLY_SEB_GROUPS' for: {}", examTemplate);
 
                     final EntityKey entityKey = examTemplate.getEntityKey();
