@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionInfo;
 import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import org.slf4j.Logger;
@@ -271,4 +272,10 @@ public interface ClientConnectionDAO extends
      * @param examId The exam id
      * @return Map of all ids extracted PKs from the given set of connection tokens */
     Result<Map<Long, String>> getAllIdsForConnectionTokens(Long examId, Set<String> connectionTokens);
+
+    /** Get the total number of client connections (in any state) that are attached to the given SPS group.
+     *
+     * @param screenProctoringGroup The ScreenProctoringGroup to get numbers of connections for
+     * @return total number of client connections (in any state) that are attached to the given SPS group. */
+    long numberOfConnectionForSPSGroup(ScreenProctoringGroup screenProctoringGroup);
 }

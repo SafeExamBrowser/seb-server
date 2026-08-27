@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ScreenProctoringGroopRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
@@ -75,6 +76,7 @@ public class ScreenProctoringAPIBinding {
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
     private final WebserviceInfo webserviceInfo;
     private final OAuthRestTemplateFactory oAuthRestTemplateFactory;
+    private final ClientConnectionDAO clientConnectionDAO;
 
     ScreenProctoringAPIBinding(
             final UserDAO userDAO,
@@ -86,7 +88,8 @@ public class ScreenProctoringAPIBinding {
             final AdditionalAttributesDAO additionalAttributesDAO,
             final ScreenProctoringGroupDAO screenProctoringGroupDAO,
             final WebserviceInfo webserviceInfo,
-            OAuthRestTemplateFactory oAuthRestTemplateFactory) {
+            final OAuthRestTemplateFactory oAuthRestTemplateFactory,
+            final ClientConnectionDAO clientConnectionDAO) {
 
         this.userDAO = userDAO;
         this.clientGroupDAO = clientGroupDAO;
@@ -98,6 +101,7 @@ public class ScreenProctoringAPIBinding {
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
         this.webserviceInfo = webserviceInfo;
         this.oAuthRestTemplateFactory = oAuthRestTemplateFactory;
+        this.clientConnectionDAO = clientConnectionDAO;
     }
 
     public Result<Void> testConnection(final SPSAPIAccessData spsAPIAccessData) {
@@ -535,6 +539,14 @@ public class ScreenProctoringAPIBinding {
             log.error("Failed to request delete on SPS for Group: {} with response: {}", screenProctoringGroup, exchange);
         } else {
             // delete also locally
+            // Note this is only possible if there are no client connections for this group within the exam
+            // check this first and when there are, skip the deletion with a info log to indicate when and
+            // how often this case happens...
+            if (clientConnectionDAO.numberOfConnectionForSPSGroup(screenProctoringGroup) > 0) {
+                log.info("Skip deletion of local ScreenProctoringGroup due to client connection references: {}", screenProctoringGroup);
+                return;
+            }
+
             this.screenProctoringGroupDAO
                     .deleteGroup(screenProctoringGroup.id)
                     .onError( error -> log.error(

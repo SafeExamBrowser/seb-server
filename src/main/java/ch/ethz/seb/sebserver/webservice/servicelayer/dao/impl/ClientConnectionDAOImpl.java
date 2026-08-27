@@ -15,6 +15,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -1006,6 +1007,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Map<Long, String>> getAllIdsForConnectionTokens(final Long examId, final Set<String> connectionTokens) {
         return Result.tryCatch(() -> {
             if (connectionTokens == null || connectionTokens.isEmpty()) {
@@ -1021,6 +1023,28 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .stream()
                     .collect(Collectors.toMap(ClientConnectionRecord::getId, ClientConnectionRecord::getConnectionToken));
         });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long numberOfConnectionForSPSGroup(final ScreenProctoringGroup screenProctoringGroup) {
+        try {
+
+            return clientConnectionRecordMapper
+                    .countByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(screenProctoringGroup.examId))
+                    .and(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId, isEqualTo(screenProctoringGroup.id))
+                    .build()
+                    .execute();
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to get number of client connection for ScreenProctoringGroup: {} error: {}",
+                    screenProctoringGroup.name,
+                    e.getMessage());
+
+            return 0;
+        }
     }
 
     private Result<ClientConnectionRecord> recordById(final Long id) {

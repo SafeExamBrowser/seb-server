@@ -91,7 +91,7 @@ public class V30_LegacyData_RepairTasks {
                         .getOr(null);
 
                 if (attr != null && BooleanUtils.toBoolean(attr.getValue())) {
-                    SEBServerInit.INIT_LOGGER.info("--------> User Riles already repaired, skip repair task.");
+                    SEBServerInit.INIT_LOGGER.info("--------> User Roles already repaired, skip repair task.");
                     return;
                 }
 
@@ -100,7 +100,7 @@ public class V30_LegacyData_RepairTasks {
                 return;
             }
 
-            SEBServerInit.INIT_LOGGER.info("------> Start repairing legacy User Riles and add subsequent roles for InstitutionalAdmin and ExamAdmin if needed");
+            SEBServerInit.INIT_LOGGER.info("------> Start repairing legacy User Roles and add subsequent roles for InstitutionalAdmin and ExamAdmin if needed");
 
             userDAO
                     .getAllActiveUsersUUID()
