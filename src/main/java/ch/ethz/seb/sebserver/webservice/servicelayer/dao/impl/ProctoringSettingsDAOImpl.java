@@ -322,11 +322,6 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                         return new ScreenProctoringSettings(
                                 entityId,
                                 getScreenproctoringEnabled(mapping),
-                                screenProctoringServiceBundle.serviceURL,
-                                screenProctoringServiceBundle.clientId,
-                                screenProctoringServiceBundle.clientSecret.toString(),
-                                screenProctoringServiceBundle.apiAccountName,
-                                screenProctoringServiceBundle.apiAccountPassword.toString(),
                                 getScreenProctoringCollectingStrategy(mapping),
                                 null,
                                 getScreenProctoringCollectingSize(mapping),
@@ -337,11 +332,6 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                         return new ScreenProctoringSettings(
                                 entityId,
                                 getScreenproctoringEnabled(mapping),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_SERVICE_URL),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_KEY),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_SECRET),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
                                 getScreenProctoringCollectingStrategy(mapping),
                                 null,
                                 getScreenProctoringCollectingSize(mapping),

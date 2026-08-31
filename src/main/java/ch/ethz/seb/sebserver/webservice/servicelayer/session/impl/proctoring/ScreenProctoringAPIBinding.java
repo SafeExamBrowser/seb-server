@@ -21,7 +21,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ScreenProctoringGroopRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
@@ -115,9 +114,9 @@ public class ScreenProctoringAPIBinding {
                 if (result.getStatusCode().is4xxClientError()) {
                     log.warn(
                             "Failed to establish REST connection to: {}. status: {}",
-                            spsAPIAccessData.getSpsServiceURL(), result.getStatusCode());
+                            spsAPIAccessData.getInternalServiceURL(), result.getStatusCode());
                     
-                    throw new RuntimeException("Failed to establish REST connection to: " + spsAPIAccessData.getSpsServiceURL() + ". status: " + result.getStatusCode());
+                    throw new RuntimeException("Failed to establish REST connection to: " + spsAPIAccessData.getInternalServiceURL() + ". status: " + result.getStatusCode());
                 }
                 throw new RuntimeException("Invalid SEB Screen Proctoring Service response: " + result);
             }
@@ -1628,12 +1627,12 @@ public class ScreenProctoringAPIBinding {
     private ScreenProctoringServiceOAuthTemplate getAPITemplate() {
         if (apiTemplate == null || !apiTemplate.isValid()) {
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for bundle");
-                }
-
                 final WebserviceInfo.ScreenProctoringServiceBundle bundle = this.webserviceInfo
                         .getScreenProctoringServiceBundle();
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Create new ScreenProctoringServiceOAuthTemplate for bundle: {}", bundle);
+                }
                 
                 if (!bundle.bundled) {
                     throw new IllegalStateException("Only bundled SEB Server Screen Proctoring is supported yet");

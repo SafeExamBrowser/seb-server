@@ -178,19 +178,16 @@ public class WebserviceInfo {
         final boolean spsEnabled = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.feature.exam.seb.screenProctoring.enabled",
                 Constants.FALSE_STRING));
-        final boolean spsBundled = BooleanUtils.toBoolean(environment.getProperty(
-                "sebserver.feature.exam.seb.screenProctoring.bundled",
-                Constants.FALSE_STRING));
-        if (spsEnabled && spsBundled) {
+        if (spsEnabled) {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle(
-                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.url"),
-                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientId"),
+                    environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.url"),
+                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.url.intern"),
+                    environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientId"),
                     cryptor.encrypt(
-                            environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientPassword"))
+                            environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientPassword"))
                             .getOrThrow(),
-                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.username"),
-                    cryptor.encrypt(environment
-                            .getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.password"))
+                    environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.username"), cryptor.encrypt(environment
+                            .getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.password"))
                             .getOrThrow());
         } else {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle();
@@ -374,6 +371,7 @@ public class WebserviceInfo {
 
         public final boolean bundled;
         public final String serviceURL;
+        public final String internalServiceURL;
         public final String clientId;
         public final CharSequence clientSecret;
         public final String apiAccountName;
@@ -381,13 +379,16 @@ public class WebserviceInfo {
 
         public ScreenProctoringServiceBundle(
                 final String serviceURL,
+                final String internalServiceURL,
                 final String clientId,
                 final CharSequence clientSecret,
                 final String apiAccountName,
                 final CharSequence apiAccountPassword) {
 
+
             this.bundled = true;
             this.serviceURL = serviceURL;
+            this.internalServiceURL = internalServiceURL;
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.apiAccountName = apiAccountName;
@@ -401,15 +402,19 @@ public class WebserviceInfo {
             this.clientSecret = null;
             this.apiAccountName = null;
             this.apiAccountPassword = null;
-        }
-
-        @Override
-        public Long getExamId() {
-            return null;
+            this.internalServiceURL = null;
         }
 
         @Override
         public String getSpsServiceURL() {
+            return serviceURL;
+        }
+
+        @Override
+        public String getInternalServiceURL() {
+            if (StringUtils.isNotBlank(internalServiceURL)) {
+                return internalServiceURL;
+            }
             return serviceURL;
         }
 
@@ -435,15 +440,15 @@ public class WebserviceInfo {
 
         @Override
         public String toString() {
-            return "ScreenProctoringServiceBundle [bundled=" +
-                    this.bundled +
-                    ", serviceURL=" +
-                    this.serviceURL +
-                    ", clientId=" +
-                    this.clientId +
-                    ", apiAccountName=" +
-                    this.apiAccountName +
-                    "]";
+            return "ScreenProctoringServiceBundle{" +
+                    "bundled=" + bundled +
+                    ", serviceURL='" + serviceURL + '\'' +
+                    ", internalServiceURL='" + internalServiceURL + '\'' +
+                    ", clientId='" + clientId + '\'' +
+                    ", clientSecret=" + clientSecret +
+                    ", apiAccountName='" + apiAccountName + '\'' +
+                    ", apiAccountPassword=" + apiAccountPassword +
+                    '}';
         }
     }
 

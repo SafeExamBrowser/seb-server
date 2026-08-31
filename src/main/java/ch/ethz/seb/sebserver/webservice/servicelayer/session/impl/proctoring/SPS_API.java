@@ -227,7 +227,7 @@ interface SPS_API {
                 final ScreenProctoringAPIBinding apiBinding,
                 final SPSAPIAccessData spsAPIAccessData) {
 
-            this.spsServiceURL = spsAPIAccessData.getSpsServiceURL();
+            this.spsServiceURL = spsAPIAccessData.getInternalServiceURL();
 
             final ClientCredentials clientCredentials = new ClientCredentials(
                     spsAPIAccessData.getSpsAPIKey(),
@@ -253,7 +253,7 @@ interface SPS_API {
                     StringUtils.join(SCOPES, Constants.SPACE));
 
             restTemplate = apiBinding.getOAuth2RestTemplate(
-                    spsAPIAccessData.getSpsServiceURL(),
+                    spsAPIAccessData.getInternalServiceURL(),
                     TOKEN_ENDPOINT,
                     clientSettingsProvider);
         }

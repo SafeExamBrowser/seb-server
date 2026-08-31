@@ -14,7 +14,6 @@ import java.util.Objects;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import org.hibernate.validator.constraints.URL;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -23,17 +22,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
+public class ScreenProctoringSettings implements Entity {
 
     public static final String ATTR_ENABLE_SCREEN_PROCTORING = "enableScreenProctoring";
-    public static final String ATTR_SPS_SERVICE_URL = "spsServiceURL";
 
-    public static final String ATTR_SPS_API_KEY = "spsAPIKey";
-    public static final String ATTR_SPS_API_SECRET = "spsAPISecret";
-
-    public static final String ATTR_SPS_ACCOUNT_ID = "spsAccountId";
-    public static final String ATTR_SPS_ACCOUNT_PASSWORD = "spsAccountPassword";
-    
     public static final String ATTR_COLLECTING_STRATEGY = "spsCollectingStrategy";
     public static final String ATTR_COLLECTING_GROUP_NAME = "spsCollectingGroupName";
     public static final String ATTR_COLLECTING_GROUP_SIZE = "spsCollectingGroupSize";
@@ -48,22 +40,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     @JsonProperty(ATTR_ENABLE_SCREEN_PROCTORING)
     public final Boolean enableScreenProctoring;
-
-    @JsonProperty(ATTR_SPS_SERVICE_URL)
-    @URL(message = "screenProctoringSettings:spsServiceURL:invalidURL")
-    public final String spsServiceURL;
-
-    @JsonProperty(ATTR_SPS_API_KEY)
-    public final String spsAPIKey;
-
-    @JsonProperty(ATTR_SPS_API_SECRET)
-    public final CharSequence spsAPISecret;
-
-    @JsonProperty(ATTR_SPS_ACCOUNT_ID)
-    public final String spsAccountId;
-
-    @JsonProperty(ATTR_SPS_ACCOUNT_PASSWORD)
-    public final CharSequence spsAccountPassword;
     
     @JsonProperty(ATTR_COLLECTING_STRATEGY)
     public final CollectingStrategy collectingStrategy;
@@ -89,11 +65,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
     public ScreenProctoringSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
             @JsonProperty(ATTR_ENABLE_SCREEN_PROCTORING) final Boolean enableScreenProctoring,
-            @JsonProperty(ATTR_SPS_SERVICE_URL) final String spsServiceURL,
-            @JsonProperty(ATTR_SPS_API_KEY) final String spsAPIKey,
-            @JsonProperty(ATTR_SPS_API_SECRET) final CharSequence spsAPISecret,
-            @JsonProperty(ATTR_SPS_ACCOUNT_ID) final String spsAccountId,
-            @JsonProperty(ATTR_SPS_ACCOUNT_PASSWORD) final CharSequence spsAccountPassword,
             @JsonProperty(ATTR_COLLECTING_STRATEGY) final CollectingStrategy collectingStrategy,
             @JsonProperty(ATTR_COLLECTING_GROUP_NAME) final String collectingGroupName,
             @JsonProperty(ATTR_COLLECTING_GROUP_SIZE) final Integer collectingGroupSize,
@@ -103,11 +74,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
         this.examId = examId;
         this.enableScreenProctoring = enableScreenProctoring;
-        this.spsServiceURL = spsServiceURL;
-        this.spsAPIKey = spsAPIKey;
-        this.spsAPISecret = spsAPISecret;
-        this.spsAccountId = spsAccountId;
-        this.spsAccountPassword = spsAccountPassword;
         this.collectingStrategy = collectingStrategy;
         this.collectingGroupName = collectingGroupName;
         this.collectingGroupSize = collectingGroupSize;
@@ -119,11 +85,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
     public ScreenProctoringSettings(
             final Long examId,
             final Boolean enableScreenProctoring,
-            final String spsServiceURL,
-            final String spsAPIKey,
-            final CharSequence spsAPISecret,
-            final String spsAccountId,
-            final CharSequence spsAccountPassword,
             final CollectingStrategy collectingStrategy,
             final String collectingGroupName,
             final Integer collectingGroupSize,
@@ -132,11 +93,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
         this.examId = examId;
         this.enableScreenProctoring = enableScreenProctoring;
-        this.spsServiceURL = spsServiceURL;
-        this.spsAPIKey = spsAPIKey;
-        this.spsAPISecret = spsAPISecret;
-        this.spsAccountId = spsAccountId;
-        this.spsAccountPassword = spsAccountPassword;
         this.collectingStrategy = collectingStrategy;
         this.collectingGroupName = collectingGroupName;
         this.collectingGroupSize = collectingGroupSize;
@@ -157,7 +113,7 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     @Override
     public String getName() {
-        return this.spsServiceURL;
+        return "ScreenProctoringSettings_" +  getModelId();
     }
 
     public Long getExamId() {
@@ -166,26 +122,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
 
     public Boolean getEnableScreenProctoring() {
         return this.enableScreenProctoring;
-    }
-
-    public String getSpsServiceURL() {
-        return this.spsServiceURL;
-    }
-
-    public String getSpsAPIKey() {
-        return this.spsAPIKey;
-    }
-
-    public CharSequence getSpsAPISecret() {
-        return this.spsAPISecret;
-    }
-
-    public String getSpsAccountId() {
-        return this.spsAccountId;
-    }
-
-    public CharSequence getSpsAccountPassword() {
-        return this.spsAccountPassword;
     }
 
     public CollectingStrategy getCollectingStrategy() {
@@ -234,11 +170,6 @@ public class ScreenProctoringSettings implements SPSAPIAccessData, Entity {
         return "ScreenProctoringSettings{" +
                 "examId=" + examId +
                 ", enableScreenProctoring=" + enableScreenProctoring +
-                ", spsServiceURL='" + spsServiceURL + '\'' +
-                ", spsAPIKey='" + spsAPIKey + '\'' +
-                ", spsAPISecret=" + spsAPISecret +
-                ", spsAccountId='" + spsAccountId + '\'' +
-                ", spsAccountPassword=" + spsAccountPassword +
                 ", collectingStrategy=" + collectingStrategy +
                 ", collectingGroupName='" + collectingGroupName + '\'' +
                 ", collectingGroupSize=" + collectingGroupSize +
