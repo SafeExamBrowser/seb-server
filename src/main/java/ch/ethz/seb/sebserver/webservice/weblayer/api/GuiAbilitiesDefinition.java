@@ -20,7 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.GuiComponent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
 /** Hand-maintained definition of the GUI abilities per user role.
- *
+ * <p>
  * This is GUI presentation configuration, not domain authorization: the webservice keeps
  * enforcing every request through its own privilege checks regardless of this data. */
 public final class GuiAbilitiesDefinition {
@@ -280,7 +280,6 @@ public final class GuiAbilitiesDefinition {
             UserRole.TEACHER, Set.of(
                     // 07 Exam
                     GuiAction.EDIT_RESTRICTED_SEB_SETTINGS,
-                    GuiAction.EDIT_CLIENT_GROUPS,
                     GuiAction.APPLY_DISABLE_TEST_RUN));
 
     private GuiAbilitiesDefinition() {
