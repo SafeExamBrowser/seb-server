@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.DeleteExamAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
@@ -470,10 +469,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examlId) {
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
 
         checkModifyPrivilege(institutionId);
-        return this.entityDAO.byPK(examlId)
+        return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .flatMap(exam -> this.applySEBRestriction(exam, true))
                 .flatMap(this.userActivityLogDAO::logModify)

@@ -133,17 +133,15 @@ public final class SEBRestriction implements Entity {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("SEBRestriction [examId=");
-        builder.append(this.examId);
-        builder.append(", configKeys=");
-        builder.append(this.configKeys);
-        builder.append(", browserExamKeys=");
-        builder.append(this.browserExamKeys);
-        builder.append(", additionalProperties=");
-        builder.append(this.additionalProperties);
-        builder.append("]");
-        return builder.toString();
+        return "SEBRestriction [examId=" +
+                this.examId +
+                ", configKeys=" +
+                this.configKeys +
+                ", browserExamKeys=" +
+                this.browserExamKeys +
+                ", additionalProperties=" +
+                this.additionalProperties +
+                "]";
     }
 
     public static SEBRestriction from(final Long examId, final OpenEdxSEBRestriction edxData) {
