@@ -112,7 +112,7 @@ public interface SEBSettingsService {
                 Utils.immutableSetOf( Arrays.asList(
                         300L,301L,302L,303L,947L,305L,306L,307L,308L,
                         309L,310L,311L,312L,313L,314L,315L,316L,317L,
-                        318L,319L,320L,321L,322L,501L,971L,1578L,1551L,
+                        318L,319L,320L,321L,322L,971L,1578L,1551L,
                         1567L,1550L,909L,1552L,948L,1557L,943L,945L,
                         1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L,
                         1553L, 1554L, 1555L, 1556L, 1571L, 911L, 912L, 913L, 914L,
@@ -131,7 +131,7 @@ public interface SEBSettingsService {
         VIEW_ATTRIBUTE_MAPPINGS.put(
                 SEBSettingsView.ViewType.HOOKED_KEYS,
                 Utils.immutableSetOf( Arrays.asList(
-                        500L,502L,503L,504L,505L,506L,507L,
+                        500L,501L,502L,503L,504L,505L,506L,507L,
                         508L,509L,510L,511L,512L,513L,514L,
                         515L,516L,517L,518L,519L,520L))
         );
