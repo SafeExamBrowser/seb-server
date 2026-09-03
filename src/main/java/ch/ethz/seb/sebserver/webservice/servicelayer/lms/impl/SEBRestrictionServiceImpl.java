@@ -161,11 +161,21 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     @Override
     @Transactional
     public Result<SEBRestriction> getSEBRestrictionFromExam(final Exam exam) {
-        if (exam == null || exam.lmsSetupId == null) {
+        if (exam == null) {
             return Result.ofError(new NoSEBRestrictionException("exam or lms setup has null reference"));
         }
 
         return Result.tryCatch(() -> {
+            if (exam.lmsSetupId == null) {
+                // only get the Config key
+                return new SEBRestriction(
+                        exam.id,
+                        examConfigService.generateConfigKeys(exam.institutionId, exam.id).getOrThrow(),
+                        Collections.emptyList(),
+                        null, null
+                );
+            }
+
             // load the config keys from restriction and merge with new generated config keys
             final Collection<String> generatedKeys = this.examConfigService
                     .generateConfigKeys(exam.institutionId, exam.id)
