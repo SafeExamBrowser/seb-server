@@ -371,11 +371,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
                             null,
                             spsEnabled,
-                            screenProctoringServiceBundle.serviceURL,
-                            screenProctoringServiceBundle.clientId,
-                            screenProctoringServiceBundle.clientSecret.toString(),
-                            screenProctoringServiceBundle.apiAccountName,
-                            screenProctoringServiceBundle.apiAccountPassword.toString(),
                             collectingStrategy,
                             examTemplate.examAttributes.get(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_NAME),
                             null,
@@ -435,11 +430,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(
                         currentSPSSettings.examId,
                         spsEnabled,
-                        currentSPSSettings.spsServiceURL,
-                        currentSPSSettings.spsAPIKey,
-                        currentSPSSettings.spsAPISecret,
-                        currentSPSSettings.spsAccountId,
-                        currentSPSSettings.spsAccountPassword,
                         collectingStrategy,
                         currentSPSSettings.collectingGroupName,
                         null,
@@ -821,11 +811,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         new ScreenProctoringSettings(
                                 screenProctoringSettings.examId,
                                 screenProctoringSettings.enableScreenProctoring,
-                                screenProctoringSettings.spsServiceURL,
-                                screenProctoringSettings.spsAPIKey,
-                                screenProctoringSettings.spsAPISecret,
-                                screenProctoringSettings.spsAccountId,
-                                screenProctoringSettings.spsAccountPassword,
                                 collectingStrategy,
                                 screenProctoringSettings.collectingGroupName,
                                 screenProctoringSettings.collectingGroupSize,
@@ -866,17 +851,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .map(g -> String.valueOf(g.id))
                     .toList();
 
-            System.out.println("*********************** selectedTemplateIds: " + selectedTemplateIds);
-            System.out.println("*********************** selectedInstances: " + selectedInstances);
-            
             return new ScreenProctoringSettings(
                     exam.id,
                     screenProctoringSettings.enableScreenProctoring,
-                    screenProctoringSettings.spsServiceURL,
-                    screenProctoringSettings.spsAPIKey,
-                    screenProctoringSettings.spsAPISecret,
-                    screenProctoringSettings.spsAccountId,
-                    screenProctoringSettings.spsAccountPassword,
                     screenProctoringSettings.collectingStrategy,
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,
@@ -888,11 +865,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         return new ScreenProctoringSettings(
                 exam.id,
                 screenProctoringSettings.enableScreenProctoring,
-                screenProctoringSettings.spsServiceURL,
-                screenProctoringSettings.spsAPIKey,
-                screenProctoringSettings.spsAPISecret,
-                screenProctoringSettings.spsAccountId,
-                screenProctoringSettings.spsAccountPassword,
                 screenProctoringSettings.collectingStrategy,
                 screenProctoringSettings.collectingGroupName,
                 screenProctoringSettings.collectingGroupSize,

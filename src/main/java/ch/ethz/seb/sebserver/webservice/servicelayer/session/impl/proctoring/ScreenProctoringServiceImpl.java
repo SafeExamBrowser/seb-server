@@ -25,7 +25,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ClientConnectionDAOImpl;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -109,43 +108,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 return screenProctoringSettings;
             }
 
-            final Collection<APIMessage> fieldChecks = new ArrayList<>();
-            if (StringUtils.isBlank(screenProctoringSettings.spsServiceURL)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appKey",
-                        "screenProctoringSettings:spsServiceURL:notNull"));
-            }
-            if (screenProctoringSettings.spsServiceURL != null
-                    && screenProctoringSettings.spsServiceURL.contains("?")) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appKey",
-                        "screenProctoringSettings:spsServiceURL:invalidURL"));
-            }
-
-            if (StringUtils.isBlank(screenProctoringSettings.spsAPIKey)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appKey",
-                        "screenProctoringSettings:spsAPIKey:notNull"));
-            }
-            if (StringUtils.isBlank(screenProctoringSettings.spsAPISecret)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appSecret",
-                        "screenProctoringSettings:spsAPISecret:notNull"));
-            }
-            if (StringUtils.isBlank(screenProctoringSettings.spsAccountId)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "clientId",
-                        "screenProctoringSettings:spsAccountId:notNull"));
-            }
-            if (StringUtils.isBlank(screenProctoringSettings.spsAccountPassword)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "clientSecret",
-                        "screenProctoringSettings:spsAccountPassword:notNull"));
-            }
-
-            if (!fieldChecks.isEmpty()) {
-                throw new APIMessageException(fieldChecks);
-            }
             
             if (parentKey.entityType == EntityType.EXAM) {
 
@@ -158,11 +120,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final ScreenProctoringSettings proctoringServiceSettings = new ScreenProctoringSettings(
                     screenProctoringSettings.examId,
                     screenProctoringSettings.enableScreenProctoring,
-                    screenProctoringSettings.spsServiceURL,
-                    screenProctoringSettings.spsAPIKey,
-                    this.cryptor.encrypt(screenProctoringSettings.spsAPISecret).getOrThrow(),
-                    screenProctoringSettings.spsAccountId,
-                    this.cryptor.encrypt(screenProctoringSettings.spsAccountPassword).getOrThrow(),
                     screenProctoringSettings.collectingStrategy,
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,
@@ -170,7 +127,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             false);
 
             this.screenProctoringAPIBinding
-                    .testConnection(proctoringServiceSettings)
+                    .testConnection(webserviceInfo.getScreenProctoringServiceBundle())
                     .getOrThrow();
 
             return screenProctoringSettings;
@@ -712,9 +669,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         final boolean checkActive = exam.lmsSetupId != null;
         final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id, true);
-        final String url = screenProctoringServiceBundle.bundled
-                ? screenProctoringServiceBundle.serviceURL
-                : exam.additionalAttributes.get(ScreenProctoringSettings.ATTR_SPS_SERVICE_URL);
+        final String url = screenProctoringServiceBundle.getSpsServiceURL();
         final Map<String, String> attributes = new HashMap<>();
 
         attributes.put(SERVICE_TYPE, SERVICE_TYPE_NAME);

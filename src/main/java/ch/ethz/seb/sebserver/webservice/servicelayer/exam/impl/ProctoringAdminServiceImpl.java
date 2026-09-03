@@ -118,11 +118,6 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                 settings = new ScreenProctoringSettings(
                         screenProctoringSettings.examId,
                         screenProctoringSettings.enableScreenProctoring,
-                        this.screenProctoringServiceBundle.serviceURL,
-                        this.screenProctoringServiceBundle.clientId,
-                        this.cryptor.decrypt(this.screenProctoringServiceBundle.clientSecret).getOrThrow(),
-                        this.screenProctoringServiceBundle.apiAccountName,
-                        this.cryptor.decrypt(this.screenProctoringServiceBundle.apiAccountPassword).getOrThrow(),
                         screenProctoringSettings.collectingStrategy,
                         screenProctoringSettings.collectingGroupName,
                         screenProctoringSettings.collectingGroupSize,
