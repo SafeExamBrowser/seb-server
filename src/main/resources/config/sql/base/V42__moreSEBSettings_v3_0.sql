@@ -10,3 +10,14 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1674, 'lockdownModePolicy', 'SINGLE_SELECTION', null, '0,1,2', null, null, '0'),
     (1675, 'permittedProcesses.allowAccessibility', 'CHECKBOX', 73, null, null, null, 'false')
 ;
+
+-- -----------------------------------------------------------------
+-- SEBSERV-935 - Insert new new SEB setting and change former
+-- -----------------------------------------------------------------
+
+INSERT IGNORE INTO configuration_attribute VALUES
+    (1676, 'allowScreenCaptureiOS', 'CHECKBOX', null, null, null, null, 'false')
+;
+
+-- change allowiOSBetaVersionNumber from SINGLE_SELECTION to INTEGER
+UPDATE configuration_attribute SET type = 'INTEGER', resources = '' WHERE (`id` = '911');

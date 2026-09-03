@@ -116,7 +116,7 @@ public interface SEBSettingsService {
                         1567L,1550L,909L,1552L,948L,1557L,943L,945L,
                         1201L,1600L,1620L,1601L,1621L, 921L, 922L, 923L, 924L,
                         1553L, 1554L, 1555L, 1556L, 1571L, 911L, 912L, 913L, 914L,
-                        1671L, 1672L, 1674L))
+                        1671L, 1672L, 1674L, 1676L))
         );
 
         /* Ids id all SEB Settings/ConfigurationAttributes for the REGISTRY vew */
