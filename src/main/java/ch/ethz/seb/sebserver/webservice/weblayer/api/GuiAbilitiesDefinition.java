@@ -229,7 +229,7 @@ public final class GuiAbilitiesDefinition {
                     GuiAction.EDIT_FULL_SEB_SETTINGS,
                     GuiAction.EDIT_BASIC_SETTINGS,
                     GuiAction.EDIT_SCREEN_PROCTORING,
-                    GuiAction.EDIT_SEB_KEYS,
+                    GuiAction.SHOW_SEB_KEYS,
                     GuiAction.EDIT_SUPERVISORS,
                     GuiAction.EDIT_CLIENT_GROUPS,
                     GuiAction.APPLY_DISABLE_TEST_RUN,
@@ -249,7 +249,7 @@ public final class GuiAbilitiesDefinition {
                     // 07 Exam
                     GuiAction.EDIT_RESTRICTED_SEB_SETTINGS,
                     GuiAction.EDIT_BASIC_SETTINGS,
-                    GuiAction.EDIT_SEB_KEYS,
+                    GuiAction.SHOW_SEB_KEYS,
                     GuiAction.EDIT_SUPERVISORS,
                     GuiAction.EDIT_CLIENT_GROUPS,
                     GuiAction.APPLY_DISABLE_TEST_RUN,
