@@ -1146,7 +1146,7 @@ public class ScreenProctoringAPIBinding {
                     uri, HttpMethod.POST, spsScheduledDeleteJSON, apiTemplate.getHeadersJSONRequest());
 
             if (exchange.getStatusCode() != HttpStatus.OK) {
-                throw new RuntimeException("Failed POST ScheduledDelete to SPS: " + scheduledDelete + " cause: " + exchange.getStatusCode());
+                throw new RuntimeException("Failed POST ScheduledDelete to SPS: " + scheduledDelete.getName() + " cause: " + exchange.getStatusCode());
             }
 
             return this.jsonMapper.readValue(

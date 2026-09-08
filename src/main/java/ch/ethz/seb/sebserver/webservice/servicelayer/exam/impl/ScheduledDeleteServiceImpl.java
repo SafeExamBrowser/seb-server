@@ -542,7 +542,10 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
         });
 
-        log.info("Filtered given SPS deletion infos to: {}", spsDeleteInfos);
+        log.info("Filtered given SPS deletion infos to:");
+        spsDeleteInfos.forEach(info -> {
+            log.info("   - exam: {}  -->  deletionInfo: {}", info.examUUID(), info.deletionInfo());
+        });
 
         return spsDeleteInfos;
     }

@@ -200,9 +200,14 @@ public class OAuthRestTemplate {
         try {
             return supplier.get();
         } catch (Exception e) {
-            log.warn("Failed to make API call due to: {} ... update Access Token and try again", e.getMessage());
-            requestAccessToken();
-            return supplier.get();
+            log.warn("Failed to make API call due to: {} ", e.getMessage());
+            String message = e.getMessage();
+            if (message != null && (message.contains("401") || message.contains("403"))) {
+                log.info("... update Access Token and try again");
+                requestAccessToken();
+                return supplier.get();
+            }
+            throw e;
         }
     }
 
