@@ -155,6 +155,13 @@ public interface ClientConnectionDAO extends
             key = "#connectionToken")
     Result<Void> assignToScreenProctoringGroup(Long connectionId, String connectionToken, Long groupId);
 
+    /** This is used to clear all group assignments for all client connections of a given exam
+     * screen proctoring and remote proctoring. This usually is used before group deletion for the exam
+     * to avoid DB constraint violation since this groups references are constraint.
+     *
+     * @param examId The exam identifier for witch exam all client-connection should be cleared for group references
+     * @return number of affected client connections */
+    Result<Integer> clearAllGroupAssignments(Long examId);
     
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,

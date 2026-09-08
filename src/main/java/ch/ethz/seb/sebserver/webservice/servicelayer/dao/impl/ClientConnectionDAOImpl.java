@@ -594,11 +594,27 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
         return Result.tryCatch(() -> {
             UpdateDSL.updateWithMapper(
-                    this.clientConnectionRecordMapper::update,
-                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                            this.clientConnectionRecordMapper::update,
+                            ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId).equalTo(groupId)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                    .build()
+                    .execute();
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Integer> clearAllGroupAssignments(final Long examId) {
+        return Result.tryCatch(() -> {
+            return UpdateDSL.updateWithMapper(
+                            this.clientConnectionRecordMapper::update,
+                            ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId).equalToNull()
+                    .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId).equalToNull()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
                     .build()
                     .execute();
         })
