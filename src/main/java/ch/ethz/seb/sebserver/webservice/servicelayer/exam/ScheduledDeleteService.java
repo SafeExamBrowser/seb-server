@@ -117,8 +117,10 @@ public interface ScheduledDeleteService {
         // remaining in spsMap has only SPS Data
         spsMap.values().forEach(spsData -> {
             final Map<String, String> spsInfos = spsData.deletionInfo();
+            final String startTime = spsInfos.get(ScheduledDeleteInfo.ATTR_SPS_START_TIME);
             spsOnlyDeletions.add(new ScheduledDeleteViewInfo(
                     spsInfos.get("name"),
+                    startTime != null ? Long.parseLong(startTime) : null,
                     extractGroupNames(spsInfos),
                     spsData.errorInfo(),
                     spsData.getErrorType()));

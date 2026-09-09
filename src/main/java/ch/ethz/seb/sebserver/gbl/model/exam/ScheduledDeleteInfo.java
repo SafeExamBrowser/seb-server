@@ -35,6 +35,7 @@ public record ScheduledDeleteInfo(
 
     public static final String ATTR_EXAM_NAME = "examName";
     public static final String ATTR_EXAM_START_TIME = "examStartTimestamp";
+    public static final String ATTR_SPS_START_TIME = "startTime";
     public static final String ATTR_EXAM_OWNER = "examOwner";
     public static final String ATTR_NUM_OF_SESSIONS = "numberOfSessions";
 

@@ -76,13 +76,14 @@ public class ScheduledDeleteViewInfo {
 
     public ScheduledDeleteViewInfo(
             final String spsExamName,
+            final Long examStartTime,
             final Collection<GroupInfo> spsGroups,
             final String error,
             final ScheduledDeleteInfo.ErrorType errorType) {
 
         this.examUUID = null;
         this.examName = null;
-        this.examStartTime = null;
+        this.examStartTime = examStartTime;
         this.numberOfSessions = null;
         this.spsExamName = spsExamName;
         this.spsGroups = spsGroups;
