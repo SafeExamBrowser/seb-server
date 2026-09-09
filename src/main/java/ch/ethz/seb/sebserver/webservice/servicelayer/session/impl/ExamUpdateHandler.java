@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -131,13 +132,19 @@ public class ExamUpdateHandler implements ExamUpdateTask {
 
             // test overall LMS access
             try {
-                
                 try {
-                    
-                    this.lmsAPIService
+                    final LmsAPITemplate lmsAPITemplate = this.lmsAPIService
                             .getLmsAPITemplate(lmsSetupId)
-                            .getOrThrow()
-                            .checkCourseAPIAccess();
+                            .getOrThrow();
+                    final LmsSetup lmsSetup = lmsAPITemplate.lmsSetup();
+
+                    if (lmsSetup.isActive()) {
+                        lmsAPITemplate.checkCourseAPIAccess();
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("LMS Setup is not active: {} skip check for Exam updates.", lmsSetup.name);
+                        }
+                    }
                     
                 } catch (final Exception te) {
                     log.warn("Failed to test LMSSetup {} cause: {}. Clear cache and try again...", 
