@@ -144,6 +144,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
                         if (log.isDebugEnabled()) {
                             log.debug("LMS Setup is not active: {} skip check for Exam updates.", lmsSetup.name);
                         }
+                        return Collections.emptySet();
                     }
                     
                 } catch (final Exception te) {
