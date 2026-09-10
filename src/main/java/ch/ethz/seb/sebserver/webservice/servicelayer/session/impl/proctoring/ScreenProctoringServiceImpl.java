@@ -36,7 +36,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
@@ -52,7 +51,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     
     private final ClientGroupMatcherService clientGroupMatcherService;
     private final ClientGroupDAO clientGroupDAO;
-    private final Cryptor cryptor;
     private final ScreenProctoringAPIBinding screenProctoringAPIBinding;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
     private final ProctoringSettingsDAO proctoringSettingsDAO;
@@ -66,7 +64,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     public ScreenProctoringServiceImpl(
             final ClientGroupMatcherService clientGroupMatcherService,
             final ClientGroupDAO clientGroupDAO1,
-            final Cryptor cryptor,
             final ProctoringSettingsDAO proctoringSettingsDAO,
             final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
@@ -79,7 +76,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         
         this.clientGroupMatcherService = clientGroupMatcherService;
         this.clientGroupDAO = clientGroupDAO1;
-        this.cryptor = cryptor;
         this.examDAO = examDAO;
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
         this.clientConnectionDAO = clientConnectionDAO;
@@ -628,7 +624,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
             if (!this.screenProctoringAPIBinding.existsExamOnSPS(exam)) {
                 log.info("No SPS Exam data found for Exam: {} : {}  ...skip SPS deletion", exam.id, exam.externalId);
-                return exam;
+                return this.cleanupAllLocalGroups(exam);
             }
 
             // Note: We delete the Exam on SPS site if there are no SEB client connection yet.
