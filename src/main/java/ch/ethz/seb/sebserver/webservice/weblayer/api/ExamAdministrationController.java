@@ -139,10 +139,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .byModelId(modelId)
                 .flatMap(this::checkReadAccess)
                 .map(this::adaptSupporterForUI)
-//                .map(exam -> {
-//                    examTemplateService.repairExamConfiguration(exam);
-//                    return exam;
-//                })
                 .getOrThrow();
     }
 
@@ -156,8 +152,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .map(this::adaptSupporterForUI)
                 .getOrThrow();
     }
-
-
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
@@ -246,7 +240,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         final ArrayList<EntityKey> all = new ArrayList<>(dependencies);
         all.add(new EntityKey(modelId, EntityType.EXAM));
         final List<EntityKey> entityKeys = Collections.singletonList(new EntityKey(modelId, EntityType.EXAM));
-
 
         return examDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
@@ -449,6 +442,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @PathVariable(API.PARAM_MODEL_ID) final Long examId,
             @Valid @RequestBody final SEBRestriction sebRestriction) {
 
+        checkModifyPrivilege(institutionId);
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)

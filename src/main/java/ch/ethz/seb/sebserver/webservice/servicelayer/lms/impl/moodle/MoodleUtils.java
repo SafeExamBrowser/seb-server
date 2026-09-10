@@ -196,7 +196,7 @@ public abstract class MoodleUtils {
             final String function) {
 
         if (log.isDebugEnabled()) {
-            log.warn(
+            log.debug(
                     "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
                     lmsSetupName,
                     function,

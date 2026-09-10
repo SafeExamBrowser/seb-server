@@ -94,6 +94,9 @@ public class DeleteExamAction implements BatchActionExec {
     }
 
     public Result<EntityKey> deleteExamInternal(final Exam exam) {
+
+        log.info("Delete Exam called from single deletion action, Exam --> {} : {}", exam.id, exam.externalId);
+
         return notifyDeletion(exam)
                 .flatMap(this::deleteExamDependencies)
                 .flatMap(this::deleteExamWithRefs)
@@ -102,7 +105,7 @@ public class DeleteExamAction implements BatchActionExec {
 
     public Result<EntityKey> scheduledDeleteExamInternal(final Exam exam) {
 
-        log.info("Delete Exam called from ScheduledDelete, Exam --> {}", exam.externalId);
+        log.info("Delete Exam called from ScheduledDelete, Exam --> {} : {}", exam.id, exam.externalId);
 
         return notifyScheduledDeletion(exam)
                 .flatMap(this::deleteExamDependencies)
@@ -151,9 +154,7 @@ public class DeleteExamAction implements BatchActionExec {
 
                             if (used != null && used.isEmpty()) {
 
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Delete Exam Configuration {} due to Exam deletion: {}", cMap.configurationNodeId, entity.getModelId());
-                                }
+                                log.info("Delete Exam Configuration {} due to Exam deletion: {}", cMap.configurationNodeId, entity.getModelId());
 
                                 // not used anymore so delete it
                                 final Set<EntityKey> keys = Stream
@@ -177,6 +178,7 @@ public class DeleteExamAction implements BatchActionExec {
         if (delete.hasError()) {
             return Result.ofError(delete.getError());
         } else {
+            log.info("Successfully Deleted Exam: {} : {}", entity.id, entity.externalId);
             return Result.of(entity);
         }
     }

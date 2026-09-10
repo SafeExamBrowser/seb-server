@@ -229,15 +229,20 @@ public class MoodlePluginFullIntegration implements FullLmsIntegrationAPI {
             } else {
                 data_mapping.put("addordelete", "0");
             }
-            
-            log.info("********** Apply exam attributes to LMS: {}, data: {}", attributes, data_mapping);
+
+            if (log.isDebugEnabled()) {
+                log.debug("********** Apply exam attributes to LMS: {}, data: {}", attributes, data_mapping);
+            }
+
 
             final String response = rest.postToMoodleAPIFunction(
                     FUNCTION_NAME_SET_EXAM_DATA,
                     null,
                     attributes);
-            
-            log.info("*********** Apply exam attributes to LMS Response: {}", response);
+
+            if (log.isDebugEnabled()) {
+                log.info("*********** Apply exam attributes to LMS Response: {}", response);
+            }
 
             if (response != null && (response.startsWith("{\"exception\":") || response.startsWith("0"))) {
                 log.warn("Failed to apply Exam data to moodle: {}", examData);

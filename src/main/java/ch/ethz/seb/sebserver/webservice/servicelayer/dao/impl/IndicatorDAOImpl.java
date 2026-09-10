@@ -278,10 +278,12 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .execute();
 
             // then delete all indicators
-            this.indicatorRecordMapper.deleteByExample()
+            Integer execute = this.indicatorRecordMapper.deleteByExample()
                     .where(IndicatorRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
+
+            log.info("Deleted {} indicators for Exam: {}", execute, examId);
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.INDICATOR))

@@ -970,6 +970,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<Collection<EntityKey>> deleteAllForExam(final Long examId) {
         return Result.<Collection<EntityKey>> tryCatch(() -> {
 
+            log.info("Delete all client connection for Exam: {}", examId);
+
             final List<Long> ids = this.clientConnectionRecordMapper.selectIdsByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
                     .build()

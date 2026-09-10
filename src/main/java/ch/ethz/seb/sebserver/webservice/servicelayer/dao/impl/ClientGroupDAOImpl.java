@@ -234,11 +234,13 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
             }
 
             // delete all client groups
-            this.clientGroupRecordMapper
+            Integer execute = this.clientGroupRecordMapper
                     .deleteByExample()
                     .where(ClientGroupRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
+
+            log.info("Deleted {} client groups of exam: {}", execute, examId);
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.CLIENT_GROUP))
