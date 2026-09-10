@@ -161,7 +161,7 @@ public class ScreenProctoringAPIBinding {
         } catch (final Exception e) {
             if (expected) {
                 log.info("No local SPSData for exam: {} found but expected", examId);
-                throw new RuntimeException("No local SPSData for exam: "+examId+"found but expected");
+                throw new RuntimeException("No local SPSData for exam: "+examId+" found but expected");
             }
             return null;
         }

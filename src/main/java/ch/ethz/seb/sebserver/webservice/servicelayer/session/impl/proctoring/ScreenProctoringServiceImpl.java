@@ -626,6 +626,11 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return Result.tryCatch(() -> {
             final Exam exam = this.examDAO.byPK(examId).getOrThrow();
 
+            if (!this.screenProctoringAPIBinding.existsExamOnSPS(exam)) {
+                log.info("No SPS Exam data found for Exam: {} : {}  ...skip SPS deletion", exam.id, exam.externalId);
+                return exam;
+            }
+
             // Note: We delete the Exam on SPS site if there are no SEB client connection yet.
             //       Otherwise, the Exam on SPS site gets just closed
 
