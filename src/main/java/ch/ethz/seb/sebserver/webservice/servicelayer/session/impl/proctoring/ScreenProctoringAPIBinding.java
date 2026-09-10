@@ -259,11 +259,10 @@ public class ScreenProctoringAPIBinding {
             final ResponseEntity<String> exchange = apiTemplate.exchange(uri, HttpMethod.GET);
 
             if (exchange.getStatusCode() == HttpStatus.NOT_FOUND) {
-                log.info("Exam not exists on SPS service, crate new one for exam: {}", exam)
-                ;
+                log.debug("Exam not exists on SPS service, exam: {}", exam.externalId);
                 return false;
             } else if (exchange.getStatusCode() == HttpStatus.OK) {
-                log.info("Exam already exists on SPS, reuse it: {}", exchange.getBody());
+                log.debug("Exam already exists on SPS, exam: {}", exchange.getBody());
                 return true;
             } else {
                 log.warn("Failed to verify if Exam on SPS already exists: {}", exchange.getBody());

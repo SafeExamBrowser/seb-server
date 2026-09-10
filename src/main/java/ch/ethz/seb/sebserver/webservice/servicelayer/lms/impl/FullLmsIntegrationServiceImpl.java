@@ -424,9 +424,13 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
                     .flatMap(this::findExam);
 
             if (examResult.hasError()) {
-                log.error(
-                        "Failed to find exam for SEB Connection Configuration download: ",
-                        examResult.getError());
+                final Exception error = examResult.getError();
+                if (error != null) {
+                    log.error(
+                            "Failed to find exam for SEB Connection Configuration download: {}",
+                            error.getMessage());
+                }
+
                 throw new APIMessage.APIMessageException(
                         APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam not found"));
             }
