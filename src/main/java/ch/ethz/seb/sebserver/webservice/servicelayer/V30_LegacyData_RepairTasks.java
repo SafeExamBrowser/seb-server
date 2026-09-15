@@ -15,6 +15,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -47,12 +48,14 @@ public class V30_LegacyData_RepairTasks {
     private final ExamTemplateService examTemplateService;
     private final WebserviceInfo webserviceInfo;
     private final Executor executor;
+    private final ScreenProctoringService screenProctoringService;
 
     public V30_LegacyData_RepairTasks(
             final AdditionalAttributesDAO additionalAttributesDAO, final ExamDAO examDAO,
             final UserDAO userDAO,
             final ExamTemplateService examTemplateService,
             final WebserviceInfo webserviceInfo,
+            final ScreenProctoringService screenProctoringService,
             final @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) Executor executor) {
 
         this.additionalAttributesDAO = additionalAttributesDAO;
@@ -61,6 +64,7 @@ public class V30_LegacyData_RepairTasks {
         this.examTemplateService = examTemplateService;
         this.webserviceInfo = webserviceInfo;
         this.executor = executor;
+        this.screenProctoringService = screenProctoringService;
     }
 
 
@@ -277,12 +281,16 @@ public class V30_LegacyData_RepairTasks {
                     .pkForModelId(user.getModelId())
                     .onSuccess(id -> userDAO.updateUserRoles(id, roleNames));
 
-            // TODO update User Account on SPS
-
-            final UserInfo updatedUser = userDAO.byModelId(user.getModelId()).getOr(null);
-            if (updatedUser != null) {
-                SEBServerInit.INIT_LOGGER.info("--------> Successfully update User Roles for user: {}", updatedUser);
+            try {
+                screenProctoringService
+                        .synchronizeSPSUserWait(user.uuid);
+            } catch (Exception ee) {
+                SEBServerInit.INIT_LOGGER.warn("--------> Failed to update SPS User for user: {} cause: {}", user.uuid, ee.getMessage());
             }
+
+            userDAO.byModelId(user.getModelId())
+                    .onError(error -> SEBServerInit.INIT_LOGGER.error("--------> Failed to to get updated user: {} cause: {}", user.uuid, error.getMessage()))
+                    .onSuccess(uu -> SEBServerInit.INIT_LOGGER.info("--------> Successfully update User Roles for user: {}", uu));
 
         } catch (Exception e) {
             SEBServerInit.INIT_LOGGER.error("--------> Failed to update User Roles for user: {}, cause: {}", user.uuid, e.getMessage());
