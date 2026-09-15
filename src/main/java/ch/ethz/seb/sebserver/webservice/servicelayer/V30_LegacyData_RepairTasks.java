@@ -22,7 +22,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 /** 1. Since 3.0 Every new imported Exam has an Exam Configuration from import process
  * bot legacy Exams might not have an Exam Config since it was possible to import an exam without Exam Config.
@@ -116,6 +118,10 @@ public class V30_LegacyData_RepairTasks {
                                         UserRole.EXAM_ADMIN,
                                         UserRole.EXAM_SUPPORTER);
 
+                                if (user.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
+                                    roles.add(UserRole.SEB_SERVER_ADMIN);
+                                }
+
                                 updateUserRoles(user, roles);
 
                             } else if (user.roles.contains(UserRole.EXAM_ADMIN.name()) &&
@@ -124,6 +130,10 @@ public class V30_LegacyData_RepairTasks {
                                 final EnumSet<UserRole> roles = EnumSet.of(
                                         UserRole.EXAM_ADMIN,
                                         UserRole.EXAM_SUPPORTER);
+
+                                if (user.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
+                                    roles.add(UserRole.SEB_SERVER_ADMIN);
+                                }
 
                                 updateUserRoles(user, roles);
                             }
@@ -257,13 +267,25 @@ public class V30_LegacyData_RepairTasks {
     private void updateUserRoles(final UserInfo user, final EnumSet<UserRole> roles) {
         SEBServerInit.INIT_LOGGER.info("--------> Update User Roles for user: {}", user);
 
-        userDAO
-                .pkForModelId(user.getModelId())
-                .onSuccess(id -> userDAO.updateUserRoles(id, roles));
+        try {
 
-        final UserInfo updatedUser = userDAO.byModelId(user.getModelId()).getOr(null);
-        if (updatedUser != null) {
-            SEBServerInit.INIT_LOGGER.info("--------> Successfully update User Roles for user: {}", updatedUser);
+            final Set<String> roleNames = roles.stream()
+                    .map(UserRole::getName)
+                    .collect(Collectors.toSet());
+
+            userDAO
+                    .pkForModelId(user.getModelId())
+                    .onSuccess(id -> userDAO.updateUserRoles(id, roleNames));
+
+            // TODO update User Account on SPS
+
+            final UserInfo updatedUser = userDAO.byModelId(user.getModelId()).getOr(null);
+            if (updatedUser != null) {
+                SEBServerInit.INIT_LOGGER.info("--------> Successfully update User Roles for user: {}", updatedUser);
+            }
+
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("--------> Failed to update User Roles for user: {}, cause: {}", user.uuid, e.getMessage());
         }
     }
 }
