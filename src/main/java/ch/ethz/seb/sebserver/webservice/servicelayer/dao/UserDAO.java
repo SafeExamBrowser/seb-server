@@ -77,6 +77,6 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      *
      * @param userId The user Id to update the User Roles
      * @param roles Set of User Roles */
-    void updateUserRoles(Long userId, @NotNull EnumSet<UserRole> roles);
+    void updateUserRoles(Long userId, @NotNull Set<String> roleNames);
 
 }
