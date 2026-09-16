@@ -259,7 +259,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     }
 
     @Override
-    public void repairExamConfiguration(final Exam exam) {
+    public boolean repairExamConfiguration(final Exam exam) {
         try {
 
             final Collection<Long> configurationNodeIds = examConfigurationMapDAO
@@ -267,12 +267,14 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .getOrThrow();
 
             if (configurationNodeIds == null || configurationNodeIds.isEmpty()) {
-                log.info("--------> Repair Exam with missing Exam Configuration. Apply default SEB Settings to Exam --> {} ({})", exam.name, exam.id);
                 mapConfigurationNodeToExam(exam, createOrReuseConfig(exam, null));
+                return true;
             }
 
+            return false;
         } catch (Exception e) {
-            log.error("------> !!! Failed to apply default Exam Configuration for Exam: {} cause:", exam, e);
+            log.error("Failed to apply default Exam Configuration for Exam: {} cause:", exam, e);
+            return false;
         }
     }
 

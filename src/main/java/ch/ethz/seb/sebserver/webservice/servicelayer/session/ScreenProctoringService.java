@@ -95,10 +95,17 @@ public interface ScreenProctoringService extends SessionUpdateTask {
 
     /** This is used to update the exam equivalent on the screen proctoring service side
      * if screen proctoring is enabled for the specified exam.
+     * This also synchronize Exam Groups as well as User Accounts that are assigned to the Exam as supporter
      *
      * @param examId The SEB Server exam identifier
      * @return Result refer to the given exam data or to an error when happened */
     Result<Exam> updateExamOnScreenProctoringService(Long examId);
+
+    /** Updates the Exam data on SPS. Only the Exam data. This is mainly used to sync institutional privileges.
+     *
+     * @param examId The Exam identifier
+     * @return Result refer to the updated exam or to an error when happened */
+    Result<Exam> updateExamOnly(Long examId);
 
     /** This is internally used to update client connections that are active but has no groups assignment yet.
      * This attaches SEB client connections to proctoring group of an exam in one batch by checking for

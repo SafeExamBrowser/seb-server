@@ -69,7 +69,7 @@ public interface ExamTemplateService {
      * bot legacy Exams might not have an Exam Config since it was possible to import an exam without Exam Config.
      * This repairs such legacy data by  going once through all Exam in status UpComing, Running and Finished
      * and create a default Exam Configuration for the Exam if no Exam Configuration exists already for the exam*/
-    void repairExamConfiguration(Exam exam);
+    boolean repairExamConfiguration(Exam exam);
 
     /** Applies the Exam Template screen proctoring settings to an imported Exam that has been imported with the template
      * The Exam Template is referenced by the Exam itself.

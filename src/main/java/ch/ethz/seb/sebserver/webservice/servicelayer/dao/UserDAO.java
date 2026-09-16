@@ -76,7 +76,12 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      * This does not make a merge, it deletes the old roles and inserts the new given roles.
      *
      * @param userId The user Id to update the User Roles
-     * @param roles Set of User Roles */
+     * @param roleNames Set of User Role names */
     void updateUserRoles(Long userId, @NotNull Set<String> roleNames);
 
+    /** Indicates if this is (still) a valid exam supporter for Exam supervisor assignment
+     *
+     * @param supporterUUID The user UUID
+     * @return true if this is a valid exam supporter for Exam supervisor assignment */
+    boolean isValidSupporterUser(String supporterUUID);
 }

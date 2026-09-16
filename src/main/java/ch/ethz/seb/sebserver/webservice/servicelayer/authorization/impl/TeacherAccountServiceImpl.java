@@ -213,25 +213,41 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     public void deleteAllFromLMS(final Long lmsId) {
             userDAO
                     .deleteAdHocAccountsForLMS(AD_HOC_TEACHER_ID_PREFIX, lmsId)
+                    .map(result -> this.removeAccountsFromExamSupport(result, lmsId))
                     .map(this::deleteAccountsOnSPS)
                     .onError(error -> log.error("Failed to delete all teacher accounts for LMS with id: {}", lmsId, error));
     }
 
+
+
     @Override
     public void notifyExamFinished(final ExamFinishedEvent event) {
 
-        if (event.exam.status != Exam.ExamStatus.UP_COMING) {
-            final List<String> supporterWithoutTeacherAccounts = event.exam.supporter
-                    .stream()
-                    .filter(uuid -> uuid != null && !(uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)))
-                    .toList();
+        try {
 
-            deleteAllTeacherAccounts(event.exam);
+            if (event.exam.status != Exam.ExamStatus.UP_COMING) {
+                final Set<String> supporterWithoutTeacherAccounts = event.exam.supporter
+                        .stream()
+                        .filter(uuid -> uuid != null && !(TeacherAccountService.isTeacherAccountUUID(uuid) || authorizationService.isTeacherOnly(uuid)))
+                        .collect(Collectors.toSet());
 
-            // remove all teacher accounts from Exam supporter list
-            examDAO.updateSupporterAccounts(
-                    event.exam.id,
-                    supporterWithoutTeacherAccounts);
+                deleteAllTeacherAccounts(event.exam);
+
+                // remove all teacher accounts from Exam supporter list
+                examDAO.updateSupporterAccounts(
+                        event.exam.id,
+                        supporterWithoutTeacherAccounts);
+
+                // also update exam on SPS
+                screenProctoringService
+                        .updateExamOnly(event.exam.id)
+                        .onError(error -> log.error(
+                                "Failed to update Exam with remove teacher accounts on SPS: {} cause: {}",
+                                event.exam.id,
+                                error.getMessage()));
+            }
+        } catch (Exception e) {
+            log.error("Failed to process Exam finishing for Teacher Accounts: {}", e.getMessage());
         }
     }
 
@@ -252,7 +268,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
            final Set<EntityKey> keysToDelete = exam.supporter
                     .stream()
                     .filter(uuid -> uuid != null &&
-                            (uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)) && 
+                            (TeacherAccountService.isTeacherAccountUUID(uuid) || authorizationService.isTeacherOnly(uuid)) &&
                             examDAO.numOfExamsReferencingSupporter(uuid) == 1)
                     .map(uuid -> new EntityKey(uuid, EntityType.USER))
                     .collect(Collectors.toSet());
@@ -273,10 +289,55 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         }
     }
 
+    private Collection<EntityKey> removeAccountsFromExamSupport(
+            final Collection<EntityKey> result,
+            final Long lmsId) {
+
+        if (result == null || result.isEmpty()) {
+            return result;
+        }
+
+        final Set<String> teacherUUIDs = result.stream().map(key -> key.modelId).collect(Collectors.toSet());
+
+        examDAO
+                .allForLMSSetup(lmsId)
+                .getOrThrow()
+                .forEach(exam -> {
+                    try {
+
+                        if (exam.supporter == null || exam.supporter.isEmpty()) {
+                            return;
+                        }
+
+                        final Set<String> supporter = new HashSet<>(exam.supporter);
+                        supporter.removeAll(teacherUUIDs);
+
+                        if (supporter.size() != exam.supporter.size()) {
+                            // we need to update the supporter on Exam
+                            examDAO.updateSupporterAccounts(exam.id, supporter);
+                            // also update exam on SPS
+                            screenProctoringService
+                                    .updateExamOnly(exam.id)
+                                    .onError(error -> log.error(
+                                            "Failed to update Exam with remove teacher accounts: {} cause: {}",
+                                            exam.id,
+                                            error.getMessage()));
+                        }
+
+                    } catch (Exception e) {
+                        log.error("Failed to remove ad hoc teacher accounts form Exam: {}" , exam.id);
+                    }
+                });
+
+        return result;
+    }
+
     private Collection<EntityKey> deleteAccountsOnSPS(final Collection<EntityKey> keys) {
         keys.forEach(key -> this.screenProctoringService.deleteSPSUser(key.modelId) );
         return keys;
     }
+
+
 
     private UserInfo handleAccountDoesNotExistYet(
             final boolean createIfNotExists,

@@ -40,6 +40,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     private final DBIntegrityChecker dbIntegrityChecker;
     private final SEBServerMigrationStrategy sebServerMigrationStrategy;
     private final FeatureService featureService;
+    private final V30_LegacyData_RepairTasks v30_LegacyData_RepairTasks;
 
     protected WebserviceInit(
             final SEBServerInit sebServerInit,
@@ -49,7 +50,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
             final WebserviceInfoDAO webserviceInfoDAO,
             final DBIntegrityChecker dbIntegrityChecker,
             final ApplicationContext applicationContext,
-            final SEBServerMigrationStrategy sebServerMigrationStrategy, FeatureService featureService) {
+            final SEBServerMigrationStrategy sebServerMigrationStrategy,
+            final FeatureService featureService,
+            final V30_LegacyData_RepairTasks v30_LegacyData_RepairTasks) {
 
         this.applicationContext = applicationContext;
         this.sebServerInit = sebServerInit;
@@ -61,6 +64,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.dbIntegrityChecker = dbIntegrityChecker;
         this.sebServerMigrationStrategy = sebServerMigrationStrategy;
         this.featureService = featureService;
+        this.v30_LegacyData_RepairTasks = v30_LegacyData_RepairTasks;
     }
 
     public ApplicationContext getApplicationContext() {
@@ -194,6 +198,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice successfully started up!               ***");
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
+
+        v30_LegacyData_RepairTasks.repairLegacyDataForV30();
     }
 
     private boolean registerWebservice() {

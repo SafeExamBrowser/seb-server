@@ -662,7 +662,7 @@ public class ExamRecordDAO {
     }
 
     @Transactional
-    public Result<ExamRecord> updateSupporterAccounts(final Long examId, final List<String> supporterUUIDs) {
+    public Result<ExamRecord> updateSupporterAccounts(final Long examId, final Set<String> supporterUUIDs) {
         return Result.tryCatch(() -> {
 
                     final String joinedUUIds = StringUtils.join(supporterUUIDs, Constants.COMMA);

@@ -276,6 +276,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     @Override
     protected Result<LmsSetup> validForDelete(final LmsSetup entity) {
         return Result.tryCatch(() -> {
+
+            // if the LMSSetup is active it cannot be deleted. First it needs to be deactivated
             if (entity.isActive()) {
                 throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of(
                         "The Assessment Tool must be inactive bevor deletion. Please deactivate it first."));

@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.DeleteExamAction;
 import jakarta.validation.Valid;
 
@@ -812,7 +813,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             if (oldExam.supporter != null) {
                 final List<String> teacherAccounts = oldExam.supporter
                         .stream()
-                        .filter(s -> s.contains(AD_HOC_TEACHER_ID_PREFIX) || authorization.isTeacherOnly(s))
+                        .filter(s -> TeacherAccountService.isTeacherAccountUUID(s) || authorization.isTeacherOnly(s))
                         .toList();
                 if (!teacherAccounts.isEmpty()) {
                     final Set<String> supporterAndTeacher = new HashSet<>(teacherAccounts);
@@ -1022,7 +1023,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                             }
 
                             // if teacher user skip
-                            if (uuid.startsWith(AD_HOC_TEACHER_ID_PREFIX)) {
+                            if (TeacherAccountService.isTeacherAccountUUID(uuid)) {
                                 return false;
                             }
 

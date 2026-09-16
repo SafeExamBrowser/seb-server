@@ -14,12 +14,25 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.event.EventListener;
 
 /** Service used to maintain Teacher Ad-Hoc Accounts */
 public interface TeacherAccountService {
 
     String AD_HOC_TEACHER_ID_PREFIX = "TEACHER_ACCOUNT_";
+
+    /** Indicates if the user UUID has the AD_HOC_TEACHER_ID_PREFIX prefix or not
+     *
+     * @param uuid the User UUID
+     * @return true if the UUID has the AD_HOC_TEACHER_ID_PREFIX prefix and is a valid Teacher User Account ID */
+    static boolean isTeacherAccountUUID(final String uuid) {
+        if (StringUtils.isBlank(uuid)) {
+            return false;
+        }
+
+        return uuid.startsWith(AD_HOC_TEACHER_ID_PREFIX);
+    }
 
     /** Creates an Ad-Hoc Teacher account for a given existing Exam.
      *

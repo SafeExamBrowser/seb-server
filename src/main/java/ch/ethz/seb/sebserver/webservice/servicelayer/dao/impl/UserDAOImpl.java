@@ -62,6 +62,11 @@ public class UserDAOImpl implements UserDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserDAOImpl.class);
 
+    private static final List<String> SUPPORTER_ROLES = Arrays.asList(
+            UserRole.EXAM_SUPPORTER.name(),
+            UserRole.TEACHER.name()
+    );
+
     private final UserRecordMapper userRecordMapper;
     private final RoleRecordMapper roleRecordMapper;
     private final EntityPrivilegeRecordMapper entityPrivilegeRecordMapper;
@@ -433,6 +438,38 @@ public class UserDAOImpl implements UserDAO {
     public void updateUserRoles(final Long userId, final Set<String> roleNames) {
         //final Set<String> roleNames = roles.stream().map(UserRole::getName).collect(Collectors.toSet());
         updateRolesForUser(userId, roleNames);
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isValidSupporterUser(final String supporterUUID) {
+        try {
+
+            List<Long> ids = userRecordMapper
+                    .selectIdsByExample()
+                    .where(uuid, isEqualTo(supporterUUID))
+                    .build()
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                return false;
+            }
+
+            final Long count = roleRecordMapper
+                    .countByExample()
+                    .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(ids.getFirst()))
+                    .and(RoleRecordDynamicSqlSupport.roleName, isIn(SUPPORTER_ROLES))
+                    .build()
+                    .execute();
+
+            return count >= 1;
+
+        } catch (Exception e) {
+            log.error("Failed to check if user is a valid Exam supporter for Exam supervisor assignment, UUID: {}, cause: {}", supporterUUID, e.getMessage());
+            return true;
+        }
     }
 
     @Override

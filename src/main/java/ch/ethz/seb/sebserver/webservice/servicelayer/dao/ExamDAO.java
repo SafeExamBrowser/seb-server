@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.util.Pair;
@@ -149,7 +149,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return collection of all currently running exam identifiers */
     Result<Collection<Long>> allRunningExamIds();
 
-    Result<Collection<Long>> allNoneArchivedExamIds();
+    Result<Collection<Long>> allExamIds();
 
     /** This is used to place an internal (write)lock for the specified exam.
      * The exam will be marked as locked on the persistence level to prevent other running web-service instances
@@ -270,7 +270,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     
     void saveBrowserExamKeys(Long examId, String bek);
 
-    void updateSupporterAccounts(Long examId, List<String> supporterUUIDs);
+    void updateSupporterAccounts(Long examId, Set<String> supporterUUIDs);
 
     /** This gets the number of exams that references a given Supporter or Teacher account UUID
      * 

@@ -1284,8 +1284,7 @@ public class ScreenProctoringAPIBinding {
 
             if (exchange.getStatusCode() != HttpStatus.OK) {
                 log.warn("Failed to synchronize user account on SPS: {}", exchange);
-            } else {
-                log.info("Successfully synchronize user account on SPS for user: {}", userUUID);
+                return;
             }
 
             // sync activity
@@ -1305,7 +1304,7 @@ public class ScreenProctoringAPIBinding {
                     log.warn("Failed to synchronize activity for user account on SPS: {}", activityRequest);
                 }
             } else {
-                log.info("Successfully synchronize activity for user account on SPS for user: {}", userUUID);
+                log.info("Successfully synchronize user account on SPS for user: {}", userUUID);
             }
 
         } catch (final Exception e) {

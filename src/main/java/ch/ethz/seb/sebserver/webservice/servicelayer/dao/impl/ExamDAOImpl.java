@@ -257,7 +257,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    public void updateSupporterAccounts(final Long examId, final List<String> supporterUUIDs) {
+    public void updateSupporterAccounts(final Long examId, final Set<String> supporterUUIDs) {
         this.examRecordDAO
                 .updateSupporterAccounts(examId, supporterUUIDs)
                 .onError(err -> log.error("Failed to update supporter uuids on exam: {}", examId, err));
@@ -446,18 +446,9 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Long>> allNoneArchivedExamIds() {
-        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
-                .where(
-                        ExamRecordDynamicSqlSupport.active,
-                        isEqualTo(BooleanUtils.toInteger(true)))
-                .and(
-                        ExamRecordDynamicSqlSupport.status,
-                        isNotEqualTo(ExamStatus.ARCHIVED.name()))
-                .and(
-                        ExamRecordDynamicSqlSupport.updating,
-                        isEqualTo(BooleanUtils.toInteger(false)))
-
+    public Result<Collection<Long>> allExamIds() {
+        return Result.tryCatch(() -> this.examRecordMapper
+                .selectIdsByExample()
                 .build()
                 .execute());
     }
