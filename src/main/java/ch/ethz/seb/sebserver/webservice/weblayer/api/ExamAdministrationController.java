@@ -71,8 +71,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
-import static ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService.AD_HOC_TEACHER_ID_PREFIX;
-
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_ADMINISTRATION_ENDPOINT)
 public class ExamAdministrationController extends EntityController<Exam, Exam> {
@@ -1023,11 +1021,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                             }
 
                             // if teacher user skip
-                            if (TeacherAccountService.isTeacherAccountUUID(uuid)) {
-                                return false;
-                            }
-
-                            return true;
+                            return !TeacherAccountService.isTeacherAccountUUID(uuid);
                         } catch (Exception e) {
                             log.error("Failed to adapt supporter for Exam: {}, userId: {}, cause: {}", exam.externalId, uuid, e.getMessage());
                             return true;

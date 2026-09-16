@@ -10,8 +10,8 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.*;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
@@ -61,6 +61,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     private final LmsLiveCycleService lmsLiveCycleService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final Cryptor cryptor;
+    private final ExamDAO examDAO;
 
     public LmsSetupController(
             final LmsSetupDAO lmsSetupDAO,
@@ -71,12 +72,10 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final LmsTestService lmsTestService,
-            final SEBRestrictionService sebRestrictionService,
-            final FullLmsIntegrationService fullLmsIntegrationService,
-            final ScreenProctoringService screenProctoringService,
             final LmsLiveCycleService lmsLiveCycleService,
             final ApplicationEventPublisher applicationEventPublisher,
-            final Cryptor cryptor) {
+            final Cryptor cryptor,
+            final ExamDAO examDAO) {
 
         super(authorization,
                 bulkActionService,
@@ -90,6 +89,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
         this.lmsLiveCycleService = lmsLiveCycleService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.cryptor = cryptor;
+        this.examDAO = examDAO;
     }
 
     @Override
@@ -280,8 +280,15 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             // if the LMSSetup is active it cannot be deleted. First it needs to be deactivated
             if (entity.isActive()) {
                 throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of(
-                        "The Assessment Tool must be inactive bevor deletion. Please deactivate it first."));
+                        "The Assessment Tool must be inactive before deletion. Please deactivate it first."));
             }
+
+            // if there are active exams for the LMSSetup it cannot be deleted
+            if (examDAO.hasNoneArchivedExamsForLMSSetup(entity.id)) {
+                throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of(
+                        "There still are active Exams for this LMS Setup. Please archive or delete them first."));
+            }
+
             return entity;
         });
     }

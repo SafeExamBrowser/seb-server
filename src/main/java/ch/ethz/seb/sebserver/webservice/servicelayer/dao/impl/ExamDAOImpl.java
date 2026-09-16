@@ -495,6 +495,26 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public boolean hasNoneArchivedExamsForLMSSetup(final Long lmsSetupId) {
+        try {
+            Long count = this.examRecordMapper.countByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.lmsSetupId,
+                            isNotEqualTo(lmsSetupId))
+                    .and(
+                            status,
+                            isNotEqualTo(ExamStatus.ARCHIVED.name()))
+                    .build()
+                    .execute();
+
+            return count > 0;
+        } catch (Exception e) {
+            log.error("Failed to check if there are none archived Exams for LMS: {}, cause:  {}", lmsSetupId, e.getMessage());
+            return true;
+        }
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> allForLMSSetup(final Long lmsSetupId) {
         return Result.tryCatch(() -> this.examRecordMapper.selectByExample()
