@@ -492,7 +492,8 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                                 val -> attrIdsMap.get(val.attributeId).name,
                                 val -> new SEBSettingsView.Value(
                                         val.id,
-                                        convertValueRead(attrIdsMap.get(val.attributeId).id, val.value)))))
+                                        convertValueRead(attrIdsMap.get(val.attributeId).id, val.value)),
+                                (v1, v2)-> v2)))
                 .onError(error -> log.warn("Failed to get single values: ", error))
                 .getOrThrow();
 
