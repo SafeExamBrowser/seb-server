@@ -805,7 +805,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             final Long configurationId,
             final int index) {
 
-        log.info("Missing SEB Setting value detected for attribute: {} try to create one", attr);
+        if (log.isDebugEnabled()) {
+            log.debug("Missing SEB Setting value detected for attribute: {} try to create one", attr);
+        }
 
         // first try to find value if one already exists, return that
         Optional<ConfigurationValueRecord> first = this.configurationValueRecordMapper.selectByExample()
@@ -828,7 +830,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             return toDomainModel(first.get()).getOr(null);
         }
 
-        return createNew(new ConfigurationValue(
+        final ConfigurationValue newValue = createNew(new ConfigurationValue(
                 null,
                 institutionId,
                 configurationId,
@@ -837,6 +839,10 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 attr.getDefaultValue()))
                 .onError(error -> log.error("Failed to create missing SEB Setting value: {}", error.getMessage()))
                 .getOr(null);
+
+            log.info("Created missing SEB Setting value : {} for attribute: {}", newValue, attr);
+
+        return newValue;
     }
 
 }

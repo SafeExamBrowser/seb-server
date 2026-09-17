@@ -531,7 +531,9 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 return;
             }
 
-            log.info("Missing SEB Setting value detected for attribute: {} try to create one", missingAttr);
+            if (log.isDebugEnabled()) {
+                log.info("Missing SEB Setting value detected for attribute: {} try to create one", missingAttr);
+            }
 
             ConfigurationValue newValue = configurationValueDAO.createNew(new ConfigurationValue(
                             null,
@@ -549,6 +551,8 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                         new SEBSettingsView.Value(
                                 newValue.id,
                                 convertValueRead(configurationAttribute.id, newValue.value)));
+
+                log.info("Created missing SEB Setting value : {} for attribute: {}", newValue, missingAttr);
             }
         } catch (Exception e) {
             log.warn("Failed to create new value for missing SEB Settings: {}", attrId);
