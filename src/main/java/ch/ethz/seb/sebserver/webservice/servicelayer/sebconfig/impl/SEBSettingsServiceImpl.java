@@ -575,10 +575,11 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                             int i = 0;
                             for (final List<ConfigurationValue> row : val) {
                                 final SEBSettingsView.TableRowValues tableRowValues = new SEBSettingsView.TableRowValues(attribute.name, i, row.stream()
-                                        .filter(Objects::nonNull).
-                                        collect(Collectors.toMap(
+                                        .filter(Objects::nonNull)
+                                        .collect(Collectors.toMap(
                                                 v -> mapping.get(v.attributeId),
-                                                v -> new SEBSettingsView.Value(v.id, v.value))));
+                                                v -> new SEBSettingsView.Value(v.id, v.value),
+                                                (v1, v2)-> v2)));
                                 res.add(tableRowValues);
                                 i++;
                             }
@@ -603,7 +604,8 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                         .filter(v -> v != null &&  attrIdMapping.get(v.attributeId) != null)
                         .collect(Collectors.toMap(
                                 v -> attrIdMapping.get(v.attributeId).name,
-                                v -> new SEBSettingsView.Value(v.id, v.value))));
+                                v -> new SEBSettingsView.Value(v.id, v.value),
+                                (v1, v2)-> v2)));
                 rows.add(tableRowValues);
                 i++;
             }
