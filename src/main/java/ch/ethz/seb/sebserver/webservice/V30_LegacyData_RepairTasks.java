@@ -243,7 +243,7 @@ public class V30_LegacyData_RepairTasks {
 
             additionalAttributesDAO.saveAdditionalAttribute(EntityType.EXAM, 0L, EXAM_REPAIR_DONE_ATTR_NAME, "true");
 
-            REPAIR_LOGGER.info("------> Successfully finished repairing legacy Exams add default Exam Configuration for all active Exams");
+            REPAIR_LOGGER.info("------> Successfully finished repairing legacy Exams");
 
         } catch (final Exception e) {
             REPAIR_LOGGER.error("------> !!! Failed to repair legacy Exams with no Exam Configuration due to unexpected error: ", e);
