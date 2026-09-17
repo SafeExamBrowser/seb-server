@@ -343,7 +343,8 @@ public class ExamConfigIO {
                 .stream()
                 .collect(Collectors.toMap(
                         ConfigurationValue::getAttributeId,
-                        Function.identity()));
+                        Function.identity(),
+                        (v1, v2)-> v2));
 
         return attr -> mapping.get(attr.id);
     }
