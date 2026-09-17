@@ -245,9 +245,9 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             return false;
         }
 
-        if (entity.roles != null && entity.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
+        if (entity.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
             final UserInfo currentUser = this.authorization.getUserService().getCurrentUser().getUserInfo();
-            return currentUser.roles != null && currentUser.roles.contains(UserRole.SEB_SERVER_ADMIN.name());
+            return currentUser.roles.contains(UserRole.SEB_SERVER_ADMIN.name());
         }
 
        return true;
