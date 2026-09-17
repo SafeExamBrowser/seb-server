@@ -308,7 +308,12 @@ public class UserDAOImpl implements UserDAO {
                             .build()
                             .execute();
 
-                    updateRolesForUser(record.getId(), userInfo.roles);
+                    // Check Roles If SEB_SERVER_ADMIN, keep other roles from old account
+                    // If the user has no SEB_SERVER_ADMIN. change the roles
+                    if (!userInfo.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
+                        updateRolesForUser(record.getId(), userInfo.roles);
+                    }
+
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
                 })
                 .flatMap(this::toDomainModel)

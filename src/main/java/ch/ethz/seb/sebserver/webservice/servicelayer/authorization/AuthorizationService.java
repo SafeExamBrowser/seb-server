@@ -209,6 +209,7 @@ public interface AuthorizationService {
      * @param entity The entity instance to check for privileges */
     default <E extends GrantEntity> Result<E> check(final PrivilegeType privilegeType, final E entity) {
         if (!hasGrant(privilegeType, entity)) {
+            // TODO this should go in Result?
             throw new PermissionDeniedException(
                     entity,
                     privilegeType,

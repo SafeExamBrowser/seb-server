@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamic
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.UserCacheService;
@@ -225,6 +226,33 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .map(this::checkRoleBasedEditGrant);
     }
 
+    @Override
+    protected Result<UserInfo> checkReadAccess(final UserInfo entity) {
+       super.checkReadAccess(entity);
+       if (!hasReadAccess(entity)) {
+           return Result.ofError(new PermissionDeniedException(
+                    entity,
+                    PrivilegeType.READ,
+                   this.authorization.getUserService().getCurrentUser().uuid()));
+       }
+
+        return Result.of(entity);
+    }
+
+    @Override
+    protected boolean hasReadAccess(final UserInfo entity) {
+        if (!super.hasReadAccess(entity)) {
+            return false;
+        }
+
+        if (entity.roles != null && entity.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
+            final UserInfo currentUser = this.authorization.getUserService().getCurrentUser().getUserInfo();
+            return currentUser.roles != null && currentUser.roles.contains(UserRole.SEB_SERVER_ADMIN.name());
+        }
+
+       return true;
+    }
+
     private UserInfo checkRoleBasedEditGrant(final UserInfo userInfo) {
         final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
         if (Privilege.hasRoleBasedUserAccountEditGrant(userInfo, currentUser.getUserInfo())) {
@@ -306,7 +334,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         final FilterMap filterMap = new FilterMap();
         filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         
-        return super.getAll(filterMap)
+        return getAll(filterMap)
                 .map(all -> all.stream()
                         .filter(u -> Objects.equals(u.institutionId, institutionId) && 
                                 u.hasAnyRole(UserRole.EXAM_SUPPORTER) && 
