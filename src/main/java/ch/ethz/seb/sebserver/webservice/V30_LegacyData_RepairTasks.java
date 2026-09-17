@@ -136,20 +136,7 @@ public class V30_LegacyData_RepairTasks {
                     .onSuccess(all -> all.forEach(userId -> {
                         final UserInfo user = userDAO.byModelId(userId).getOr(null);
                         if (user != null) {
-                            if (user.roles.contains(UserRole.SEB_SERVER_ADMIN.name()) &&
-                                    (user.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name()) ||
-                                    user.roles.contains(UserRole.EXAM_ADMIN.name()) ||
-                                    user.roles.contains(UserRole.EXAM_SUPPORTER.name()))) {
-
-                                REPAIR_LOGGER.info(
-                                        "--------> Found SEB Server Admin User with other roles. Convert to SEB Server Admin only: {} : {}",
-                                        user.username,
-                                        user.uuid);
-
-                                final EnumSet<UserRole> roles = EnumSet.of(UserRole.SEB_SERVER_ADMIN);
-                                updateUserRoles(user, roles);
-
-                            } else if (user.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name()) &&
+                            if (user.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name()) &&
                                     (!user.roles.contains(UserRole.EXAM_ADMIN.name()) ||
                                      !user.roles.contains(UserRole.EXAM_SUPPORTER.name()))) {
 
@@ -397,7 +384,7 @@ public class V30_LegacyData_RepairTasks {
 
             userDAO.byModelId(user.getModelId())
                     .onError(error -> REPAIR_LOGGER.error("------> !!! Failed to get updated user: {} cause: {}", user.uuid, error.getMessage()))
-                    .onSuccess(uu -> REPAIR_LOGGER.info("------> Successfully update User Roles for user: {}", uu.username));
+                    .onSuccess(uu -> REPAIR_LOGGER.info("------> Successfully update User Roles for user: {} new roles: {}", uu.username, uu.roles));
 
         } catch (Exception e) {
             REPAIR_LOGGER.error("--------> !!! Failed to update User Roles for user: {}, cause: {}", user.uuid, e.getMessage());
