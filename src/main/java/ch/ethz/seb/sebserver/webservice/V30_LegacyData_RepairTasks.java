@@ -1,6 +1,5 @@
 package ch.ethz.seb.sebserver.webservice;
 
-import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
