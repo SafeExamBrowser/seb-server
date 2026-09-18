@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Set;
 
@@ -91,6 +92,8 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
             final byte[] symetricKey = generateSymetricKey();
             final CharSequence symetricKeyBase64 = Base64.getEncoder().encodeToString(symetricKey);
             final byte[] generateParameter = generateParameter(certificate, publicKeyHash, symetricKey);
+
+            System.out.println("************ publicKeyHash: " + Arrays.toString(publicKeyHash));
 
             output.write(generateParameter, 0, generateParameter.length);
 
