@@ -149,7 +149,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                             .getSEBRestrictionService()
                             .applySEBClientRestriction(exam)
                             .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
-                            .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
+                            .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {} cause: {}", exam, t.getMessage()));
                 }
                 this.examAdminService.updateAdditionalExamConfigAttributes(exam.id);
                 // notify others...
@@ -160,14 +160,14 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             for (final Exam exam : exams) {
                 this.examSessionService
                         .flushCache(exam)
-                        .onError(t -> log.error("Failed to flush Exam from cache: {}", exam, t));
+                        .onError(t -> log.error("Failed to flush Exam from cache: {} cause: {}", exam, t.getMessage()));
             }
 
             // release the update-locks on involved exams
             for (final Long examId : examIdsFirstCheck) {
                 this.examDAO
                         .releaseLock(examId, updateId)
-                        .onError(t -> log.error("Failed to release lock for Exam: {}", examId, t));
+                        .onError(t -> log.error("Failed to release lock for Exam: {} cause: {}", examId, t.getMessage()));
             }
 
             return examIdsFirstCheck;

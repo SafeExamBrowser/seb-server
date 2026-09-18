@@ -130,7 +130,8 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
             return value;
         }
         
-        return this.configurationValueDAO.byPK(valueId)
+        return this.configurationValueDAO
+                .byPK(valueId)
                 .map(rec -> {
                     if (PASSWORD_TYPE_ATTRIBUTES.contains(rec.attributeId)) {
                         return cryptor
@@ -140,7 +141,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                     } 
                     return value;
                 })
-                .onError( error -> log.error("Failed to encrypt SEB settings value as password: ", error ))
+                .onError( error -> log.error("Failed convert SEB Settings value for write: {}", error.getMessage()))
                 .getOr(value);
     }
 
