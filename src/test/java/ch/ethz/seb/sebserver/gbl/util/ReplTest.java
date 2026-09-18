@@ -93,5 +93,29 @@ public class ReplTest {
 
     }
 
+    @Test
+    public void decryptDevData() {
+        final MockEnvironment mockEnvironment = new MockEnvironment();
+        mockEnvironment.setProperty("sebserver.webservice.internalSecret", "somePW");
+        final String encrypted = "562057aa14d31efa78d494be6a298b8c22ec0860f1e76ab3f59d42e1f5822766604c2141087a9c0cadda99aeb55e962038a0c1bc5ef8dbbc0969b975a8591cf512b7034d408c36e9803307d52e44e305bf13f89a12f3fbda5590b281282d5fee93af2f36cf42f40417abc3f97320797ebb3207a18775c6202334bcd0137001c3e301dc53b356bbfd39c4a1d1957f1e55de5ee13fa57b80a18398d13c25e656673406b4643c9b16efb70203c311279f20fcd8005083b30d31606087e7f771cad5cfa9dbd074260eb8004e57db293016cad5d45560dd9b57f02804daf2b9a5cc6084bcfb4bd890fc6cc0114be77818cb43447c71f2330f54c04253ebe2223fdae16d1e9a48c8c9cccda8890bdac59239b49cae1fc3e9d6671ed7bec61d3b8e03471ab27cf14ca2f003f7fe6253e70a833e84e4a2912a678fab3ba672f85ddc2420c9791de05f8db774ccabbd4db4831f4b076ff113c397e7f8a76629d8440000cab437";
+        final Cryptor cryptor = new Cryptor(mockEnvironment);
+        final Result<CharSequence> decrypted = cryptor.decrypt(encrypted);
+        assertFalse(decrypted.hasError());
+        System.out.println("decrypted:");
+        System.out.println(decrypted.get());
+    }
+
+    @Test
+    public void encryptDevData() {
+        final MockEnvironment mockEnvironment = new MockEnvironment();
+        mockEnvironment.setProperty("sebserver.webservice.internalSecret", "somePW");
+        final String text = "{\"id\":28,\"enableScreenProctoring\":true,\"spsServiceURL\":\"http://localhost:8090\",\"spsAPIKey\":\"sebserverClient\",\"spsAPISecret\":\"somePW\",\"spsAccountId\":\"SEBServerAPIAccount\",\"spsAccountPassword\":\"admin\",\"spsCollectingStrategy\":\"EXAM\",\"spsSEBGroupsSelection\":\"\",\"bundled\":true,\"changeStrategyConfirm\":false}";
+        final Cryptor cryptor = new Cryptor(mockEnvironment);
+        final Result<CharSequence> encrypt = cryptor.encrypt(text);
+        assertFalse(encrypt.hasError());
+        System.out.println("encrypted:");
+        System.out.println(encrypt.get());
+    }
+
 
 }
