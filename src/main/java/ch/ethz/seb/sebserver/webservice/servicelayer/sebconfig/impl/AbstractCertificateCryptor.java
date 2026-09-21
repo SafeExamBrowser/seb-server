@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Arrays;
@@ -88,7 +89,7 @@ public abstract class AbstractCertificateCryptor {
             final org.bouncycastle.asn1.x509.Certificate bcCert =
                     org.bouncycastle.asn1.x509.Certificate.getInstance(cert.getEncoded());
             final byte[] bytes = bcCert.getSubjectPublicKeyInfo().getPublicKeyData().getBytes();
-            return DigestUtils.md5Digest(bytes);
+            return MessageDigest.getInstance("SHA-1").digest(bytes);
         } catch (final Exception e) {
             throw new RuntimeException("Failed to generate public key hash:" + e.getMessage(), e);
         }
