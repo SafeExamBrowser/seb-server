@@ -130,7 +130,7 @@ public class ExamSEBSettingsController {
 
         authorizationService.hasModifyGrant(examDAO.byPK(examId).getOrThrow());
 
-        // System.out.println("************ save single value: " + value + " examId: " + examId + " valueId: " + valueId);
+        System.out.println("************ save single value: " + value + " examId: " + examId + " valueId: " + valueId);
 
         return sebSettingsService
                 .saveSingleValueForExam(examId, valueId, value)

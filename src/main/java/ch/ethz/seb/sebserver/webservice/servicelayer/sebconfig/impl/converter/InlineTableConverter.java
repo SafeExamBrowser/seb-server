@@ -110,6 +110,8 @@ public class InlineTableConverter implements AttributeValueConverter {
 
             out.write((xml) ? XML_DICT_START : JSON_DICT_START);
 
+            // TODO make this more resilient too parsing errors, make sure there
+            System.out.println("*************** attribute value: " + rows[i]);
             for (int j = 0; j < columns.length; j++) {
                 final String[] val = new String[2];
                 int dIndex = values[j].indexOf(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);

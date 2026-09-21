@@ -185,5 +185,4 @@ public interface SEBSettingsService {
 
     Result<Long> undoSettingsForTemplate(Long templateId);
     Result<Long> undoSettingsForExam(Long examId);
-
 }

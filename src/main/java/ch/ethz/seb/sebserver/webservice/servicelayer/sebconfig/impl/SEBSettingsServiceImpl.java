@@ -318,7 +318,6 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 .getOrThrow();
 
         final ConfigurationValue cValue = configurationValueDAO.byPK(valueId).getOrThrow();
-        examConfigService.validate(cValue);
 
         final ConfigurationValue newCValue = configurationValueDAO.save(new ConfigurationValue(
                 cValue.id,
@@ -327,6 +326,8 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
                 cValue.attributeId,
                 cValue.listIndex,
                 value)).getOrThrow();
+
+        examConfigService.validate(newCValue);
 
         return new SEBSettingsView.Value(cValue.id, newCValue.value);
     }
