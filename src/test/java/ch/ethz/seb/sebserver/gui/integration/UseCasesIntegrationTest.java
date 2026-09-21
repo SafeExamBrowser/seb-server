@@ -3353,7 +3353,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(restriction);
         assertEquals(exam.id.toString(), restriction.examId.toString());
         assertEquals(
-                "[04d9ae317d7242f90eca36b2e681f1fd]",
+                "[f48375c430c035cfadcaff4adccc67444299b642b0ea3941886b17a5f799eca7]",
                 restriction.configKeys.toString());
         assertEquals(
                 "[]",
@@ -3382,7 +3382,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(restriction);
         assertEquals(exam.id.toString(), restriction.examId.toString());
         assertEquals(
-                "[04d9ae317d7242f90eca36b2e681f1fd]",
+                "[f48375c430c035cfadcaff4adccc67444299b642b0ea3941886b17a5f799eca7]",
                 restriction.configKeys.toString());
         assertEquals(
                 "[exam-key]",
