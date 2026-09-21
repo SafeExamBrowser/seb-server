@@ -51,7 +51,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncrypti
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
-import org.springframework.util.DigestUtils;
 
 @Lazy
 @Service

@@ -93,6 +93,9 @@ public final class Constants {
     public static final String URL_PATH_SEPARATOR = SLASH.toString();
     public static final String HASH_TAG_STRING = HASH_TAG.toString();
 
+    public static final String LIST_SEPARATOR_ESCAPE = "__COMMA__";
+    public static final String EMBEDDED_LIST_SEPARATOR_ESCAPE = "__PIPE__";
+
     public static final String DYN_HTML_ATTR_OPEN = "%%_";
     public static final String DYN_HTML_ATTR_CLOSE = "_%%";
 

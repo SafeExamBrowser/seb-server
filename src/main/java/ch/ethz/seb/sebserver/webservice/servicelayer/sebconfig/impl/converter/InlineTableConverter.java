@@ -118,6 +118,15 @@ public class InlineTableConverter implements AttributeValueConverter {
                 if (dIndex > 0) {
                     val[0] = values[j].substring(0, dIndex);
                     val[1] = values[j].substring(dIndex + 1);
+                    // remove escaped special cars for embeded list value: SEBSERV-1030
+                    if (StringUtils.isNotBlank(val[1])) {
+                        if (val[1].contains(Constants.LIST_SEPARATOR_ESCAPE)) {
+                            val[1] = val[1].replaceAll(Constants.LIST_SEPARATOR_ESCAPE, Constants.LIST_SEPARATOR);
+                        }
+                        if (val[1].contains(Constants.EMBEDDED_LIST_SEPARATOR_ESCAPE)) {
+                            val[1] = val[1].replaceAll(Constants.EMBEDDED_LIST_SEPARATOR_ESCAPE, Constants.EMBEDDED_LIST_SEPARATOR);
+                        }
+                    }
                 } else {
                     log.error("Failed to convert inline table value: {}, ignore it!", values[j]);
                     continue;
