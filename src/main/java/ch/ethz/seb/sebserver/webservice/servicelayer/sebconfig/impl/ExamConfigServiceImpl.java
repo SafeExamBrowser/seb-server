@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.security.MessageDigest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mariadb.jdbc.plugin.authentication.standard.ed25519.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -306,7 +308,8 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                     configurationNodeId,
                     configId);
 
-            final String configKey = DigestUtils.md5DigestAsHex(pin);
+            final byte[] digest = MessageDigest.getInstance("SHA-256").digest(pin.readAllBytes());
+            final String configKey = Utils.bytesToHex(digest);
 
             return Result.of(configKey);
 
