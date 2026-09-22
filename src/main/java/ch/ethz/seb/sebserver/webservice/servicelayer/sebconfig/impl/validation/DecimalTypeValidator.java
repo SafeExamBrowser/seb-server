@@ -51,15 +51,13 @@ public class DecimalTypeValidator implements ConfigurationValueValidator {
                 final String[] split = StringUtils.split(resources, Constants.LIST_SEPARATOR);
                 if (split.length > 0) {
                     // check lower boundary
-                    if (Double.parseDouble(split[0]) < val) {
+                    if (Double.parseDouble(split[0]) > val) {
                         return false;
                     }
 
                     if (split.length > 1) {
                         // check upper boundary
-                        if (Double.parseDouble(split[1]) > val) {
-                            return false;
-                        }
+                        return !(Double.parseDouble(split[1]) < val);
                     }
                 }
             }
