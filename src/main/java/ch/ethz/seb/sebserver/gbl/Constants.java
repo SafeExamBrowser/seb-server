@@ -95,6 +95,7 @@ public final class Constants {
 
     public static final String LIST_SEPARATOR_ESCAPE = "__COMMA__";
     public static final String EMBEDDED_LIST_SEPARATOR_ESCAPE = "__PIPE__";
+    public static final String VALUE_SEPARATOR_ESCAPE = "__EQ__";
 
     public static final String DYN_HTML_ATTR_OPEN = "%%_";
     public static final String DYN_HTML_ATTR_CLOSE = "_%%";
