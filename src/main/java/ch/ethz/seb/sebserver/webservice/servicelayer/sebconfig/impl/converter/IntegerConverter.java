@@ -89,7 +89,12 @@ public class IntegerConverter implements AttributeValueConverter {
             intVal = Integer.parseInt(val);
         } catch (final NumberFormatException nfe) {
             log.error("Failed to convert SEB configuration attribute value of type integer: {}", val, nfe);
-            intVal = 0;
+            try {
+                intVal = Integer.parseInt(attribute.defaultValue);
+            } catch (final Exception e) {
+                log.warn("Failed to convert default value, return 0. Cause: {}", e.getMessage());
+                intVal = 0;
+            }
         }
 
         out.write(Utils.toByteArray(String.format(

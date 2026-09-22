@@ -84,7 +84,7 @@ public class TemplateSEBSettingsController {
     public SEBSettingsView.Value saveSingleValue(
             @PathVariable(name =API.PARAM_MODEL_ID) final Long templateId,
             @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_ID) final Long valueId,
-            @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_VALUE) final String value) {
+            @RequestParam(name = Domain.CONFIGURATION_VALUE.ATTR_VALUE, required = false) final String value) {
 
         authorizationService.hasModifyGrant(configurationNodeDAO.byPK(templateId).getOrThrow());
 
