@@ -126,7 +126,7 @@ public class InlineTableConverter implements AttributeValueConverter {
                         if (val[1].contains(Constants.EMBEDDED_LIST_SEPARATOR_ESCAPE)) {
                             val[1] = val[1].replaceAll(Constants.EMBEDDED_LIST_SEPARATOR_ESCAPE, Constants.EMBEDDED_LIST_SEPARATOR);
                         }
-                        if (val[1].contains(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)) {
+                        if (val[1].contains(Constants.VALUE_SEPARATOR_ESCAPE)) {
                             val[1] = val[1].replaceAll(Constants.VALUE_SEPARATOR_ESCAPE, Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
                         }
                     }
