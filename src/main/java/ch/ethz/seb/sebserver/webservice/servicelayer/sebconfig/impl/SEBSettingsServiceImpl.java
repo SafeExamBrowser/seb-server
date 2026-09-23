@@ -35,6 +35,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
 
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
+    private final ConfigurationNodeDAO configurationNodeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
@@ -45,6 +46,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     public SEBSettingsServiceImpl(
             final ConfigurationDAO configurationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
+            final ConfigurationNodeDAO configurationNodeDAO,
             final ConfigurationValueDAO configurationValueDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamConfigUpdateService examConfigUpdateService,
@@ -54,6 +56,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
+        this.configurationNodeDAO = configurationNodeDAO;
         this.configurationValueDAO = configurationValueDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examConfigUpdateService = examConfigUpdateService;
@@ -231,6 +234,7 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
         // create new history entry and clear history
         return configurationDAO
                 .saveToHistory(templateId)
+                .map(configurationNodeDAO::updateNodeModificationSettings)
                 .flatMap(config -> configurationDAO.clearHistory(templateId))
                 .map(Configuration::getId);
     }

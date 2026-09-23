@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport.*;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport.id;
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.configurationTemplateId;
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.examTemplateRecord;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
@@ -22,6 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -312,6 +315,26 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 .build()
                 .execute()
         );
+    }
+
+    @Override
+    @Transactional
+    public Configuration updateNodeModificationSettings(final Configuration configuration) {
+
+        try {
+
+            UpdateDSL.updateWithMapper(configurationNodeRecordMapper::update, configurationNodeRecord)
+                    .set(lastUpdateTime).equalTo(Utils.getMillisecondsNow())
+                    .set(lastUpdateUser).equalToWhenPresent(daoUserService.getCurrentUserUUID())
+                    .where(id, isEqualTo(configuration.configurationNodeId))
+                    .build()
+                    .execute();
+
+        } catch (Exception e) {
+            log.warn("Failed to update configuration node date for {}", configuration.configurationNodeId);
+        }
+
+        return configuration;
     }
 
     @Override

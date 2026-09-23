@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
     private final ExamDAO examDAO;
     private final ConfigurationDAO configurationDAO;
+    private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamSessionService examSessionService;
     private final ExamUpdateHandler examUpdateHandler;
@@ -55,6 +57,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     protected ExamConfigUpdateServiceImpl(
             final ExamDAO examDAO,
             final ConfigurationDAO configurationDAO,
+            final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamSessionService examSessionService,
             final ExamUpdateHandler examUpdateHandler,
@@ -64,6 +67,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
         this.examDAO = examDAO;
         this.configurationDAO = configurationDAO;
+        this.configurationNodeDAO = configurationNodeDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examSessionService = examSessionService;
         this.examUpdateHandler = examUpdateHandler;
@@ -131,6 +135,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             // store the new configuration values (into history) so that they take effect
             final Configuration configuration = this.configurationDAO
                     .saveToHistory(configurationNodeId)
+                    .map(configurationNodeDAO::updateNodeModificationSettings)
                     .getOrThrow();
 
             if (log.isDebugEnabled()) {

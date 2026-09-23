@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
@@ -49,4 +50,6 @@ public interface ConfigurationNodeDAO extends
      *
      * @return Result refer to th e list of ConfigurationNodeRecords or to an error when happened */
     Result<Collection<ConfigurationNodeRecord>> getAllTemporary();
+
+    Configuration updateNodeModificationSettings(Configuration configuration);
 }
