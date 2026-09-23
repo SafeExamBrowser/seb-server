@@ -64,7 +64,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
     private final ConnectionConfigurationService sebConnectionConfigurationService;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final Cryptor cryptor;
+    private final SEBClientConfigDAO sebClientConfigDAO;
 
     public SEBClientConfigController(
             final SEBClientConfigDAO sebClientConfigDAO,
@@ -86,7 +86,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
         this.sebConnectionConfigurationService = sebConnectionConfigurationService;
         this.applicationEventPublisher = applicationEventPublisher;
-        this.cryptor = cryptor;
+        this.sebClientConfigDAO = sebClientConfigDAO;
     }
 
     @RequestMapping(
@@ -94,50 +94,12 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBClientConfig getBy(@PathVariable final String modelId) {
+        return sebClientConfigDAO.decryptPasswords(super.getBy(modelId));
+    }
 
-        final SEBClientConfig config = this.entityDAO
-                .byModelId(modelId)
-                .flatMap(this::checkReadAccess)
-                .getOrThrow();
-
-        final CharSequence fallbackPassword = config.fallbackPassword != null 
-                ? cryptor.decrypt(config.fallbackPassword).getOr(config.fallbackPassword) 
-                : null;
-        final CharSequence quitPassword = config.quitPassword != null
-                ? cryptor.decrypt(config.quitPassword).getOr(config.quitPassword)
-                : null;
-        final CharSequence encryptSecret = config.encryptSecret != null
-                ? cryptor.decrypt(config.encryptSecret).getOr(config.encryptSecret)
-                : null;
-        
-        return new SEBClientConfig(
-                config.id,
-                config.institutionId,
-                config.name,
-                config.configPurpose,
-                config.sebServerPingTime,
-                config.vdiType,
-                config.vdiExecutable,
-                config.vdiPath,
-                config.vdiArguments,
-                config.fallback,
-                config.fallbackStartURL,
-                config.fallbackTimeout,
-                config.fallbackAttempts,
-                config.fallbackAttemptInterval,
-                fallbackPassword,
-                config.fallbackPasswordConfirm,
-                quitPassword,
-                config.quitPasswordConfirm,
-                config.date,
-                encryptSecret,
-                config.encryptSecretConfirm,
-                config.encryptCertificateAlias,
-                config.encryptCertificateAsym,
-                config.active,
-                config.lastUpdateTime,
-                config.lastUpdateUser,
-                config.selectedExams);
+    @Override
+    public SEBClientConfig savePut(SEBClientConfig modifyData) {
+        return sebClientConfigDAO.decryptPasswords(super.savePut(modifyData));
     }
 
     @RequestMapping(

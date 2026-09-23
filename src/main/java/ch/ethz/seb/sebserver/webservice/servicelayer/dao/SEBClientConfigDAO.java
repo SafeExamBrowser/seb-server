@@ -64,4 +64,6 @@ public interface SEBClientConfigDAO extends
         return config.getSelectedExams()::contains;
     }
 
+    SEBClientConfig decryptPasswords(SEBClientConfig config);
+
 }
