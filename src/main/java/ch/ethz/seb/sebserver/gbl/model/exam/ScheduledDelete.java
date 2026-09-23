@@ -104,4 +104,18 @@ public record ScheduledDelete(
                 ", info=" + info +
                 '}';
     }
+
+    public String toShortSting() {
+        return "ScheduledDelete{" +
+                "id=" + id +
+                ", spsId=" + spsId +
+                ", state=" + state +
+                ", deleteDueTime=" + deleteDueTime +
+                ", scheduleTime=" + scheduleTime +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", ownerUUID='" + ownerUUID + '\'' +
+                ", institutionId='" + institutionId + '\'' +
+                '}';
+    }
 }

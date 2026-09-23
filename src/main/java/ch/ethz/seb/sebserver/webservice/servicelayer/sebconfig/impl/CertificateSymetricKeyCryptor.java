@@ -92,8 +92,6 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
             final CharSequence symetricKeyBase64 = Base64.getEncoder().encodeToString(symetricKey);
             final byte[] generateParameter = generateParameter(certificate, publicKeyHash, symetricKey);
 
-            System.out.println("************ publicKeyHash: " + Arrays.toString(publicKeyHash));
-
             output.write(generateParameter, 0, generateParameter.length);
 
             this.passwordEncryptor.encrypt(output, input, symetricKeyBase64);

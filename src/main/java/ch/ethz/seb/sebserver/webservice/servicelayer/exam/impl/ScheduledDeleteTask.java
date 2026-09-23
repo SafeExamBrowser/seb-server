@@ -112,7 +112,7 @@ public class ScheduledDeleteTask {
                         }
 
                         if (scheduleTime <= now) {
-                            log.info("Found scheduled deletion for processing: {}", element);
+                            log.info("Found scheduled deletion for processing: {}", element.toShortSting());
                             this.preProcessSPS(element);
                         } else {
                             if (log.isDebugEnabled()) {
@@ -161,7 +161,7 @@ public class ScheduledDeleteTask {
         try {
 
             log.info("*******************************");
-            log.info("**** Start processing scheduled deletion: {}", delete);
+            log.info("**** Start processing scheduled deletion: {}", delete.toShortSting());
 
             if (!scheduledDeleteDAO.startProcessing(delete.id())) {
                 log.error("**** Failed to mark scheduled deletion as RUNNING. Skip it and retry next time");

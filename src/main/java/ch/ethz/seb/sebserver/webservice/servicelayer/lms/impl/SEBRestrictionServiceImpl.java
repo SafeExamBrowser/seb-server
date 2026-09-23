@@ -332,7 +332,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         this.examDAO
                 .byPK(examId)
                 .whenDo(
-                        exam -> exam.lmsSetupId != null,
+                        exam -> exam.lmsSetupId != null && exam.status != Exam.ExamStatus.ARCHIVED,
                         exam -> releaseSEBClientRestriction(exam).getOrThrow()
                 ).onError(error -> log.info(
                         "Failed to release SEB restrictions on exam deletion, exam: {} error: {}",
@@ -389,10 +389,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                 .getLmsAPITemplate(exam.lmsSetupId)
                 .map(template -> {
                     if (template.lmsSetup().lmsType.features.contains(Features.SEB_RESTRICTION)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(" *** SEB Restriction *** Release SEB Client restrictions from LMS for exam: {}",
-                                    exam);
-                        }
+
+                            log.info(
+                                    " *** SEB Restriction *** Release SEB Client restrictions from LMS for exam: {}:{}",
+                                    exam.id, exam.externalId);
+
                         template
                                 .releaseSEBClientRestriction(exam)
                                 .getOrThrow();

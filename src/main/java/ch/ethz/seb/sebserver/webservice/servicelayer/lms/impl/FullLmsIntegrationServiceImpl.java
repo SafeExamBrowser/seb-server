@@ -436,6 +436,12 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
             }
 
             final Exam exam = examResult.getOrThrow();
+            if (exam.status == Exam.ExamStatus.ARCHIVED) {
+                log.info("Skip Connection Configuration download for archived exam: {}:{}", exam.id, exam.externalId);
+                throw new APIMessage.APIMessageException(
+                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Exam already archived"));
+            }
+
             final String connectionConfigId = getConnectionConfigurationId(exam);
             if (StringUtils.isBlank(connectionConfigId)) {
                 log.error(
@@ -643,6 +649,11 @@ public class FullLmsIntegrationServiceImpl implements FullLmsIntegrationService 
 
     private Exam applyExamData(final Exam exam, final boolean deletion) {
         if (!hasFullIntegration(exam.lmsSetupId, true)) {
+            return exam;
+        }
+
+        if (exam.status == Exam.ExamStatus.ARCHIVED) {
+            log.info("Exam already archived, skip apply exam data to LMS for exam: {}:{}", exam.id, exam.externalId);
             return exam;
         }
 
