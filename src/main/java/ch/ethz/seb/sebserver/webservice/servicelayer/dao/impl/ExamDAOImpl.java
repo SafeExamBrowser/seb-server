@@ -497,7 +497,10 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     public boolean hasNoneArchivedExamsForLMSSetup(final Long lmsSetupId) {
         try {
-            Long count = this.examRecordMapper.countByExample()
+
+            System.out.println("*************** lmsID: " + lmsSetupId);
+
+            final Long count = this.examRecordMapper.countByExample()
                     .where(
                             ExamRecordDynamicSqlSupport.lmsSetupId,
                             isNotEqualTo(lmsSetupId))
@@ -506,6 +509,8 @@ public class ExamDAOImpl implements ExamDAO {
                             isNotEqualTo(ExamStatus.ARCHIVED.name()))
                     .build()
                     .execute();
+
+            System.out.println("*************** count: " + count);
 
             return count > 0;
         } catch (Exception e) {
