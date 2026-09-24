@@ -285,26 +285,6 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
         });
     }
 
-    public Result<Collection<QuizData>> getQuizzesFromCache(final Set<String> ids) {
-        return Result.tryCatch(() -> {
-            final HashSet<String> leftIds = new HashSet<>(ids);
-            final Collection<QuizData> result = new ArrayList<>();
-            ids.stream()
-                    .map(this::getQuizFromCache)
-                    .forEach(q -> {
-                        if (q != null) {
-                            leftIds.remove(q.id);
-                            result.add(q);
-                        }
-                    });
-
-            if (!leftIds.isEmpty()) {
-                result.addAll(getQuizzes(leftIds).getOrThrow());
-            }
-
-            return result;
-        });
-    }
 
     public QuizData getQuizFromCache(final String id) {
         return super.getFromCache(id);
@@ -536,35 +516,6 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
             this.date_joined = date_joined;
         }
     }
-
-//    private static final class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
-//
-//        @Override
-//        public void authenticate(
-//                final OAuth2ProtectedResourceDetails resource,
-//                final OAuth2ClientContext clientContext,
-//                final ClientHttpRequest request) {
-//
-//            final OAuth2AccessToken accessToken = clientContext.getAccessToken();
-//            if (accessToken == null) {
-//                throw new AccessTokenRequiredException(resource);
-//            }
-//
-//            request.getHeaders().set("Authorization", String.format("%s %s", "Bearer", accessToken.getValue()));
-//        }
-//
-//    }
-
-//    private Result<OAuthRestTemplate> getRestTemplateNoEncoding() {
-//        return this.openEdxRestTemplateFactory
-//                .createOAuthRestTemplate()
-//                .map(tempalte -> {
-//                    final DefaultUriBuilderFactory builderFactory = new DefaultUriBuilderFactory();
-//                    builderFactory.setEncodingMode(EncodingMode.NONE);
-//                    tempalte.setUriTemplateHandler(builderFactory);
-//                    return tempalte;
-//                });
-//    }
 
     private Result<OAuthRestTemplate> getRestTemplate() {
         if (this.restTemplate == null) {
