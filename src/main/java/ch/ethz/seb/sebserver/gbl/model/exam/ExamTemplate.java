@@ -257,7 +257,7 @@ public class ExamTemplate implements GrantEntity {
         builder.append(", clientGroupTemplates=");
         builder.append(this.clientGroupTemplates);
         builder.append(", examAttributes=");
-        builder.append(this.examAttributes);
+        builder.append(new TreeMap<>(this.examAttributes));
         builder.append(", institutionalDefault=");
         builder.append(this.institutionalDefault);
         builder.append(", lmsIntegration=");

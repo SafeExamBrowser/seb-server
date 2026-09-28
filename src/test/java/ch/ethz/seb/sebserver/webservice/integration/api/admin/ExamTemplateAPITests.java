@@ -114,22 +114,7 @@ public class ExamTemplateAPITests extends AdministrationAPIIntegrationTester {
         assertNotNull(createdExamTemplate);
         assertNotNull(createdExamTemplate.id);
         assertEquals(
-                "ExamTemplate [" +
-                        "id=1, " +
-                        "institutionId=1, " +
-                        "name=Test ExamTemplate, " +
-                        "description=Test ExamTemplate, " +
-                        "examType=BYOD, " +
-                        "supporter=[admin], " +
-                        "configTemplateId=2, " +
-                        "indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, " +
-                        "thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], " +
-                        "clientGroupTemplates=[" +
-                        "ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=true}, " +
-                        "ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], " +
-                        "examAttributes={spsCollectingStrategy=APPLY_SEB_GROUPS, spsCollectingGroupName=Fallback Group, enableScreenProctoring=true, spsSEBGroupsSelection=0}, " +
-                        "institutionalDefault=false, " +
-                        "lmsIntegration=false]",
+                "ExamTemplate [id=1, institutionId=1, name=Test ExamTemplate, description=Test ExamTemplate, examType=BYOD, supporter=[admin], configTemplateId=2, indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=true}, ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], examAttributes={enableScreenProctoring=true, spsCollectingGroupName=Fallback Group, spsCollectingStrategy=APPLY_SEB_GROUPS, spsSEBGroupsSelection=0}, institutionalDefault=false, lmsIntegration=false]",
                 createdExamTemplate.toString());
 
     }
@@ -154,7 +139,7 @@ public class ExamTemplateAPITests extends AdministrationAPIIntegrationTester {
         assertFalse(content.isEmpty());
         assertEquals(1, content.size());
         assertEquals(
-                "ExamTemplate [id=1, institutionId=1, name=Test ExamTemplate, description=Test ExamTemplate, examType=BYOD, supporter=[admin], configTemplateId=2, indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=true}, ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], examAttributes={spsCollectingStrategy=APPLY_SEB_GROUPS, spsCollectingGroupName=Fallback Group, enableScreenProctoring=true, spsSEBGroupsSelection=0}, institutionalDefault=false, lmsIntegration=false]",
+                "ExamTemplate [id=1, institutionId=1, name=Test ExamTemplate, description=Test ExamTemplate, examType=BYOD, supporter=[admin], configTemplateId=2, indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=true}, ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], examAttributes={enableScreenProctoring=true, spsCollectingGroupName=Fallback Group, spsCollectingStrategy=APPLY_SEB_GROUPS, spsSEBGroupsSelection=0}, institutionalDefault=false, lmsIntegration=false]",
                 content.iterator().next().toString());
 
         // get single with full data
@@ -169,22 +154,7 @@ public class ExamTemplateAPITests extends AdministrationAPIIntegrationTester {
 
         assertNotNull(examTemplate);
         assertEquals(
-                "ExamTemplate [" +
-                        "id=1, " +
-                        "institutionId=1, " +
-                        "name=Test ExamTemplate, " +
-                        "description=Test ExamTemplate, " +
-                        "examType=BYOD, " +
-                        "supporter=[admin], " +
-                        "configTemplateId=2, " +
-                        "indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, " +
-                        "thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], " +
-                        "clientGroupTemplates=[" +
-                        "ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=true}, " +
-                        "ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], " +
-                        "examAttributes={spsCollectingStrategy=APPLY_SEB_GROUPS, spsCollectingGroupName=Fallback Group, enableScreenProctoring=true, spsSEBGroupsSelection=0}, " +
-                        "institutionalDefault=false, " +
-                        "lmsIntegration=false]",
+                "ExamTemplate [id=1, institutionId=1, name=Test ExamTemplate, description=Test ExamTemplate, examType=BYOD, supporter=[admin], configTemplateId=2, indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=true}, ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], examAttributes={enableScreenProctoring=true, spsCollectingGroupName=Fallback Group, spsCollectingStrategy=APPLY_SEB_GROUPS, spsSEBGroupsSelection=0}, institutionalDefault=false, lmsIntegration=false]",
                 examTemplate.toString());
     }
 
@@ -226,22 +196,7 @@ public class ExamTemplateAPITests extends AdministrationAPIIntegrationTester {
         assertNotNull(modifiedExamTemplate);
         assertNotNull(modifiedExamTemplate.id);
         assertEquals(
-                "ExamTemplate [" +
-                        "id=1, " +
-                        "institutionId=1, " +
-                        "name=Test ExamTemplate Modify Name, " +
-                        "description=Test ExamTemplate Modify Name, " +
-                        "examType=MANAGED, " +
-                        "supporter=null, " +
-                        "configTemplateId=2, " +
-                        "indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, " +
-                        "thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], " +
-                        "clientGroupTemplates=[" +
-                        "ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}, " +
-                        "ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], " +
-                        "examAttributes={spsCollectingStrategy=APPLY_SEB_GROUPS, spsCollectingGroupName=Fallback Group, enableScreenProctoring=false, spsSEBGroupsSelection=0}, " +
-                        "institutionalDefault=false, " +
-                        "lmsIntegration=false]",
+                "ExamTemplate [id=1, institutionId=1, name=Test ExamTemplate Modify Name, description=Test ExamTemplate Modify Name, examType=MANAGED, supporter=null, configTemplateId=2, indicatorTemplates=[Indicator [id=0, examTemplateId=1, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[ClientGroupTemplate{id=0, examTemplateId=1, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}, ClientGroupTemplate{id=1, examTemplateId=1, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], examAttributes={enableScreenProctoring=false, spsCollectingGroupName=Fallback Group, spsCollectingStrategy=APPLY_SEB_GROUPS, spsSEBGroupsSelection=0}, institutionalDefault=false, lmsIntegration=false]",
                 modifiedExamTemplate.toString());
     }
 
@@ -507,22 +462,7 @@ public class ExamTemplateAPITests extends AdministrationAPIIntegrationTester {
         assertNotNull(copiedExamTemplate);
         assertNotNull(copiedExamTemplate.id);
         assertEquals(
-                "ExamTemplate [" +
-                        "id=2, " +
-                        "institutionId=1, " +
-                        "name=Test ExamTemplate Modify Name (copy), " +
-                        "description=Test ExamTemplate Modify Name, " +
-                        "examType=MANAGED, " +
-                        "supporter=null, " +
-                        "configTemplateId=3, " +
-                        "indicatorTemplates=[" +
-                        "Indicator [id=0, examTemplateId=2, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], " +
-                        "clientGroupTemplates=[" +
-                        "ClientGroupTemplate{id=0, examTemplateId=2, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}, " +
-                        "ClientGroupTemplate{id=1, examTemplateId=2, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], " +
-                        "examAttributes={spsCollectingStrategy=APPLY_SEB_GROUPS, spsCollectingGroupName=Fallback Group, enableScreenProctoring=false, spsSEBGroupsSelection=0}, " +
-                        "institutionalDefault=false, " +
-                        "lmsIntegration=false]",
+                "ExamTemplate [id=2, institutionId=1, name=Test ExamTemplate Modify Name (copy), description=Test ExamTemplate Modify Name, examType=MANAGED, supporter=null, configTemplateId=3, indicatorTemplates=[Indicator [id=0, examTemplateId=2, name=Indicator 1, type=BATTERY_STATUS, defaultColor=ffffff, defaultIcon=null, tags=null, thresholds=[Threshold [value=40.0, color=ffaaff, icon=null]]]], clientGroupTemplates=[ClientGroupTemplate{id=0, examTemplateId=2, name='SEB Group 1', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=WINDOWS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}, ClientGroupTemplate{id=1, examTemplateId=2, name='SEB Group 2', type=CLIENT_OS, color='ffffff', icon='null', ipRangeStart='null', ipRangeEnd='null', clientOS=MAC_OS, nameRangeStartLetter=null, nameRangeEndLetter=null, screenProctoringEnabled=false}], examAttributes={enableScreenProctoring=false, spsCollectingGroupName=Fallback Group, spsCollectingStrategy=APPLY_SEB_GROUPS, spsSEBGroupsSelection=0}, institutionalDefault=false, lmsIntegration=false]",
                 copiedExamTemplate.toString());
 
 
