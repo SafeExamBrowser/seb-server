@@ -118,6 +118,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     }
 
     @Override
+    public ExamTemplate savePut(ExamTemplate modifyData) {
+        return examTemplateService.filterLegacyData(
+                examTemplateService.applyExamTemplateAdditionalData(
+                        super.savePut(modifyData)));
+    }
+
+
+    @Override
     protected Result<Collection<ExamTemplate>> getAll(FilterMap filterMap) {
         return super
                 .getAll(filterMap)
