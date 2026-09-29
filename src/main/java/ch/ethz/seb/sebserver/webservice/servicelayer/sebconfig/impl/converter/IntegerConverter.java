@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -80,7 +81,7 @@ public class IntegerConverter implements AttributeValueConverter {
             final ConfigurationValue value,
             final String template) throws IOException {
 
-        final String val = (value != null && value.value != null)
+        final String val = (value != null && !StringUtils.isBlank(value.value))
                 ? value.value
                 : attribute.getDefaultValue();
 
