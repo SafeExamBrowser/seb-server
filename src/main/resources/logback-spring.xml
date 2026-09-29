@@ -14,6 +14,9 @@
     <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </Logger>
+    <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </Logger>
   </springProfile>
 
     <springProfile name="e2e">
@@ -23,6 +26,9 @@
         <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
             <appender-ref ref="STDOUT" />
         </Logger>
+        <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+        </Logger>
     </springProfile>
 
     <springProfile name="bundled">
@@ -30,6 +36,9 @@
             <appender-ref ref="STDOUT" />
         </root>
         <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+        </Logger>
+        <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
             <appender-ref ref="STDOUT" />
         </Logger>
     </springProfile>
@@ -54,6 +63,9 @@
     <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </Logger>
+      <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
+          <appender-ref ref="STDOUT" />
+      </Logger>
     
   </springProfile>
   
