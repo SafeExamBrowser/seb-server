@@ -231,6 +231,8 @@ public class ClientHttpRequestFactoryService {
             HttpClientBuilder clientBuilder = HttpClientBuilder.create();
             clientBuilder.setProxy(myProxy).setDefaultCredentialsProvider(credsProvider).disableCookieManagement();
             clientBuilder.setConnectionManager(connectionManagerBuilder);
+            clientBuilder.disableRedirectHandling();
+            clientBuilder.disableCookieManagement();
 
             return clientBuilder.build();
         } else {
