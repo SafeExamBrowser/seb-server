@@ -80,6 +80,7 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
     void updateUserRoles(Long userId, @NotNull Set<String> roleNames);
 
     /** Indicates if this is (still) a valid exam supporter for Exam supervisor assignment
+     * Supporter user is valid if it exists and has EXAM_SUPPORTER or TEACHER role
      *
      * @param supporterUUID The user UUID
      * @return true if this is a valid exam supporter for Exam supervisor assignment */

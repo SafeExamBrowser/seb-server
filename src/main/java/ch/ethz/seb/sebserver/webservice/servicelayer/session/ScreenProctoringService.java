@@ -132,4 +132,10 @@ public interface ScreenProctoringService extends SessionUpdateTask {
 
     /** Use this to test if SPS connection is available and ready to use */
     boolean isAvailable();
+
+    /** Indicates if the Exam of the given Exam Id has SPS Data defined, whether they are enabled or not
+     *
+     * @param examId Exam identifier
+     * @return true if the Exam has SPS data defined */
+    boolean hasSPSData(Long examId);
 }

@@ -318,6 +318,11 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
+    public boolean hasSPSData(final Long examId) {
+        return screenProctoringAPIBinding.getSPSData(examId, false) != null;
+    }
+
+    @Override
     public void notifyExamStarted(final ExamStartedEvent event) {
         final Exam exam = event.exam;
         if (!this.isScreenProctoringEnabled(event.exam.id)) {

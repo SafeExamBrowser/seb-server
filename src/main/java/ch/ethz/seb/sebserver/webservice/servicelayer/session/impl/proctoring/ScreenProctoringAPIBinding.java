@@ -719,9 +719,6 @@ public class ScreenProctoringAPIBinding {
         
         return Result.tryCatch(() -> {
             final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
-            final ScreenProctoringSettings settings = this.proctoringSettingsDAO
-                    .getScreenProctoringSettings(new EntityKey(exam.id, EntityType.EXAM))
-                    .getOrThrow();
 
             final String uri = UriComponentsBuilder
                     .fromUriString(apiTemplate.spsServiceURL)
@@ -1304,7 +1301,9 @@ public class ScreenProctoringAPIBinding {
                     log.warn("Failed to synchronize activity for user account on SPS: {}", activityRequest);
                 }
             } else {
-                log.info("Successfully synchronize user account on SPS for user: {}", userUUID);
+                if (log.isDebugEnabled()) {
+                    log.debug("Successfully synchronize user account on SPS for user: {}", userUUID);
+                }
             }
 
         } catch (final Exception e) {

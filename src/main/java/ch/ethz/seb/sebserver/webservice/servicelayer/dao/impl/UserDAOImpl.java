@@ -452,6 +452,7 @@ public class UserDAOImpl implements UserDAO {
     public boolean isValidSupporterUser(final String supporterUUID) {
         try {
 
+            // first check if the user exists
             List<Long> ids = userRecordMapper
                     .selectIdsByExample()
                     .where(uuid, isEqualTo(supporterUUID))
@@ -462,6 +463,7 @@ public class UserDAOImpl implements UserDAO {
                 return false;
             }
 
+            // then check if it has SUPPORTER_ROLES role
             final Long count = roleRecordMapper
                     .countByExample()
                     .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(ids.getFirst()))

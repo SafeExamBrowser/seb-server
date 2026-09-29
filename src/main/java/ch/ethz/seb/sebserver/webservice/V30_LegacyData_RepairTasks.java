@@ -135,6 +135,8 @@ public class V30_LegacyData_RepairTasks {
                     .onSuccess(all -> all.forEach(userId -> {
                         final UserInfo user = userDAO.byModelId(userId).getOr(null);
                         if (user != null) {
+
+                            // if the user has INSTITUTIONAL_ADMIN but not EXAM_ADMIN or EXAM_SUPPORTER then add the other roles
                             if (user.roles.contains(UserRole.INSTITUTIONAL_ADMIN.name()) &&
                                     (!user.roles.contains(UserRole.EXAM_ADMIN.name()) ||
                                      !user.roles.contains(UserRole.EXAM_SUPPORTER.name()))) {
@@ -155,6 +157,7 @@ public class V30_LegacyData_RepairTasks {
 
                                 updateUserRoles(user, roles);
 
+                            // if the user has EXAM_ADMIN role but not EXAM_SUPPORTER, add EXAM_SUPPORTER
                             } else if (user.roles.contains(UserRole.EXAM_ADMIN.name()) &&
                                     !user.roles.contains(UserRole.EXAM_SUPPORTER.name())) {
 
@@ -265,7 +268,10 @@ public class V30_LegacyData_RepairTasks {
 
             userDAO
                     .getAllActiveUsersUUID()
-                    .onSuccess(all -> all.forEach(screenProctoringService::synchronizeSPSUserWait))
+                    .onSuccess(all -> all.forEach(userUUID -> {
+                            REPAIR_LOGGER.info("--------> Synchronize User {} with SPS", userUUID);
+                            screenProctoringService.synchronizeSPSUserWait(userUUID);
+                    }))
                     .getOrThrow();
 
             REPAIR_LOGGER.info("--------> Finished initial SPS User Account synchronisation successfully");
@@ -277,6 +283,7 @@ public class V30_LegacyData_RepairTasks {
     private void repairExamConfig(final Exam exam) {
         try {
 
+            // not Exam Config repair for archived Exams
             if (exam.status == Exam.ExamStatus.ARCHIVED) {
                 return;
             }
@@ -295,6 +302,7 @@ public class V30_LegacyData_RepairTasks {
 
             if (exam.supporter != null && !exam.supporter.isEmpty()) {
 
+                // get all valid supporter from the supporter list of the Exam
                 final Set<String> validSupporter = exam.supporter
                         .stream()
                         .filter(userDAO::isValidSupporterUser)
@@ -319,17 +327,21 @@ public class V30_LegacyData_RepairTasks {
     }
 
     private void repairExamSyncSPS(final Exam exam) {
-        screenProctoringService
-                .updateExamOnly(exam.id)
-                .onError(error -> REPAIR_LOGGER.error(
-                        "----------> !!! Failed to synchronize Exam with SPS: {}:{} cause: {}",
-                        exam.id,
-                        exam.externalId,
-                        error.getMessage()))
-                .onSuccess(e -> REPAIR_LOGGER.info(
-                        "----------> Successfully synchronized Exam with SPS: {} : {}",
-                        e.id,
-                        e.externalId));
+        if (screenProctoringService.hasSPSData(exam.id)) {
+            screenProctoringService
+                    .updateExamOnly(exam.id)
+                    .onError(error -> REPAIR_LOGGER.error(
+                            "----------> !!! Failed to synchronize Exam with SPS: {}:{} cause: {}",
+                            exam.id,
+                            exam.externalId,
+                            error.getMessage()))
+                    .onSuccess(e -> REPAIR_LOGGER.info(
+                            "----------> Successfully synchronized Exam with SPS: {} : {}",
+                            e.id,
+                            e.externalId));
+        } else {
+            REPAIR_LOGGER.info("----------> No SPS Data found for exam: {} : {} skip SPS update", exam.id, exam.externalId);
+        }
     }
 
     /** Since 3.0 The SPS collection strategy is only one left (apply to groups). For older Exam Template that sill has
