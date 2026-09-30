@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServe
 public interface UserService {
 
     String USERS_INSTITUTION_AS_DEFAULT = "USERS_INSTITUTION_AS_DEFAULT";
+    String SEB_SERVER_ANONYMOUS_USER = "SEB_SERVER_ANONYMOUS_USER";
 
     /** UUID of the internal account that is used for LMS integration related remote call tasks */
     String LMS_INTEGRATION_CLIENT_UUID = "LMS_INTEGRATION_CLIENT";

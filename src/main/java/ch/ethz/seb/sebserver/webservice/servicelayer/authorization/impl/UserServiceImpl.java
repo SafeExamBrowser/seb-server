@@ -13,7 +13,6 @@ import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,6 +115,9 @@ public class UserServiceImpl implements UserService {
         if (Objects.equals(userId, LMS_INTEGRATION_CLIENT_UUID)) {
             return createLMSIntegrationClientUser().getUserInfo();
         }
+        if (Objects.equals(userId, SEB_SERVER_ANONYMOUS_USER)) {
+            return getAnonymousUser().getUserInfo();
+        }
 
         final UserInfo user = this.userDAO
                 .byModelId(userId)
@@ -145,8 +147,6 @@ public class UserServiceImpl implements UserService {
 
             this.userCacheService = userCacheService;
             this.lmsClientId = lmsClientId;
-
-            HashSet<String> profiles = new HashSet<>(Arrays.asList(env.getActiveProfiles()));
         }
 
         @Override
@@ -213,7 +213,7 @@ public class UserServiceImpl implements UserService {
 
     private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
             -1L,
-            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, null, "anonymous", "anonymous", "anonymous", null,
+            new UserInfo(SEB_SERVER_ANONYMOUS_USER, -2L, null, "anonymous", "anonymous", "anonymous", null,
                     false,
                     false,
                     true,
