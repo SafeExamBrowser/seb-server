@@ -9,14 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -129,19 +122,19 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
                 asyncQuizFetchBuffer.buffer.addAll(
                         coursesToQuizzes(lmsSetup, externalStartURI, page.results)
                                 .filter(LmsAPIService.quizFilterPredicate(filterMap))
-                                .collect(Collectors.toList()));
-                while (!asyncQuizFetchBuffer.canceled && page != null && StringUtils.isNotBlank(page.next)) {
+                                .toList());
+                while (!asyncQuizFetchBuffer.canceled && page != null && StringUtils.isNotBlank(page.pagination.next)) {
                     if (asyncQuizFetchBuffer.canceled) {
                         asyncQuizFetchBuffer.finish();
                         return;
                     }
 
-                    page = getEdxPage(page.next, restTemplate).getBody();
+                    page = getEdxPage(page.pagination.next, restTemplate).getBody();
                     if (page != null) {
                         asyncQuizFetchBuffer.buffer.addAll(
                                 coursesToQuizzes(lmsSetup, externalStartURI, page.results)
                                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
-                                        .collect(Collectors.toList()));
+                                        .toList());
                     }
                 }
             }
@@ -191,12 +184,12 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
                 // first try to get it from short time cache
                 final QuizData quizData = super.getFromCache(id);
                 if (quizData != null) {
-                    return Arrays.asList(quizData);
+                    return List.of(quizData);
                 }
 
                 final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
                 final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
-                return Arrays.asList(quizDataOf(
+                return Collections.singletonList(quizDataOf(
                         lmsSetup,
                         getOneCourse(
                                 lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
@@ -276,8 +269,8 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
                     lmsSetup.lmsApiUrl +
                             OPEN_EDX_DEFAULT_BLOCKS_ENDPOINT +
                             Utils.encodeFormURL_UTF_8(courseId);
-            return new Chapters(getCourseBlocks(uri)
-                    .getBody().blocks.values()
+            return new Chapters(Objects.requireNonNull(getCourseBlocks(uri)
+                            .getBody()).blocks.values()
                             .stream()
                             .filter(block -> OPEN_EDX_DEFAULT_BLOCKS_TYPE_CHAPTER.equals(block.type))
                             .map(block -> new Chapters.Chapter(block.display_name, block.block_id))
@@ -347,8 +340,8 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
                     .stream()
                     .filter(cd -> ids.contains(cd.id))
                     .forEach(collector::add);
-            while (page != null && StringUtils.isNotBlank(page.next)) {
-                page = getEdxPage(page.next, restTemplate).getBody();
+            while (page != null && StringUtils.isNotBlank(page.pagination.next)) {
+                page = getEdxPage(page.pagination.next, restTemplate).getBody();
                 if (page != null) {
                     page.results
                             .stream()
@@ -391,11 +384,11 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
             final List<CourseData> collectCourses = collectCourses(
                     pageURI,
                     restTemplate,
-                    Arrays.asList(id));
+                    Collections.singletonList(id));
             if (collectCourses.isEmpty()) {
                 return null;
             }
-            return collectCourses.get(0);
+            return collectCourses.getFirst();
         }
     }
 
@@ -426,9 +419,11 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
             final CourseData courseData,
             final String uriPrefix) {
 
+        if (courseData == null) {
+            return null;
+        }
+
         final String startURI = uriPrefix + courseData.id;
-        final Map<String, String> additionalAttrs = new HashMap<>();
-        additionalAttrs.put("blocks_url", courseData.blocks_url);
         final QuizData quizData = new QuizData(
                 courseData.id,
                 lmsSetup.getInstitutionId(),
@@ -445,13 +440,18 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
         return quizData;
     }
 
-    /** Maps a OpenEdX course API course page */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class EdXPage {
+    static final class Pagination {
         public Integer count;
         public String previous;
         public Integer num_pages;
         public String next;
+    }
+
+    /** Maps a OpenEdX course API course page */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class EdXPage {
+        public Pagination pagination;
         public List<CourseData> results;
     }
 
