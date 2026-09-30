@@ -71,8 +71,6 @@ public class V30_LegacyData_RepairTasks {
             return;
         }
 
-        System.out.println("********************* repairLegacyDataForV30");
-
         REPAIR_LOGGER.info("---->");
         REPAIR_LOGGER.info("----> Check to apply reparation task for legacy Data for version 3.0");
         REPAIR_LOGGER.info("------> Wait to become master and SPS availability for at least 2 minutes\"");
