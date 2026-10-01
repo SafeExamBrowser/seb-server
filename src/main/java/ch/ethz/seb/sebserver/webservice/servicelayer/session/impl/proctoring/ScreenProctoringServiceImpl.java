@@ -71,7 +71,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final SEBClientInstructionService sebInstructionService,
             final ExamSessionCacheService examSessionCacheService,
             final WebserviceInfo webserviceInfo,
-            final SEBClientVersionService sebClientVersionService,
             final ScreenProctoringAPIBinding screenProctoringAPIBinding) {
         
         this.clientGroupMatcherService = clientGroupMatcherService;
@@ -374,22 +373,22 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     public void notifyExamDeletion(final ExamDeletionEvent event) {
 
         // fist clear all data references for the screen proctoring groups
-        event.ids.forEach(examId -> {
+        event.ids.forEach(examId ->
             clientConnectionDAO
                     .clearAllGroupAssignments(examId)
                     .onSuccess(num -> log.info("Successfully cleared group assignments for {} client connection of exam: {}", num, examId))
-                    .onError(error -> log.error("Failed to clear group assignments for client connection of exam: {}, cause: {}", examId, error.getMessage()));
-        });
+                    .onError(error -> log.error("Failed to clear group assignments for client connection of exam: {}, cause: {}", examId, error.getMessage()))
+        );
 
         if (event.isScheduledDeletion) {
             // this is a scheduled delete so all SPS data should already be deleted at this point
             // we only have to delete the sps groups for this exam
-            event.ids.forEach(examId -> {
+            event.ids.forEach(examId ->
                 screenProctoringGroupDAO
                         .deleteGroups(examId)
                         .onError(error -> log.error("Failed to delete screen proctoring for exam: {} cause: {}", examId, error.getMessage() ))
-                        .onSuccess(keys -> log.info("Deleted screen proctoring groups: {} for exam: {}", keys, examId));
-            });
+                        .onSuccess(keys -> log.info("Deleted screen proctoring groups: {} for exam: {}", keys, examId))
+            );
         } else {
             // this is not a scheduled deletion so we expect that there are still SPS data to delete
             event.ids
