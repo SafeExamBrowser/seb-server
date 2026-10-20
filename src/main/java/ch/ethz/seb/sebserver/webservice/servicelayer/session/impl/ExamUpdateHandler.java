@@ -79,7 +79,7 @@ public class ExamUpdateHandler implements ExamUpdateTask {
             final ScreenProctoringService screenProctoringService,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
-            @Value("${sebserver.webservice.api.exam.tryrecover:true}") final boolean tryRecoverExam,
+            @Value("${sebserver.webservice.api.exam.tryrecover:false}") final boolean tryRecoverExam,
             @Value("${sebserver.webservice.api.exam.recoverattempts:3}") final int recoverAttempts) {
 
         this.examDAO = examDAO;

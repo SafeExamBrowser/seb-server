@@ -12,6 +12,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import jakarta.annotation.PreDestroy;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -149,6 +150,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.webserviceInfo.configuredFeatures().entrySet().stream().forEach(entry  -> {
             SEBServerInit.INIT_LOGGER.info("---->   {} --> {}", entry.getKey(), entry.getValue());
         });
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("---->   Try to recover exams from LMS --> {}",
+                environment.getProperty("sebserver.webservice.api.exam.tryrecover", "false"));
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Working with ping service: {}",
