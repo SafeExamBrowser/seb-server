@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DuplicateResourceException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthClientException;
 import org.apache.catalina.connector.ClientAbortException;
@@ -172,6 +173,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 valErrors,
                 Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Object> handleDuplicateResourceException(
+            final DuplicateResourceException ex,
+            final WebRequest request) {
+
+        log.warn("Duplicate Resource Exception: {}\n  ", ex.getMessage());
+        return APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                .createErrorResponse(ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
