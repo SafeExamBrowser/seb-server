@@ -204,7 +204,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     this.additionalAttributesDAO.saveAdditionalAttributes(
                             EntityType.EXAM,
                             exam.getId(),
-                            examTemplate.examAttributes);
+                            examTemplate.examAttributes.entrySet()
+                                    .stream()
+                                    .filter(entity -> entity.getValue() != null)
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
                 }
 
                 if (examTemplate.clientConfigurationId != null) {
