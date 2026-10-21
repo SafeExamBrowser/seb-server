@@ -16,7 +16,6 @@ import java.util.Collection;
 import ch.ethz.seb.sebserver.gui.api.RestCall;
 import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.api.auth.OAuth2AuthorizationContextHolder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -28,11 +27,12 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import org.springframework.test.context.jdbc.Sql;
 
 public class RestServiceTest extends GuiIntegrationTest {
 
     @Test
-    @Ignore // fix it soon
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void testRestServiceInit() throws InterruptedException {
         Thread.sleep(1000);
         final OAuth2AuthorizationContextHolder authorizationContextHolder = login("admin", "admin");
