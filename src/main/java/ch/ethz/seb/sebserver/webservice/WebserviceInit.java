@@ -12,7 +12,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import jakarta.annotation.PreDestroy;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -26,6 +25,15 @@ import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo.ScreenProctoringServiceBundle;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
+
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 
 @Component
 @Import(DataSourceAutoConfiguration.class)
@@ -76,6 +84,12 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     public void onApplicationEvent(final ApplicationReadyEvent event) {
 
         this.sebServerInit.init();
+
+        try {
+            checkCerts();
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("Failed to apply cert check --> ", e);
+        }
 
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice starting up...                         ***");
@@ -238,5 +252,44 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
     public boolean isEnabledByConfig(final UserFeatures.Feature feature) {
         return featureService.isEnabledByConfig(feature);
+    }
+
+    private static final String[] ROOTS = {
+
+            // Roots related to the compromised intermediates
+            "emSign ECC Root CA - G3",
+            "AAA Certificate Services",
+
+            // Other eMudhra roots, not related to the compromised intermediates
+            "emSign Root CA - G1",
+            "emSign Root CA - G2"
+
+    };
+
+    private void checkCerts() throws NoSuchAlgorithmException, KeyStoreException {
+
+        TrustManagerFactory tmf
+                = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init((KeyStore)null);
+        boolean badroots = false;
+
+        for (String r : ROOTS) {
+            for (TrustManager tm : tmf.getTrustManagers()) {
+                if (tm instanceof X509TrustManager) {
+                    for (X509Certificate cert : ((X509TrustManager)tm).getAcceptedIssuers()){
+                        String nm = cert.getSubjectX500Principal().getName();
+                        if (nm.contains("CN=" + r)) {
+                            SEBServerInit.INIT_LOGGER.warn("----> BAD ROOT: {}", nm);
+                            badroots = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (badroots)
+            SEBServerInit.INIT_LOGGER.warn("----> Bad root certificates found!");
+        else
+            SEBServerInit.INIT_LOGGER.info("----> No bad root certificates found!");
     }
 }
