@@ -398,7 +398,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
         System.arraycopy(ch, start, valueChar, 0, length);
         final String value = String.valueOf(valueChar);
         final PListNode top = this.stack.peek();
-        if (top.type == Type.VALUE_STRING) {
+        if (top.type == Type.VALUE_STRING || top.type == Type.VALUE_DATA) {
             if (top.value == null) {
                 top.value = StringEscapeUtils.unescapeXml(value);
             } else {

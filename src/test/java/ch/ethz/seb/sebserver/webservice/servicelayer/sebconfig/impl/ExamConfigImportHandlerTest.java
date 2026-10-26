@@ -139,6 +139,40 @@ public class ExamConfigImportHandlerTest {
     }
 
     @Test
+    public void simpleDataValueTest() throws Exception {
+        final ValueCollector valueCollector = new ValueCollector();
+        final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
+                Mockito.mock(Cryptor.class),
+                1L,
+                1L,
+                valueCollector,
+                attributeResolver);
+
+        final String attribute = "param4";
+
+        candidate.startElement(null, null, "plist", null);
+        candidate.startElement(null, null, "dict", null);
+
+        candidate.startElement(null, null, "key", null);
+        candidate.characters(attribute.toCharArray(), 0, attribute.length());
+        candidate.endElement(null, null, "key");
+        candidate.startElement(null, null, "data", null);
+        // SAX parsers may split element content into several characters callbacks
+        candidate.characters("AAEC".toCharArray(), 0, 4);
+        candidate.characters("/w==".toCharArray(), 0, 4);
+        candidate.endElement(null, null, "data");
+
+        candidate.endElement(null, null, "dict");
+        candidate.endElement(null, null, "plist");
+
+        assertFalse(valueCollector.values.isEmpty());
+        final ConfigurationValue configurationValue = valueCollector.values.get(0);
+        assertNotNull(configurationValue);
+        assertTrue(4L == configurationValue.attributeId);
+        assertEquals("AAEC/w==", configurationValue.value);
+    }
+
+    @Test
     public void arrayOfStringValueTest() throws Exception {
         final ValueCollector valueCollector = new ValueCollector();
         final ExamConfigXMLParser candidate = new ExamConfigXMLParser(
