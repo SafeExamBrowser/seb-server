@@ -107,6 +107,12 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * @return Result refer to the updated exam or to an error when happened */
     Result<Exam> updateExamOnly(Long examId);
 
+    /** This applies the data repair update for Exam on SPS for version 3.0.
+     *  This adds the institution id to the SPS Exam as well as updating the supporter list
+     * @param examId The exam identifier
+     * @return Result refer to the updated exam or to an error when happened */
+    Result<Exam> applyV3RepairUpdateOnExam(Long examId);
+
     /** This is internally used to update client connections that are active but has no groups assignment yet.
      * This attaches SEB client connections to proctoring group of an exam in one batch by checking for
      * each unassigned SEB client connection if it is ready to attach to a screen proctoring group

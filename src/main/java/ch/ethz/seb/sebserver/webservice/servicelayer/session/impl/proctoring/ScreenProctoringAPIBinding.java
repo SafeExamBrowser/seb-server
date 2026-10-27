@@ -755,6 +755,51 @@ public class ScreenProctoringAPIBinding {
         });
     }
 
+    /** This is called  for only updating the institution id and supporter entries for an Exam
+     *  This is manly used for Data Repair Tasks in major updates
+     *
+     * @param exam The exam*/
+    Result<Exam> updateExamInstitutionAndSupporter(final Exam exam, @NotNull final SPSData spsData) {
+
+        return Result.tryCatch(() -> {
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate();
+
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsServiceURL)
+                    .path(EXAM_ENDPOINT)
+                    .pathSegment(spsData.spsExamUUID)
+                    .pathSegment(EXAM_INST_UPDATE_ENDPOINT)
+                    .build()
+                    .toUriString();
+
+            final List<String> supporterIds = getSupporterIds(exam);
+            final ExamUpdate examUpdate = new ExamUpdate(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    exam.institutionId,
+                    supporterIds
+            );
+
+            final String jsonExamUpdate = this.jsonMapper.writeValueAsString(examUpdate);
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri,
+                    HttpMethod.PUT,
+                    jsonExamUpdate,
+                    apiTemplate.getHeadersJSONRequest());
+
+            if (exchange.getStatusCode() != HttpStatus.OK) {
+                throw new RuntimeException("Failed to update SPS exam data: " + exchange);
+            }
+
+            return exam;
+        });
+    }
+
     /** This is called when an exam finishes and deactivates the Exam, SEB Client Access on Screen Proctoring Service side.
      *
      * @param exam The exam

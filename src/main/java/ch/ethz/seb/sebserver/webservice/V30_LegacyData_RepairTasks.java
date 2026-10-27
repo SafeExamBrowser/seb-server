@@ -329,7 +329,7 @@ public class V30_LegacyData_RepairTasks {
     private void repairExamSyncSPS(final Exam exam) {
         if (screenProctoringService.hasSPSData(exam.id)) {
             screenProctoringService
-                    .updateExamOnly(exam.id)
+                    .applyV3RepairUpdateOnExam(exam.id)
                     .onError(error -> REPAIR_LOGGER.error(
                             "----------> !!! Failed to synchronize Exam with SPS: {}:{} cause: {}",
                             exam.id,

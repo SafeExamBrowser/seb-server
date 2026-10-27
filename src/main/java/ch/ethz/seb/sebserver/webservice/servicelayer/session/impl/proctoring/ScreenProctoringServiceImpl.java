@@ -218,6 +218,23 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
+    public Result<Exam> applyV3RepairUpdateOnExam(Long examId) {
+        return examDAO
+                .byPK(examId)
+                .map(exam ->  {
+
+                    final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id, false);
+                    if (spsData == null) {
+                        return exam;
+                    }
+
+                    return this.screenProctoringAPIBinding
+                            .updateExamInstitutionAndSupporter(exam, spsData)
+                            .getOrThrow();
+                });
+    }
+
+    @Override
     public void updateClientConnections() {
         try {
 

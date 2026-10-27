@@ -41,6 +41,7 @@ interface SPS_API {
     String USER_ACCOUNT_ENDPOINT = "/admin-api/v1/useraccount/";
     String USERSYNC_SEBSERVER_ENDPOINT = USER_ACCOUNT_ENDPOINT + "usersync/sebserver";
     String EXAM_ENDPOINT = "/admin-api/v1/exam";
+    String EXAM_INST_UPDATE_ENDPOINT = "/update-institution";
     String EXAM_DELETE_REQUEST_ENDPOINT = "/request";
     String GROUP_DELETE_REQUEST_ENDPOINT = "/request";
     String SEB_ACCESS_ENDPOINT = "/admin-api/v1/clientaccess";
