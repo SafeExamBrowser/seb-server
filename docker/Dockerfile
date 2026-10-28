@@ -14,7 +14,7 @@ ENV JAVA_HEAP_MAX=
 RUN groupadd --system spring && useradd --system --gid spring spring && mkdir /sebserver && chown spring:spring /sebserver
 USER spring:spring
 
-COPY docker/start-sebserver.sh seb-server.jar /sebserver/
+COPY docker/seb-server.jar /sebserver/
 
 WORKDIR /sebserver
 
