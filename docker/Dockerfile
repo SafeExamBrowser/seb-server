@@ -1,5 +1,9 @@
 FROM eclipse-temurin:21-jre
 
+# Temporary: remove eMudhra G3 trust until the JDK vendor ships a fix (see ticket SEC-1234)
+RUN keytool -delete -cacerts -storepass changeit -alias "emsigneccrootcag3 [jdk]" \
+ && ! keytool -list -cacerts -storepass changeit | grep -qi emsigneccrootcag3
+
 ENV SERVER_PORT="8080"
 ENV JMX_PORT=
 ENV JAVA_HEAP_MIN=
