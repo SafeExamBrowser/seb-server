@@ -1,0 +1,45 @@
+# Security Policy
+
+> [!CAUTION]
+> While we certainly allow the usage of LLMs / AI as a tool for vulnerability research, we do reserve the right to reject security advisories which are clearly
+> auto-generated and which do not meet the following criteria:
+>
+> - You MUST disclose whether AI has been used.
+> - You MUST specify where and how AI was involved in the process.
+> - You MUST write the security advisory yourself.
+
+We only support the latest official release version with respect to security vulnerabilities. Thus, only the latest or then the upcoming next release version
+will receive vulnerability fixes and security updates. A vulnerability may however be reported for any version, unless it already has been fixed with a later
+release version.
+
+## Reporting a Vulnerability
+
+> [!IMPORTANT]
+> - Please _always_ verify that no later release version exists which fixes the vulnerability.
+> - Please _always_ consult the documentation first before creating a vulnerability report: https://seb-server.readthedocs.io/en/latest
+
+**Describe the Vulnerability**
+A clear and concise description of what the vulnerability is.
+
+**Proof of Concept**
+Please provide a proof-of-concept implementation in a _private_ repository or as attachment.
+
+**Steps to Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See ...
+
+**Expected Behavior**
+A clear and concise description of what you expected to happen.
+
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
+
+**Version Information**
+ - SEB Server Version [e.g. v2.0.0]
+ - SEB Server Setup [e.g. bundled productive setup or could setup]
+
+**Additional Context**
+Add any other context about the vulnerability here.
