@@ -1,7 +1,7 @@
 FROM eclipse-temurin:21-jre
 
 # Temporary: remove eMudhra G3 trust until the JDK vendor ships a fix (see ticket SEC-1234)
-RUN keytool -list -cacerts -storepass changeit | grep -qi emsigneccrootcag3
+RUN rm /etc/ssl/certs/emSign_ECC_Root_CA_-_C3.pem
 
 ENV SERVER_PORT="8080"
 ENV JMX_PORT=
