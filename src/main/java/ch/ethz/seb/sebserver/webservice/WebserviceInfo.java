@@ -445,9 +445,7 @@ public class WebserviceInfo {
                     ", serviceURL='" + serviceURL + '\'' +
                     ", internalServiceURL='" + internalServiceURL + '\'' +
                     ", clientId='" + clientId + '\'' +
-                    ", clientSecret=" + clientSecret +
                     ", apiAccountName='" + apiAccountName + '\'' +
-                    ", apiAccountPassword=" + apiAccountPassword +
                     '}';
         }
     }
