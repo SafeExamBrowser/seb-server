@@ -1,5 +1,10 @@
 FROM eclipse-temurin:21-jre
 
+# Temporary: remove eMudhra G3 trust until the JDK vendor ships a fix
+RUN rm /etc/ssl/certs/emSign_ECC_Root_CA_-_C3.pem
+RUN rm /etc/ssl/certs/emSign_Root_CA_-_C1.pem
+RUN rm /etc/ssl/certs/emSign_Root_CA_-_G1.pem
+
 ENV SERVER_PORT="8080"
 ENV JMX_PORT=
 ENV JAVA_HEAP_MIN=
@@ -13,14 +18,13 @@ COPY docker/start-sebserver.sh seb-server.jar /sebserver/
 
 WORKDIR /sebserver
 
-# NOTE: This seems not to work, maybe some permission problems, how knows!?
-#CMD /bin/sh /sebserver/start-sebserver.sh
-
 CMD if [ "x${JMX_PORT}" = "x" ] ; \
     then exec java \
         -Xms${JAVA_HEAP_MIN} \
         -Xmx${JAVA_HEAP_MAX} \
         -jar "seb-server.jar" \
+        -Dcom.sun.net.ssl.checkRevocation=true \
+        -Dcom.sun.security.enableCRLDP=true \
         --spring.config.location=classpath:/config/,optional:file:/sebserver/config/spring/; \
     else echo "admin ${SEBSERVER_SECRET}" > jmxremote.password && chown spring:spring /sebserver/jmxremote.password && chmod 400 /sebserver/jmxremote.password && exec java \
         -Xms${JAVA_HEAP_MIN} \
