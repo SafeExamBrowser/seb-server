@@ -302,7 +302,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
         this.entityDAO
                 .byModelId(modelId)
-                .map(this::checkReadAccess);
+                .map(this::checkReadAccess)
+                .getOrThrow();
 
         final BulkAction bulkAction = new BulkAction(
                 bulkActionType,
