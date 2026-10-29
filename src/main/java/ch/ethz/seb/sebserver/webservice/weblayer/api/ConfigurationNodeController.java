@@ -202,7 +202,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
         this.entityDAO
                 .byPK(copyInfo.configurationNodeId)
-                .flatMap(this.authorization::checkWrite);
+                .flatMap(this.authorization::checkWrite)
+                .getOrThrow();
 
         final SEBServerUser currentUser = this.authorization
                 .getUserService()
@@ -238,7 +239,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = "false") final Boolean followup) {
 
         this.entityDAO.byPK(modelId)
-                .flatMap(this.authorization::checkRead);
+                .flatMap(this.authorization::checkRead)
+                .getOrThrow();
 
         final String configKey = this.sebExamConfigService
                 .generateConfigKey(institutionId, modelId, BooleanUtils.toBoolean(followup))
@@ -261,7 +263,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
         this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead)
-                .flatMap(this.userActivityLogDAO::logExport);
+                .flatMap(this.userActivityLogDAO::logExport)
+                .getOrThrow();
 
         final ServletOutputStream outputStream = response.getOutputStream();
 
@@ -358,7 +361,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final HttpServletRequest request) throws IOException {
 
         this.entityDAO.byPK(modelId)
-                .flatMap(this.authorization::checkModify);
+                .flatMap(this.authorization::checkModify)
+                .getOrThrow();
 
         final Configuration newConfig = this.configurationDAO
                 .getFollowupConfiguration(modelId)
