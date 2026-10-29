@@ -44,53 +44,68 @@ The image below shows a very simplified diagram that locates the SEB Server in a
 Safe Exam Browser (SEB). The SEB Server communicates with the LMS for managing and prepare exams as well as with the SEB Client to ensure 
 a more automated and secure setup for high-stake exams.
 
-.. image:: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-1.5/docs/images/setup_1.png
+.. image:: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-3.0/docs/images/setup_1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-1.5/docs/images/setup_1.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/dev-3.0/docs/images/setup_1.png
     
-SEB Server Version 2.2 is out
+SEB Server Version 3.0 is out
 -------------------------------
 
-Within this new version 2.2 we implemented mostly new features for Screen Proctoring and make SEB Server and Screen Proctoring 
-more stable. We also stabilized the SEB Server Moodle Plugin integration for SEB Server Moodle Plugin Version 2. Please make sure
-you have the newest update of the SEB Server Moodle Plugin.
+Within this new version 3.0 comes a whole new UI (user interface) that integrates the former SEB Server UI and
+the Screen Proctoring UI in one single UI built with Vue/Typescript. We also adapted the SEB Server setup
+accordingly and simplified it where possible. Beside of that we have some new features as well as better performance
 
 New Features:
-    - SEB Server - Allow exams with multiple consecutive quizzes in Moodle
-    - SEB Server - Allow App Signature Key (ASK) for Teacher Roles
-    - SEB Server - SEB Lock on Assessment Tool gets set as soon as the Exam is imported
-    - SEB Server - New SEB Settings for Exam Configuration 
-        Change default value of "enableLogging" from false to true
-        Change default value of "quitURLRestart" from true to false
-        New iOS setting "mobileShowEditConfigShortcutItem"
-        New iOS setting "allowUploadsiOS"
-        New setting "downloadFileTypes"
+    - Complete new modern Web-UI that integrates former SEB Server and Screen Proctoring UI
+    - New monitoring overview page where you can see all the most relevant monitoring data of a running Exam right away.
+    You can still show the list of SEB clients and filter it as usual while also go to single client details.
+    - Full screen proctoring integration within the new UI. You can see the screens of a client within monitoring
+    directly now on the clients detail view. You can also go directly to the gallery view by groups from the
+    new monitoring overview page. Screen Proctoring Search and Application Search are integrated too.
+    - Exam Template Wizard. A UI wizard that guides you through the steps of creating a Exam Template
+    that is used to import Exams later on. Configuration Templates are automatically generated out of the
+    given SEB Settings within the wizard. No need to maintain them separately anymore.
+    - Exam Import Wizard. A UI wizard that guides you through the steps of importing an Exam either form an integrated
+    Assessment Tool or by URL. Exam Configurations are generated automatically on import from the Exam Template settings.
+    No need to maintain them separately anymore.
+    - Scheduled Deletion. New feature the schedule a Exam deletion of all exams that are older then a given date.
+    The delete is scheduled to midnight of the current day and you are able to consult a report of all involved deletions.
+    As long as the scheduled deletion has not be started, you are always able to delete the task. After deletion, the task
+    can still be seen and the reports states successfully and none successfully deletions.
+    - Exclude from Deletion. This feature allows you to exclude certain Exams from a scheduled deletion task. You can mark
+    an Exam as excluded from deletion to prevent deletion of the Exam by a automated task.
 
 Improvements:
-   - SEB Server - Improved Teacher Account administration by SEB Server Admin and Institutional Admin
-   - SEB Server - Improved name filter in Assessment Tool Lookup. Is now case insensitive
-   - SEB Server - Improved start time filter within Assessment Tool Lookup
-   - SEB Server - Improved Assessment Tool Lookup to not show already imported exams
-   - SEB Server - Exam quit password is now a normal text field
-   - SEB Server - Improved SEB auto quit when Exam as finished - check does not relay on cache data now but on actual stored data (prevent unintended auto quits)
-   - SEB Server - Add manual SEB instructions like SEB Quit, SEB Lock... to Audit Log
-   - SEB Server / Screen Proctoring - Improve account registration and synchronization
-   - SEB Server / Screen Proctoring - Improved logging for testing and prod
-   - Support for newer MariaDB version 11.4 
+   - Improved User Roles. You only apply one single role for a user now and it gets all privileges from subsequent roles
+   - Analysis. There is a new analysis section where you can analyse finished exams after monitoring. Search screen proctoring
+   or download SEB logs of the Exam.
+   - Archivation. There is a new archivation section, where you can archive Exams and maintain excludes from deletion.
+   - Running on Java 21 ands Spring 3.5 now.
+   - New SEB Settings now all available in the UI
 
 Bugfixes:
-   - SEB Server - Fixed Sometimes or for certain Exam Templates Screen Proctoring don't get applied in Exam Import
-   - SEB Server - Fixed Moodle course filter where it was not working on Moodle site
-   - SEB Server / Screen Proctoring - Fixed screen proctoring initialization on Exam import
-   - SEB Server Monitoring - Fix lock screen for a client in the state ready not possible
-   - SEB Server - Fixed colon in quizname causes problems in search
-   - SEB Server / Moodle - Fixed Decoded quit password in Exam causes errors in Exam Configuration and Moodle
-   
-Removed:
-   - SEB Server - SEB Logs functionality has been removed due to performance issues and obsoleteness of the feature. 
-        SEB Logs can be seen and exported on Exam and SEB Client view level now.
+   - Disable any Assessment Tool Setup causes disconnect Exams of other Assessment Tool Setup with Moodle integration.Setup
+   - Unsynced User Accounts SPS-SEB where new users not properly synchronized with screen proctoring service
+   - Exam Reimport from Moodle causes SPS data mismatch
+   - Fix duplicate client indicator entry recovery
+   - Inactive LMS are still involved in the Exam Update Task
+   - Missing SEB Settings allowVirtualMachine
+   - SEB Settings arguments with special chars (or other settings)
+   - Moodle Integration, Deletion when Moodle is not available leads to inconsistent connection state.
+   - Moodle Integration: Exam Import fails when there is no Connection Configuration
+   - Screen Proctoring, all clients are counted instead of only active clients
+   - Moodle Quiz Recovery error when quizzes in same course has like names --> Moodle Quiz Recovery is disabled now for default
+   - Access inconsistency for Exam Admin role on SEB Server with SPS Group (Gallery View)
+   - Save User Account, email, DAO inserts empty string instead of null
+   - Exam/Quiz description change from Moodle causes errors when description is deleted
+   - SEB Settings, URLs getting cut in SEB Config
 
-For a migration from a running SEB Server setup with version 1.x to new major version 2.0, please also read the `migration guide <https://seb-server-setup.readthedocs.io/en/latest/major-migration.html>`_.
+Missing Features:
+   - Consider that the new UI is MVP (minimal viable product). And despite the fact that almost all of the former features
+   as be implemented or integrated, there are some few missing features.
+   - User/Audit Logs are currently not viewable in the UI.
+
+For a migration from a running SEB Server setup with version 2.x to new major version 3.0, please also read the `migration guide <https://seb-server-setup.readthedocs.io/en/latest/major-migration.html>`_.
 
 
 SEB - SEB Server Compatibility
@@ -99,14 +114,14 @@ SEB - SEB Server Compatibility
 The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
 SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
 
-**SEB Server Version 2.1.x**
+**SEB Server Version 3.0.x**
 
 .. csv-table::
    :header: "Platform / OS", "Release Version"
 
-   "SEB Client for iOS", "3.6"
-   "SEB Client for Mac", "3.6"
-   "SEB Client for Windows", "3.10"
+   "SEB Client for iOS", "3.7.1.1"
+   "SEB Client for Mac", "3.7.1.1"
+   "SEB Client for Windows", "3.10.3"
 
 Install SEB Server
 ------------------
@@ -115,6 +130,11 @@ For a complete guide to install SEB Server please go to `SEB Server Installation
 
 Getting started with SEB Server
 -------------------------------
+
+**NOTE**
+
+    The following is the SEB Server User Guide for the SEB Server version 2.x. Since there is no actual User Guide for version 3.0 yet
+    you can use this as a reference. We will provide you with an actual SEB Server User Guide for version 3.x as soon as possible.
 
 For a complete SEB Server user guide please go to `SEB Server User Guide <https://seb-server.readthedocs.io/en/latest/#>`_
 
