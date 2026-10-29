@@ -1,6 +1,6 @@
 FROM eclipse-temurin:21-jre
 
-# Temporary: remove eMudhra G3 trust until the JDK vendor ships a fix
+# Temporary: remove eMudhra trusts until the JDK vendor ships a fix
 RUN rm /etc/ssl/certs/emSign_ECC_Root_CA_-_C3.pem
 RUN rm /etc/ssl/certs/emSign_Root_CA_-_C1.pem
 RUN rm /etc/ssl/certs/emSign_Root_CA_-_G1.pem
