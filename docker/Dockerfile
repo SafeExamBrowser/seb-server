@@ -4,6 +4,10 @@ FROM eclipse-temurin:21-jre
 RUN rm /etc/ssl/certs/emSign_ECC_Root_CA_-_C3.pem
 RUN rm /etc/ssl/certs/emSign_Root_CA_-_C1.pem
 RUN rm /etc/ssl/certs/emSign_Root_CA_-_G1.pem
+RUN keytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_ecc_root_ca__c3,o_emudhra_inc,ou_emsign_pki,c_us [jdk]" -storepass changeit
+RUN keytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_ecc_root_ca__g3,o_emudhra_technologies_limited,ou_emsign_pki,c_in [jdk]" -keystore cacerts -storepass changeit
+RUN keytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_root_ca__c1,o_emudhra_inc,ou_emsign_pki,c_us [jdk]" -keystore cacerts -storepass changeit
+RUNkeytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_root_ca__g1,o_emudhra_technologies_limited,ou_emsign_pki,c_in [jdk]" -keystore cacerts -storepass changeit
 
 ENV SERVER_PORT="8080"
 ENV JMX_PORT=
