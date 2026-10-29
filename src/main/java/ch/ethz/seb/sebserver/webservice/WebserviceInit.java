@@ -85,11 +85,11 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
         this.sebServerInit.init();
 
-        try {
-            checkCerts();
-        } catch (Exception e) {
-            SEBServerInit.INIT_LOGGER.error("Failed to apply cert check --> ", e);
-        }
+//        try {
+//            checkCerts();
+//        } catch (Exception e) {
+//            SEBServerInit.INIT_LOGGER.error("Failed to apply cert check --> ", e);
+//        }
 
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice starting up...                         ***");

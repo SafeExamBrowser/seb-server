@@ -14,12 +14,9 @@ ENV JAVA_HEAP_MAX=
 RUN groupadd --system spring && useradd --system --gid spring spring && mkdir /sebserver && chown spring:spring /sebserver
 USER spring:spring
 
-COPY docker/start-sebserver.sh seb-server.jar /sebserver/
+COPY seb-server.jar /sebserver/
 
 WORKDIR /sebserver
-
-# NOTE: This seems not to work, maybe some permission problems, how knows!?
-#CMD /bin/sh /sebserver/start-sebserver.sh
 
 CMD if [ "x${JMX_PORT}" = "x" ] ; \
     then exec java \
