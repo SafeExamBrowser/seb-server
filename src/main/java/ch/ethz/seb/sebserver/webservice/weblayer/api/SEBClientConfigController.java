@@ -138,7 +138,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
         this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)
-                .map(this.userActivityLogDAO::logExport)
+                .flatMap(this.userActivityLogDAO::logExport)
                 .getOrThrow();
 
         final ServletOutputStream outputStream = response.getOutputStream();
