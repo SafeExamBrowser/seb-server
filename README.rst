@@ -58,7 +58,7 @@ accordingly and simplified it where possible. Beside of that we have some new fe
 New Features:
     - Complete new modern Web-UI that integrates former SEB Server and Screen Proctoring UI
     - New monitoring overview page where you can see all the most relevant monitoring data of a running Exam right away.
-You can still show the list of SEB clients and filter it as usual while also go to single client details.
+        You can still show the list of SEB clients and filter it as usual while also go to single client details.
     - Full screen proctoring integration within the new UI. You can see the screens of a client within monitoring
 directly now on the clients detail view. You can also go directly to the gallery view by groups from the
 new monitoring overview page. Screen Proctoring Search and Application Search are integrated too.
