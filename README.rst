@@ -57,28 +57,16 @@ accordingly and simplified it where possible. Beside of that we have some new fe
 
 New Features:
     - Complete new modern Web-UI that integrates former SEB Server and Screen Proctoring UI
-    - New monitoring overview page where you can see all the most relevant monitoring data of a running Exam right away.
-        You can still show the list of SEB clients and filter it as usual while also go to single client details.
-    - Full screen proctoring integration within the new UI. You can see the screens of a client within monitoring
-directly now on the clients detail view. You can also go directly to the gallery view by groups from the
-new monitoring overview page. Screen Proctoring Search and Application Search are integrated too.
-    - Exam Template Wizard. A UI wizard that guides you through the steps of creating a Exam Template
-that is used to import Exams later on. Configuration Templates are automatically generated out of the
-given SEB Settings within the wizard. No need to maintain them separately anymore.
-    - Exam Import Wizard. A UI wizard that guides you through the steps of importing an Exam either form an integrated
-Assessment Tool or by URL. Exam Configurations are generated automatically on import from the Exam Template settings.
-No need to maintain them separately anymore.
-    - Scheduled Deletion. New feature the schedule a Exam deletion of all exams that are older then a given date.
-The delete is scheduled to midnight of the current day and you are able to consult a report of all involved deletions.
-As long as the scheduled deletion has not be started, you are always able to delete the task. After deletion, the task
-can still be seen and the reports states successfully and none successfully deletions.
-    - Exclude from Deletion. This feature allows you to exclude certain Exams from a scheduled deletion task. You can mark
-an Exam as excluded from deletion to prevent deletion of the Exam by a automated task.
+    - New monitoring overview page where you can see all the most relevant monitoring data of a running Exam right away. You can still show the list of SEB clients and filter it as usual while also go to single client details.
+    - Full screen proctoring integration within the new UI. You can see the screens of a client within monitoring directly now on the clients detail view. You can also go directly to the gallery view by groups from the new monitoring overview page. Screen Proctoring Search and Application Search are integrated too.
+    - Exam Template Wizard. A UI wizard that guides you through the steps of creating a Exam Template that is used to import Exams later on. Configuration Templates are automatically generated out of the given SEB Settings within the wizard. No need to maintain them separately anymore.
+    - Exam Import Wizard. A UI wizard that guides you through the steps of importing an Exam either form an integrated Assessment Tool or by URL. Exam Configurations are generated automatically on import from the Exam Template settings. No need to maintain them separately anymore.
+    - Scheduled Deletion. New feature the schedule a Exam deletion of all exams that are older then a given date. The delete is scheduled to midnight of the current day and you are able to consult a report of all involved deletions. As long as the scheduled deletion has not be started, you are always able to delete the task. After deletion, the task can still be seen and the reports states successfully and none successfully deletions.
+    - Exclude from Deletion. This feature allows you to exclude certain Exams from a scheduled deletion task. You can mark an Exam as excluded from deletion to prevent deletion of the Exam by a automated task.
 
 Improvements:
    - Improved User Roles. You only apply one single role for a user now and it gets all privileges from subsequent roles
-   - Analysis. There is a new analysis section where you can analyse finished exams after monitoring. Search screen proctoring
-or download SEB logs of the Exam.
+   - Analysis. There is a new analysis section where you can analyse finished exams after monitoring. Search screen proctoring or download SEB logs of the Exam.
    - Archivation. There is a new archivation section, where you can archive Exams and maintain excludes from deletion.
    - Running on Java 21 ands Spring 3.5 now.
    - New SEB Settings now all available in the UI
@@ -101,8 +89,7 @@ Bugfixes:
    - SEB Settings, URLs getting cut in SEB Config
 
 Missing Features:
-   - Consider that the new UI is MVP (minimal viable product). And despite the fact that almost all of the former features
-as be implemented or integrated, there are some few missing features.
+   - Consider that the new UI is MVP (minimal viable product). And despite the fact that almost all of the former features as be implemented or integrated, there are some few missing features.
    - User/Audit Logs are currently not viewable in the UI.
 
 For a migration from a running SEB Server setup with version 2.x to new major version 3.0, please also read the `migration guide <https://seb-server-setup.readthedocs.io/en/latest/major-migration.html>`_.
