@@ -1,5 +1,8 @@
 FROM eclipse-temurin:21-jre
 
+# remove all eMudhra trusts until the JDK vendor ships a fix
+RUN keytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_root_ca__c1,o_emudhra_inc,ou_emsign_pki,c_us [jdk]" -storepass changeit
+
 ENV SERVER_PORT="8080"
 ENV JMX_PORT=
 ENV JAVA_HEAP_MIN=
