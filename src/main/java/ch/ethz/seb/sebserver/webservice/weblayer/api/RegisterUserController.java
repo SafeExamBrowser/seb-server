@@ -132,7 +132,7 @@ public class RegisterUserController {
                     }
 
                     if (userAccount.roles == null || userAccount.roles.size() != 1 || !userAccount.roles.contains(UserRole.EXAM_SUPPORTER.name())) {
-                        throw new APIMessageException(APIMessage.ErrorMessage.BAD_REQUEST.of("Invalid User Roles"));
+                        errors.add(APIMessage.ErrorMessage.BAD_REQUEST.of("Invalid User Roles"));
                     }
 
                     if (!errors.isEmpty()) {
