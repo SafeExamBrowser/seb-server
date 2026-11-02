@@ -20,14 +20,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.ConfigPurpose;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
@@ -54,40 +54,38 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.SebClientConfigRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint.RevokeExamTokenEvent;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;
     private final ClientCredentialService clientCredentialService;
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
-    private final DAOUserServcie daoUserServcie;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final DAOUserService daoUserServcie;
     private final CacheManager cacheManager;
+    private final Cryptor cryptor;
 
     protected SEBClientConfigDAOImpl(
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
             final ClientCredentialService clientCredentialService,
             final AdditionalAttributesDAOImpl additionalAttributesDAO,
-            final DAOUserServcie daoUserServcie,
-            final ApplicationEventPublisher applicationEventPublisher,
-            final CacheManager cacheManager) {
+            final DAOUserService daoUserServcie,
+            final CacheManager cacheManager,
+            final Cryptor cryptor) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.daoUserServcie = daoUserServcie;
-        this.applicationEventPublisher = applicationEventPublisher;
         this.cacheManager = cacheManager;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -169,17 +167,22 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<SEBClientConfig> byClientName(final String clientName) {
-        return Result.tryCatch(() -> this.sebClientConfigRecordMapper
-                .selectByExample()
-                .where(
-                        SebClientConfigRecordDynamicSqlSupport.clientName,
-                        isEqualTo(clientName))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Utils.toSingleton()));
+        return Result.tryCatch(() -> {
+            List<SebClientConfigRecord> execute = this.sebClientConfigRecordMapper
+                    .selectByExample()
+                    .where(
+                            SebClientConfigRecordDynamicSqlSupport.clientName,
+                            isEqualTo(clientName))
+                    .build()
+                    .execute();
+
+
+            return execute.stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Utils.toSingleton());
+
+        });
     }
 
     @Override
@@ -202,6 +205,49 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             return record.getClientSecret();
         });
+    }
+
+    @Override
+    public SEBClientConfig decryptPasswords(SEBClientConfig config) {
+
+        final CharSequence fallbackPassword = config.fallbackPassword != null
+                ? cryptor.decrypt(config.fallbackPassword).getOr(config.fallbackPassword)
+                : null;
+        final CharSequence quitPassword = config.quitPassword != null
+                ? cryptor.decrypt(config.quitPassword).getOr(config.quitPassword)
+                : null;
+        final CharSequence encryptSecret = config.encryptSecret != null
+                ? cryptor.decrypt(config.encryptSecret).getOr(config.encryptSecret)
+                : null;
+
+        return new SEBClientConfig(
+                config.id,
+                config.institutionId,
+                config.name,
+                config.configPurpose,
+                config.sebServerPingTime,
+                config.vdiType,
+                config.vdiExecutable,
+                config.vdiPath,
+                config.vdiArguments,
+                config.fallback,
+                config.fallbackStartURL,
+                config.fallbackTimeout,
+                config.fallbackAttempts,
+                config.fallbackAttemptInterval,
+                fallbackPassword,
+                config.fallbackPasswordConfirm,
+                quitPassword,
+                config.quitPasswordConfirm,
+                config.date,
+                encryptSecret,
+                config.encryptSecretConfirm,
+                config.encryptCertificateAlias,
+                config.encryptCertificateAsym,
+                config.active,
+                config.lastUpdateTime,
+                config.lastUpdateUser,
+                config.selectedExams);
     }
 
     @Override
@@ -372,11 +418,14 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     @Transactional(readOnly = true)
     public Result<ClientCredentials> getSEBClientCredentials(final String modelId) {
         return recordByModelId(modelId)
+                .map(this::fixIssue_SEBSERV_858)
                 .map(rec -> new ClientCredentials(
                         rec.getClientName(),
                         rec.getClientSecret(),
                         null));
     }
+
+
 
     @Override
     @Transactional(readOnly = true)
@@ -430,7 +479,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         AdditionalAttributeRecord::getName,
                         Function.identity()));
 
-        additionalAttributes.get(SEBClientConfig.ATTR_CONFIG_PURPOSE);
+        final String fallback = getFallbackValue(additionalAttributes);
 
         return Result.tryCatch(() -> new SEBClientConfig(
                 record.getId(),
@@ -457,8 +506,8 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_VDI_ARGUMENTS)
                         ? additionalAttributes.get(SEBClientConfig.ATTR_VDI_ARGUMENTS).getValue()
                         : null,
-                additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK) &&
-                        BooleanUtils.toBoolean(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK).getValue()),
+                fallback != null &&
+                        BooleanUtils.toBoolean(fallback),
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_START_URL)
                         ? additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_START_URL).getValue()
                         : null,
@@ -466,10 +515,10 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         ? Long.parseLong(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_TIMEOUT).getValue())
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS)
-                        ? Short.parseShort(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS).getValue())
+                        ? Long.parseLong(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS).getValue())
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL)
-                        ? Short.parseShort(
+                        ? Long.parseLong(
                                 additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL).getValue())
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_PASSWORD)
@@ -494,6 +543,18 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         additionalAttributes.containsKey(SEBClientConfig.ATTR_EXAM_SELECTION)
                          ? additionalAttributes.get(SEBClientConfig.ATTR_EXAM_SELECTION).getValue()
                          : null)));
+    }
+
+    // NOTE: Deal with legacy data, see SEBSERV-760
+    private String getFallbackValue(Map<String, AdditionalAttributeRecord> additionalAttributes) {
+        if (additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK)) {
+            return additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK).getValue();
+        }
+        // this is the old legacy value with the space at the end.
+        if (additionalAttributes.containsKey("sebServerFallback ")) {
+            return additionalAttributes.get("sebServerFallback ").getValue();
+        }
+        return null;
     }
 
     private String getEncryptionPassword(final SEBClientConfig sebClientConfig) {
@@ -712,14 +773,6 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             final SebClientConfigRecord rec = recordById(pk)
                     .getOrThrow();
 
-            // revoke token
-            try {
-                this.applicationEventPublisher
-                        .publishEvent(new RevokeExamTokenEvent(rec.getClientName()));
-            } catch (final Exception e) {
-                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", pk, e);
-            }
-
             // clear cache
             this.cacheManager
                     .getCache(ConnectionConfigurationService.EXAM_CLIENT_DETAILS_CACHE)
@@ -730,5 +783,47 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         }
 
         return pk;
+    }
+
+    // NOTE: this a in code fix needed at Spring Boot update to 3.x. This fixes ISSUE SEBSERV-858
+    // Check if clientId or clientSecret of the record still has percentage character in it
+    // if so, create new clientId and clientSecret for the Connection Configuration and work with that
+    // Log when changing. Changing will also invalidate all existing Connection Configuration
+    // that were downloaded prior to when this fix was applied
+    private SebClientConfigRecord fixIssue_SEBSERV_858(SebClientConfigRecord sebClientConfigRecord) {
+        try {
+
+            String clientName = sebClientConfigRecord.getClientName();
+            String clientSecret = cryptor.decrypt(sebClientConfigRecord.getClientSecret()).getOrThrow().toString();
+
+            if (clientName.contains(Constants.PERCENTAGE_STRING) || clientSecret.contains(Constants.PERCENTAGE_STRING)) {
+
+                log.info("Found '%' in clientName or clientSecret of Connection Configuration. Try to apply fix SEBSERV-858 and create new credentials without special chars");
+
+                ClientCredentials newCredentials = this.clientCredentialService
+                        .generatedClientCredentials().getOrThrow();
+
+                UpdateDSL.updateWithMapper(
+                                this.sebClientConfigRecordMapper::update,
+                                SebClientConfigRecordDynamicSqlSupport.sebClientConfigRecord)
+                        .set(SebClientConfigRecordDynamicSqlSupport.clientName).equalTo(newCredentials.clientIdAsString())
+                        .set(SebClientConfigRecordDynamicSqlSupport.clientSecret).equalTo(newCredentials.secretAsString())
+                        .where(SebClientConfigRecordDynamicSqlSupport.id, isEqualTo(sebClientConfigRecord.getId()))
+                        .build()
+                        .execute();
+
+                SebClientConfigRecord newRec = recordById(sebClientConfigRecord.getId()).getOrThrow();
+
+                log.info("successfully repaired Connection Configuration: {}", newRec);
+
+                return newRec;
+            }
+
+            return sebClientConfigRecord;
+
+        } catch (Exception e) {
+            log.error("Failed to apply fix SEBSERV-858 to record: {}", sebClientConfigRecord, e);
+            return sebClientConfigRecord;
+        }
     }
 }

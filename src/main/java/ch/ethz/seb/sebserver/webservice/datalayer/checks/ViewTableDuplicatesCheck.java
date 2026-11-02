@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.DBIntegrityCheck;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordMapper;
@@ -24,7 +23,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ViewRecord;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ViewTableDuplicatesCheck implements DBIntegrityCheck {
 
     private final ViewRecordMapper viewRecordMapper;

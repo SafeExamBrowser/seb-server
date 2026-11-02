@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.apache.commons.lang3.BooleanUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientConnectionData implements GrantEntity {
@@ -34,7 +35,8 @@ public class ClientConnectionData implements GrantEntity {
     public static final String ATTR_CLIENT_CONNECTION = "cdat";
     public static final String ATTR_INDICATOR_VALUE = "iVal";
     public static final String ATTR_MISSING_PING = "miss";
-    public static final String ATTR_PENDING_NOTIFICATION = "pnot";
+    public static final String ATTR_PENDING_LOCK_SCREEN = "p-ls";
+    public static final String ATTR_PENDING_RISE_HAND = "p-rh";
     public static final String ATTR_CLIENT_GROUPS = "cg";
 
     @JsonProperty(ATTR_CLIENT_CONNECTION)
@@ -45,18 +47,21 @@ public class ClientConnectionData implements GrantEntity {
     public final Set<Long> groups;
 
     public final Boolean missingPing;
-    public final Boolean pendingNotification;
+    protected final Boolean pendingLockScreen;
+    protected final Boolean pendingRaiseHand;
 
     @JsonCreator
     public ClientConnectionData(
             @JsonProperty(ATTR_MISSING_PING) final Boolean missingPing,
-            @JsonProperty(ATTR_PENDING_NOTIFICATION) final Boolean pendingNotification,
+            @JsonProperty(ATTR_PENDING_LOCK_SCREEN) final Boolean pendingLockScreen,
+            @JsonProperty(ATTR_PENDING_RISE_HAND) final Boolean pendingRaiseHand,
             @JsonProperty(ATTR_CLIENT_CONNECTION) final ClientConnection clientConnection,
             @JsonProperty(ATTR_INDICATOR_VALUE) final Collection<? extends SimpleIndicatorValue> indicatorValues,
             @JsonProperty(ATTR_CLIENT_GROUPS) final Set<Long> groups) {
 
         this.missingPing = missingPing;
-        this.pendingNotification = pendingNotification;
+        this.pendingLockScreen = BooleanUtils.isTrue(pendingLockScreen);
+        this.pendingRaiseHand = BooleanUtils.isTrue(pendingRaiseHand);
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
         this.groups = (groups == null) ? null : Utils.immutableSetOf(groups);
@@ -68,7 +73,8 @@ public class ClientConnectionData implements GrantEntity {
             final Set<Long> groups) {
 
         this.missingPing = null;
-        this.pendingNotification = Boolean.FALSE;
+        this.pendingLockScreen = Boolean.FALSE;
+        this.pendingRaiseHand = Boolean.FALSE;
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
         this.groups = (groups == null) ? null : Utils.immutableSetOf(groups);
@@ -127,9 +133,20 @@ public class ClientConnectionData implements GrantEntity {
         return this.missingPing;
     }
 
-    @JsonProperty(ATTR_PENDING_NOTIFICATION)
-    public Boolean pendingNotification() {
-        return this.pendingNotification;
+    @JsonProperty(ATTR_PENDING_LOCK_SCREEN)
+    public Boolean pendingLockScreen() {
+        if (!clientConnection.status.clientActiveStatus) {
+            return false;
+        }
+        return pendingLockScreen;
+    }
+
+    @JsonProperty(ATTR_PENDING_RISE_HAND)
+    public Boolean pendingRaiseHand() {
+        if (!clientConnection.status.clientActiveStatus) {
+            return false;
+        }
+        return pendingRaiseHand;
     }
 
     @JsonIgnore
@@ -139,7 +156,7 @@ public class ClientConnectionData implements GrantEntity {
 
     @JsonIgnore
     public boolean hasAnyIncident() {
-        return this.missingPing || this.pendingNotification;
+        return this.missingPing || this.pendingLockScreen || pendingRaiseHand;
     }
 
     @JsonIgnore

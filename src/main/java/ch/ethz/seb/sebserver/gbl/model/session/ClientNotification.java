@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.util.Pair;
 
 public class ClientNotification extends ClientEvent {
 
-    public static enum NotificationType {
+    public enum NotificationType {
         UNKNOWN(0, null),
         LOCK_SCREEN(1, "lockscreen"),
         RAISE_HAND(2, "raisehand");
@@ -103,25 +103,23 @@ public class ClientNotification extends ClientEvent {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ClientNotification [notificationType=");
-        builder.append(this.notificationType);
-        builder.append(", id=");
-        builder.append(this.id);
-        builder.append(", connectionId=");
-        builder.append(this.connectionId);
-        builder.append(", eventType=");
-        builder.append(this.eventType);
-        builder.append(", clientTime=");
-        builder.append(this.clientTime);
-        builder.append(", serverTime=");
-        builder.append(this.serverTime);
-        builder.append(", numValue=");
-        builder.append(this.numValue);
-        builder.append(", text=");
-        builder.append(this.text);
-        builder.append("]");
-        return builder.toString();
+        return "ClientNotification [notificationType=" +
+                this.notificationType +
+                ", id=" +
+                this.id +
+                ", connectionId=" +
+                this.connectionId +
+                ", eventType=" +
+                this.eventType +
+                ", clientTime=" +
+                this.clientTime +
+                ", serverTime=" +
+                this.serverTime +
+                ", numValue=" +
+                this.numValue +
+                ", text=" +
+                this.text +
+                "]";
     }
 
     public static Pair<NotificationType, String> extractTypeAndPlainText(final String text) {

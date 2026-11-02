@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordDynamicSqlSupport;
@@ -30,7 +29,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundExceptio
 
 @Lazy
 @Component
-@WebServiceProfile
 public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
 
     private static final Logger log = LoggerFactory.getLogger(AdditionalAttributesDAOImpl.class);

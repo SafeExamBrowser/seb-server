@@ -11,14 +11,13 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.io.IOUtils;
@@ -57,7 +56,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SettingsPublished;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -70,7 +68,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplat
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CONFIGURATION_NODE_ENDPOINT)
 public class ConfigurationNodeController extends EntityController<ConfigurationNode, ConfigurationNode> {
@@ -137,7 +134,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration getFollowup(@PathVariable final Long modelId) {
 
@@ -154,7 +150,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SETTINGS_PUBLISHED_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SettingsPublished settingsPublished(
             @RequestParam(
@@ -207,7 +202,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
         this.entityDAO
                 .byPK(copyInfo.configurationNodeId)
-                .flatMap(this.authorization::checkWrite);
+                .flatMap(this.authorization::checkWrite)
+                .getOrThrow();
 
         final SEBServerUser currentUser = this.authorization
                 .getUserService()
@@ -230,7 +226,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_CONFIG_KEY_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigKey getConfigKey(
             @PathVariable final Long modelId,
@@ -244,7 +239,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = "false") final Boolean followup) {
 
         this.entityDAO.byPK(modelId)
-                .flatMap(this.authorization::checkRead);
+                .flatMap(this.authorization::checkRead)
+                .getOrThrow();
 
         final String configKey = this.sebExamConfigService
                 .generateConfigKey(institutionId, modelId, BooleanUtils.toBoolean(followup))
@@ -267,7 +263,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
         this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead)
-                .flatMap(this.userActivityLogDAO::logExport);
+                .flatMap(this.userActivityLogDAO::logExport)
+                .getOrThrow();
 
         final ServletOutputStream outputStream = response.getOutputStream();
 
@@ -294,6 +291,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
+    @Deprecated(since = "3.0")
     public Configuration importExamConfig(
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_NAME, required = false) final String name,
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
@@ -318,7 +316,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 ConfigurationType.EXAM_CONFIG,
                 currentUser.uuid(),
                 ConfigurationStatus.CONSTRUCTION,
-                null, null);
+                null, null, null);
 
         final Configuration followup = this.beanValidationService.validateBean(configurationNode)
                 .flatMap(this.entityDAO::createNew)
@@ -329,7 +327,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         if (doImport.hasError()) {
 
             // rollback of the new configuration
-            this.configurationNodeDAO.delete(new HashSet<>(Arrays.asList(new EntityKey(
+            this.configurationNodeDAO.delete(new HashSet<>(List.of(new EntityKey(
                     followup.configurationNodeId,
                     EntityType.CONFIGURATION_NODE))));
         }
@@ -355,6 +353,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     public Configuration importExamConfigOnExistingConfig(
             @PathVariable final Long modelId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
+            @RequestHeader(name = API.QUIT_PASSWORD_ATTR_NAME, required = false) final String quitPassword,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -362,7 +361,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final HttpServletRequest request) throws IOException {
 
         this.entityDAO.byPK(modelId)
-                .flatMap(this.authorization::checkModify);
+                .flatMap(this.authorization::checkModify)
+                .getOrThrow();
 
         final Configuration newConfig = this.configurationDAO
                 .getFollowupConfiguration(modelId)
@@ -376,6 +376,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         if (doImport.hasError()) {
             // rollback of the existing values
             this.configurationDAO.undo(newConfig.configurationNodeId);
+        } else {
+            // reset quit password
+            this.entityDAO
+                    .byPK(modelId)
+                    .flatMap(configNode ->this.sebExamConfigService.setQuitPassword(configNode, quitPassword))
+                    .onError(error -> log.error("Failed to reset quit password from imported config: {}", error.getMessage()));
         }
 
         return doImport
@@ -401,12 +407,9 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getOrThrow();
     }
 
-
-
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT + API.TEMPLATE_ATTRIBUTE_ENDPOINT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<TemplateAttribute> getTemplateAttributePage(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
@@ -465,7 +468,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     + API.TEMPLATE_ATTRIBUTE_ENDPOINT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute getTemplateAttribute(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
@@ -519,6 +521,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
+    @Deprecated(since = "3.0")
     public TemplateAttribute attachDefaultTemplateAttributeOrientation(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
@@ -591,7 +594,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     }
 
     private ConfigurationNode createTemplate(final ConfigurationNode node) {
-        if (node.type != null && node.type == ConfigurationType.TEMPLATE) {
+        if (node.type == ConfigurationType.TEMPLATE) {
             // create views and orientations for node
             return this.viewDAO.copyDefaultViewsForTemplate(node)
                     .flatMap(viewMapping -> this.orientationDAO.copyDefaultOrientationsForTemplate(

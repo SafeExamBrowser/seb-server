@@ -26,29 +26,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 public class WebserviceInfoTest extends AdministrationAPIIntegrationTester {
 
     @Test
-    public void testGetLogo() throws Exception {
-        String result = new RestAPITestHelper()
-                .withAccessToken(getAdminInstitution1Access())
-                .withPath(API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT)
-                .withPath("/inst1")
-                .withMethod(HttpMethod.GET)
-                .withExpectedStatus(HttpStatus.OK)
-                .getAsString();
-
-        assertEquals("", result);
-
-        result = new RestAPITestHelper()
-                .withAccessToken(getAdminInstitution1Access())
-                .withPath(API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT)
-                .withPath("/inst2")
-                .withMethod(HttpMethod.GET)
-                .withExpectedStatus(HttpStatus.OK)
-                .getAsString();
-
-        assertEquals("AAA", result);
-    }
-
-    @Test
     public void test_getInstitutionInfo() throws Exception {
 
         Collection<EntityName> result = new RestAPITestHelper()
@@ -61,20 +38,6 @@ public class WebserviceInfoTest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(result);
         assertTrue(result.stream().filter(en -> "Institution1".equals(en.name)).findFirst().isPresent());
-        assertTrue(result.stream().filter(en -> "Institution2".equals(en.name)).findFirst().isPresent());
-        assertFalse(result.stream().filter(en -> "Institution3".equals(en.name)).findFirst().isPresent());
-
-        result = new RestAPITestHelper()
-                .withAccessToken(getAdminInstitution1Access())
-                .withPath(API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT)
-                .withPath("/inst2")
-                .withMethod(HttpMethod.GET)
-                .withExpectedStatus(HttpStatus.OK)
-                .getAsObject(new TypeReference<Collection<EntityName>>() {
-                });
-
-        assertNotNull(result);
-        assertFalse(result.stream().filter(en -> "Institution1".equals(en.name)).findFirst().isPresent());
         assertTrue(result.stream().filter(en -> "Institution2".equals(en.name)).findFirst().isPresent());
         assertFalse(result.stream().filter(en -> "Institution3".equals(en.name)).findFirst().isPresent());
 

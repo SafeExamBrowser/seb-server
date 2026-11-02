@@ -22,7 +22,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -36,7 +35,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientEvent
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientSessionServiceImpl implements SEBClientSessionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientSessionServiceImpl.class);

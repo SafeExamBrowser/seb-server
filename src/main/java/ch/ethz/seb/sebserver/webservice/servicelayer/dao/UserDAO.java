@@ -9,13 +9,17 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
+import jakarta.validation.constraints.NotNull;
 
 /** The Data Access Object for all User related data like get user data within UserInfo,
  * save and modify user related data within UserMod and get internal user principal data
@@ -62,4 +66,23 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
     Collection<EntityKey> getAllUserRelatedData(String uuid);
 
     Result<Collection<EntityKey>> deleteAdHocAccountsForLMS(String adHocTeacherIdPrefix, Long lmsSetupId);
+
+    /** Get a list of all active user account uuids
+     *
+     * @return Result with List of all active user account UUIDs or an error when happened */
+    Result<Collection<String>> getAllActiveUsersUUID();
+
+    /** Used to update User Roles of a given user. This is used for repair tasks for V30
+     * This does not make a merge, it deletes the old roles and inserts the new given roles.
+     *
+     * @param userId The user Id to update the User Roles
+     * @param roleNames Set of User Role names */
+    void updateUserRoles(Long userId, @NotNull Set<String> roleNames);
+
+    /** Indicates if this is (still) a valid exam supporter for Exam supervisor assignment
+     * Supporter user is valid if it exists and has EXAM_SUPPORTER or TEACHER role
+     *
+     * @param supporterUUID The user UUID
+     * @return true if this is a valid exam supporter for Exam supervisor assignment */
+    boolean isValidSupporterUser(String supporterUUID);
 }

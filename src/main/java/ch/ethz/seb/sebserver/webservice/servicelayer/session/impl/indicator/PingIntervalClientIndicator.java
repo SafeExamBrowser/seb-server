@@ -45,13 +45,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             final boolean cachingEnabled) {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
-
         this.lastCheckVal = getValue();
-
-        // TODO is this really needed?
-//        if (this.dataMap.incidentThreshold() >= Double.MAX_VALUE) {
-//            this.dataMap.incidentThreshold = DEFAULT_PING_ERROR_THRESHOLD;
-//        }
     }
 
     @JsonIgnore

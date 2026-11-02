@@ -32,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
@@ -46,7 +45,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.New
 
 @Lazy
 @Component
-@WebServiceProfile
 public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     private static final Logger log = LoggerFactory.getLogger(RemoteProctoringRoomDAOImpl.class);

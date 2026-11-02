@@ -13,8 +13,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.RGBA;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.core.ParameterizedTypeReference;
@@ -95,6 +93,10 @@ public final class Constants {
     public static final String URL_PATH_SEPARATOR = SLASH.toString();
     public static final String HASH_TAG_STRING = HASH_TAG.toString();
 
+    public static final String LIST_SEPARATOR_ESCAPE = "__COMMA__";
+    public static final String EMBEDDED_LIST_SEPARATOR_ESCAPE = "__PIPE__";
+    public static final String VALUE_SEPARATOR_ESCAPE = "__EQ__";
+
     public static final String DYN_HTML_ATTR_OPEN = "%%_";
     public static final String DYN_HTML_ATTR_CLOSE = "_%%";
 
@@ -167,10 +169,6 @@ public final class Constants {
     public static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
     public static final String HMAC_ALGORITHM = "HmacSHA256";
     public static final String KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA1";
-
-    public static final RGB WHITE_RGB = new RGB(255, 255, 255);
-    public static final RGB BLACK_RGB = new RGB(0, 0, 0);
-    public static final RGBA GREY_DISABLED = new RGBA(150, 150, 150, 50);
 
     public static final Collator DEFAULT_ENGLISH_COLLATOR = Collator.getInstance(Locale.ENGLISH);
 

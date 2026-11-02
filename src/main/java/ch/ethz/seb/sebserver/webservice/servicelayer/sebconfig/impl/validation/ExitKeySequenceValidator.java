@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordMapper;
@@ -27,7 +26,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValu
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExitKeySequenceValidator implements ConfigurationValueValidator {
 
     private static final Logger log = LoggerFactory.getLogger(ExitKeySequenceValidator.class);

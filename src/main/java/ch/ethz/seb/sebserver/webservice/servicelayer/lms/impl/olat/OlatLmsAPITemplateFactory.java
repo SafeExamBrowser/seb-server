@@ -17,7 +17,6 @@ import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
@@ -27,7 +26,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdap
 
 @Lazy
 @Service
-@WebServiceProfile
 /** Factory for OlatLmsAPITemplate. Since a LmsAPITemplate of a specific LMS type
  * is whether a singleton component nor a simple prototype but one (singleton) instance
  * can exist per defined LMSSetup, we need a specialized factory to build such

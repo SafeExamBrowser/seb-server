@@ -13,15 +13,15 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
+import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.api.session.GetFinishedExamClientConnection;
+import ch.ethz.seb.sebserver.gui.api.session.GetFinishedExamClientConnectionPage;
+import ch.ethz.seb.sebserver.gui.api.session.GetFinishedExamPage;
 import org.junit.Test;
 import org.springframework.test.context.jdbc.Sql;
 
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnection;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnectionPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamPage;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
 public class FinishedExamTest extends GuiIntegrationTest {

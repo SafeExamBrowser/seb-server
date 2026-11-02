@@ -35,7 +35,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
@@ -553,14 +552,11 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                     .getPlainClientSecret(credentials)
                     .getOrThrow();
 
-            final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
-            details.setClientSecret(plainClientSecret.toString());
-
             final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
                     .getClientHttpRequestFactory(proxyData)
                     .getOrThrow();
 
-            final AnsPersonalRestTemplate template = new AnsPersonalRestTemplate(details);
+            final AnsPersonalRestTemplate template = new AnsPersonalRestTemplate(plainClientSecret.toString());
             template.setRequestFactory(clientHttpRequestFactory);
 
             this.cachedRestTemplate = template;

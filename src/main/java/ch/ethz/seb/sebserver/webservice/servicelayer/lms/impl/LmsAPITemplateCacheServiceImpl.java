@@ -18,7 +18,6 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class LmsAPITemplateCacheServiceImpl implements LmsAPITemplateCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsAPITemplateCacheServiceImpl.class);
@@ -106,7 +104,7 @@ public class LmsAPITemplateCacheServiceImpl implements LmsAPITemplateCacheServic
                 new CacheKey(lmsSetupId, 0));
 
         if (removedTemplate != null) {
-            log.info("Removed LmsAPITemplate from cache: {}", removedTemplate);
+            log.info("Removed LmsAPITemplate from cache: {}", removedTemplate.lmsSetup());
             removedTemplate.clearCourseCache();
         }
     }

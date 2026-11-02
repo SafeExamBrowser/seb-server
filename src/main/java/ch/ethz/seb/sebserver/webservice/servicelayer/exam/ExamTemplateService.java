@@ -8,9 +8,16 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.event.EventListener;
+
+import java.util.*;
+import java.util.function.Function;
 
 public interface ExamTemplateService {
 
@@ -42,7 +49,7 @@ public interface ExamTemplateService {
      *
      * @param exam The Exam to add the client groups
      * @return Result refer to the Exam with added client groups or to an error if happened */
-    Result<Exam> addDefinedClientGroups(Exam exam);
+    Result<Exam> addDefinedClientGroups(Exam exam, boolean applyAllGroups);
 
     /** Initializes additional exam template attributes for a specified Exam on creation.
      *
@@ -50,7 +57,7 @@ public interface ExamTemplateService {
      * @return Result refer to the created exam or to an error when happened */
     Result<Exam> initAdditionalTemplateAttributes(Exam exam);
 
-    /** Initializes a pre defined exam configuration. The configuration template to create a exam configuration
+    /** Initializes a pre defined exam configuration. The configuration template to create an exam configuration
      * is defined by a given linked exam template. This is used to create the exam configuration and automatically
      * link it to the newly created exam
      *
@@ -58,6 +65,144 @@ public interface ExamTemplateService {
      * @return Result refer to the created exam or to an error when happened */
     Result<Exam> initExamConfiguration(Exam exam);
 
+    /** Since 3.0 Every new imported Exam has an Exam Configuration from import process
+     * bot legacy Exams might not have an Exam Config since it was possible to import an exam without Exam Config.
+     * This repairs such legacy data by  going once through all Exam in status UpComing, Running and Finished
+     * and create a default Exam Configuration for the Exam if no Exam Configuration exists already for the exam*/
+    boolean repairExamConfiguration(Exam exam);
+
+    /** Applies the Exam Template screen proctoring settings to an imported Exam that has been imported with the template
+     * The Exam Template is referenced by the Exam itself.
+     *
+     * @param exam The exam to apply the screen proctoring settings from Exam  related Exam Template.
+     * @return Result refer to teh Exam with applied SPS settings */
     Result<Exam> applyScreenProctoringSettingsForExam(Exam exam);
 
+    Result<ExamTemplate> createExamTemplateAdditionalData(Long createdTemplateId, ExamTemplate examTemplate);
+
+    Result<ExamTemplate> saveAdditionalData(ExamTemplate examTemplate);
+
+    ExamTemplate applyExamTemplateAdditionalData(ExamTemplate examTemplate);
+
+    ExamTemplate filterLegacyData(ExamTemplate examTemplate);
+
+    /** If the given ExamTemplate has no Configuration Template assigned to it, this will create one
+     *  with the default SEB Settings for it, store all the data and returns the ExamTemplate with the new
+     *  Configuration Template assignment.
+     * @param examTemplate The exam template to create missing Configuration Template
+     * @return ExamTemplate with Configuration Template assignment */
+    ExamTemplate createConfigurationTemplateWhenMissing(ExamTemplate examTemplate);
+
+    /** This is used to prepare a given ExamTemplate for SEB Server v3 needs if is not already up to date.
+     *  First it checks if there is a Configuration Template assigned. This is mandatory since V3 and
+     *  if not, this preparation will create a new default Configuration Template for the given Exam Template
+     *  and sore all the data for this.
+     *  Then add all additional data needed to support the new V3 UI to the Exam Template model.
+     *  And last but not least, filters out all legacy data that is not used by the new V3 UI anymore
+     *  and also cannot handle it anymore.
+     *
+     * @param examTemplate The exam template to prepare for new version V3
+     * @return prepared Exam Template that works for new version V3 */
+    default Result<ExamTemplate> prepareForV3(final ExamTemplate examTemplate) {
+        return Result.tryCatch(() -> {
+            final ExamTemplate withConfigurationTemplate = createConfigurationTemplateWhenMissing(examTemplate);
+            final ExamTemplate allData =  applyExamTemplateAdditionalData(withConfigurationTemplate);
+            return filterLegacyData(allData);
+        });
+    }
+
+    default Result<Collection<ExamTemplate>> applyForV3(final Collection<ExamTemplate> all) {
+        return Result.tryCatch(() ->  all.stream()
+                .map(this::applyExamTemplateAdditionalData)
+                .map(this::filterLegacyData)
+                .toList());
+    }
+
+    /** This fixes old legacy Exam Templates for V3.0.
+     * Checks if deprecated SPS collection strategy "EXAM" is set and if so, apply valid  SPS collection strategy "APPLY_SEB_GROUPS"
+     * @param templateId the PK of the ExamTemplate to repair. */
+    void fixForV3(Long templateId);
+
+    /** Creates a new client group template
+     *
+     * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the created ClientGroupTemplate or to an error when happened */
+    Result<ClientGroupTemplate> createNewClientGroupTemplate(ClientGroupTemplate clientGroupTemplate);
+
+    /** Saves an already existing client group template
+     *
+     * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the saved ClientGroupTemplate or to an error when happened */
+    Result<ClientGroupTemplate> saveClientGroupTemplate(ClientGroupTemplate clientGroupTemplate);
+
+    /** Deletes an already existing client group template
+     *
+     * @param examTemplateId the ExamTemplate id where the specified ClientGroupTemplate shall be deleted from
+     * @param clientGroupTemplateId the id of the ClientGroupTemplate to delete
+     * @return Result refer to the EntityKey of the deleted ClientGroupTemplate or to an error when happened */
+    Result<EntityKey> deleteClientGroupTemplate(String examTemplateId, String clientGroupTemplateId);
+
+    /** Called by the framework when an Exam Template has changed.
+     *  This reacts only on deletion and also deletes the assigned configuration template
+     *  if it has no references anymore
+     * @param event ExamTemplateChangeEvent only reacts on deletion event
+     */
+    @EventListener(ExamTemplateChangeEvent.class)
+    void notifyExamTemplateChange(ExamTemplateChangeEvent event);
+
+    /** Creates a IndicatorTemplate list sort function for a given sort parameter.
+     *
+     * @param sort Sort parameter (Indicator.FILTER_ATTR_NAME)
+     * @return Sort function for a IndicatorTemplate list */
+    static Function<Collection<IndicatorTemplate>, List<IndicatorTemplate>> indicatorTemplatePageSort(
+            final String sort) {
+
+        final String sortBy = PageSortOrder.decode(sort);
+        return indicators -> {
+            final List<IndicatorTemplate> list = new ArrayList<>(indicators);
+            if (StringUtils.isBlank(sort)) {
+                return list;
+            }
+
+            if (sortBy.equals(Indicator.FILTER_ATTR_NAME)) {
+                list.sort(Comparator.comparing(indicator -> indicator.name));
+            }
+
+            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+                Collections.reverse(list);
+            }
+            return list;
+        };
+    }
+
+    /** Creates a ClientGroupTemplate list sort function for a given sort parameter.
+     *
+     * @param sort Sort parameter (ClientGroupTemplate.FILTER_ATTR_NAME)
+     * @return Sort function for a ClientGroupTemplate list */
+    static Function<Collection<ClientGroupTemplate>, List<ClientGroupTemplate>> clientGroupTemplatePageSort(
+            final String sort) {
+
+        final String sortBy = PageSortOrder.decode(sort);
+        return clientGroups -> {
+            final List<ClientGroupTemplate> list = new ArrayList<>(clientGroups);
+            if (StringUtils.isBlank(sort)) {
+                return list;
+            }
+
+            if (sortBy.equals(ClientGroupTemplate.FILTER_ATTR_NAME)) {
+                list.sort(Comparator.comparing(indicator -> indicator.name));
+            }
+
+            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+                Collections.reverse(list);
+            }
+            return list;
+        };
+    }
+
+    static String createNameForTemporaryConfigurationTemplate() {
+        return ConfigurationNodeDAO.TEMPORARY_TEMPLATE_PREFIX + UUID.randomUUID();
+    }
+
+    Result<Collection<Long>> getAllIds();
 }

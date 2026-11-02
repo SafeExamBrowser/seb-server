@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
@@ -26,7 +27,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -37,7 +37,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificati
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientNotificationServiceImpl implements SEBClientNotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientNotificationServiceImpl.class);
@@ -138,11 +137,38 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
             final Long examId,
             final String connectionToken) {
 
-        return this.clientEventDAO.getPendingNotification(notificationId)
+        return this.clientEventDAO
+                .getPendingNotification(notificationId)
                 .map(notification -> this.confirmClientSide(notification, examId, connectionToken))
-                .flatMap(notification -> this.clientEventDAO.confirmPendingNotification(notificationId))
+                .flatMap(notification -> this.clientEventDAO.confirmPendingNotification(notification.id))
                 .map(this::removeFromCache);
     }
+
+    @Override
+    public Result<Collection<ClientNotification>> unlockScreens(
+            final Long examId,
+            final Set<String> connectionTokens) {
+
+        return Result.tryCatch(() -> {
+
+            final Map<Long, String> mapping = clientConnectionDAO
+                    .getAllIdsForConnectionTokens(examId, connectionTokens)
+                    .getOrThrow();
+
+            return this.clientEventDAO
+                    .getPendingLockScreenNotifications(mapping.keySet())
+                    .map(pending -> pending.stream().peek(notification -> {
+                        final String ccToken = mapping.get(notification.connectionId);
+                        if (ccToken != null) {
+                            this.confirmClientSide(notification, examId, ccToken);
+                            this.clientEventDAO.confirmPendingNotification(notification.id);
+                        }
+
+                    }).collect(Collectors.toList()))
+                    .getOrThrow();
+        });
+    }
+
 
     @Override
     public void newNotification(final ClientNotification notification) {

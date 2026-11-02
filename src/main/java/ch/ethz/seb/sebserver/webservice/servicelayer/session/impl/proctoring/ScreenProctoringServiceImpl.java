@@ -14,7 +14,6 @@ import java.util.*;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
-import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -24,10 +23,8 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ClientConnectionDAOImpl;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.*;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -39,8 +36,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
@@ -49,7 +44,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.SPS
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringServiceImpl.class);
@@ -57,7 +51,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     
     private final ClientGroupMatcherService clientGroupMatcherService;
     private final ClientGroupDAO clientGroupDAO;
-    private final Cryptor cryptor;
     private final ScreenProctoringAPIBinding screenProctoringAPIBinding;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
     private final ProctoringSettingsDAO proctoringSettingsDAO;
@@ -71,7 +64,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     public ScreenProctoringServiceImpl(
             final ClientGroupMatcherService clientGroupMatcherService,
             final ClientGroupDAO clientGroupDAO1,
-            final Cryptor cryptor,
             final ProctoringSettingsDAO proctoringSettingsDAO,
             final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
@@ -79,12 +71,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final SEBClientInstructionService sebInstructionService,
             final ExamSessionCacheService examSessionCacheService,
             final WebserviceInfo webserviceInfo,
-            final SEBClientVersionService sebClientVersionService,
             final ScreenProctoringAPIBinding screenProctoringAPIBinding) {
         
         this.clientGroupMatcherService = clientGroupMatcherService;
         this.clientGroupDAO = clientGroupDAO1;
-        this.cryptor = cryptor;
         this.examDAO = examDAO;
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
         this.clientConnectionDAO = clientConnectionDAO;
@@ -113,50 +103,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 return screenProctoringSettings;
             }
 
-            final Collection<APIMessage> fieldChecks = new ArrayList<>();
-            if (StringUtils.isBlank(screenProctoringSettings.spsServiceURL)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appKey",
-                        "screenProctoringSettings:spsServiceURL:notNull"));
-            }
-            if (screenProctoringSettings.spsServiceURL != null
-                    && screenProctoringSettings.spsServiceURL.contains("?")) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appKey",
-                        "screenProctoringSettings:spsServiceURL:invalidURL"));
-            }
-
-            if (StringUtils.isBlank(screenProctoringSettings.spsAPIKey)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appKey",
-                        "screenProctoringSettings:spsAPIKey:notNull"));
-            }
-            if (StringUtils.isBlank(screenProctoringSettings.spsAPISecret)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "appSecret",
-                        "screenProctoringSettings:spsAPISecret:notNull"));
-            }
-            if (StringUtils.isBlank(screenProctoringSettings.spsAccountId)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "clientId",
-                        "screenProctoringSettings:spsAccountId:notNull"));
-            }
-            if (StringUtils.isBlank(screenProctoringSettings.spsAccountPassword)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "clientSecret",
-                        "screenProctoringSettings:spsAccountPassword:notNull"));
-            }
-            
-            if (screenProctoringSettings.collectingStrategy == CollectingStrategy.APPLY_SEB_GROUPS &&
-            StringUtils.isBlank(screenProctoringSettings.sebGroupsSelection)) {
-                fieldChecks.add(APIMessage.fieldValidationError(
-                        "clientSecret",
-                        "screenProctoringSettings:spsSEBGroupsSelection:notNull"));
-            }
-
-            if (!fieldChecks.isEmpty()) {
-                throw new APIMessageException(fieldChecks);
-            }
             
             if (parentKey.entityType == EntityType.EXAM) {
 
@@ -164,29 +110,11 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                 if (this.clientConnectionDAO.hasActiveSEBConnections(screenProctoringSettings.examId)) {
                     throw new APIMessageException(APIMessage.ErrorMessage.CLIENT_CONNECTION_INTEGRITY_VIOLATION.of());
                 }
-
-                // get existing groups 
-                final Collection<ScreenProctoringGroup> existingGroups = this
-                        .getCollectingGroups(screenProctoringSettings.examId)
-                        .getOr(Collections.emptyList());
-                
-                if (!existingGroups.isEmpty()) {
-                    // if we have a confirmChangeStrategy then we can apply the changing settings otherwise not
-                    if (!screenProctoringSettings.confirmChangeStrategy) {
-                        // just check if there are differences?
-                        throw new APIMessageException(APIMessage.ErrorMessage.NEED_CONFIRMATION.of());
-                    }
-                }
             }
 
             final ScreenProctoringSettings proctoringServiceSettings = new ScreenProctoringSettings(
                     screenProctoringSettings.examId,
                     screenProctoringSettings.enableScreenProctoring,
-                    screenProctoringSettings.spsServiceURL,
-                    screenProctoringSettings.spsAPIKey,
-                    this.cryptor.encrypt(screenProctoringSettings.spsAPISecret).getOrThrow(),
-                    screenProctoringSettings.spsAccountId,
-                    this.cryptor.encrypt(screenProctoringSettings.spsAccountPassword).getOrThrow(),
                     screenProctoringSettings.collectingStrategy,
                     screenProctoringSettings.collectingGroupName,
                     screenProctoringSettings.collectingGroupSize,
@@ -194,7 +122,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             false);
 
             this.screenProctoringAPIBinding
-                    .testConnection(proctoringServiceSettings)
+                    .testConnection(webserviceInfo.getScreenProctoringServiceBundle())
                     .getOrThrow();
 
             return screenProctoringSettings;
@@ -228,8 +156,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
                         this.examDAO.markUpdate(exam.id);
                     } else if (isEnabling) {
-                        this.screenProctoringAPIBinding.updateExam(exam).getOrThrow();
-                        this.screenProctoringAPIBinding.synchronizeGroups(exam);
+                        // update and synchronize if it is enabled and SPS was already active
+                        final SPSData spsData = getSPSDataAndTryRecoverWhenNotExisting(exam);
+                        this.screenProctoringAPIBinding.updateExam(exam, spsData).getOrThrow();
+                        this.screenProctoringAPIBinding.synchronizeGroups(exam, spsData);
                         this.examDAO.markUpdate(exam.id);
                     }
                     
@@ -271,6 +201,40 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
+    public Result<Exam> updateExamOnly(final Long examId) {
+        return examDAO
+                .byPK(examId)
+                .map(exam ->  {
+
+                    final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id, false);
+                    if (spsData == null) {
+                        return exam;
+                    }
+
+                    return this.screenProctoringAPIBinding
+                            .updateExam(exam, spsData)
+                            .getOrThrow();
+                });
+    }
+
+    @Override
+    public Result<Exam> applyV3RepairUpdateOnExam(Long examId) {
+        return examDAO
+                .byPK(examId)
+                .map(exam ->  {
+
+                    final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id, false);
+                    if (spsData == null) {
+                        return exam;
+                    }
+
+                    return this.screenProctoringAPIBinding
+                            .updateExamInstitutionAndSupporter(exam, spsData)
+                            .getOrThrow();
+                });
+    }
+
+    @Override
     public void updateClientConnections() {
         try {
 
@@ -287,24 +251,28 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void updateActiveGroups() {
-        try {
-            
-            if (!webserviceInfo.isMaster()) {
-                return;
-            }
+        // NOTE: This might not be needed anymore for the new UI and when it is needed than in a
+        //       improved form that can directly be accesses from SPS by the UI
+        //       See: SEBSERV-950
 
-            // TODO make this more performant (batch update, check if size has changed, caching...
-            if (screenProctoringGroupDAO.hasActiveGroups()) {
-                screenProctoringAPIBinding
-                        .getActiveGroupSessionCounts()
-                        .forEach(groupCount -> screenProctoringGroupDAO.updateGroupSize(
-                                groupCount.groupUUID,
-                                groupCount.activeCount,
-                                groupCount.totalCount));
-            }
-        } catch (final Exception e) {
-            log.warn("Failed to update actual group session counts.");
-        }
+        // TODO anhefti SEBSERV-950
+//        try {
+//
+//            if (!webserviceInfo.isMaster()) {
+//                return;
+//            }
+//
+//            if (screenProctoringGroupDAO.hasActiveGroups()) {
+//                screenProctoringAPIBinding
+//                        .getActiveGroupSessionCounts()
+//                        .forEach(groupCount -> screenProctoringGroupDAO.updateGroupSize(
+//                                groupCount.groupUUID,
+//                                groupCount.activeCount,
+//                                groupCount.totalCount));
+//            }
+//        } catch (final Exception e) {
+//            log.warn("Failed to update actual group session counts.");
+//        }
     }
 
     @Override
@@ -314,10 +282,12 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         this.screenProctoringAPIBinding.synchronizeUserAccounts(exam);
+
+        final SPSData spsData = getSPSDataAndTryRecoverWhenNotExisting(exam);
         this.screenProctoringAPIBinding
-                .updateExam(exam)
+                .updateExam(exam, spsData)
                 .onError(error -> log.warn("Failed to update exam on SPS: ", error));
-        this.screenProctoringAPIBinding.synchronizeGroups(exam);
+        this.screenProctoringAPIBinding.synchronizeGroups(exam, spsData);
     }
 
     @Override
@@ -332,11 +302,13 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
-    public void synchronizeSPSUserForExam(final Long examId) {
-        this.examDAO
-                .byPK(examId)
-                .onSuccess(this.screenProctoringAPIBinding::synchronizeUserAccounts)
-                .onError(error -> log.error("Failed to synchronize SPS user accounts for exam: {}", examId, error));
+    public void synchronizeSPSUserWait(String userUUID) {
+        // is screen proctoring configured?
+        if (!webserviceInfo.getScreenProctoringServiceBundle().bundled) {
+            return;
+        }
+
+        this.screenProctoringAPIBinding.synchronizeUserAccount(userUUID);
     }
 
     @Override
@@ -350,14 +322,32 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
+    public boolean isAvailable() {
+        try {
+
+            return this.screenProctoringAPIBinding.isAvailable();
+
+        } catch (Exception e) {
+            log.error("Failed to test if SPS connection is available: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean hasSPSData(final Long examId) {
+        return screenProctoringAPIBinding.getSPSData(examId, false) != null;
+    }
+
+    @Override
     public void notifyExamStarted(final ExamStartedEvent event) {
         final Exam exam = event.exam;
         if (!this.isScreenProctoringEnabled(event.exam.id)) {
             return;
         }
 
+        final SPSData spsData = screenProctoringAPIBinding.getSPSData(exam.id, true);
         this.screenProctoringAPIBinding
-                .activateScreenProctoring(exam)
+                .activateScreenProctoring(exam, spsData)
                 .onError(error -> log.error("Failed to activate SPS for started exam: {} cause:  {}", exam.name, error.getMessage()));
     }
 
@@ -381,13 +371,14 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamReset(final ExamResetEvent event) {
-        if (!this.isScreenProctoringEnabled(event.exam.id)) {
+        if (event.exam == null || !this.isScreenProctoringEnabled(event.exam.id)) {
             return;
         }
 
         if (event.exam.status != Exam.ExamStatus.UP_COMING) {
+            final SPSData spsData = screenProctoringAPIBinding.getSPSData(event.exam.id, true);
             this.screenProctoringAPIBinding
-                    .activateScreenProctoring(event.exam)
+                    .activateScreenProctoring(event.exam, spsData)
                     .onError(error -> log.error(
                             "Failed to reactivate SPS for exam: {} cause: {}",
                             event.exam.externalId,
@@ -397,49 +388,94 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamDeletion(final ExamDeletionEvent event) {
-        event.ids
-                .stream()
-                .map(this::deleteForExam)
-                .forEach(result -> {
-                    if (result.hasError()) {
-                        log.error("Failed to dispose SPS entities for exam: ", result.getError());
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Successfully disposed SPS entities for exam: {}", result.get());
-                        }
-                    }
-                });
-    }
 
-    @Override
-    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
-        try {
+        // fist clear all data references for the screen proctoring groups
+        event.ids.forEach(examId ->
+            clientConnectionDAO
+                    .clearAllGroupAssignments(examId)
+                    .onSuccess(num -> log.info("Successfully cleared group assignments for {} client connection of exam: {}", num, examId))
+                    .onError(error -> log.error("Failed to clear group assignments for client connection of exam: {}, cause: {}", examId, error.getMessage()))
+        );
 
-            if (event.activation == Activatable.ActivationAction.NONE) {
-                return;
-            }
-
-            examDAO.allActiveForLMSSetup(Arrays.asList(event.getLmsSetup().id))
-                    .getOrThrow()
-                    .forEach(exam -> {
-                        if (screenProctoringAPIBinding.isSPSActive(exam)) {
-                            if (event.activation == Activatable.ActivationAction.ACTIVATE) {
-                                this.screenProctoringAPIBinding.activateScreenProctoring(exam)
-                                        .onError(error -> log.warn("Failed to re-activate SPS for exam: {} error: {}",
-                                                exam.name,
-                                                error.getMessage()));
-                            } else if (event.activation == Activatable.ActivationAction.DEACTIVATE) {
-                                this.screenProctoringAPIBinding.deactivateScreenProctoring(exam)
-                                        .onError(error -> log.warn("Failed to deactivate SPS for exam: {} error: {}",
-                                                exam.name,
-                                                error.getMessage()));
+        if (event.isScheduledDeletion) {
+            // this is a scheduled delete so all SPS data should already be deleted at this point
+            // we only have to delete the sps groups for this exam
+            event.ids.forEach(examId ->
+                screenProctoringGroupDAO
+                        .deleteGroups(examId)
+                        .onError(error -> log.error("Failed to delete screen proctoring for exam: {} cause: {}", examId, error.getMessage() ))
+                        .onSuccess(keys -> log.info("Deleted screen proctoring groups: {} for exam: {}", keys, examId))
+            );
+        } else {
+            // this is not a scheduled deletion so we expect that there are still SPS data to delete
+            event.ids
+                    .stream()
+                    .map(this::deleteForExam)
+                    .forEach(result -> {
+                        if (result.hasError()) {
+                            log.error("Failed to dispose SPS entities for exam: ", result.getError());
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Successfully disposed SPS entities for exam: {}", result.get());
                             }
                         }
                     });
-
-        } catch (final Exception e) {
-            log.error("Failed to apply LMSSetup change activation/deactivation to Screen Proctoring: ", e);
         }
+    }
+
+    @Override
+    public Result<Long> processLmsSetupActivation(final Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+
+            examDAO
+                    .allForLMSSetup(lmsSetupId)
+                    .getOrThrow()
+                    .forEach(exam -> {
+
+                        final ScreenProctoringSettings settingsForExam = this.screenProctoringAPIBinding
+                                .getSettingsForExam(exam);
+
+                        final SPSData spsData = getSPSDataAndTryRecoverWhenNotExisting(exam);
+                        if (spsData == null) {
+                            log.warn("Failed to process LMS activation for exam: {} due to missing and none recoverable local SPSData", exam.externalId);
+                            return;
+                        }
+
+                        if (BooleanUtils.isTrue(settingsForExam.enableScreenProctoring)) {
+                            this.screenProctoringAPIBinding
+                                    .activateScreenProctoring(exam, spsData)
+                                    .onError(error -> log.warn("Failed to re-activate SPS for exam: {} error: {}",
+                                            exam.name,
+                                            error.getMessage()));
+                        }
+                    });
+
+            return lmsSetupId;
+        });
+    }
+
+    @Override
+    public Result<Long> processLmsSetupDeactivation(Long lmsSetupId) {
+        return Result.tryCatch(() -> {
+            examDAO
+                    .allForLMSSetup(lmsSetupId)
+                    .getOrThrow()
+                    .forEach(exam -> {
+
+                        final ScreenProctoringSettings settingsForExam = this.screenProctoringAPIBinding
+                                .getSettingsForExam(exam);
+
+                        if (BooleanUtils.isTrue(settingsForExam.enableScreenProctoring)) {
+                            this.screenProctoringAPIBinding
+                                    .deactivateScreenProctoring(exam)
+                                    .onError(error -> log.warn("Failed to deactivate SPS for exam: {} error: {}",
+                                            exam.name,
+                                            error.getMessage()));
+                        }
+                    });
+
+            return lmsSetupId;
+        });
     }
 
     private void updateClientConnection(final ClientConnectionRecord ccRecord) {
@@ -561,7 +597,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             screenProctoringGroup = groups.stream()
                     .filter(group -> BooleanUtils.isTrue(group.isFallback))
                     .findFirst()
-                    .orElseGet(null);
+                    .orElse(null);
         }
         
         if (screenProctoringGroup == null) {
@@ -624,6 +660,11 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return Result.tryCatch(() -> {
             final Exam exam = this.examDAO.byPK(examId).getOrThrow();
 
+            if (!this.screenProctoringAPIBinding.existsExamOnSPS(exam)) {
+                log.info("No SPS Exam data found for Exam: {} : {}  ...skip SPS deletion", exam.id, exam.externalId);
+                return this.cleanupAllLocalGroups(exam);
+            }
+
             // Note: We delete the Exam on SPS site if there are no SEB client connection yet.
             //       Otherwise, the Exam on SPS site gets just closed
 
@@ -648,8 +689,15 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private Exam cleanupAllLocalGroups(final Exam exam) {
         return this.screenProctoringGroupDAO
                 .deleteGroups(exam.id)
-                .onSuccess(keys -> log.info("Deleted all screen proctoring groups for exam: {} groups: {}", exam, keys))
-                .onError(error -> log.error("Failed to delete all groups for exam: {}", exam, error))
+                .onSuccess(keys -> {
+                    if (keys != null && !keys.isEmpty()) {
+                        log.info("Deleted all screen proctoring groups for exam: {} groups: {}", exam.externalId, keys);
+                    } else {
+                        log.info("No screen proctoring groups delete for exam: {}", exam.externalId);
+                    }
+
+                })
+                .onError(error -> log.error("Failed to delete all groups for exam: {}", exam.externalId, error))
                 .map(x -> exam)
                 .getOrThrow();
     }
@@ -666,10 +714,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         final boolean checkActive = exam.lmsSetupId != null;
-        final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id);
-        final String url = screenProctoringServiceBundle.bundled
-                ? screenProctoringServiceBundle.serviceURL
-                : exam.additionalAttributes.get(ScreenProctoringSettings.ATTR_SPS_SERVICE_URL);
+        final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id, true);
+        final String url = screenProctoringServiceBundle.getSpsServiceURL();
         final Map<String, String> attributes = new HashMap<>();
 
         attributes.put(SERVICE_TYPE, SERVICE_TYPE_NAME);
@@ -693,6 +739,33 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         "Failed to register screen proctoring join instruction for SEB connection: {}",
                         ccRecord,
                         error));
+    }
+
+    private SPSData getSPSDataAndTryRecoverWhenNotExisting(final Exam exam) {
+        SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id, false);
+        if (spsData != null) {
+            return spsData;
+        }
+        if (screenProctoringAPIBinding.existsExamOnSPS(exam)) {
+            log.warn("No local SPSData found for Exam with existing SPS Exam. try to re-initialize local SPSData for exam: {}", exam.externalId);
+            screenProctoringAPIBinding.reinitializeScreenProctoring(exam);
+            // try again
+            spsData = this.screenProctoringAPIBinding.getSPSData(exam.id, false);
+            if (spsData == null) {
+                log.error("Failed to re-initialize local SPSData. Give up and skip Exam-SPS update for Exam: {}", exam);
+                return null;
+            }
+
+            return spsData;
+        } else {
+            log.warn(
+                    "No SPS Exam found for local Exam: {} despite it is enabled for the Exam. This seems to be a data inconsistency. Disable SPS for the Exam",
+                    exam.externalId);
+            screenProctoringAPIBinding
+                    .deactivateScreenProctoring(exam)
+                    .onError(error -> log.error("Failed to deactivate SPS for Exam: {} cause: {}", exam.externalId, error.getMessage()));
+            return null;
+        }
     }
 
 }

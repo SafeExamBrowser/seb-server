@@ -8,11 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -197,7 +193,6 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
             }
             if (this.simulateLatency) {
                 final int seconds = this.random.nextInt(5);
-                System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
                 Utils.sleep(seconds * 1000);
             }
             asyncQuizFetchBuffer.buffer.add(quizData);

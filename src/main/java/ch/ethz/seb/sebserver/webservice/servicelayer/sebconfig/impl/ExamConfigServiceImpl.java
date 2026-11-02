@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.security.MessageDigest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -20,10 +21,11 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mariadb.jdbc.plugin.authentication.standard.ed25519.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -40,7 +42,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
@@ -53,7 +54,6 @@ import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationExcep
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamConfigServiceImpl implements ExamConfigService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigServiceImpl.class);
@@ -68,6 +68,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     private final ZipService zipService;
     private final SEBConfigEncryptionService sebConfigEncryptionService;
     private final ConfigurationDAO configurationDAO;
+    private final Cryptor cryptor;
 
     protected ExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
@@ -79,7 +80,8 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final ClientCredentialService clientCredentialService,
             final ZipService zipService,
             final SEBConfigEncryptionService sebConfigEncryptionService,
-            final ConfigurationDAO configurationDAO) {
+            final ConfigurationDAO configurationDAO,
+            final Cryptor cryptor) {
 
         this.examConfigIO = examConfigIO;
         this.configurationNodeDAO = configurationNodeDAO;
@@ -91,6 +93,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         this.zipService = zipService;
         this.sebConfigEncryptionService = sebConfigEncryptionService;
         this.configurationDAO = configurationDAO;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -304,7 +307,8 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                     configurationNodeId,
                     configId);
 
-            final String configKey = DigestUtils.sha256Hex(pin);
+            final byte[] digest = MessageDigest.getInstance("SHA-256").digest(pin.readAllBytes());
+            final String configKey = Utils.bytesToHex(digest);
 
             return Result.of(configKey);
 
@@ -482,11 +486,24 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     public Result<ConfigurationNode> setQuitPassword(final ConfigurationNode node, final String quitPassword) {
         return Result.tryCatch(() -> {
 
+            // encrypt quitPassword if needed
+            final CharSequence encryptedPWD = StringUtils.isNotBlank(quitPassword)
+                    ? cryptor
+                            .decrypt(quitPassword)
+                            .onErrorDo(error -> quitPassword)
+                            .flatMap(cryptor::encrypt)
+                            .getOrThrow()
+                    : null;
+
             final Long followupId = this.configurationDAO
                     .getFollowupConfigurationId(node.id)
                     .getOrThrow();
 
-            this.configurationValueDAO.saveQuitPassword(followupId, quitPassword)
+            this.configurationValueDAO
+                    .saveQuitPassword(
+                            followupId,
+                            encryptedPWD == null ? null : encryptedPWD.toString()
+                    )
                     .onError(error -> log.warn(
                             "Failed to reset quit password for configuration: {} cause: {}",
                             node,
@@ -496,7 +513,11 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                     .getConfigurationLastStableVersion(node.id)
                     .getOrThrow();
 
-            this.configurationValueDAO.saveQuitPassword(config.id, quitPassword)
+            this.configurationValueDAO
+                    .saveQuitPassword(
+                            config.id,
+                            encryptedPWD == null ? null : encryptedPWD.toString()
+                    )
                     .onError(error -> log.warn(
                             "Failed to reset quit password for configuration: {} cause: {}",
                             node,

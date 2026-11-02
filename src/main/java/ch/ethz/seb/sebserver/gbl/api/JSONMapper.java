@@ -17,13 +17,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
-@Lazy
-@Component
 public class JSONMapper extends ObjectMapper {
 
     private static final Logger log = LoggerFactory.getLogger(JSONMapper.class);
-
-    private static final long serialVersionUID = 2883304481547670626L;
 
     public JSONMapper() {
         super();
@@ -37,15 +33,15 @@ public class JSONMapper extends ObjectMapper {
         super.setSerializationInclusion(Include.NON_NULL);
     }
 
-    public String writeValueAsStringOr(final Object entity, final String or) {
-        if (entity == null) {
-            return or;
-        }
-        try {
-            return super.writeValueAsString(entity);
-        } catch (final Exception e) {
-            log.error("Failed to serialize value: {}", entity, e);
-            return or;
-        }
-    }
+//    public String writeValueAsStringOr(final Object entity, final String or) {
+//        if (entity == null) {
+//            return or;
+//        }
+//        try {
+//            return super.writeValueAsString(entity);
+//        } catch (final Exception e) {
+//            log.error("Failed to serialize value: {}", entity, e);
+//            return or;
+//        }
+//    }
 }

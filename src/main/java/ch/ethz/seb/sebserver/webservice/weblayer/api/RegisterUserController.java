@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import ch.ethz.seb.sebserver.gbl.model.user.*;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -36,16 +36,22 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import io.github.bucket4j.local.LocalBucket;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.REGISTER_ENDPOINT)
+@Tag(name = "UserAccount", description = "User account administration and current-user endpoints.")
 public class RegisterUserController {
 
     private final UserActivityLogDAO userActivityLogDAO;
@@ -58,14 +64,12 @@ public class RegisterUserController {
     private final boolean autoActivation;
 
     protected RegisterUserController(
-            final InstitutionDAO institutionDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final UserDAO userDAO,
             final BeanValidationService beanValidationService,
             final RateLimitService rateLimitService,
             final WebserviceInfo webserviceInfo,
-            final ScreenProctoringService screenProctoringService,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final ScreenProctoringService screenProctoringService) {
         
         final Map<String, Boolean> features = webserviceInfo.configuredFeatures();
         this.userActivityLogDAO = userActivityLogDAO;
@@ -78,13 +82,30 @@ public class RegisterUserController {
         this.screenProctoringService = screenProctoringService;
     }
 
+    @Operation(
+            operationId = "registerUserAccount",
+            summary = "Register a user account",
+            description = "Self-registers an EXAM_SUPPORTER account from application/x-www-form-urlencoded fields matching UserMod.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                            schema = @Schema(implementation = UserMod.class))))
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Registered user account.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserInfo.class))),
+    })
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UserInfo registerNewUser(
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
-            final HttpServletRequest request) {
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @Parameter(hidden = true) final HttpServletRequest request) {
 
         if (!registeringEnabled) {
             throw new RuntimeException("Registering is not enabled from backend!");
@@ -108,6 +129,10 @@ public class RegisterUserController {
                                         "passwordChange",
                                         PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD,
                                         "user:confirmNewPassword:password.mismatch")));
+                    }
+
+                    if (userAccount.roles == null || userAccount.roles.size() != 1 || !userAccount.roles.contains(UserRole.EXAM_SUPPORTER.name())) {
+                        errors.add(APIMessage.ErrorMessage.BAD_REQUEST.of("Invalid User Roles"));
                     }
 
                     if (!errors.isEmpty()) {

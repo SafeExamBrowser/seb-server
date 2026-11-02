@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordMapper;
@@ -47,7 +46,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class InstitutionDAOImpl implements InstitutionDAO {
 
     private final InstitutionRecordMapper institutionRecordMapper;
@@ -130,7 +128,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             final InstitutionRecord newRecord = new InstitutionRecord(
                     institution.id,
                     institution.name,
-                    institution.urlSuffix,
+                    null,
                     institution.themeName,
                     null,
                     institution.logoImage);
@@ -152,7 +150,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
             final InstitutionRecord newRecord = new InstitutionRecord(
                     null,
                     institution.name,
-                    institution.urlSuffix,
+                    null,
                     institution.themeName,
                     BooleanUtils.toInteger(false),
                     institution.logoImage);
@@ -266,7 +264,6 @@ public class InstitutionDAOImpl implements InstitutionDAO {
         return Result.tryCatch(() -> new Institution(
                 record.getId(),
                 record.getName(),
-                record.getUrlSuffix(),
                 record.getLogoImage(),
                 record.getThemeName(),
                 BooleanUtils.toBooleanObject(record.getActive())));

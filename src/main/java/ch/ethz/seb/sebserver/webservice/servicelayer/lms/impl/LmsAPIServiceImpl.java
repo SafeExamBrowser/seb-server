@@ -20,14 +20,12 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class LmsAPIServiceImpl implements LmsAPIService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsAPIServiceImpl.class);
@@ -51,7 +49,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     /** Listen to LmsSetupChangeEvent to release an affected LmsAPITemplate from cache
      *
      * @param event the event holding the changed LmsSetup */
-    @EventListener
+    @EventListener(LmsSetupChangeEvent.class)
     public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
         final LmsSetup lmsSetup = event.getLmsSetup();
         if (lmsSetup == null) {

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -54,9 +53,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CERTIFICATE_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -82,7 +86,7 @@ public class CertificateController {
     /** This is called by Spring to initialize the WebDataBinder and is used here to
      * initialize the default value binding for the institutionId request-parameter
      * that has the current users insitutionId as default.
-     *
+     * <p>
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {
@@ -119,9 +123,23 @@ public class CertificateController {
      *            descending sort order.
      * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering.
      * @return Page of domain-model-entities of specified type */
+    @Operation(
+            operationId = "getCertificates",
+            parameters = {
+                    @Parameter(
+                            name = CertificateInfo.FILTER_ATTR_ALIAS,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters certificates by alias.",
+                            schema = @Schema(type = "string")),
+                    @Parameter(
+                            name = CertificateInfo.FILTER_ATTR_TYPE,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters certificates by certificate type.",
+                            schema = @Schema(type = "string")) })
     @RequestMapping(
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<CertificateInfo> getPage(
             @RequestParam(
@@ -131,7 +149,7 @@ public class CertificateController {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
         checkReadPrivilege(institutionId);
@@ -150,17 +168,31 @@ public class CertificateController {
 
     }
 
+    @Operation(
+            operationId = "getCertificateNames",
+            parameters = {
+                    @Parameter(
+                            name = CertificateInfo.FILTER_ATTR_ALIAS,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters certificates by alias.",
+                            schema = @Schema(type = "string")),
+                    @Parameter(
+                            name = CertificateInfo.FILTER_ATTR_TYPE,
+                            in = ParameterIn.QUERY,
+                            required = false,
+                            description = "Filters certificates by certificate type.",
+                            schema = @Schema(type = "string")) })
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getNames(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @Parameter(hidden = true) @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
         checkReadPrivilege(institutionId);
@@ -178,7 +210,6 @@ public class CertificateController {
     @RequestMapping(
             path = API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateInfo getAlias(
             @RequestParam(
@@ -192,6 +223,12 @@ public class CertificateController {
                 .getOrThrow();
     }
 
+    @Operation(
+            requestBody = @RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                            schema = @Schema(type = "string", format = "binary"))))
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
@@ -201,13 +238,17 @@ public class CertificateController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestHeader(
+            @Parameter(description = "File name of the imported certificate; the extension selects PEM (.pem/.crt/.cer) or PKCS12 (.p12/.pfx).") @RequestHeader(
                     name = API.IMPORT_FILE_ATTR_NAME,
                     required = true) final String fileName,
-            @RequestHeader(
+            @Parameter(description = "Alias for the imported certificate; extracted from the certificate if omitted.") @RequestHeader(
                     name = API.CERTIFICATE_ALIAS,
                     required = false) final String alias,
-            @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final CharSequence password,
+            @Parameter(
+                    description = "Password used to unlock a PKCS12 keystore.",
+                    schema = @Schema(type = "string")) @RequestHeader(
+                            name = API.IMPORT_PASSWORD_ATTR_NAME,
+                            required = false) final CharSequence password,
             final HttpServletRequest request) {
 
         this.checkWritePrivilege(institutionId);
@@ -249,8 +290,7 @@ public class CertificateController {
 
         this.checkWritePrivilege(institutionId);
 
-        return Arrays.asList(StringUtils.split(aliases, Constants.LIST_SEPARATOR))
-                .stream()
+        return Arrays.stream(StringUtils.split(aliases, Constants.LIST_SEPARATOR))
                 .map(alias -> this.certificateService
                         .removeCertificate(institutionId, alias))
                 .flatMap(Result::onErrorLogAndSkip)

@@ -17,7 +17,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -32,7 +31,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.Rem
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
     private final ProctoringSettingsDAO proctoringSettingsDAO;
@@ -120,11 +118,6 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                 settings = new ScreenProctoringSettings(
                         screenProctoringSettings.examId,
                         screenProctoringSettings.enableScreenProctoring,
-                        this.screenProctoringServiceBundle.serviceURL,
-                        this.screenProctoringServiceBundle.clientId,
-                        this.cryptor.decrypt(this.screenProctoringServiceBundle.clientSecret).getOrThrow(),
-                        this.screenProctoringServiceBundle.apiAccountName,
-                        this.cryptor.decrypt(this.screenProctoringServiceBundle.apiAccountPassword).getOrThrow(),
                         screenProctoringSettings.collectingStrategy,
                         screenProctoringSettings.collectingGroupName,
                         screenProctoringSettings.collectingGroupSize,

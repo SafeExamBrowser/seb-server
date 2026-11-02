@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `quiz_end_time` DATETIME NULL,
   `lms_available` INT(1) NULL,
   `followup_id` BIGINT UNSIGNED NULL,
+  `exclude_from_deletion` INT(1) NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
   INDEX `institution_key_idx` (`institution_id` ASC),
@@ -305,7 +306,7 @@ DROP TABLE IF EXISTS `configuration_attribute` ;
 
 CREATE TABLE IF NOT EXISTS `configuration_attribute` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
   `type` VARCHAR(45) NOT NULL,
   `parent_id` BIGINT UNSIGNED NULL,
   `resources` VARCHAR(255) NULL,
@@ -836,3 +837,56 @@ CREATE TABLE IF NOT EXISTS `feature_privilege` (
   PRIMARY KEY (`id`))
 ;
 
+-- -----------------------------------------------------
+-- Table `scheduled_delete`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `scheduled_delete` ;
+
+CREATE TABLE IF NOT EXISTS `scheduled_delete` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sps_id` BIGINT NULL,
+  `state` VARCHAR(45) NOT NULL,
+  `delete_due_time` BIGINT UNSIGNED NOT NULL,
+  `schedule_time` BIGINT UNSIGNED NOT NULL,
+  `start_time` BIGINT UNSIGNED NULL,
+  `end_time` BIGINT UNSIGNED NULL,
+  `owner` VARCHAR(255) NOT NULL,
+  `institution_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`));
+
+
+-- -----------------------------------------------------
+-- Table `scheduled_delete_info`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `scheduled_delete_info` ;
+
+CREATE TABLE IF NOT EXISTS `scheduled_delete_info` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `scheduled_delete_id` BIGINT UNSIGNED NOT NULL,
+  `state` VARCHAR(45) NOT NULL,
+  `exam_uuid` VARCHAR(45) NOT NULL,
+  `deletion_info` VARCHAR(4000) NULL,
+  `error_info` VARCHAR(4000) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `scheduled_delete_ref_idx` (`scheduled_delete_id` ASC),
+  CONSTRAINT `scheduled_delete_ref`
+    FOREIGN KEY (`scheduled_delete_id`)
+    REFERENCES `scheduled_delete` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+  -- -----------------------------------------------------
+  -- Table `configuration_attribute_deprecation`
+  -- -----------------------------------------------------
+  DROP TABLE IF EXISTS `configuration_attribute_deprecation` ;
+
+  CREATE TABLE IF NOT EXISTS `configuration_attribute_deprecation` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `configuration_attribute_id` BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `configuration_attribute_idRef_idx` (`configuration_attribute_id` ASC),
+    CONSTRAINT `configuration_attribute_idRef`
+      FOREIGN KEY (`configuration_attribute_id`)
+      REFERENCES `configuration_attribute` (`id`)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION);

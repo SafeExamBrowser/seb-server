@@ -52,6 +52,15 @@ public record ExamMonitoringOverviewData(
         @JsonProperty("color") public String color = null;
         @JsonProperty("incident") public int incident = 0;
         @JsonProperty("warning") public int warning = 0;
+
+        @Override
+        public String toString() {
+            return "IndicatorData{" +
+                    "color=" + color +
+                    ", incident=" + incident +
+                    ", warning=" + warning +
+                    '}';
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -70,7 +79,7 @@ public record ExamMonitoringOverviewData(
         @JsonProperty(Domain.CLIENT_GROUP.ATTR_ID) public final Long id;
         @JsonProperty(Domain.CLIENT_GROUP.ATTR_NAME) public final String name;
         @JsonProperty("clientAmount") public int clientAmount;
-        //@JsonProperty("clientSPSAmount") public int clientSPSAmount;
+        @JsonProperty("activeClients") public int activeClients;
         @JsonProperty("spsGroupUUID") public final String spsGroupUUID;
         @JsonProperty("type") public final String type;
         @JsonProperty("typeValue") public final String typeValue;

@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 
@@ -37,7 +36,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService
  * - client event records for last ping store (connectionToken -> ReusableClientEventRecord) */
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamSessionCacheService {
 
     public static final Object CLIENT_CONNECTION_CREATION_LOCK = new Object();
@@ -280,15 +278,11 @@ public class ExamSessionCacheService {
     }
 
     private ClientConnection getClientConnectionByToken(final String connectionToken) {
-        final Result<ClientConnection> result = this.clientConnectionDAO
-                .byConnectionToken(connectionToken);
-
-        if (result.hasError()) {
-            log.error("Failed to find/load ClientConnection with connectionToken {}",
-                    connectionToken,
-                    result.getError());
-            return null;
-        }
-        return result.get();
+        return this.clientConnectionDAO
+                .byConnectionToken(connectionToken)
+                .onError(error -> log.error("Failed to find/load ClientConnection with connectionToken {}",
+                                connectionToken,
+                                error))
+                .getOr(null);
     }
 }

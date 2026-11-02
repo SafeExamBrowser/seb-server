@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
@@ -33,13 +33,11 @@ import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
@@ -48,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
@@ -61,10 +58,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class UserDAOImpl implements UserDAO {
 
     private static final Logger log = LoggerFactory.getLogger(UserDAOImpl.class);
+
+    private static final List<String> SUPPORTER_ROLES = Arrays.asList(
+            UserRole.EXAM_SUPPORTER.name(),
+            UserRole.TEACHER.name()
+    );
 
     private final UserRecordMapper userRecordMapper;
     private final RoleRecordMapper roleRecordMapper;
@@ -77,7 +78,7 @@ public class UserDAOImpl implements UserDAO {
             final RoleRecordMapper roleRecordMapper,
             final EntityPrivilegeRecordMapper entityPrivilegeRecordMapper,
             final FeaturePrivilegeRecordMapper featurePrivilegeRecordMapper,
-            @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
+            final PasswordEncoder userPasswordEncoder) {
 
         this.userRecordMapper = userRecordMapper;
         this.roleRecordMapper = roleRecordMapper;
@@ -181,6 +182,8 @@ public class UserDAOImpl implements UserDAO {
                 _predicate = predicate;
             }
 
+            // If institution is available, join with institution table
+            // otherwise no join
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>>.QueryExpressionWhereBuilder sqlWhereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.userRecordMapper
@@ -294,22 +297,23 @@ public class UserDAOImpl implements UserDAO {
                     checkUniqueUsername(userInfo);
                     checkUniqueMailAddress(userInfo);
 
-                    final UserRecord newRecord = new UserRecord(
-                            record.getId(),
-                            null,
-                            null,
-                            null,
-                            userInfo.name,
-                            userInfo.surname,
-                            userInfo.username,
-                            null,
-                            (userInfo.email == null) ? "" : userInfo.email,
-                            userInfo.language.toLanguageTag(),
-                            userInfo.timeZone.getID(),
-                            null, null, null);
+                    UpdateDSL.updateWithMapper(userRecordMapper::update, userRecord)
+                            .set(name).equalTo(userInfo.name)
+                            .set(surname).equalTo(userInfo.surname)
+                            .set(username).equalTo(userInfo.username)
+                            .set(email).equalTo(userInfo.email)
+                            .set(language).equalTo(userInfo.language.toLanguageTag())
+                            .set(timezone).equalTo(userInfo.timeZone.getID())
+                            .where(id, isEqualTo(record.getId()))
+                            .build()
+                            .execute();
 
-                    this.userRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    updateRolesForUser(record.getId(), userInfo.roles);
+                    // Check Roles If SEB_SERVER_ADMIN, keep other roles from old account
+                    // If the user has no SEB_SERVER_ADMIN. change the roles
+                    if (!userInfo.roles.contains(UserRole.SEB_SERVER_ADMIN.name())) {
+                        updateRolesForUser(record.getId(), userInfo.roles);
+                    }
+
                     return this.userRecordMapper.selectByPrimaryKey(record.getId());
                 })
                 .flatMap(this::toDomainModel)
@@ -400,11 +404,13 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    @Transactional()
     public Result<Collection<EntityKey>> deleteAdHocAccountsForLMS(
             final String adHocTeacherIdPrefix, 
             final Long lmsSetupId) {
         
-        return Result.tryCatch(() ->this.userRecordMapper.selectByExample()
+        return Result.tryCatch(() -> this.userRecordMapper
+                .selectByExample()
                 .where(uuid, isLike(adHocTeacherIdPrefix + Constants.PERCENTAGE))
                 .build()
                 .execute()
@@ -413,6 +419,64 @@ public class UserDAOImpl implements UserDAO {
                 .collect(Collectors.toSet())
         )
                 .flatMap(this::delete);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getAllActiveUsersUUID() {
+        return Result.tryCatch(() -> {
+
+            return this.userRecordMapper
+                    .selectByExample()
+                    .where(UserRecordDynamicSqlSupport.active, isEqualTo(BooleanUtils.toIntegerObject(true)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(UserRecord::getUuid)
+                    .toList();
+
+        });
+    }
+
+    @Override
+    @Transactional
+    public void updateUserRoles(final Long userId, final Set<String> roleNames) {
+        //final Set<String> roleNames = roles.stream().map(UserRole::getName).collect(Collectors.toSet());
+        updateRolesForUser(userId, roleNames);
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isValidSupporterUser(final String supporterUUID) {
+        try {
+
+            // first check if the user exists
+            List<Long> ids = userRecordMapper
+                    .selectIdsByExample()
+                    .where(uuid, isEqualTo(supporterUUID))
+                    .build()
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                return false;
+            }
+
+            // then check if it has SUPPORTER_ROLES role
+            final Long count = roleRecordMapper
+                    .countByExample()
+                    .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(ids.getFirst()))
+                    .and(RoleRecordDynamicSqlSupport.roleName, isIn(SUPPORTER_ROLES))
+                    .build()
+                    .execute();
+
+            return count >= 1;
+
+        } catch (Exception e) {
+            log.error("Failed to check if user is a valid Exam supporter for Exam supervisor assignment, UUID: {}, cause: {}", supporterUUID, e.getMessage());
+            return true;
+        }
     }
 
     @Override
@@ -475,6 +539,24 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+
+
+    private void updateRolesForUser(final Long userId, @NotNull final Set<String> roles) {
+        try {
+            // first delete old roles
+            this.roleRecordMapper.deleteByExample()
+                    .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(userId))
+                    .build()
+                    .execute();
+
+            insertRolesForUser(userId, roles);
+        } catch (Exception e) {
+            log.error("Failed to update User Roles for user: {} cause: {}", userId, e.getMessage());
+        }
+    }
+
+
+
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> this.userRecordMapper.selectByExample()
                 .where(UserRecordDynamicSqlSupport.institutionId,
@@ -488,16 +570,6 @@ public class UserDAOImpl implements UserDAO {
                         rec.getName(),
                         rec.getSurname()))
                 .collect(Collectors.toList()));
-    }
-
-    private void updateRolesForUser(final Long userId, @NotNull final Set<String> roles) {
-        // first delete old roles
-        this.roleRecordMapper.deleteByExample()
-                .where(RoleRecordDynamicSqlSupport.userId, isEqualTo(userId))
-                .build()
-                .execute();
-
-        insertRolesForUser(userId, roles);
     }
 
     private void insertRolesForUser(final Long userId, final Set<String> roles) {
@@ -547,6 +619,11 @@ public class UserDAOImpl implements UserDAO {
                         .collect(Collectors.toSet());
             }
 
+            String email = record.getEmail();
+            if (StringUtils.isEmpty(email)) {
+                email = null;
+            }
+
             return new UserInfo(
                     uuid,
                     record.getInstitutionId(),
@@ -554,7 +631,7 @@ public class UserDAOImpl implements UserDAO {
                     record.getName(),
                     record.getSurname(),
                     record.getUsername(),
-                    record.getEmail(),
+                    email,
                     BooleanUtils.toBooleanObject(record.getActive()),
                     BooleanUtils.toBooleanObject(record.getDirectLogin()),
                     BooleanUtils.toBooleanObject(record.getLocalAccount()),

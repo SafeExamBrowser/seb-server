@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
@@ -42,7 +41,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificati
 
 @Lazy
 @Component
-@WebServiceProfile
 public class SEBClientEventBatchService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientEventBatchService.class);
@@ -87,40 +85,22 @@ public class SEBClientEventBatchService {
     }
 
     private final Collection<EventData> events1 = new ArrayList<>();
-
     @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:500}",
             initialDelay = 100)
     public void worker1() {
         processEvents("worker1", this.events1);
     }
 
-    private final Collection<EventData> events2 = new ArrayList<>();
 
+    private final Collection<EventData> events2 = new ArrayList<>();
     @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
-            initialDelay = 300)
-    public void worker2() {
+            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:500}",
+            initialDelay = 200)
+    public void worker3() {
         processEvents("worker2", this.events2);
     }
 
-    private final Collection<EventData> events3 = new ArrayList<>();
-
-    @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
-            initialDelay = 600)
-    public void worker3() {
-        processEvents("worker3", this.events3);
-    }
-
-    private final Collection<EventData> events4 = new ArrayList<>();
-
-    @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
-            initialDelay = 900)
-    public void worker4() {
-        processEvents("worker4", this.events4);
-    }
 
     public void processOneTime() {
         processEvents("One Time Call", new ArrayList<>());
@@ -128,28 +108,26 @@ public class SEBClientEventBatchService {
 
     private void processEvents(final String workerName, final Collection<EventData> events) {
 
-        long start = 0L;
-        if (log.isDebugEnabled()) {
-            start = Utils.getMillisecondsNow();
-        }
+        synchronized (this) {
+            final int size = this.eventDataQueue.size();
+            if (size > 1000) {
+                log.warn("-----> There are more then 1000 SEB client logs in the waiting queue: {}, worker: {}",
+                        size,
+                        workerName);
+            }
 
-        final int size = this.eventDataQueue.size();
-        if (size > 1000) {
-            log.warn("-----> There are more then 1000 SEB client logs in the waiting queue: {}, worker: {}",
-                    size,
-                    workerName);
-        }
+            if (size == 0) {
+                return;
+            }
 
-        if (size == 0) {
-            return;
+            events.clear();
+            this.eventDataQueue.drainTo(events);
         }
 
         try {
 
-            events.clear();
-            this.eventDataQueue.drainTo(events);
-
             if (events.isEmpty()) {
+                log.info("-----> Unexpected empty event list after waiting queue drain, worker: {}", workerName);
                 return;
             }
 
@@ -170,16 +148,10 @@ public class SEBClientEventBatchService {
 
             this.sqlSessionTemplate.flushStatements();
 
-            if (log.isTraceEnabled()) {
-                log.debug("SEBClientEventBatchService worker {} processes batch of size {} in {} ms",
-                        workerName,
-                        size,
-                        Utils.getMillisecondsNow() - start);
-            }
-
         } catch (final Exception e) {
             log.error("Failed to process SEB events from eventDataQueue: ", e);
         }
+
     }
 
     private EventData convertData(final EventData eventData) {

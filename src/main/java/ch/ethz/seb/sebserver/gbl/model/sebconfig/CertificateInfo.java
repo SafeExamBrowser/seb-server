@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.joda.time.DateTime;
@@ -18,6 +17,7 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -45,22 +45,18 @@ public class CertificateInfo implements Entity {
 
         public boolean match(final String fileName) {
             return Stream.of(this.extentions)
-                    .filter(ext -> fileName.endsWith(ext))
-                    .findAny()
-                    .isPresent();
+                    .anyMatch(fileName::endsWith);
         }
 
         public static String[] getAllExtensions() {
-            return Arrays.asList(CertificateFileType.values())
-                    .stream()
+            return Arrays.stream(CertificateFileType.values())
                     .flatMap(type -> Stream.of(type.extentions))
-                    .collect(Collectors.toList())
+                    .toList()
                     .toArray(new String[0]);
         }
 
         public static CertificateFileType forFileName(final String fileName) {
-            return Arrays.asList(CertificateFileType.values())
-                    .stream()
+            return Arrays.stream(CertificateFileType.values())
                     .filter(type -> type.match(fileName))
                     .findFirst()
                     .orElse(null);
@@ -74,7 +70,9 @@ public class CertificateInfo implements Entity {
     public static final String ATTR_VALIDITY_FROM = "validityFrom";
     public static final String ATTR_VALIDITY_TO = "validityTo";
     public static final String ATTR_CERT_TYPE = "certType";
+    public static final String ATTR_IN_USE = "inUse";
 
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty(ATTR_ALIAS)
     public final String alias;
 
@@ -86,6 +84,9 @@ public class CertificateInfo implements Entity {
 
     @JsonProperty(ATTR_CERT_TYPE)
     public final EnumSet<CertificateType> types;
+
+    @JsonProperty(ATTR_IN_USE)
+    public Boolean inUse = false;
 
     @JsonCreator
     public CertificateInfo(
@@ -114,6 +115,14 @@ public class CertificateInfo implements Entity {
 
     public EnumSet<CertificateType> getTypes() {
         return this.types;
+    }
+
+    public Boolean getInUse() {
+        return inUse;
+    }
+
+    public void setInUse(Boolean inUse) {
+        this.inUse = inUse;
     }
 
     @Override
@@ -158,17 +167,15 @@ public class CertificateInfo implements Entity {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("CertificateData [alias=");
-        builder.append(this.alias);
-        builder.append(", validityFrom=");
-        builder.append(this.validityFrom);
-        builder.append(", validityTo=");
-        builder.append(this.validityTo);
-        builder.append(", types=");
-        builder.append(this.types);
-        builder.append("]");
-        return builder.toString();
+        return "CertificateData [alias=" +
+                this.alias +
+                ", validityFrom=" +
+                this.validityFrom +
+                ", validityTo=" +
+                this.validityTo +
+                ", types=" +
+                this.types +
+                "]";
     }
 
 }

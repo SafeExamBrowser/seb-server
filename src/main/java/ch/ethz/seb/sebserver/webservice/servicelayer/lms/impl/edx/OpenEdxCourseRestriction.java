@@ -8,15 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,7 +31,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionAPI;
 
 /** The open edX SEB course restriction API implementation.
- *
+ * <p>
  * See also : https://seb-openedx.readthedocs.io/en/latest/ */
 public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
 
@@ -46,7 +45,7 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
     private final JSONMapper jsonMapper;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
 
-    private OAuth2RestTemplate restTemplate;
+    private OAuthRestTemplate restTemplate;
 
     protected OpenEdxCourseRestriction(
             final JSONMapper jsonMapper,
@@ -65,7 +64,7 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
             return attributesCheck;
         }
 
-        final Result<OAuth2RestTemplate> restTemplateRequest = getRestTemplate();
+        final Result<OAuthRestTemplate> restTemplateRequest = getRestTemplate();
         if (restTemplateRequest.hasError()) {
             return LmsSetupTestResult.ofTokenRequestError(
                     LmsType.OPEN_EDX,
@@ -73,7 +72,7 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
                             this.openEdxRestTemplateFactory.knownTokenAccessPaths);
         }
 
-        final OAuth2RestTemplate restTemplate = restTemplateRequest.get();
+        final OAuthRestTemplate restTemplate = restTemplateRequest.get();
         try {
 
             // NOTE: since the OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO endpoint is
@@ -86,7 +85,8 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
             restTemplate.exchange(
                     url,
                     HttpMethod.GET,
-                    new HttpEntity<>(new HttpHeaders()),
+                    null,
+                    new HttpHeaders(),
                     Object.class);
 
         } catch (final HttpClientErrorException e) {
@@ -128,7 +128,8 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
                 final OpenEdxSEBRestriction data = this.restTemplate.exchange(
                         url,
                         HttpMethod.GET,
-                        new HttpEntity<>(httpHeaders),
+                        null,
+                        httpHeaders,
                         OpenEdxSEBRestriction.class)
                         .getBody();
 
@@ -167,7 +168,8 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
                     .exchange(
                             url,
                             HttpMethod.PUT,
-                            new HttpEntity<>(toJson(OpenEdxSEBRestriction.from(sebRestrictionData)), httpHeaders),
+                            toJson(OpenEdxSEBRestriction.from(sebRestrictionData)),
+                            httpHeaders,
                             OpenEdxSEBRestriction.class)
                     .getBody();
 
@@ -198,7 +200,8 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
                     .exchange(
                             url,
                             HttpMethod.DELETE,
-                            new HttpEntity<>(httpHeaders),
+                            null,
+                            httpHeaders,
                             Object.class);
 
             if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
@@ -217,9 +220,9 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
         return String.format(OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_PATH, courseId);
     }
 
-    private Result<OAuth2RestTemplate> getRestTemplate() {
+    private Result<OAuthRestTemplate> getRestTemplate() {
         if (this.restTemplate == null) {
-            final Result<OAuth2RestTemplate> templateRequest = this.openEdxRestTemplateFactory
+            final Result<OAuthRestTemplate> templateRequest = this.openEdxRestTemplateFactory
                     .createOAuthRestTemplate();
             if (templateRequest.hasError()) {
                 return templateRequest;

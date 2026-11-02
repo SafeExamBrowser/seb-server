@@ -14,8 +14,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.session.*;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
@@ -57,7 +57,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringStaticClientData;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -68,7 +67,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_MONITORING_ENDPOINT)
 @SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
@@ -153,7 +151,6 @@ public class ExamMonitoringController {
      * @return Page of domain-model-entities of specified type */
     @RequestMapping(
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<Exam> getPage(
             @RequestParam(
@@ -179,6 +176,11 @@ public class ExamMonitoringController {
         if (!this.authorization.hasGrant(PrivilegeType.READ, EntityType.EXAM)) {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
+
+        // add users time zone for Exam start time search
+        filterMap.putIfAbsent(
+                FilterMap.ATTR_USER_TIME_ZONE,
+                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
 
         final Collection<Exam> exams = this.examSessionService
                 .getFilteredRunningExams(
@@ -214,7 +216,6 @@ public class ExamMonitoringController {
     @RequestMapping(
             path = API.EXAM_MONITORING_FINISHED_ENDPOINT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<Exam> getFinishedExamsPage(
             @RequestParam(
@@ -227,12 +228,11 @@ public class ExamMonitoringController {
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
 
-        this.authorization.checkRole(
-                institutionId,
+
+        this.authorization.check(
+                PrivilegeType.READ,
                 EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER,
-                UserRole.TEACHER,
-                UserRole.EXAM_ADMIN);
+                institutionId);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
 
@@ -242,7 +242,12 @@ public class ExamMonitoringController {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
 
-        final Collection<Exam> exams = this.examSessionService
+        // add users time zone for Exam start time search
+        filterMap.putIfAbsent(
+                FilterMap.ATTR_USER_TIME_ZONE,
+                authorization.getUserService().getCurrentUser().getUserInfo(). getTimeZone().getID());
+
+        final Collection<Exam> exams = this.examAdminService
                 .getFilteredFinishedExams(
                         filterMap,
                         exam -> this.hasRunningExamPrivilege(exam, institutionId))
@@ -260,7 +265,6 @@ public class ExamMonitoringController {
             path = API.EXAM_MONITORING_TEST_RUN_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam toggleTestRunForExam(
             @RequestParam(
@@ -366,7 +370,6 @@ public class ExamMonitoringController {
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientConnectionData> getConnectionData(
             @RequestParam(
@@ -431,7 +434,6 @@ public class ExamMonitoringController {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_FULLPAGE,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public MonitoringFullPageData getFullMonitoringPageData(
             @RequestParam(
@@ -466,7 +468,6 @@ public class ExamMonitoringController {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientConnectionData getConnectionDataForSingleConnection(
             @RequestParam(
@@ -481,6 +482,33 @@ public class ExamMonitoringController {
         return this.examSessionService
                 .getConnectionData(connectionToken)
                 .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_QUIT_ALL,
+            method = RequestMethod.POST)
+    public void quitAllActiveSEBClients(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId) {
+
+        checkPrivileges(institutionId, examId);
+
+        log.info("Quit all active SEB Clients for Exam: : {}", examId);
+
+        final ClientInstruction clientInstruction = examMonitoringV3Service.createQuitAllInstruction(examId);
+        if (clientInstruction != null) {
+            userActivityLogDAO.log(
+                    UserLogActivityType.REGISTER_INSTRUCTION,
+                    EntityType.EXAM,
+                    String.valueOf(examId),
+                    clientInstruction.toString()
+            );
+            this.sebClientInstructionService.registerInstructionAsync(clientInstruction);
+        }
     }
 
     @RequestMapping(
@@ -515,7 +543,6 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientNotification> pendingNotifications(
             @RequestParam(
@@ -531,6 +558,12 @@ public class ExamMonitoringController {
                 institutionId,
                 examId,
                 connectionToken);
+
+        // NOTE: when SEB connection is not in an active state, notifications are not relevant and not visible
+        if (!connection.clientConnection.status.clientActiveStatus) {
+            return Collections.emptyList();
+        }
+
         return this.sebClientNotificationService
                 .getPendingNotifications(connection.getConnectionId())
                 .getOrThrow();
@@ -541,8 +574,7 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+            method = RequestMethod.POST)
     public void confirmNotification(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -561,6 +593,35 @@ public class ExamMonitoringController {
                 .onError(error -> {
                     log.error("Failed to confirm pending notification: {} for exam {}, cause: {}",
                             notificationId, examId, error.getMessage());
+                });
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_UNLOCK_SCREENS_ENDPOINT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public void unlockScreens(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @RequestParam(name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN, required = true) final String connectionTokens) {
+
+        checkPrivileges(institutionId, examId);
+
+        if (StringUtils.isBlank(connectionTokens)) {
+            return;
+        }
+
+        final Set<String> tokens = new HashSet<>(Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR_CHAR)));
+
+        this.sebClientNotificationService
+                .unlockScreens(examId, tokens)
+                .onError(error -> {
+                    log.error("Failed to unlock screens for exam: {} connections: {} cause: {}",
+                             examId, tokens, error.getMessage());
                 });
     }
 
@@ -603,7 +664,6 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SecurityKey getAppSignatureKey(
             @RequestParam(
@@ -653,7 +713,7 @@ public class ExamMonitoringController {
         final UserInfo userInfo = this.authorization.getUserService().getCurrentUser().getUserInfo();
         final String userId = userInfo.uuid;
         return exam.institutionId.equals(institution)
-                && (exam.isOwnerOrSupporter(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN));
+                && (exam.isOwnerOrSupporter(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN) || userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN));
     }
 
     private Predicate<ClientConnectionData> noneActiveFilter(final EnumSet<ConnectionStatus> filterStates) {

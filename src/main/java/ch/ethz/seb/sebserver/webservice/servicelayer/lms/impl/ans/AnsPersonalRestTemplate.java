@@ -16,16 +16,15 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.web.client.RestTemplate;
 
 public class AnsPersonalRestTemplate extends RestTemplate {
     private static final Logger log = LoggerFactory.getLogger(AnsPersonalRestTemplate.class);
     public String token;
 
-    public AnsPersonalRestTemplate(final ClientCredentialsResourceDetails details) {
+    public AnsPersonalRestTemplate(final String token) {
         super();
-        this.token = details.getClientSecret();
+        this.token = token;
         this.getInterceptors().add(new ClientHttpRequestInterceptor() {
             @Override
             public ClientHttpResponse intercept(final HttpRequest request, final byte[] body,

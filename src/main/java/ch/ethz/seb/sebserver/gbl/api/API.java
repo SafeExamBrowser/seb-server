@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -18,6 +16,12 @@ public final class API {
 
     public static final String ERROR_PATH = "/sebserver/error";
     public static final String CHECK_PATH = "/sebserver/check";
+
+    public static final String READ_SCOPE_NAME = "read";
+    public static final String WRITE_SCOPE_NAME = "write";
+    public static final String WEB_API_SCOPE_NAME = "web-api";
+    public static final String SEB_API_SCOPE_NAME = "seb-api";
+    public static final String LMS_API_SCOPE_NAME = "lms-api";
 
     public enum BulkActionType {
         HARD_DELETE,
@@ -34,7 +38,7 @@ public final class API {
 
         public final EntityType entityType;
 
-        private BatchActionType(final EntityType entityType) {
+        BatchActionType(final EntityType entityType) {
             this.entityType = entityType;
         }
     }
@@ -69,27 +73,33 @@ public final class API {
     public static final String OAUTH_JWT_TOKEN_VERIFY_ENDPOINT = OAUTH_JWT_TOKEN_ENDPOINT + "/verify";
     public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token";
     public static final String SPS_OAUTH_JWT_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/jwttoken";
+    public static final String ONE_TIME_TOKEN_TO_VERIFY = "one-time-token-to-verify";
 
     public static final String GRANT_TYPE_PASSWORD = "password";
     public static final String GRANT_TYPE_CLIENT = "client_credentials";
-    public static final List<String> RW_SCOPES = Collections.unmodifiableList(
-            Arrays.asList("read", "write"));
+    public static final List<String> RW_SCOPES = List.of("read", "write");
 
     public static final String CURRENT_USER_PATH_SEGMENT = "/me";
     public static final String CURRENT_USER_ENDPOINT = API.USER_ACCOUNT_ENDPOINT + CURRENT_USER_PATH_SEGMENT;
     public static final String SELF_PATH_SEGMENT = "/self";
-    public static final String LOGIN_PATH_SEGMENT = "/loglogin";
-    public static final String LOGOUT_PATH_SEGMENT = "/loglogout";
+    public static final String LOGIN_PATH_SEGMENT = "/login";
+    public static final String LOGOUT_PATH_SEGMENT = "/logout";
 
     public static final String FEATURES_PATH_SEGMENT = "/features";
+    public static final String GUI_ABILITIES_PATH_SEGMENT = "/gui-abilities";
+
+    public static final String SEB_VERSION_PAGE_ENDPOINT = "/seb-version-info";
+    public static final String SEB_VERSION_SELECTED_EXAM = "selected-exam";
+    public static final String SEB_VERSION_RESTRICTION = "restriction";
+    public static final String SEB_VERSION = "seb-version";
+    public static final String SEB_DOWNLOAD_LINK = "download";
+
 
     public static final String INFO_ENDPOINT = "/info";
     public static final String INFO_PARAM_INST_SUFFIX = "urlSuffix";
     public static final String INFO_INST_PATH_SEGMENT = "/institution";
     public static final String INFO_INST_ENDPOINT = INFO_INST_PATH_SEGMENT + "/{" + INFO_PARAM_INST_SUFFIX + "}";
-    public static final String LOGO_PATH_SEGMENT = "/logo";
 
-    public static final String INSTITUTIONAL_LOGO_PATH = LOGO_PATH_SEGMENT + "/{" + INFO_PARAM_INST_SUFFIX + "}";
     public static final String REGISTER_ENDPOINT = "/register";
 
     public static final String NAMES_PATH_SEGMENT = "/names";
@@ -239,10 +249,14 @@ public final class API {
     public static final String IMPORT_FILE_ATTR_NAME = "importFile";
     public static final String CONFIGURATION_SET_QUIT_PWD_PATH_SEGMENT = "/quitpwd";
 
-    public static final String SEB_SETTINGS_ENDPOINT = EXAM_ADMINISTRATION_ENDPOINT + "/seb-settings";
+    public static final String SEB_SETTINGS_TEMPLATE_ENDPOINT = "/config-template/seb-settings";
+    public static final String SEB_SETTINGS_EXAM_ENDPOINT = EXAM_ADMINISTRATION_ENDPOINT + "/seb-settings";
     public static final String SEB_SETTINGS_TABLE_PATH_SEGMENT = "/table";
     public static final String SEB_SETTINGS_TABLE_ROW_PATH_SEGMENT = "/row";
     public static final String SEB_SETTINGS_EXAM_CONFIG_MAPPING = "/examConfigMapping";
+    public static final String SEB_SETTINGS_ACTIVE_SEB_CLIENTS = "/active-seb-clients";
+    public static final String SEB_SETTINGS_PUBLISH = "/publish";
+    public static final String SEB_SETTINGS_UNDO = "/undo-changes";
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
     public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";
@@ -263,6 +277,8 @@ public final class API {
     public static final String EXAM_MONITORING_STATIC_CLIENT_DATA = "/static-client-data";
     public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
     public static final String EXAM_MONITORING_NOTIFICATION_ENDPOINT = "/notification";
+    public static final String EXAM_MONITORING_UNLOCK_SCREENS_ENDPOINT = "/notification/unlock-screens";
+    public static final String EXAM_MONITORING_UNLOCK_SCREENS_TOKENS = "connection-tokens";
     public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";
     public static final String EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT = "/signature";
     public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
@@ -272,6 +288,7 @@ public final class API {
     public static final String EXAM_MONITORING_FINISHED_ENDPOINT = "/finishedexams";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
+    public static final String EXAM_MONITORING_QUIT_ALL = "/quitAll";
 
     public static final String EXAM_MONITORING_LIST_SHOW_ALL = "show-all";
     public static final String EXAM_MONITORING_LIST_FILTER_SHOW_STATE = "show-states";
@@ -315,7 +332,14 @@ public final class API {
     public static final String EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT = "/indicator";
     public static final String EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT = "/client-group";
     public static final String EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT = "/default";
+    public static final String EXAM_TEMPLATE_CREATE_TEMP_CONFIG_TEMPLATE = "/create-config-template";
+    public static final String EXAM_TEMPLATE_FULL_CREATE = "/create";
+    public static final String EXAM_TEMPLATE_COPY = "/copy";
 
     public static final String BATCH_ACTION_ENDPOINT = "/batch-action";
 
+    public static final String SCHEDULED_DELETE_ENDPOINT = "/scheduled-delete";
+    public static final String SCHEDULED_DELETE_MARK_EXCLUDE  = "/mark-exclude";
+    public static final String SCHEDULED_DELETE_UNMARK_EXCLUDE = "/unmark-exclude";
+    public static final String SESSION_DELETE_ENDPOINT = "/session-delete";
 }

@@ -17,12 +17,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class DBIntegrityChecker {
 
     private static final Logger log = LoggerFactory.getLogger(DBIntegrityChecker.class);

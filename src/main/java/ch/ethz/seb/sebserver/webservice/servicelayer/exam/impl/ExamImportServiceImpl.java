@@ -22,7 +22,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -44,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamImportServiceImpl implements ExamImportService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamImportServiceImpl.class);
@@ -83,14 +81,14 @@ public class ExamImportServiceImpl implements ExamImportService {
 
 
     @Override
-    public Result<Exam> applyExamImportInitialization(final Exam exam) {
+    public Result<Exam> applyExamImportInitialization(final Exam exam, final boolean applyAllGroups) {
         final List<APIMessage> errors = new ArrayList<>();
 
         this.initAdditionalAttributes(exam)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
                 .flatMap(this.examTemplateService::addDefinedIndicators)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR))
-                .flatMap(this.examTemplateService::addDefinedClientGroups)
+                .flatMap(e -> this.examTemplateService.addDefinedClientGroups(e, applyAllGroups))
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS))
                 .flatMap(this.examTemplateService::initAdditionalTemplateAttributes)
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES))
@@ -113,7 +111,7 @@ public class ExamImportServiceImpl implements ExamImportService {
                 .onErrorDo(error -> handleError(error, exam, errors, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_SPS_ENABLED));
 
         if (!errors.isEmpty()) {
-            errors.add(0, APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
+            errors.addFirst(APIMessage.ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
                     exam.getModelId(),
                     API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + exam.getModelId()));
 

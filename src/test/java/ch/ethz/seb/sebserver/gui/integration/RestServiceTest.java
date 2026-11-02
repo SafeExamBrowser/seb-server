@@ -13,6 +13,9 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gui.api.RestCall;
+import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.api.auth.OAuth2AuthorizationContextHolder;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -24,14 +27,14 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
+import org.springframework.test.context.jdbc.Sql;
 
 public class RestServiceTest extends GuiIntegrationTest {
 
     @Test
-    public void testRestServiceInit() {
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
+    public void testRestServiceInit() throws InterruptedException {
+        Thread.sleep(1000);
         final OAuth2AuthorizationContextHolder authorizationContextHolder = login("admin", "admin");
         final Collection<RestCall<?>> calls = new ArrayList<>();
         calls.add(new RestServiceTest.GetInstitution());

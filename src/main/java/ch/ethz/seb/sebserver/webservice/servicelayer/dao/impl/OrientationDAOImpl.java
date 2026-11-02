@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBSettingsView;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
@@ -44,7 +44,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class OrientationDAOImpl implements OrientationDAO {
 
     private final OrientationRecordMapper orientationRecordMapper;
@@ -96,7 +95,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .selectByExample()
                 .where(
                         OrientationRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationTemplateId()))
+                        // Note set this always to 0 for 3.0 (no different orientations anymore)
+                        SqlBuilder.isEqualToWhenPresent(0L))
                 .and(
                         OrientationRecordDynamicSqlSupport.configAttributeId,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getOrientationAttributeId()))
@@ -202,7 +202,8 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .selectByExample()
                 .where(
                         OrientationRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualTo(templateId))
+                        // Note set this always to 0 for 3.0 (no different orientations anymore)
+                        SqlBuilder.isEqualTo(0L))
                 .build()
                 .execute()
                 .stream()
@@ -212,12 +213,14 @@ public class OrientationDAOImpl implements OrientationDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Orientation> getAttributeOfTemplate(final Long templateId, final Long attributeId) {
         return Result.tryCatch(() -> this.orientationRecordMapper
                 .selectByExample()
                 .where(
                         OrientationRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualTo(templateId))
+                        // Note set this always to 0 for 3.0 (no different orientations anymore)
+                        SqlBuilder.isEqualTo(0L))
                 .and(
                         OrientationRecordDynamicSqlSupport.configAttributeId,
                         SqlBuilder.isEqualTo(attributeId))
@@ -227,6 +230,31 @@ public class OrientationDAOImpl implements OrientationDAO {
                 .map(OrientationDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Utils.toSingleton()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Set<Long>> getConfigAttributeIdsOfView(final SEBSettingsView.ViewType viewType) {
+        return Result.tryCatch(() -> {
+            if (viewType == null) {
+                throw new ResourceNotFoundException(EntityType.VIEW, null);
+            }
+            
+            return this.orientationRecordMapper
+                    .selectByExample()
+                    .where(
+                            OrientationRecordDynamicSqlSupport.templateId,
+                            // Note set this always to 0 for 3.0 (no different orientations anymore)
+                            SqlBuilder.isEqualTo(0L))
+                    .and(
+                            OrientationRecordDynamicSqlSupport.viewId,
+                            SqlBuilder.isEqualTo(viewType.viewId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(OrientationRecord::getConfigAttributeId)
+                    .collect(Collectors.toSet());
+        });
     }
 
     @Override

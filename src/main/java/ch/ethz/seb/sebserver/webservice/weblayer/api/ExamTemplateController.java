@@ -9,16 +9,25 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.*;
-import java.util.function.Function;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.*;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.*;
-import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,29 +45,30 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
-@WebServiceProfile
+import static ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService.clientGroupTemplatePageSort;
+import static ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService.indicatorTemplatePageSort;
+
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_TEMPLATE_ENDPOINT)
+@Tag(name = "ExamTemplate", description = "Exam template administration endpoints.")
+@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
 public class ExamTemplateController extends EntityController<ExamTemplate, ExamTemplate> {
 
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateController.class);
 
     private final ExamTemplateDAO examTemplateDAO;
+    private final ExamTemplateService examTemplateService;
     private final ProctoringAdminService proctoringServiceSettingsService;
-    private final ExamConfigurationValueService examConfigurationValueService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ConfigurationNodeDAO configurationNodeDAO;
 
     protected ExamTemplateController(
             final AuthorizationService authorization,
@@ -67,9 +77,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
+            final ExamTemplateService examTemplateService,
             final ProctoringAdminService proctoringServiceSettingsService,
-            final ExamConfigurationValueService examConfigurationValueService,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final ApplicationEventPublisher applicationEventPublisher,
+            final ConfigurationNodeDAO configurationNodeDAO) {
 
         super(
                 authorization,
@@ -80,38 +91,216 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 beanValidationService);
 
         this.examTemplateDAO = entityDAO;
+        this.examTemplateService = examTemplateService;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
-        this.examConfigurationValueService = examConfigurationValueService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.configurationNodeDAO = configurationNodeDAO;
     }
 
+    /** Get a single ExamTemplate model with all data assigned to it.
+     *
+     * @param modelId The model identifier of the ExamTemplate to get
+     * @return ExamTemplate model with all additional data applied*/
     @RequestMapping(
-            path = API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT,
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ExamTemplate getDefault() {
-        final Long institutionId = super.authorization
-                .getUserService()
-                .getCurrentUser()
-                .institutionId();
+    @Override
+    public ExamTemplate getBy(@PathVariable final String modelId) {
 
-        return ((ExamTemplateDAO) this.entityDAO)
-                .getInstitutionalDefault(institutionId)
+        checkReadPrivilege(this.authorization.getUserService().getCurrentUser().institutionId());
+
+        return this.entityDAO
+                .byModelId(modelId)
                 .flatMap(this::checkReadAccess)
+                .flatMap(examTemplateService::prepareForV3)
                 .getOrThrow();
     }
 
     @Override
-    protected Result<ExamTemplate> validForCreate(final ExamTemplate entity) {
-        return super.validForCreate(entity)
-                .map(this::applyQuitPasswordIfNeeded);
+    public ExamTemplate savePut(ExamTemplate modifyData) {
+        return examTemplateService.filterLegacyData(
+                examTemplateService.applyExamTemplateAdditionalData(
+                        super.savePut(modifyData)));
     }
 
+
     @Override
-    protected Result<ExamTemplate> validForSave(final ExamTemplate entity) {
-        return super.validForSave(entity)
-                .map(this::applyQuitPasswordIfNeeded);
+    protected Result<Collection<ExamTemplate>> getAll(FilterMap filterMap) {
+        return super
+                .getAll(filterMap)
+                .flatMap(examTemplateService::applyForV3);
+    }
+
+    /** Get the institutional default Exam Template with all additional data assigned.
+     *
+     * @return ExamTemplate with all additional data*/
+    @Operation(hidden = true)
+    @RequestMapping(
+            path = API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate getDefault() {
+        return ((ExamTemplateDAO) this.entityDAO)
+                .getInstitutionalDefault(this.authorization.getUserService().getCurrentUser().institutionId())
+                .flatMap(this::checkReadAccess)
+                .flatMap(examTemplateService::prepareForV3)
+                .getOrThrow();
+    }
+
+    /** Create a whole new Exam Template form given ExamTemplate model.
+     *  This is used from the new GUI Exam Template Wizard that creates the Exam Template at the end of the wizard
+     *  by sending all ExamTemplate data at once.
+     * @param institutionId the institution id of the user
+     * @param examTemplate ExamTemplate model with all data for creation
+     * @return created ExamTemplate*/
+    @Operation(
+            operationId = "fullCreateExamTemplate",
+            summary = "Creates a new exam template with all sub-templates in one call.",
+            description = "Used by the exam template wizard to create the exam template together with its indicator templates, client group templates and exam attributes at once. If no configuration template is assigned, a default one is created.")
+    @RequestMapping(
+            path = API.EXAM_TEMPLATE_FULL_CREATE,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate createExamTemplate(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestBody final ExamTemplate examTemplate) {
+
+        checkWritePrivilege(institutionId);
+
+        final ExamTemplate newExamTemplate = new ExamTemplate(
+                null,
+                institutionId,
+                examTemplate.name,
+                examTemplate.description,
+                examTemplate.examType,
+                examTemplate.supporter,
+                // Note: if no configuration template is assigned, we create a default one
+                examTemplate.configTemplateId != null
+                        ? examTemplate.configTemplateId
+                        : createTemporaryConfigurationTemplate().id,
+                examTemplate.institutionalDefault,
+                examTemplate.lmsIntegration,
+                examTemplate.clientConfigurationId,
+                examTemplate.indicatorTemplates,
+                examTemplate.clientGroupTemplates,
+                examTemplate.examAttributes);
+        
+        return  beanValidationService
+                .validateBean(newExamTemplate)
+                .flatMap(examTemplateDAO::createNew)
+                .flatMap(t -> examTemplateService.createExamTemplateAdditionalData(t.id, newExamTemplate))
+                .flatMap(this::logCreate)
+
+                // get source of truth from DB apply SPS Data and notify created
+                .flatMap(r -> examTemplateDAO.byPK(r.id))
+                .flatMap(examTemplateService::prepareForV3)
+                .flatMap(this::notifyCreated)
+                .getOrThrow();
+    }
+
+    /** This is used by the new GUI Exam Template Wizard to create a temporary Configuration Template to
+     *  fill in the SEB Settings. The Configuration Template is created with a dedicated name prefix. The name
+     *  of the Configuration Template will be changed to the name of the Exam Template as soon as the Exam Template
+     *  gets stored.
+     * @return ConfigurationNode model of the new created Configuration Template*/
+    @Operation(
+            operationId = "createTemporaryConfigTemplate",
+            summary = "Creates a temporary configuration template for a new exam template.",
+            description = "Holds the SEB settings during the exam template wizard; it is renamed to the exam template name as soon as the exam template gets stored.")
+    @RequestMapping(
+            path = API.EXAM_TEMPLATE_CREATE_TEMP_CONFIG_TEMPLATE,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ConfigurationNode createTemporaryConfigurationTemplate() {
+
+        final SEBServerUser currentUser = this.authorization
+                .getUserService()
+                .getCurrentUser();
+
+        final Long institutionId = currentUser.institutionId();
+        checkWritePrivilege(institutionId);
+
+        final ConfigurationNode configurationNode = new ConfigurationNode(
+                null,
+                institutionId,
+                null,
+                ExamTemplateService.createNameForTemporaryConfigurationTemplate(),
+                null,
+                ConfigurationNode.ConfigurationType.TEMPLATE,
+                currentUser.uuid(),
+                ConfigurationNode.ConfigurationStatus.READY_TO_USE,
+                Utils.toDateTimeUTC(Utils.getMillisecondsNow()),
+                currentUser.uuid(),
+                null);
+
+        return configurationNodeDAO
+                .createNew(configurationNode)
+                .getOrThrow();
+    }
+
+    /** Used to copy an existing ExamTemplate. Creates a full copy of Exam Template as well as Configuration Template
+     *
+     * @param modelId The model identifier of the existing ExamTemplate that should be copied.
+     * @return Copy of existing ExamTemplate within the new ExamTemplate model.*/
+    @Operation(
+            operationId = "copyExamTemplate",
+            summary = "Creates a full copy of the given exam template.",
+            description = "Copies the exam template together with its configuration template under a generated copy name.")
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_TEMPLATE_COPY,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate copyExamTemplate(@PathVariable final String modelId) {
+
+        final SEBServerUser currentUser = this.authorization
+                .getUserService()
+                .getCurrentUser();
+        final Long institutionId = currentUser.institutionId();
+
+        checkWritePrivilege(institutionId);
+
+        final ExamTemplate sourceExamTemplate = getBy(modelId);
+        final String newName = examTemplateDAO.getCopyName(sourceExamTemplate);
+
+        // create copy of Configuration Template if available
+        Long newConfigTemplateId = null;
+        if (sourceExamTemplate.configTemplateId != null) {
+            final ConfigCreationInfo copyInfo = new ConfigCreationInfo(
+                    sourceExamTemplate.configTemplateId,
+                    newName,
+                    sourceExamTemplate.description,
+                    false,
+                    ConfigurationNode.ConfigurationType.TEMPLATE);
+
+            newConfigTemplateId = configurationNodeDAO.createCopy(
+                            institutionId,
+                            currentUser.uuid(),
+                            copyInfo)
+                    .getOrThrow()
+                    .id;
+        }
+
+        ExamTemplate modelForCopy = new ExamTemplate(
+                null,
+                institutionId,
+                newName,
+                sourceExamTemplate.description,
+                sourceExamTemplate.examType,
+                sourceExamTemplate.supporter,
+                newConfigTemplateId,
+                sourceExamTemplate.institutionalDefault,
+                sourceExamTemplate.lmsIntegration,
+                sourceExamTemplate.clientConfigurationId,
+                sourceExamTemplate.indicatorTemplates,
+                sourceExamTemplate.clientGroupTemplates,
+                sourceExamTemplate.examAttributes);
+
+        return createExamTemplate(institutionId, modelForCopy);
     }
 
     @Override
@@ -121,7 +310,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
     @Override
     protected Result<ExamTemplate> notifySaved(final ExamTemplate entity) {
-        return notifyExamTemplateChange(entity, ExamTemplateChangeEvent.ChangeState.MODIFIED);
+        return examTemplateService.saveAdditionalData(entity)
+                .flatMap(t -> notifyExamTemplateChange(t, ExamTemplateChangeEvent.ChangeState.MODIFIED));
     }
 
     @Override
@@ -130,43 +320,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return super.notifyDeleted(pair);
     }
 
-    private ExamTemplate applyQuitPasswordIfNeeded(final ExamTemplate entity) {
-        if (entity.configTemplateId != null) {
-            try {
-                final String quitPassword = this.examConfigurationValueService
-                        .getQuitPasswordFromConfigTemplate(entity.configTemplateId);
-                final HashMap<String, String> attributes = new HashMap<>(entity.examAttributes);
-                attributes.put(ExamTemplate.ATTR_QUIT_PASSWORD, quitPassword);
-                return new ExamTemplate(
-                        entity.id,
-                        entity.institutionId,
-                        entity.name,
-                        entity.description,
-                        entity.examType,
-                        entity.supporter,
-                        entity.configTemplateId,
-                        entity.institutionalDefault,
-                        entity.lmsIntegration,
-                        entity.clientConfigurationId,
-                        entity.indicatorTemplates,
-                        entity.clientGroupTemplates,
-                        attributes
-                );
-            } catch (final Exception e) {
-                log.error("Failed to apply quit password to Exam Template.", e);
-            }
-        }
-        return entity;
-    }
-
     // ****************************************************************************
     // **** Indicator Templates
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<IndicatorTemplate> getIndicatorPage(
             @PathVariable final String modelId,
@@ -198,12 +359,12 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 indicatorTemplatePageSort(sort));
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public IndicatorTemplate getIndicatorBy(
             @PathVariable final String parentModelId,
@@ -228,6 +389,13 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "createIndicatorTemplate",
+            summary = "Creates a new indicator template for the given exam template.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(
+                            mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                            schema = @Schema(implementation = IndicatorTemplate.class)) }))
     @RequestMapping(
             path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -257,6 +425,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "saveIndicatorTemplate",
+            summary = "Saves changes to an existing indicator template.")
     @RequestMapping(
             path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -279,6 +450,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(
+            operationId = "deleteIndicatorTemplate",
+            summary = "Deletes the given indicator template of the given exam template.")
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
@@ -306,11 +480,11 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // ****************************************************************************
     // **** Client Group Templates
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<ClientGroupTemplate> getClientGroupTemplatePage(
             @PathVariable final String modelId,
@@ -320,20 +494,11 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
-            final HttpServletRequest request) {
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort) {
 
         checkReadPrivilege(institutionId);
 
-        this.authorization.check(
-                PrivilegeType.READ,
-                EntityType.EXAM_TEMPLATE,
-                institutionId);
-
-        final ExamTemplate examTemplate = super.entityDAO
-                .byModelId(modelId)
-                .getOrThrow();
+        final ExamTemplate examTemplate = this.getBy(modelId);
 
         return this.paginationService.buildPageFromList(
                 pageNumber,
@@ -343,12 +508,12 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 clientGroupTemplatePageSort(sort));
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientGroupTemplate getClientGroupTemplateBy(
             @PathVariable final String parentModelId,
@@ -358,21 +523,20 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
-        this.authorization.check(
-                PrivilegeType.READ,
-                EntityType.EXAM_TEMPLATE,
-                institutionId);
+        checkReadPrivilege(institutionId);
 
-        return super.entityDAO
-                .byModelId(parentModelId)
-                .map(t -> t.clientGroupTemplates
-                        .stream()
-                        .filter(i -> modelId.equals(i.getModelId()))
-                        .findFirst()
-                        .orElseThrow(() -> new ResourceNotFoundException(EntityType.CLIENT_GROUP, parentModelId)))
-                .getOrThrow();
+        final ExamTemplate examTemplate = this.getBy(modelId);
+        return examTemplate.clientGroupTemplates
+                .stream()
+                .filter(i -> modelId.equals(i.getModelId()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(EntityType.CLIENT_GROUP, parentModelId));
     }
 
+    @Operation(
+            hidden = true,
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }))
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.POST,
@@ -397,11 +561,12 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                         postMap.getLong(ClientGroupTemplate.ATTR_EXAM_TEMPLATE_ID),
                         postMap))
                 .map(ExamUtils::checkClientGroupConsistency)
-                .flatMap(this.examTemplateDAO::createNewClientGroupTemplate)
+                .flatMap(this.examTemplateService::createNewClientGroupTemplate)
                 .flatMap(this.userActivityLogDAO::logCreate)
                 .getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -419,11 +584,12 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return this.beanValidationService
                 .validateBean(modifyData)
                 .map(ExamUtils::checkClientGroupConsistency)
-                .flatMap(this.examTemplateDAO::saveClientGroupTemplate)
+                .flatMap(this.examTemplateService::saveClientGroupTemplate)
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
@@ -440,7 +606,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
         // check write privilege for requested institution and concrete entityType
         this.checkWritePrivilege(institutionId);
-        return this.examTemplateDAO
+        return this.examTemplateService
                 .deleteClientGroupTemplate(parentModelId, modelId)
                 .flatMap(this.userActivityLogDAO::logDelete)
                 .getOrThrow();
@@ -449,67 +615,11 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     // **** Client Group Templates
     // ****************************************************************************
     // ****************************************************************************
-    // **** Proctoring
-
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ProctoringServiceSettings getProctoringServiceSettings(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final Long modelId) {
-
-        checkReadPrivilege(institutionId);
-        return this.proctoringServiceSettingsService
-                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM_TEMPLATE))
-                .getOrThrow();
-    }
-
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ExamTemplate saveProctoringServiceSettings(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
-
-        checkModifyPrivilege(institutionId);
-        return this.entityDAO
-                .byPK(examId)
-                .flatMap(this.authorization::checkModify)
-                .flatMap(examTemplate -> testAndSaveProctoringSettings(examId, examTemplate, proctoringServiceSettings))
-                .flatMap(this.userActivityLogDAO::logModify)
-                .getOrThrow();
-    }
-
-    private Result<ExamTemplate> testAndSaveProctoringSettings(
-            final Long examId,
-            final ExamTemplate examTemplate,
-            final ProctoringServiceSettings proctoringServiceSettings) {
-
-        return this.proctoringServiceSettingsService
-                .testProctoringSettings(proctoringServiceSettings)
-                .flatMap(test -> this.proctoringServiceSettingsService
-                        .saveProctoringServiceSettings(
-                                new EntityKey(examId, EntityType.EXAM_TEMPLATE),
-                                proctoringServiceSettings))
-                .map(settings -> examTemplate);
-    }
-
-    // **** Proctoring
-    // ****************************************************************************
-    // ****************************************************************************
     // **** Screen Proctoring
 
+    @Operation(
+            operationId = "getExamTemplateScreenProctoringSettings",
+            summary = "Gets the screen proctoring settings of the given exam template.")
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
@@ -528,6 +638,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
@@ -571,48 +682,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return ExamTemplateRecordDynamicSqlSupport.examTemplateRecord;
     }
 
-    static Function<Collection<IndicatorTemplate>, List<IndicatorTemplate>> indicatorTemplatePageSort(
-            final String sort) {
-
-        final String sortBy = PageSortOrder.decode(sort);
-        return indicators -> {
-            final List<IndicatorTemplate> list = new ArrayList<>(indicators);
-            if (StringUtils.isBlank(sort)) {
-                return list;
-            }
-
-            if (sortBy.equals(Indicator.FILTER_ATTR_NAME)) {
-                list.sort(Comparator.comparing(indicator -> indicator.name));
-            }
-
-            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
-                Collections.reverse(list);
-            }
-            return list;
-        };
-    }
-
-    static Function<Collection<ClientGroupTemplate>, List<ClientGroupTemplate>> clientGroupTemplatePageSort(
-            final String sort) {
-
-        final String sortBy = PageSortOrder.decode(sort);
-        return clientGroups -> {
-            final List<ClientGroupTemplate> list = new ArrayList<>(clientGroups);
-            if (StringUtils.isBlank(sort)) {
-                return list;
-            }
-
-            if (sortBy.equals(Indicator.FILTER_ATTR_NAME)) {
-                list.sort(Comparator.comparing(indicator -> indicator.name));
-            }
-
-            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
-                Collections.reverse(list);
-            }
-            return list;
-        };
-    }
-
     private IndicatorTemplate checkIndicatorConsistency(final IndicatorTemplate indicatorTemplate) {
         ExamUtils.checkThresholdConsistency(indicatorTemplate.thresholds);
         return indicatorTemplate;
@@ -621,12 +690,16 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     private Result<ExamTemplate> notifyExamTemplateChange(
             final ExamTemplate entity,
             final ExamTemplateChangeEvent.ChangeState changeState) {
+
         try {
             applicationEventPublisher.publishEvent(new ExamTemplateChangeEvent(entity, changeState));
         } catch (final Exception e) {
             log.error("Failed to notify ExamTemplate change: ", e);
         }
+
         return Result.of(entity);
     }
+
+
 
 }

@@ -237,7 +237,6 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(institution);
         assertEquals("testInstitution", institution.name);
-        assertEquals(null, institution.urlSuffix);
         assertFalse(institution.active);
 
         // modify
@@ -245,14 +244,13 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 .withAccessToken(sebAdminAccess)
                 .withPath(API.INSTITUTION_ENDPOINT)
                 .withMethod(HttpMethod.PUT)
-                .withBodyJson(new Institution(institution.id, "testInstitution", "testSuffix", null, null, null))
+                .withBodyJson(new Institution(institution.id, "testInstitution", null, null, null))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Institution>() {
                 });
 
         assertNotNull(institution);
         assertEquals("testInstitution", institution.name);
-        assertEquals("testSuffix", institution.urlSuffix);
         assertFalse(institution.active);
 
         // activate

@@ -116,7 +116,9 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     @Override
     public double getValue() {
 
-        if (this.initialized && !this.cachingEnabled && this.active
+        if (this.initialized
+                && !this.cachingEnabled
+                && this.active
                 && this.lastUpdate != this.distributedIndicatorValueService.lastUpdate()) {
 
             if (this.distributedIndicatorValueRecordId == null) {

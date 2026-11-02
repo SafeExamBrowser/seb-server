@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.WebserviceServerInfoRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.WebserviceServerInfoRecordMapper;
@@ -28,7 +27,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
 
     private static final Logger log = LoggerFactory.getLogger(WebserviceInfoDAOImpl.class);

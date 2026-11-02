@@ -14,7 +14,9 @@ import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DuplicateResourceException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthClientException;
 import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +24,12 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,9 +54,9 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
             final Exception ex,
-            @Nullable final Object body,
+            final Object body,
             final HttpHeaders headers,
-            final HttpStatus status,
+            final HttpStatusCode status,
             final WebRequest request) {
 
         if (ex instanceof AccessDeniedException) {
@@ -83,7 +85,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             final MethodArgumentNotValidException ex,
             final HttpHeaders headers,
-            final HttpStatus status,
+            final HttpStatusCode status,
             final WebRequest request) {
 
         final Collection<APIMessage> valErrors = ex.getBindingResult()
@@ -143,9 +145,9 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(OAuth2Exception.class)
+    @ExceptionHandler(OAuthClientException.class)
     public ResponseEntity<Object> handleOAuth2Exception(
-            final OAuth2Exception ex,
+            final OAuthClientException ex,
             final WebRequest request) {
 
         log.warn("OAuth2Exception: ", ex);
@@ -171,6 +173,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 valErrors,
                 Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Object> handleDuplicateResourceException(
+            final DuplicateResourceException ex,
+            final WebRequest request) {
+
+        log.warn("Duplicate Resource Exception: {}\n  ", ex.getMessage());
+        return APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                .createErrorResponse(ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

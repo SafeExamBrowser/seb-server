@@ -27,19 +27,15 @@ import org.springframework.cache.support.CompositeCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-
 @EnableCaching
-@WebServiceProfile
 @Configuration
-public class CacheConfig extends JCacheConfigurerSupport {
+public class CacheConfig {
 
     private static final Logger log = LoggerFactory.getLogger(CacheConfig.class);
 
     @Value("${spring.cache.jcache.config}")
     String jCacheConfig;
 
-    @Override
     @Bean
     public CacheManager cacheManager() {
         try {

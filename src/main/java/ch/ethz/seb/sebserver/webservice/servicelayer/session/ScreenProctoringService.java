@@ -21,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 
 public interface ScreenProctoringService extends SessionUpdateTask {
@@ -87,15 +88,30 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     @EventListener(ExamDeletionEvent.class)
     void notifyExamDeletion(ExamDeletionEvent event);
 
-    @EventListener(LmsSetupChangeEvent.class)
-    void notifyLmsSetupChange(LmsSetupChangeEvent event);
+    Result<Long> processLmsSetupActivation(Long lmsSetupId);
+
+    Result<Long> processLmsSetupDeactivation(Long lmsSetupId);
+
 
     /** This is used to update the exam equivalent on the screen proctoring service side
      * if screen proctoring is enabled for the specified exam.
+     * This also synchronize Exam Groups as well as User Accounts that are assigned to the Exam as supporter
      *
      * @param examId The SEB Server exam identifier
      * @return Result refer to the given exam data or to an error when happened */
     Result<Exam> updateExamOnScreenProctoringService(Long examId);
+
+    /** Updates the Exam data on SPS. Only the Exam data. This is mainly used to sync institutional privileges.
+     *
+     * @param examId The Exam identifier
+     * @return Result refer to the updated exam or to an error when happened */
+    Result<Exam> updateExamOnly(Long examId);
+
+    /** This applies the data repair update for Exam on SPS for version 3.0.
+     *  This adds the institution id to the SPS Exam as well as updating the supporter list
+     * @param examId The exam identifier
+     * @return Result refer to the updated exam or to an error when happened */
+    Result<Exam> applyV3RepairUpdateOnExam(Long examId);
 
     /** This is internally used to update client connections that are active but has no groups assignment yet.
      * This attaches SEB client connections to proctoring group of an exam in one batch by checking for
@@ -113,11 +129,19 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * @param userUUID The UUID of the user account to synchronize with SPS service*/
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUser(final String userUUID);
-    
-    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void synchronizeSPSUserForExam(final Long examId);
+
+    // like synchronizeSPSUser but not async
+    void synchronizeSPSUserWait(final String userUUID);
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void deleteSPSUser(String userUUID);
 
+    /** Use this to test if SPS connection is available and ready to use */
+    boolean isAvailable();
+
+    /** Indicates if the Exam of the given Exam Id has SPS Data defined, whether they are enabled or not
+     *
+     * @param examId Exam identifier
+     * @return true if the Exam has SPS data defined */
+    boolean hasSPSData(Long examId);
 }

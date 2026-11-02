@@ -16,14 +16,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientPingService;
 
 @Lazy
 @Component
-@WebServiceProfile
 @ConditionalOnExpression("'${sebserver.webservice.ping.service.strategy}'.equals('BLOCKING')")
 public class SEBClientPingBlockingService implements SEBClientPingService {
 

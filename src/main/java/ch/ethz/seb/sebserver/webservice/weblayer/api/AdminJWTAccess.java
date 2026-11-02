@@ -14,7 +14,6 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.model.user.TokenLoginInfo;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
 import io.github.bucket4j.local.LocalBucket;
@@ -22,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@WebServiceProfile
 public class AdminJWTAccess {
 
     private final TeacherAccountService teacherAccountService;
@@ -39,7 +37,7 @@ public class AdminJWTAccess {
             path = API.OAUTH_JWT_TOKEN_VERIFY_ENDPOINT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public TokenLoginInfo verifyJWTToken(@RequestHeader(name = "ONE_TIME_TOKEN_TO_VERIFY") final String loginToken) {
+    public TokenLoginInfo verifyJWTToken(@RequestHeader(name = API.ONE_TIME_TOKEN_TO_VERIFY) final String loginToken) {
 
         if (!this.requestRateLimitBucket.tryConsume(1)) {
             throw new TooManyRequests();

@@ -9,10 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
 
 
 public interface LmsAPITemplateCacheService {

@@ -223,9 +223,9 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
 
                 if (!warningMessages.contains(DELETED_RESTRICTION_WARNING)) {
                     if (warningMessages.contains(RESTRICTION_NOT_SET_WARNING)) {
-                        log.info("Message from Moodle: {}", moodleRestrictions.warnings);
+                        log.warn("Message from Moodle: {}", moodleRestrictions.warnings);
                     } else {
-                        log.warn("Warnings from Moodle: {}", moodleRestrictions.warnings);
+                        log.debug("Warnings from Moodle: {}", moodleRestrictions.warnings);
                     }
                 }
             }

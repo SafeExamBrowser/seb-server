@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.FullLmsIntegrationService;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class LmsTestServiceImpl implements LmsTestService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsTestServiceImpl.class);
@@ -67,18 +65,17 @@ public class LmsTestServiceImpl implements LmsTestService {
 
     @Override
     public LmsSetupTestResult testAdHoc(final LmsSetup lmsSetup) {
-
-        final Result<LmsAPITemplate> createLmsSetupTemplate = lmsAPITemplateCacheService
+        final Result<LmsAPITemplate> _lmsSetupTemplate = lmsAPITemplateCacheService
                 .createInMemoryLmsAPITemplate(lmsSetup);
-        if (createLmsSetupTemplate.hasError()) {
+        if (_lmsSetupTemplate.hasError()) {
             return new LmsSetupTestResult(
                     lmsSetup.lmsType,
-                    new LmsSetupTestResult.Error(LmsSetupTestResult.ErrorType.TEMPLATE_CREATION,
-                            createLmsSetupTemplate.getError().getMessage()));
+                    new LmsSetupTestResult.LmsSetupError(LmsSetupTestResult.ErrorType.TEMPLATE_CREATION,
+                            _lmsSetupTemplate.getError().getMessage()));
 
         }
-        final LmsAPITemplate lmsSetupTemplate = createLmsSetupTemplate.get();
-
+        
+        final LmsAPITemplate lmsSetupTemplate = _lmsSetupTemplate.get();
         final LmsSetupTestResult testCourseAccessAPI = lmsSetupTemplate.testCourseAccessAPI();
         if (!testCourseAccessAPI.isOk()) {
             return testCourseAccessAPI;
@@ -91,12 +88,8 @@ public class LmsTestServiceImpl implements LmsTestService {
                 return lmsSetupTestResult;
             }
         }
-
-        final LmsSetupTestResult lmsSetupTestResult = fullIntegrationTest(lmsSetupTemplate);
-        if (lmsSetupTestResult != null) {
-            return lmsSetupTestResult;
-        }
-
+        
+        log.info("Test Ad Hoc  OK: {}", lmsSetup);
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
     }
 
@@ -124,7 +117,7 @@ public class LmsTestServiceImpl implements LmsTestService {
                 if (integrationDataResult.hasError()) {
                     Throwable error = integrationDataResult.getError();
 
-                    log.warn("Failed to apply full LMS integration: {}", error.getMessage());
+                    log.warn("Failed to apply full LMS integration: ", error);
                     
                     if (error instanceof RuntimeException) {
                         error = error.getCause();

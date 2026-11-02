@@ -8,19 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl;
 
+import java.nio.file.AccessDeniedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.user.*;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AdHocAccountData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.TeacherAccountService;
@@ -29,7 +31,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplate;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.OAuthRestTemplateFactory;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -37,18 +40,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserException;
-import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     private static final Logger log = LoggerFactory.getLogger(TeacherAccountServiceImpl.class);
@@ -59,28 +57,36 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
     private final UserDAO userDAO;
     private final ScreenProctoringService screenProctoringService;
+    private final OAuthRestTemplateFactory oAuthRestTemplateFactory;
     private final ExamDAO examDAO;
     private final Cryptor cryptor;
-    final TokenEndpoint tokenEndpoint;
-    private final AdminAPIClientDetails adminAPIClientDetails;
+    private final WebserviceInfo webserviceInfo;
     protected final AuthorizationService authorizationService;
+
+    private final String clientId;
+    private final String clientSecret;
 
     public TeacherAccountServiceImpl(
             final UserDAO userDAO,
             final ScreenProctoringService screenProctoringService,
+            final OAuthRestTemplateFactory oAuthRestTemplateFactory,
             final ExamDAO examDAO,
             final Cryptor cryptor,
-            final TokenEndpoint tokenEndpoint,
-            final AdminAPIClientDetails adminAPIClientDetails, 
-            final AuthorizationService authorizationService) {
+            final WebserviceInfo webserviceInfo,
+            final AuthorizationService authorizationService,
+            @Value("${sebserver.webservice.api.admin.clientId}") final String clientId,
+            @Value("${sebserver.webservice.api.admin.clientSecret}") final String clientSecret) {
 
         this.userDAO = userDAO;
         this.screenProctoringService = screenProctoringService;
+        this.oAuthRestTemplateFactory = oAuthRestTemplateFactory;
         this.examDAO = examDAO;
         this.cryptor = cryptor;
-        this.tokenEndpoint = tokenEndpoint;
-        this.adminAPIClientDetails = adminAPIClientDetails;
+        this.webserviceInfo = webserviceInfo;
         this.authorizationService = authorizationService;
+
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
     }
 
     @Override
@@ -166,7 +172,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
             try {
                 claims = checkJWTValid(loginToken);
             } catch (final Exception e) {
-                throw new UnauthorizedUserException("Invalid One Time JWT", e);
+                log.warn("Invalid One Time JWT received. Root exception: ", e);
+                throw new AccessDeniedException("Invalid One Time JWT");
             }
             final String userId = claims.get(USER_CLAIM, String.class);
 
@@ -175,19 +182,20 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     .byModelId(userId)
                     .getOrThrow(error -> new BadCredentialsException("Unknown user claim", error));
 
-            // login the user by getting access token
-            final Map<String, String> params = new HashMap<>();
-            params.put(Constants.OAUTH2_GRANT_TYPE, Constants.OAUTH2_GRANT_TYPE_PASSWORD);
-            params.put(Constants.OAUTH2_USER_NAME, user.username);
-            params.put(Constants.OAUTH2_GRANT_TYPE_PASSWORD, claims.get(SUBJECT_CLAIM_NAME, String.class));
-            final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                    new UsernamePasswordAuthenticationToken(
-                            this.adminAPIClientDetails.getClientId(),
-                            "N/A",
-                            Collections.emptyList());
-            final ResponseEntity<OAuth2AccessToken> accessToken =
-                    this.tokenEndpoint.postAccessToken(usernamePasswordAuthenticationToken, params);
-            final OAuth2AccessToken token = accessToken.getBody();
+            OAuthRestTemplate.DefaultClientSettingsProvider clientSettings = new OAuthRestTemplate.DefaultClientSettingsProvider(
+                    this.clientId,
+                    this.clientSecret,
+                    user.username,
+                    claims.get(SUBJECT_CLAIM_NAME, String.class),
+                    null
+            );
+
+            OAuthRestTemplate oAuth2RestTemplate = oAuthRestTemplateFactory.getOAuth2RestTemplate(
+                    webserviceInfo.getExternalServerURL(),
+                    API.OAUTH_TOKEN_ENDPOINT,
+                    clientSettings);
+
+            CharSequence accessToken = oAuth2RestTemplate.getAccessToken();
 
             final String examId = claims.get(EXAM_ID_CLAIM, String.class);
             final EntityKey key = (StringUtils.isNotBlank(examId))
@@ -197,7 +205,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
                     key,
                     "MONITOR_EXAM_FROM_LIST");
 
-            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, token);
+            return new TokenLoginInfo(user.username, claims.getSubject(), loginForward, accessToken.toString());
         });
     }
 
@@ -205,25 +213,41 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
     public void deleteAllFromLMS(final Long lmsId) {
             userDAO
                     .deleteAdHocAccountsForLMS(AD_HOC_TEACHER_ID_PREFIX, lmsId)
+                    .map(result -> this.removeAccountsFromExamSupport(result, lmsId))
                     .map(this::deleteAccountsOnSPS)
                     .onError(error -> log.error("Failed to delete all teacher accounts for LMS with id: {}", lmsId, error));
     }
 
+
+
     @Override
     public void notifyExamFinished(final ExamFinishedEvent event) {
 
-        if (event.exam.status != Exam.ExamStatus.UP_COMING) {
-            final List<String> supporterWithoutTeacherAccounts = event.exam.supporter
-                    .stream()
-                    .filter(uuid -> uuid != null && !(uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)))
-                    .toList();
+        try {
 
-            deleteAllTeacherAccounts(event.exam);
+            if (event.exam.status != Exam.ExamStatus.UP_COMING) {
+                final Set<String> supporterWithoutTeacherAccounts = event.exam.supporter
+                        .stream()
+                        .filter(uuid -> uuid != null && !(TeacherAccountService.isTeacherAccountUUID(uuid) || authorizationService.isTeacherOnly(uuid)))
+                        .collect(Collectors.toSet());
 
-            // remove all teacher accounts from Exam supporter list
-            examDAO.updateSupporterAccounts(
-                    event.exam.id,
-                    supporterWithoutTeacherAccounts);
+                deleteAllTeacherAccounts(event.exam);
+
+                // remove all teacher accounts from Exam supporter list
+                examDAO.updateSupporterAccounts(
+                        event.exam.id,
+                        supporterWithoutTeacherAccounts);
+
+                // also update exam on SPS
+                screenProctoringService
+                        .updateExamOnly(event.exam.id)
+                        .onError(error -> log.error(
+                                "Failed to update Exam with remove teacher accounts on SPS: {} cause: {}",
+                                event.exam.id,
+                                error.getMessage()));
+            }
+        } catch (Exception e) {
+            log.error("Failed to process Exam finishing for Teacher Accounts: {}", e.getMessage());
         }
     }
 
@@ -244,7 +268,7 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
            final Set<EntityKey> keysToDelete = exam.supporter
                     .stream()
                     .filter(uuid -> uuid != null &&
-                            (uuid.contains(AD_HOC_TEACHER_ID_PREFIX) || authorizationService.isTeacherOnly(uuid)) && 
+                            (TeacherAccountService.isTeacherAccountUUID(uuid) || authorizationService.isTeacherOnly(uuid)) &&
                             examDAO.numOfExamsReferencingSupporter(uuid) == 1)
                     .map(uuid -> new EntityKey(uuid, EntityType.USER))
                     .collect(Collectors.toSet());
@@ -265,10 +289,55 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         }
     }
 
+    private Collection<EntityKey> removeAccountsFromExamSupport(
+            final Collection<EntityKey> result,
+            final Long lmsId) {
+
+        if (result == null || result.isEmpty()) {
+            return result;
+        }
+
+        final Set<String> teacherUUIDs = result.stream().map(key -> key.modelId).collect(Collectors.toSet());
+
+        examDAO
+                .allForLMSSetup(lmsId)
+                .getOrThrow()
+                .forEach(exam -> {
+                    try {
+
+                        if (exam.supporter == null || exam.supporter.isEmpty()) {
+                            return;
+                        }
+
+                        final Set<String> supporter = new HashSet<>(exam.supporter);
+                        supporter.removeAll(teacherUUIDs);
+
+                        if (supporter.size() != exam.supporter.size()) {
+                            // we need to update the supporter on Exam
+                            examDAO.updateSupporterAccounts(exam.id, supporter);
+                            // also update exam on SPS
+                            screenProctoringService
+                                    .updateExamOnly(exam.id)
+                                    .onError(error -> log.error(
+                                            "Failed to update Exam with remove teacher accounts: {} cause: {}",
+                                            exam.id,
+                                            error.getMessage()));
+                        }
+
+                    } catch (Exception e) {
+                        log.error("Failed to remove ad hoc teacher accounts form Exam: {}" , exam.id);
+                    }
+                });
+
+        return result;
+    }
+
     private Collection<EntityKey> deleteAccountsOnSPS(final Collection<EntityKey> keys) {
         keys.forEach(key -> this.screenProctoringService.deleteSPSUser(key.modelId) );
         return keys;
     }
+
+
 
     private UserInfo handleAccountDoesNotExistYet(
             final boolean createIfNotExists,
@@ -294,7 +363,9 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
         }
 
         if (!exam.supporter.contains(account.uuid)) {
-            this.examDAO.applySupporter(exam, account.uuid)
+            this.examDAO
+                    .applySupporter(exam, account.uuid)
+                    .map(e -> screenProctoringService.updateExamOnScreenProctoringService(e.id).getOrThrow())
                     .onError(error -> log.error(
                             "Failed to apply ad-hoc-teacher account to supporter list of exam: {} user: {}",
                             exam, account, error));
@@ -307,7 +378,8 @@ public class TeacherAccountServiceImpl implements TeacherAccountService {
 
         final String subjectClaim = UUID.randomUUID().toString();
         userDAO.changePassword(account.uuid, subjectClaim);
-        this.screenProctoringService.updateExamOnScreenProctoringService(examId);
+        this.screenProctoringService.synchronizeSPSUserWait(account.uuid);
+        //this.screenProctoringService.updateExamOnScreenProctoringService(examId);
 
         final Map<String, Object> claims = new HashMap<>();
         claims.put(USER_CLAIM, account.uuid);

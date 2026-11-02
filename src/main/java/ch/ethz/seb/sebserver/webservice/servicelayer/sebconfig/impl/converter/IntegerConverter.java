@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -21,13 +22,11 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class IntegerConverter implements AttributeValueConverter {
 
     private static final Logger log = LoggerFactory.getLogger(IntegerConverter.class);
@@ -82,7 +81,7 @@ public class IntegerConverter implements AttributeValueConverter {
             final ConfigurationValue value,
             final String template) throws IOException {
 
-        final String val = (value != null && value.value != null)
+        final String val = (value != null && !StringUtils.isBlank(value.value))
                 ? value.value
                 : attribute.getDefaultValue();
 
@@ -91,7 +90,12 @@ public class IntegerConverter implements AttributeValueConverter {
             intVal = Integer.parseInt(val);
         } catch (final NumberFormatException nfe) {
             log.error("Failed to convert SEB configuration attribute value of type integer: {}", val, nfe);
-            intVal = 0;
+            try {
+                intVal = Integer.parseInt(attribute.defaultValue);
+            } catch (final Exception e) {
+                log.warn("Failed to convert default value, return 0. Cause: {}", e.getMessage());
+                intVal = 0;
+            }
         }
 
         out.write(Utils.toByteArray(String.format(

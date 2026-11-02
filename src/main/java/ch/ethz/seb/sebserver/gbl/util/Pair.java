@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.util.Objects;
+
 /** Simple data class that defines a pair (A and B) of same or different types. */
 public class Pair<A, B> {
 
@@ -30,4 +32,16 @@ public class Pair<A, B> {
         return this.b;
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Pair<?, ?> pair = (Pair<?, ?>) o;
+        return Objects.equals(a, pair.a) && Objects.equals(b, pair.b);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(a, b);
+    }
 }

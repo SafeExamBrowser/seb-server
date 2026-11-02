@@ -8,37 +8,26 @@
 
 package ch.ethz.seb.sebserver;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import java.io.IOException;
 
 /** This is the overall seb-server Spring web-configuration that is loaded for all profiles.
  * Defines some overall web-security beans needed on both -- web-service and web-gui -- profiles */
 @Configuration
-@WebServiceProfile
-@GuiProfile
 @RestController
-@Order(7)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {
+public class WebSecurityConfig {
 
     @Value("${sebserver.webservice.http.redirect.gui}")
     private String guiRedirect;
@@ -47,10 +36,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     @Value("${sebserver.webservice.api.admin.endpoint}")
     private String adminAPIEndpoint;
 
-    /** Spring bean name of user password encoder */
-    public static final String USER_PASSWORD_ENCODER_BEAN_NAME = "userPasswordEncoder";
-    /** Spring bean name of client (application) password encoder */
-    public static final String CLIENT_PASSWORD_ENCODER_BEAN_NAME = "clientPasswordEncoder";
+    @Bean
+    @Primary
+    public JSONMapper jsonMapper() {
+        return new JSONMapper();
+    }
+
+    /** Password encoder used for user passwords (stronger protection) */
+    @Bean
+    public PasswordEncoder userPasswordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public FilterRegistrationBean<CharacterEncodingFilter> filterRegistrationBean() {
@@ -62,27 +58,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         return registrationBean;
     }
 
-    /** Password encoder used for user passwords (stronger protection) */
-    @Bean(USER_PASSWORD_ENCODER_BEAN_NAME)
-    public PasswordEncoder userPasswordEncoder() {
-        return new BCryptPasswordEncoder(8);
-    }
-
-    /** Password encode used for client (application) passwords */
-    @Bean(CLIENT_PASSWORD_ENCODER_BEAN_NAME)
-    public PasswordEncoder clientPasswordEncoder() {
-        return new BCryptPasswordEncoder(4);
-    }
-
     @RequestMapping(API.CHECK_PATH)
     public void check() throws IOException {
     }
-
-    @RequestMapping(API.ERROR_PATH)
-    public void handleError(final HttpServletResponse response) throws IOException {
-        response.getOutputStream().print(response.getStatus());
-        response.setHeader(HttpHeaders.LOCATION, this.guiRedirect);
-        response.flushBuffer();
-    }
-
 }

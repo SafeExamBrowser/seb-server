@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -45,7 +44,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
 
     private static final Logger log = LoggerFactory.getLogger(ProctoringSettingsDAOImpl.class);
@@ -260,7 +258,7 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
             return CollectingStrategy
                     .valueOf(mapping.get(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY).getValue());
         } else {
-            return CollectingStrategy.EXAM;
+            return CollectingStrategy.APPLY_SEB_GROUPS;
         }
     }
 
@@ -324,11 +322,6 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                         return new ScreenProctoringSettings(
                                 entityId,
                                 getScreenproctoringEnabled(mapping),
-                                screenProctoringServiceBundle.serviceURL,
-                                screenProctoringServiceBundle.clientId,
-                                screenProctoringServiceBundle.clientSecret.toString(),
-                                screenProctoringServiceBundle.apiAccountName,
-                                screenProctoringServiceBundle.apiAccountPassword.toString(),
                                 getScreenProctoringCollectingStrategy(mapping),
                                 null,
                                 getScreenProctoringCollectingSize(mapping),
@@ -339,11 +332,6 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
                         return new ScreenProctoringSettings(
                                 entityId,
                                 getScreenproctoringEnabled(mapping),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_SERVICE_URL),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_KEY),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_API_SECRET),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID),
-                                getString(mapping, ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD),
                                 getScreenProctoringCollectingStrategy(mapping),
                                 null,
                                 getScreenProctoringCollectingSize(mapping),

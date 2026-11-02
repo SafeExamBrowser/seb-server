@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -41,8 +38,13 @@ public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> 
      * @return The Collection of Results refer to the EntityKey instance or refer to an error if happened */
     Result<Collection<EntityKey>> setActive(Set<EntityKey> all, boolean active);
 
+    /** Sets the given entity active flag according to given value.
+     *
+     * @param entity Entity to set active flag
+     * @param active The active flag value
+     * @return Updated Entity */
     default Result<T> setActive(final T entity, final boolean active) {
-        return setActive(new HashSet<>(Arrays.asList(entity.getEntityKey())), active)
+        return setActive(new HashSet<>(Collections.singletonList(entity.getEntityKey())), active)
                 .flatMap(result -> byModelId(result.iterator().next().modelId));
     }
 

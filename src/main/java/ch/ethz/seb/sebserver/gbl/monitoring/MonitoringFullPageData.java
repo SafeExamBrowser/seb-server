@@ -15,14 +15,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MonitoringFullPageData {
 
     public static final String ATTR_CONNECTIONS_DATA = "monitoringConnectionData";
-    public static final String ATTR_PROCTORING_DATA = "proctoringData";
     public static final String ATTR_SCREEN_PROCTORING_DATA = "screenProctoringData";
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID)
@@ -35,7 +32,6 @@ public class MonitoringFullPageData {
     public MonitoringFullPageData(
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(ATTR_CONNECTIONS_DATA) final MonitoringSEBConnectionData monitoringConnectionData,
-           // @JsonProperty(ATTR_PROCTORING_DATA) final Collection<RemoteProctoringRoom> proctoringData,
             @JsonProperty(ATTR_SCREEN_PROCTORING_DATA) final Collection<ProctoringGroupMonitoringData> screenProctoringData) {
 
         this.examId = examId;

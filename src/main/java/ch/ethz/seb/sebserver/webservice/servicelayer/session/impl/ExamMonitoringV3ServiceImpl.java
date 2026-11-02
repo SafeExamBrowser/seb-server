@@ -23,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationTy
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
@@ -38,12 +37,10 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringV3ServiceImpl.class);
     private final ExamSessionCacheService examSessionCacheService;
-    private final SEBClientNotificationService sebClientNotificationService;
     private final ExamAdminService examAdminService;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientGroupDAO clientGroupDAO;
@@ -51,14 +48,12 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
     public ExamMonitoringV3ServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
-            final SEBClientNotificationService sebClientNotificationService,
             final ExamAdminService examAdminService,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientGroupDAO clientGroupDAO, 
             final ExamSessionService examSessionService) {
         
         this.examSessionCacheService = examSessionCacheService;
-        this.sebClientNotificationService = sebClientNotificationService;
         this.examAdminService = examAdminService;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientGroupDAO = clientGroupDAO;
@@ -95,7 +90,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         if (spsGroups.containsKey(-1L)) {
             final ScreenProctoringGroup spsFallbackGroup = spsGroups.get(-1L);
             groups.put(-1L, new ClientGroup(
-                    1L, 
+                    0L,
                     spsFallbackGroup.name,
                     spsFallbackGroup.uuid,
                     "SP_FALLBACK_GROUP",
@@ -137,7 +132,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                 .forEach(cc -> {
                     
                     // states
-                    if (cc.missingPing != null && cc.missingPing) {
+                    if (BooleanUtils.isTrue(cc.getMissingPing())) {
                         clientStates.MISSING++;
                     } else {
                         switch (cc.clientConnection.status) {
@@ -154,43 +149,43 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                     // incidences and warnings on indicators, only relevant for active connections
                     if (cc.clientConnection.status.clientActiveStatus) {
                         indicatorProbe.probe(cc, indicators);
+
+                        // notifications, only relevant for active connections
+                        if (cc.pendingLockScreen()) {
+                            notifications.LOCK_SCREEN++;
+                        }
+                        if (cc.pendingRaiseHand()) {
+                            notifications.RAISE_HAND++;
+                        }
+                        notifications.calcTotal();
                     }
-                    
-                    // notifications
-                    if (cc.pendingNotification != null && cc.pendingNotification) {
-                        sebClientNotificationService
-                                .getPendingNotifications(cc.getConnectionId())
-                                .getOr(Collections.emptyList())
-                                .forEach( n -> {
-                                    switch (n.notificationType) {
-                                        case LOCK_SCREEN -> notifications.LOCK_SCREEN++;
-                                        case RAISE_HAND -> notifications.RAISE_HAND++;
-                                        default -> {}
-                                    }
-                                });
-                    }
-                    notifications.calcTotal();
                     
                     // groups
                     try {
                         if (cc.groups != null) {
-                            if (cc.groups.isEmpty()) {
-                                if (screenProctoringEnabled) {
-                                    groups.get(-1L).clientAmount++;
+                            boolean checkSPSFallback = true;
+                            for (Long group : cc.groups) {
+                                ClientGroup clientGroup = groups.get(group);
+                                clientGroup.clientAmount++;
+                                if (cc.clientConnection.status.establishedStatus) {
+                                    clientGroup.activeClients++;
                                 }
-                            } else {
-                                cc.groups.forEach(gId -> {
-                                    if (groups.containsKey(gId)) {
-                                        groups.get(gId).clientAmount++;
-                                    }
-                                });
+                                if (clientGroup.spsGroupUUID != null) {
+                                    checkSPSFallback = false;
+                                }
                             }
-                        } else if (screenProctoringEnabled) {
-                            final ClientGroup fallbackGroup = groups.get(-1L);
-                            fallbackGroup.clientAmount++;
+                            if (checkSPSFallback && screenProctoringEnabled && groups.containsKey(-1L) &&
+                                    cc.clientConnection.status.clientActiveStatus && cc.clientConnection.screenProctoringGroupId != null) {
+                                ClientGroup clientGroup = groups.get(-1L);
+                                if (clientGroup != null) {
+                                    clientGroup.clientAmount++;
+                                    if (cc.clientConnection.status.establishedStatus) {
+                                        clientGroup.activeClients++;
+                                    }
+                                }
+                            }
                         }
                     } catch (final Exception e) {
-                        // TODO remove this after testing
                         log.error("Failed to process groups: {}", e.getMessage());
                     }
                 });
@@ -205,7 +200,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     @Override
     public MonitoringFullPageData getFullMonitoringPageData(
             final Exam runningExam,
-            final Predicate<ClientConnectionData> filter) {
+            final Predicate<ClientConnectionDataInternal> filter) {
         
         final List<? extends ClientMonitoringDataView> filteredConnections = this.clientConnectionDAO
                 .getConnectionTokens(runningExam.id)
@@ -228,7 +223,7 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     }
 
     @Override
-    public Predicate<ClientConnectionData> createMonitoringFilter(
+    public Predicate<ClientConnectionDataInternal> createMonitoringFilter(
             final String showStates, 
             final String showClientGroups, 
             final String showIndicators, 
@@ -242,10 +237,15 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             return Utils.falsePredicate();
         }
 
+        boolean missingFilter = false;
         final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);
         if (StringUtils.isNotBlank(showStates)) {
             for (final String s : StringUtils.split(showStates, Constants.LIST_SEPARATOR)) {
-                states.add(ConnectionStatus.valueOf(s));
+                if (Objects.equals("MISSING", s)) {
+                    missingFilter = true;
+                } else {
+                    states.add(ConnectionStatus.valueOf(s));
+                }
             }
         }
         final Set<Long> showInClientGroups = showClientGroups != null 
@@ -255,27 +255,28 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
                 : null;
         
         final boolean checkStates = !states.isEmpty();
+        final boolean missing = missingFilter;
         final boolean checkGroups = showInClientGroups != null && !showInClientGroups.isEmpty();
-        final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(-1L);
+        final boolean showFallbackGroup = showInClientGroups != null && showInClientGroups.contains(0L);
         final boolean showWLANIncident = showIndicators != null && showIndicators.contains(IndicatorType.WLAN_STATUS.name);
         final boolean showBatteryIncident = showIndicators != null && showIndicators.contains(IndicatorType.BATTERY_STATUS.name);
         final boolean showLockScreenNotifications = showNotifications != null && showNotifications.contains(NotificationType.LOCK_SCREEN.name());
         final boolean showRaiseHandNotifications = showNotifications != null && showNotifications.contains(NotificationType.RAISE_HAND.name());
 
         return cc -> {
-            
             // state filter
-            if (checkStates && !states.contains(cc.clientConnection.status)) {
-                return false;
+            if (missing || checkStates) {
+                final boolean isMissing = cc.getMissingPing();
+                if (!(missing && isMissing || (!isMissing && checkStates && states.contains(cc.clientConnection.status)))) {
+                    return false;
+                }
             }
 
             // groups filter
             if (checkGroups) {
                 if (cc.groups != null && !cc.groups.isEmpty()) {
-                    for (final Long gId : cc.groups) {
-                        if (!showInClientGroups.contains(gId)) {
-                            return false;
-                        }
+                    if (Collections.disjoint(cc.groups, showInClientGroups)) {
+                        return false;
                     }
                 } else {
                     if (!showFallbackGroup) {
@@ -286,21 +287,26 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
 
             // indicators filter
             if (showWLANIncident || showBatteryIncident) {
-                final boolean wlan = showWLANIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.WLAN_STATUS);
-                final boolean battery = showBatteryIncident && ((ClientConnectionDataInternal) cc).hasIncident(IndicatorType.BATTERY_STATUS);
+                
+                // Battery and WLAN only makes sense for active status
+                if (!cc.clientConnection.status.clientActiveStatus) {
+                    return false;
+                }
+                final boolean wlan = showWLANIncident && (cc.hasIncidentOrWarning(IndicatorType.WLAN_STATUS));
+                final boolean battery = showBatteryIncident && (cc.hasIncidentOrWarning(IndicatorType.BATTERY_STATUS));
                 if (!(wlan || battery)) {
                     return false;
                 }
             }
-            
+
             // notifications filter
-            if (BooleanUtils.isTrue(cc.pendingNotification) && (showLockScreenNotifications || showRaiseHandNotifications)) {
-                final boolean lock = showLockScreenNotifications && sebClientNotificationService
-                        .hasPendingNotification(cc.clientConnection, NotificationType.LOCK_SCREEN );
-                final boolean raise =  showRaiseHandNotifications && sebClientNotificationService
-                        .hasPendingNotification(cc.clientConnection, NotificationType.RAISE_HAND );
-                if (!(lock || raise)) {
-                    return false;
+            if (showLockScreenNotifications || showRaiseHandNotifications) {
+                final boolean lock = showLockScreenNotifications && !cc.pendingLockScreen();
+                final boolean raise = showRaiseHandNotifications && !cc.pendingRaiseHand();
+                if (showLockScreenNotifications && showRaiseHandNotifications) {
+                    return !(lock && raise);
+                } else {
+                    return !(lock || raise);
                 }
             }
             
@@ -308,7 +314,34 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
             return true;
         };
     }
-    
+
+    @Override
+    public ClientInstruction createQuitAllInstruction(final Long examId) {
+        try {
+
+            if (!examSessionService.isExamRunning(examId)) {
+                log.warn("Failed to create ClientInstruction for quit all for Exam: {} because Exam is not running", examId);
+                return null;
+            }
+
+            return clientConnectionDAO
+                    .getAllActiveConnectionTokens(examId)
+                    .map(tokens -> StringUtils.join(tokens, Constants.LIST_SEPARATOR))
+                    .map(allTokens -> new ClientInstruction(
+                            null,
+                            examId,
+                            ClientInstruction.InstructionType.SEB_QUIT,
+                            allTokens,
+                            null))
+                    .onError(error -> log.error("Failed to create ClientInstruction for quit all for Exam: {}. cause: {}", examId, error.getMessage()))
+                    .getOr(null);
+
+        } catch (Exception e) {
+            log.error("Failed to create ClientInstruction for quit all for Exam: {}", examId, e);
+            return null;
+        }
+    }
+
     private final static class IndicatorProbe {
         double battery_min = Double.MAX_VALUE;
         double wlan_min = Double.MAX_VALUE;

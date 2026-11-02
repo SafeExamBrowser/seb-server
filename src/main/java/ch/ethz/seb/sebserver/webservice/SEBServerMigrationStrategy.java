@@ -16,30 +16,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Component
-@WebServiceProfile
 public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
     private static final Logger log = LoggerFactory.getLogger(SEBServerMigrationStrategy.class);
 
     private final boolean cleanDBOnStartup;
-    private final WebserviceInfo webserviceInfo;
-    private final WebserviceInfoDAO webserviceInfoDAO;
+    private final ApplicationContext applicationContext;
     private Flyway flyway;
 
     public SEBServerMigrationStrategy(
-            final WebserviceInfo webserviceInfo,
-            final WebserviceInfoDAO webserviceInfoDAO,
+            final ApplicationContext applicationContext,
             @Value("${sebserver.webservice.clean-db-on-startup:false}") final boolean cleanDBOnStartup) {
 
-        this.webserviceInfo = webserviceInfo;
-        this.webserviceInfoDAO = webserviceInfoDAO;
+        this.applicationContext = applicationContext;
         this.cleanDBOnStartup = cleanDBOnStartup;
     }
 
@@ -49,12 +45,16 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
     }
 
     public void applyMigration() {
-        if (this.webserviceInfo.hasProfile("test")) {
+
+        final WebserviceInfo webserviceInfo = applicationContext.getBean(WebserviceInfo.class);
+        final WebserviceInfoDAO webserviceInfoDAO = applicationContext.getBean(WebserviceInfoDAO.class);
+
+        if (webserviceInfo.hasProfile("test")) {
             SEBServerInit.INIT_LOGGER.info("No migration applies for test profile");
             return;
         }
 
-        final String webserviceUUID = this.webserviceInfo.getWebserviceUUID();
+        final String webserviceUUID = webserviceInfo.getWebserviceUUID();
         try {
 
             SEBServerInit.INIT_LOGGER.info("----> ** Migration check START **");
@@ -72,16 +72,16 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
                 SEBServerInit.INIT_LOGGER.info("----> Found pending migrations: {}", pendingMigrations.length);
                 // If we are in a distributed setup only apply migration task if this is the master service
                 // or if there was no data base initialization yet at all.
-                if (this.webserviceInfo.isDistributed() && this.webserviceInfoDAO.isInitialized()) {
+                if (webserviceInfo.isDistributed() && webserviceInfoDAO.isInitialized()) {
 
                     SEBServerInit.INIT_LOGGER.info("----> This is distributed setup, check master...");
 
-                    if (this.webserviceInfoDAO.isInitialized()) {
-                        final boolean isMaster = this.webserviceInfoDAO.isMaster(webserviceUUID);
+                    if (webserviceInfoDAO.isInitialized()) {
+                        final boolean isMaster = webserviceInfoDAO.isMaster(webserviceUUID);
                         if (!isMaster) {
                             SEBServerInit.INIT_LOGGER.info(
                                     "----> Skip migration task since this is not a master instance: {}",
-                                    this.webserviceInfo.getWebserviceUUID());
+                                    webserviceInfo.getWebserviceUUID());
                         } else {
                             doMigration();
                         }
@@ -95,6 +95,15 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
                 SEBServerInit.INIT_LOGGER.info("----> No pending migrations found. Last migration --> {} --> {}",
                         info.current().getVersion(),
                         info.current().getDescription());
+
+                final ValidateResult validateWithResult = this.flyway.validateWithResult();
+                if (!validateWithResult.validationSuccessful) {
+                    SEBServerInit.INIT_LOGGER.warn("----> ");
+                    SEBServerInit.INIT_LOGGER.warn("----> VALIDATION OF DB MIGRATION SCHEMA FAILED:  \n\n" +
+                            validateWithResult.getAllErrorMessages() + "\n\n");
+
+                    tryRepair();
+                }
             }
 
             SEBServerInit.INIT_LOGGER.info("----> ** Migration check END **");
@@ -123,10 +132,8 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
             SEBServerInit.INIT_LOGGER.info("----> Migration validation checksum mismatch error detected: ");
             SEBServerInit.INIT_LOGGER.info("----> {}", validateWithResult.getAllErrorMessages());
-            SEBServerInit.INIT_LOGGER.info("----> Try to run repair task...");
 
-            this.flyway.repair();
-
+            tryRepair();
         }
 
         this.flyway.migrate();
@@ -139,5 +146,17 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
         SEBServerInit.INIT_LOGGER.info("----> **** End Migration **************************************");
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
     }
+
+    private void tryRepair() {
+        try {
+            SEBServerInit.INIT_LOGGER.info("----> Try to run repair migration task...");
+            this.flyway.repair();
+            SEBServerInit.INIT_LOGGER.info("----> Successfully repaired migration task!");
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("----> Failed to repair Migration due to: {}", e.getMessage());
+            SEBServerInit.INIT_LOGGER.info("----> Ignore it and go on, try again next time");
+        }
+    }
+
 
 }

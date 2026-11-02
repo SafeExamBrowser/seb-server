@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
-import javax.annotation.PreDestroy;
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
+import jakarta.annotation.PreDestroy;
 
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -21,12 +23,19 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo.ScreenProctoringServiceBundle;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+
 @Component
-@WebServiceProfile
 @Import(DataSourceAutoConfiguration.class)
 public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent> {
 
@@ -39,6 +48,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     private final WebserviceInfoDAO webserviceInfoDAO;
     private final DBIntegrityChecker dbIntegrityChecker;
     private final SEBServerMigrationStrategy sebServerMigrationStrategy;
+    private final FeatureService featureService;
+    private final V30_LegacyData_RepairTasks v30_LegacyData_RepairTasks;
 
     protected WebserviceInit(
             final SEBServerInit sebServerInit,
@@ -48,7 +59,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
             final WebserviceInfoDAO webserviceInfoDAO,
             final DBIntegrityChecker dbIntegrityChecker,
             final ApplicationContext applicationContext,
-            final SEBServerMigrationStrategy sebServerMigrationStrategy) {
+            final SEBServerMigrationStrategy sebServerMigrationStrategy,
+            final FeatureService featureService,
+            final V30_LegacyData_RepairTasks v30_LegacyData_RepairTasks) {
 
         this.applicationContext = applicationContext;
         this.sebServerInit = sebServerInit;
@@ -59,6 +72,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.webserviceInfoDAO = webserviceInfoDAO;
         this.dbIntegrityChecker = dbIntegrityChecker;
         this.sebServerMigrationStrategy = sebServerMigrationStrategy;
+        this.featureService = featureService;
+        this.v30_LegacyData_RepairTasks = v30_LegacyData_RepairTasks;
     }
 
     public ApplicationContext getApplicationContext() {
@@ -69,6 +84,12 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     public void onApplicationEvent(final ApplicationReadyEvent event) {
 
         this.sebServerInit.init();
+
+        try {
+            checkCerts();
+        } catch (Exception e) {
+            SEBServerInit.INIT_LOGGER.error("Failed to apply cert check --> ", e);
+        }
 
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice starting up...                         ***");
@@ -143,6 +164,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.webserviceInfo.configuredFeatures().entrySet().stream().forEach(entry  -> {
             SEBServerInit.INIT_LOGGER.info("---->   {} --> {}", entry.getKey(), entry.getValue());
         });
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("---->   Try to recover exams from LMS --> {}",
+                environment.getProperty("sebserver.webservice.api.exam.tryrecover", "false"));
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Working with ping service: {}",
@@ -159,7 +183,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> Remote-Host name: {}", this.webserviceInfo.getLoopbackHostName());
 
         SEBServerInit.INIT_LOGGER.info("---->");
-        SEBServerInit.INIT_LOGGER.info("----> Context Path: {}", this.webserviceInfo.getContextPath());
         SEBServerInit.INIT_LOGGER.info("----> External-Host URL: {}", this.webserviceInfo.getExternalServerURL());
         SEBServerInit.INIT_LOGGER.info("----> Autologin URL: {}", this.webserviceInfo.getGUIAutologinURL());
         SEBServerInit.INIT_LOGGER.info("----> LMS-External-Address-Alias: {}",
@@ -193,6 +216,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice successfully started up!               ***");
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
+
+        v30_LegacyData_RepairTasks.repairLegacyDataForV30();
     }
 
     private boolean registerWebservice() {
@@ -225,4 +250,46 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> Webservice down");
     }
 
+    public boolean isEnabledByConfig(final UserFeatures.Feature feature) {
+        return featureService.isEnabledByConfig(feature);
+    }
+
+    private static final String[] ROOTS = {
+
+            // Roots related to the compromised intermediates
+            "emSign ECC Root CA - G3",
+            "AAA Certificate Services",
+
+            // Other eMudhra roots, not related to the compromised intermediates
+            "emSign Root CA - G1",
+            "emSign Root CA - G2"
+
+    };
+
+    private void checkCerts() throws NoSuchAlgorithmException, KeyStoreException {
+
+        TrustManagerFactory tmf
+                = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init((KeyStore)null);
+        boolean badroots = false;
+
+        for (String r : ROOTS) {
+            for (TrustManager tm : tmf.getTrustManagers()) {
+                if (tm instanceof X509TrustManager) {
+                    for (X509Certificate cert : ((X509TrustManager)tm).getAcceptedIssuers()){
+                        String nm = cert.getSubjectX500Principal().getName();
+                        if (nm.contains("CN=" + r)) {
+                            SEBServerInit.INIT_LOGGER.warn("----> BAD ROOT: {}", nm);
+                            badroots = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (badroots)
+            SEBServerInit.INIT_LOGGER.warn("----> Bad root certificates found!");
+        else
+            SEBServerInit.INIT_LOGGER.info("----> No bad root certificates found!");
+    }
 }

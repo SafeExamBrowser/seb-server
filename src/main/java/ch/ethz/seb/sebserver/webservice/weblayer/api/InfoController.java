@@ -9,9 +9,10 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.webservice.WebserviceConfig;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,47 +23,35 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-@WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.INFO_ENDPOINT)
-@SecurityRequirement(name = WebserviceConfig.SWAGGER_AUTH_ADMIN_API)
+@Tag(name = "Info", description = "Public server information endpoints.")
 public class InfoController {
 
     private final InstitutionDAO institutionDAO;
     private final AuthorizationService authorizationGrantService;
+    private final WebserviceInfo webserviceInfo;
 
     protected InfoController(
             final InstitutionDAO institutionDAO,
-            final AuthorizationService authorizationGrantService) {
+            final AuthorizationService authorizationGrantService,
+            final WebserviceInfo webserviceInfo) {
 
         this.institutionDAO = institutionDAO;
         this.authorizationGrantService = authorizationGrantService;
+        this.webserviceInfo = webserviceInfo;
     }
 
-    @RequestMapping(
-            path = API.INSTITUTIONAL_LOGO_PATH,
-            method = RequestMethod.GET,
-            produces = MediaType.IMAGE_PNG_VALUE + ";base64")
-    public String logo(@PathVariable final String urlSuffix) {
-        if (urlSuffix == null) {
-            return null;
-        }
 
-        return this.institutionDAO
-                .all(null, true)
-                .getOrThrow()
-                .stream()
-                .filter(inst -> urlSuffix.equals(inst.urlSuffix))
-                .findFirst()
-                .map(inst -> inst.logoImage)
-                .orElse(null);
-    }
-
+    @Operation(
+            operationId = "getInstitutionInfo",
+            summary = "Gets the names of all active institutions for selection.",
+            description = "Publicly reachable; it backs the institution selection of the self-registration page.")
     @RequestMapping(
             path = API.INFO_INST_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -77,28 +66,23 @@ public class InfoController {
                 .collect(Collectors.toList());
     }
 
-    @RequestMapping(
-            path = API.INFO_INST_ENDPOINT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<EntityName> getInstitutionInfo(@PathVariable final String urlSuffix) {
-        return this.institutionDAO
-                .all(null, true)
-                .getOrThrow()
-                .stream()
-                .filter(inst -> BooleanUtils.isTrue(inst.active) &&
-                        inst.urlSuffix != null &&
-                        urlSuffix.equals(inst.urlSuffix))
-                .map(inst -> new EntityName(inst.getEntityKey(), inst.name))
-                .collect(Collectors.toList());
-    }
 
+    @Operation(hidden = true)
     @RequestMapping(
             path = API.PRIVILEGES_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<Privilege> privileges() {
         return this.authorizationGrantService.getAllPrivileges();
+    }
+
+    @Operation(hidden = true)
+    @RequestMapping(
+            path =  API.FEATURES_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Boolean> getServiceFeatures() {
+        return webserviceInfo.configuredFeatures();
     }
 
 }

@@ -10,17 +10,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
@@ -38,7 +35,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientConnectionTokenMapper;
@@ -62,11 +58,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
-import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
@@ -600,11 +594,27 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
         return Result.tryCatch(() -> {
             UpdateDSL.updateWithMapper(
-                    this.clientConnectionRecordMapper::update,
-                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                            this.clientConnectionRecordMapper::update,
+                            ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId).equalTo(groupId)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                    .build()
+                    .execute();
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Integer> clearAllGroupAssignments(final Long examId) {
+        return Result.tryCatch(() -> {
+            return UpdateDSL.updateWithMapper(
+                            this.clientConnectionRecordMapper::update,
+                            ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId).equalToNull()
+                    .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId).equalToNull()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
                     .build()
                     .execute();
         })
@@ -717,7 +727,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 throw new IllegalStateException("Only one ClientConnection expected but there are: " + list.size());
             }
 
-            return list.get(0);
+            return list.getFirst();
         })
                 .flatMap(ClientConnectionDAOImpl::toDomainModel);
     }
@@ -836,7 +846,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, clientName);
             }
 
-            return records.get(0);
+            return records.getFirst();
         });
     }
 
@@ -960,6 +970,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<Collection<EntityKey>> deleteAllForExam(final Long examId) {
         return Result.<Collection<EntityKey>> tryCatch(() -> {
 
+            log.info("Delete all client connection for Exam: {}", examId);
+
             final List<Long> ids = this.clientConnectionRecordMapper.selectIdsByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
                     .build()
@@ -983,6 +995,74 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .collect(Collectors.toList());
         })
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long numberOfConnectionsOfExam(final Long examId) {
+        try {
+            return clientConnectionRecordMapper
+                    .countByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(examId))
+                    .build()
+                    .execute();
+        } catch (Exception e) {
+            log.error("Failed to get number of connections for exam with id: {}", examId);
+            return -1L;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnectionRecord>> getAllForUserSessionNameLike(String searchName) {
+        return Result.tryCatch(() -> {
+            return clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examUserSessionId, SqlBuilder.isLike(Utils.toSQLWildcard(searchName)))
+                    .build()
+                    .execute();
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Map<Long, String>> getAllIdsForConnectionTokens(final Long examId, final Set<String> connectionTokens) {
+        return Result.tryCatch(() -> {
+            if (connectionTokens == null || connectionTokens.isEmpty()) {
+                return Collections.emptyMap();
+            }
+
+            return clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .and(ClientConnectionRecordDynamicSqlSupport.connectionToken, isIn(connectionTokens))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Collectors.toMap(ClientConnectionRecord::getId, ClientConnectionRecord::getConnectionToken));
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long numberOfConnectionForSPSGroup(final ScreenProctoringGroup screenProctoringGroup) {
+        try {
+
+            return clientConnectionRecordMapper
+                    .countByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(screenProctoringGroup.examId))
+                    .and(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId, isEqualTo(screenProctoringGroup.id))
+                    .build()
+                    .execute();
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to get number of client connection for ScreenProctoringGroup: {} error: {}",
+                    screenProctoringGroup.name,
+                    e.getMessage());
+
+            return 0;
+        }
     }
 
     private Result<ClientConnectionRecord> recordById(final Long id) {
@@ -1168,7 +1248,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .map(ClientConnectionRecord::getConnectionToken)
                 .collect(Collectors.toList());
 
-        if (connectionTokens != null && !connectionTokens.isEmpty()) {
+        if (!connectionTokens.isEmpty()) {
 
             this.clientInstructionRecordMapper.deleteByExample()
                     .where(

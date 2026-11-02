@@ -20,7 +20,6 @@ import org.springframework.validation.Validator;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
 
@@ -30,7 +29,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
  * On validation error BeanValidationException is used to collect all validation issues
  * and report them within the Result. */
 @Service
-@WebServiceProfile
 public class BeanValidationService {
 
     private final Validator validator;

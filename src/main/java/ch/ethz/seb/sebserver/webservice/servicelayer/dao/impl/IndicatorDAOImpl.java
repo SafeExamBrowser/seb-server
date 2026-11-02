@@ -32,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
@@ -50,7 +49,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class IndicatorDAOImpl implements IndicatorDAO {
 
     private final IndicatorRecordMapper indicatorRecordMapper;
@@ -280,10 +278,12 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .execute();
 
             // then delete all indicators
-            this.indicatorRecordMapper.deleteByExample()
+            Integer execute = this.indicatorRecordMapper.deleteByExample()
                     .where(IndicatorRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
+
+            log.info("Deleted {} indicators for Exam: {}", execute, examId);
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.INDICATOR))

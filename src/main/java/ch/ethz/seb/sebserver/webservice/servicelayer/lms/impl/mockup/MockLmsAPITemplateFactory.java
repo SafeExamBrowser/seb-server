@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
@@ -24,7 +23,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdap
 
 @Lazy
 @Service
-@WebServiceProfile
 public class MockLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
     private final AsyncService asyncService;

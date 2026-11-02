@@ -67,7 +67,7 @@ public class ClientHttpRequestFactoryServiceTest {
         instance = clientHttpRequestFactory.get();
         assertTrue(instance instanceof HttpComponentsClientHttpRequestFactory);
 
-        Mockito.when(this.environment.getActiveProfiles()).thenReturn(new String[] { "prod-gui", "prod-ws" });
+        Mockito.when(this.environment.getActiveProfiles()).thenReturn(new String[] { "prod" });
 
         clientHttpRequestFactory = clientHttpRequestFactoryService
                 .getClientHttpRequestFactory();

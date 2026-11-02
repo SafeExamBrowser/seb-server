@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -45,7 +44,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.QuizLookupService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class QuizLookupServiceImpl implements QuizLookupService {
 
     private static final Logger log = LoggerFactory.getLogger(QuizLookupServiceImpl.class);

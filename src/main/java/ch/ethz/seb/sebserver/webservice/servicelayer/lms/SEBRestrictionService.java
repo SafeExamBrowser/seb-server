@@ -12,8 +12,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsSetupChangeEvent;
-import org.springframework.context.event.EventListener;
 
 public interface SEBRestrictionService {
 
@@ -68,8 +66,9 @@ public interface SEBRestrictionService {
      *         to the LMS */
     boolean checkSebRestrictionSet(Exam exam);
 
-    @EventListener(LmsSetupChangeEvent.class)
-    void notifyLmsSetupChange(final LmsSetupChangeEvent event);
+    Result<Long> processLmsSetupActivation(Long lmsSetupId);
+
+    Result<Long> processLmsSetupDeactivation(Long lmsSetupId);
 
     Result<LmsSetup> releaseAllRestrictionsOf(LmsSetup lmsSetup);
 

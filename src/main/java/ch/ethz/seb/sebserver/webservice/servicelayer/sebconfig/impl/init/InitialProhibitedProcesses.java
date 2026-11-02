@@ -19,11 +19,9 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class InitialProhibitedProcesses implements AdditionalDefaultValueProvider {
 
     private final String configFile;
@@ -50,6 +48,10 @@ public class InitialProhibitedProcesses implements AdditionalDefaultValueProvide
                     configurationId,
                     attributeResolver,
                     this.configFile);
+
+            if (cache.isEmpty()) {
+                cache = null;
+            }
         }
 
         if (this.cache == null) {

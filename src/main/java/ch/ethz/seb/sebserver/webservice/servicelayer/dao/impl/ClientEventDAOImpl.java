@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
@@ -49,7 +48,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientNotification
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ClientEventDAOImpl implements ClientEventDAO {
 
     private final ClientEventRecordMapper clientEventRecordMapper;
@@ -257,7 +255,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         "Failed to find pending notification event for confirm:" + notificationValueId);
             }
 
-            return records.get(0);
+            return records.getFirst();
         })
                 .flatMap(ClientEventDAOImpl::toDomainModel);
     }
@@ -274,6 +272,21 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                 .stream()
                 .map(ClientEventDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Result<List<ClientNotification>> getPendingLockScreenNotifications(Set<Long> connectionIds) {
+        return Result.tryCatch(() -> this.clientNotificationRecordMapper
+                .selectByExample()
+                .where(ClientNotificationRecordDynamicSqlSupport.clientConnectionId, isIn(connectionIds))
+                .and(ClientNotificationRecordDynamicSqlSupport.eventType, isEqualTo(EventType.NOTIFICATION.id))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientEventDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .filter(notification -> notification.notificationType == NotificationType.LOCK_SCREEN)
                 .collect(Collectors.toList()));
     }
 

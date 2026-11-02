@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamArchivedEvent;
@@ -28,7 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
@@ -36,9 +37,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
+import java.util.Collection;
+import java.util.function.Predicate;
+
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamAdminServiceImpl implements ExamAdminService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAdminServiceImpl.class);
@@ -115,6 +118,21 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
+    public Result<Collection<Exam>> getFilteredFinishedExams(
+            final FilterMap filterMap,
+            final Predicate<Exam> predicate) {
+
+        filterMap.putIfAbsent(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
+
+        return this.examDAO.getExamsForStatus(
+                filterMap,
+                predicate,
+                ExamStatus.FINISHED,
+                ExamStatus.ARCHIVED);
+    }
+
+
+    @Override
     public Result<Boolean> isRestricted(final Exam exam) {
         if (exam == null || exam.lmsSetupId == null) {
             return Result.of(false);
@@ -173,6 +191,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 });
     }
 
+
     @Override
     public Result<Exam> enableScreenProctoringForExam(final Exam exam, final boolean enableSP) {
         return Result.tryCatch(() -> {
@@ -190,11 +209,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     new ScreenProctoringSettings(
                             settings.examId,
                             enableSP,
-                            settings.spsServiceURL,
-                            settings.spsAPIKey,
-                            settings.spsAPISecret,
-                            settings.spsAccountId,
-                            settings.spsAccountPassword,
                             settings.collectingStrategy,
                             defaultGroupName,
                             settings.collectingGroupSize,
@@ -223,22 +237,13 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final String clientGroupSelection = StringUtils.isNotBlank(groupIds)
                     ? groupIds
                     : null;
-            
-            final CollectingStrategy strategy = (clientGroupSelection == null) 
-                    ? CollectingStrategy.EXAM
-                    : CollectingStrategy.APPLY_SEB_GROUPS;
 
             proctoringAdminService.saveScreenProctoringSettings(
                     exam.getEntityKey(),
                     new ScreenProctoringSettings(
                             settings.examId,
                             true,
-                            settings.spsServiceURL,
-                            settings.spsAPIKey,
-                            settings.spsAPISecret,
-                            settings.spsAccountId,
-                            settings.spsAccountPassword,
-                            strategy,
+                            settings.collectingStrategy,
                             defaultGroupName,
                             settings.collectingGroupSize,
                             clientGroupSelection,
@@ -280,29 +285,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<Exam> resetProctoringSettings(final Exam exam) {
-
-        // first delete all proctoring settings
-
-        return getProctoringServiceSettings(exam.id)
-                .map(settings -> {
-                    final ProctoringServiceSettings resetSettings;
-                    if (exam.examTemplateId != null) {
-                        // get settings from origin template
-                        resetSettings = this.proctoringAdminService
-                                .getProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE))
-                                .map(template -> new ProctoringServiceSettings(exam.id, template))
-                                .getOr(new ProctoringServiceSettings(exam.id));
-                    } else {
-                        // create new reseted settings
-                        resetSettings = new ProctoringServiceSettings(exam.id);
-                    }
-                    return resetSettings;
-                }).flatMap(settings -> saveProctoringServiceSettings(exam.id, settings))
-                .map(settings -> exam);
-    }
-
-    @Override
     public Result<Exam>  notifyExamSaved(final Exam exam) {
         return Result.tryCatch(() -> {
             updateAdditionalExamConfigAttributes(exam.id);
@@ -332,7 +314,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     public Result<Exam> archiveExam(final Exam exam) {
         return Result.tryCatch(() -> {
 
-            if (exam.status != ExamStatus.FINISHED) {
+            if (exam.status == ExamStatus.UP_COMING || exam.status == ExamStatus.TEST_RUN) {
                 throw new APIMessageException(
                         APIMessage.ErrorMessage.INTEGRITY_VALIDATION.of("Exam is in wrong status to archive."));
             }
@@ -368,7 +350,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             this.configurationNodeDAO.save(
                                     new ConfigurationNode(
                                             configNodeId, null, null, null, null, null,
-                                            null, ConfigurationStatus.ARCHIVED, null, null))
+                                            null, ConfigurationStatus.ARCHIVED, null, null, null))
                                     .onError(error -> log.error("Failed to set exam configuration to archived state: ",
                                             error));
                         }

@@ -26,6 +26,7 @@ public class MockupFullIntegration implements FullLmsIntegrationAPI {
 
     @Override
     public boolean fullIntegrationActive() {
+
         return true;
     }
 
@@ -40,7 +41,7 @@ public class MockupFullIntegration implements FullLmsIntegrationAPI {
         return Result.tryCatch(() -> {
             
             log.info("Apply Connection Details: {}", data);
-            
+
             // validation
             if (StringUtils.isBlank( data.id)) {
                 throw new APIMessage.FieldValidationException("lmsFullIntegration:id", "id is mandatory");
@@ -73,6 +74,7 @@ public class MockupFullIntegration implements FullLmsIntegrationAPI {
 
     @Override
     public Result<String> deleteConnectionDetails() {
+       //throw new RuntimeException("************ Test");
         log.info("Delete Connection Details");
         return Result.of("0");
     }

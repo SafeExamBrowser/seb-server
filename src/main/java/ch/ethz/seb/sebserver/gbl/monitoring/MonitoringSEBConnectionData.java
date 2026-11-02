@@ -12,14 +12,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -41,20 +39,6 @@ public class MonitoringSEBConnectionData {
 
     @JsonProperty(ATTR_ISSUE_MAPPING)
     public final int[] connectionPerIssue;
-
-
-    @JsonCreator
-    public MonitoringSEBConnectionData(
-            @JsonProperty(ATTR_CONNECTIONS) final Collection<ClientMonitoringData> connections,
-            @JsonProperty(ATTR_STATUS_MAPPING) final int[] connectionsPerStatus,
-            @JsonProperty(ATTR_ISSUE_MAPPING) final int[] connectionPerIssue,
-            @JsonProperty(ATTR_CLIENT_GROUP_MAPPING) final Map<Long, Integer> connectionsPerClientGroup) {
-
-        this.monitoringData = connections;
-        this.connectionsPerStatus = connectionsPerStatus;
-        this.connectionPerIssue = connectionPerIssue;
-        this.connectionsPerClientGroup = connectionsPerClientGroup;
-    }
 
     public MonitoringSEBConnectionData(
             final int[] connectionsPerStatus,
@@ -102,15 +86,13 @@ public class MonitoringSEBConnectionData {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("MonitoringSEBConnectionData [connections=");
-        builder.append(this.monitoringData);
-        builder.append(", connectionsPerStatus=");
-        builder.append(Arrays.toString(this.connectionsPerStatus));
-        builder.append(", connectionsPerClientGroup=");
-        builder.append(this.connectionsPerClientGroup);
-        builder.append("]");
-        return builder.toString();
+        return "MonitoringSEBConnectionData [connections=" +
+                this.monitoringData +
+                ", connectionsPerStatus=" +
+                Arrays.toString(this.connectionsPerStatus) +
+                ", connectionsPerClientGroup=" +
+                this.connectionsPerClientGroup +
+                "]";
     }
 
 }

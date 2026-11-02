@@ -13,6 +13,8 @@ import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateChangeEvent;
+import org.springframework.context.event.EventListener;
 
 public interface ExamConfigUpdateService {
 
@@ -77,6 +79,6 @@ public interface ExamConfigUpdateService {
      * @param configurationNodeId the identifier of the SEB Exam configuration
      * @return Result refer to a list of identifiers of involved Exams or refer to an error on integrity violation or
      *         processing error */
-    Result<Collection<Long>> checkRunningExamIntegrity(final Long configurationNodeId);
+    Result<Collection<Long>> checkRunningExamIntegrity(Long configurationNodeId);
 
 }

@@ -21,7 +21,6 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -32,7 +31,6 @@ import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExamConfigStateChange implements BatchActionExec {
 
     private final ExamConfigService sebExamConfigService;
@@ -74,7 +72,7 @@ public class ExamConfigStateChange implements BatchActionExec {
                         node.id, null, null, null, null, null, null,
                         getTargetState(batchAction.attributes),
                         Utils.toDateTimeUTC(Utils.getMillisecondsNow()),
-                        batchAction.ownerId))
+                        batchAction.ownerId, null))
                 .flatMap(this.sebExamConfigService::checkSaveConsistency)
                 .flatMap(this.configurationNodeDAO::save)
                 .map(Entity::getEntityKey);

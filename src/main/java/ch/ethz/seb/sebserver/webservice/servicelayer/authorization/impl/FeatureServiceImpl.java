@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class FeatureServiceImpl implements FeatureService {
 
     private final Environment environment;

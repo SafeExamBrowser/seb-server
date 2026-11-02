@@ -37,7 +37,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
@@ -47,7 +46,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private final LmsSetupRecordMapper lmsSetupRecordMapper;
@@ -210,31 +208,27 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional
     public Result<LmsSetup> save(final LmsSetup lmsSetup) {
-        return Result.tryCatch(() -> {
+        return recordById(lmsSetup.id)
+                .map(rec -> {
 
-            checkUniqueName(lmsSetup);
+                    UpdateDSL.updateWithMapper(lmsSetupRecordMapper::update, lmsSetupRecord)
+                            .set(name).equalTo(lmsSetup.name)
+                            .set(lmsUrl).equalTo(lmsSetup.lmsApiUrl)
+                            .set(lmsClientname).equalTo(lmsSetup.lmsAuthName)
+                            .set(lmsClientsecret).equalTo(this.encryptForSave(lmsSetup.lmsAuthSecret))
+                            .set(lmsRestApiToken).equalTo(this.encryptForSave(lmsSetup.lmsRestApiToken))
+                            .set(lmsProxyHost).equalTo(lmsSetup.getProxyHost())
+                            .set(lmsProxyPort).equalTo(lmsSetup.getProxyPort())
+                            .set(lmsProxyAuthUsername).equalTo(lmsSetup.proxyAuthUsername)
+                            .set(lmsProxyAuthSecret).equalTo(this.encryptForSave(lmsSetup.proxyAuthSecret))
+                            .set(updateTime).equalTo(System.currentTimeMillis())
+                            .set(connectionId).equalToWhenPresent(createConnectionIdIfNotExists(lmsSetup.id))
+                            .where(LmsSetupRecordDynamicSqlSupport.id, isIn(lmsSetup.id))
+                            .build()
+                            .execute();
 
-            final LmsSetupRecord newRecord = new LmsSetupRecord(
-                    lmsSetup.id,
-                    lmsSetup.institutionId,
-                    lmsSetup.name,
-                    (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
-                    lmsSetup.lmsApiUrl,
-                    lmsSetup.lmsAuthName,
-                    this.encryptForSave(lmsSetup.lmsAuthSecret),
-                    this.encryptForSave(lmsSetup.lmsRestApiToken),
-                    lmsSetup.getProxyHost(),
-                    lmsSetup.getProxyPort(),
-                    lmsSetup.proxyAuthUsername,
-                    this.encryptForSave(lmsSetup.proxyAuthSecret),
-                    System.currentTimeMillis(),
-                    null,
-                    createConnectionIdIfNotExists(lmsSetup.id),
-                    null);
-
-            this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
-        })
+                    return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
+                })
                 .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
@@ -465,13 +459,13 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getName(),
                 LmsType.valueOf(record.getLmsType()),
                 record.getLmsClientname(),
-                record.getLmsClientsecret(),
+                decryptForView(record.getLmsClientsecret()),
                 record.getLmsUrl(),
-                record.getLmsRestApiToken(),
+                decryptForView(record.getLmsRestApiToken()),
                 record.getLmsProxyHost(),
                 record.getLmsProxyPort(),
                 record.getLmsProxyAuthUsername(),
-                record.getLmsProxyAuthSecret(),
+                decryptForView(record.getLmsProxyAuthSecret()),
                 BooleanUtils.toBooleanObject(record.getActive()),
                 record.getUpdateTime(),
                 record.getConnectionId(),
@@ -488,6 +482,17 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         } else {
             return input;
         }
+    }
+
+    private String decryptForView(final String input) {
+        if (StringUtils.isBlank(input)) {
+            return input;
+        }
+
+        return this.clientCredentialService
+                .decrypt(input)
+                .map(String::valueOf)
+                .getOr(input);
     }
 
     // check if same name already exists for the same institution

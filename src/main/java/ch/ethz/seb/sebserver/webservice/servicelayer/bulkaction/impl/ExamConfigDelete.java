@@ -7,7 +7,6 @@ import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionExec;
@@ -23,7 +22,6 @@ import java.util.Map;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExamConfigDelete implements BatchActionExec {
 
     private final ConfigurationNodeDAO configurationNodeDAO;

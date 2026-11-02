@@ -12,8 +12,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.CLIENT_GROUP;
 public class ClientGroupTemplate implements ClientGroupData {
 
     public static final String ATTR_EXAM_TEMPLATE_ID = "examTemplateId";
+    public static final String ATTR_NAME_SPS_ENABLED = "screenProctoringEnabled";
 
     @JsonProperty(CLIENT_GROUP.ATTR_ID)
     public final Long id;
@@ -68,6 +69,9 @@ public class ClientGroupTemplate implements ClientGroupData {
     @JsonProperty(ATTR_NAME_RANGE_END_LETTER)
     public final String nameRangeEndLetter;
 
+    @JsonProperty(ATTR_NAME_SPS_ENABLED)
+    public final Boolean screenProctoringEnabled;
+
     @JsonCreator
     public ClientGroupTemplate(
             @JsonProperty(CLIENT_GROUP.ATTR_ID) final Long id,
@@ -80,7 +84,8 @@ public class ClientGroupTemplate implements ClientGroupData {
             @JsonProperty(ClientGroup.ATTR_IP_RANGE_END) final String ipRangeEnd,
             @JsonProperty(ClientGroup.ATTR_CLIENT_OS) final ClientOS clientOS,
             @JsonProperty(ATTR_NAME_RANGE_START_LETTER) final String nameRangeStartLetter,
-            @JsonProperty(ATTR_NAME_RANGE_END_LETTER) final String nameRangeEndLetter) {
+            @JsonProperty(ATTR_NAME_RANGE_END_LETTER) final String nameRangeEndLetter,
+            @JsonProperty(ATTR_NAME_SPS_ENABLED) final Boolean screenProctoringEnabled) {
 
         super();
         this.id = id;
@@ -94,6 +99,7 @@ public class ClientGroupTemplate implements ClientGroupData {
         this.clientOS = clientOS;
         this.nameRangeStartLetter = nameRangeStartLetter;
         this.nameRangeEndLetter = nameRangeEndLetter;
+        this.screenProctoringEnabled = screenProctoringEnabled;
     }
 
     public ClientGroupTemplate(final Long id, final Long examTemplateId, final POSTMapper postParams) {
@@ -109,6 +115,7 @@ public class ClientGroupTemplate implements ClientGroupData {
         this.clientOS = postParams.getEnum(ClientGroup.ATTR_CLIENT_OS, ClientOS.class);
         this.nameRangeStartLetter = postParams.getString(ATTR_NAME_RANGE_START_LETTER);
         this.nameRangeEndLetter = postParams.getString(ATTR_NAME_RANGE_END_LETTER);
+        this.screenProctoringEnabled = postParams.getBoolean(ATTR_NAME_SPS_ENABLED);
     }
 
     public ClientGroupTemplate(final Long id, final ClientGroupTemplate other) {
@@ -124,6 +131,23 @@ public class ClientGroupTemplate implements ClientGroupData {
         this.clientOS = other.clientOS;
         this.nameRangeStartLetter = other.nameRangeStartLetter;
         this.nameRangeEndLetter = other.nameRangeEndLetter;
+        this.screenProctoringEnabled = other.screenProctoringEnabled;
+    }
+
+    public ClientGroupTemplate(final Boolean spsEnabled, final ClientGroupTemplate other) {
+        super();
+        this.id = other.id;
+        this.examTemplateId = other.examTemplateId;
+        this.name = other.name;
+        this.type = other.type;
+        this.color = other.color;
+        this.icon = other.icon;
+        this.ipRangeStart = other.ipRangeStart;
+        this.ipRangeEnd = other.ipRangeEnd;
+        this.clientOS = other.clientOS;
+        this.nameRangeStartLetter = other.nameRangeStartLetter;
+        this.nameRangeEndLetter = other.nameRangeEndLetter;
+        this.screenProctoringEnabled = spsEnabled;
     }
 
     @Override
@@ -163,6 +187,10 @@ public class ClientGroupTemplate implements ClientGroupData {
 
     public Long getExamTemplateId() {
         return this.examTemplateId;
+    }
+
+    public Boolean getScreenProctoringEnabled() {
+        return screenProctoringEnabled;
     }
 
     @Override
@@ -208,17 +236,11 @@ public class ClientGroupTemplate implements ClientGroupData {
 
     @JsonIgnore
     public String getData() {
-        switch (this.type) {
-            case IP_V4_RANGE: {
-                return this.ipRangeStart + Constants.EMBEDDED_LIST_SEPARATOR + this.ipRangeEnd;
-            }
-            case CLIENT_OS: {
-                return this.clientOS.name();
-            }
-            default: {
-                return StringUtils.EMPTY;
-            }
-        }
+        return switch (this.type) {
+            case IP_V4_RANGE -> this.ipRangeStart + Constants.EMBEDDED_LIST_SEPARATOR + this.ipRangeEnd;
+            case CLIENT_OS -> this.clientOS.name();
+            default -> StringUtils.EMPTY;
+        };
     }
 
     @Override
@@ -235,6 +257,7 @@ public class ClientGroupTemplate implements ClientGroupData {
                 ", clientOS=" + clientOS +
                 ", nameRangeStartLetter=" + nameRangeStartLetter +
                 ", nameRangeEndLetter=" + nameRangeEndLetter +
+                ", screenProctoringEnabled=" + screenProctoringEnabled +
                 '}';
     }
 

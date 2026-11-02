@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -22,11 +23,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** This class defines API error messages that are created and responded on error and/or exceptional
  * cases within the web-service. */
+@Schema(
+        name = "APIMessage",
+        description = "Structured SEB Server API error or validation message.")
 public class APIMessage implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -6858683658311637361L;
 
     /** An enumeration of error messages defining the error code, the HTTP status for the response
@@ -133,7 +139,7 @@ public class APIMessage implements Serializable {
         public ResponseEntity<List<APIMessage>> createErrorResponse() {
             final APIMessage message = of();
             return new ResponseEntity<>(
-                    Arrays.asList(message),
+                    List.of(message),
                     Utils.createJsonContentHeader(),
                     this.httpStatus);
         }
@@ -141,25 +147,29 @@ public class APIMessage implements Serializable {
         public ResponseEntity<Object> createErrorResponse(final String details, final String... attributes) {
             final APIMessage message = of(details, attributes);
             return new ResponseEntity<>(
-                    Arrays.asList(message),
+                    List.of(message),
                     Utils.createJsonContentHeader(),
                     this.httpStatus);
         }
     }
 
     /** A specific message code that can be used to identify the type of message */
+    @Schema(description = "Stable SEB Server message code.", example = "1200", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty("messageCode")
     public final String messageCode;
 
     /** A short system message that describes the cause */
+    @Schema(description = "Short backend-defined message for the error.", example = "Field validation error")
     @JsonProperty("systemMessage")
     public final String systemMessage;
 
     /** Message details */
+    @Schema(description = "Optional technical details for diagnostics.", nullable = true)
     @JsonProperty("details")
     public final String details;
 
     /** A list of additional attributes */
+    @Schema(description = "Optional message attributes, usually field names or validation context.")
     @JsonProperty("attributes")
     public final List<String> attributes;
 
@@ -249,6 +259,7 @@ public class APIMessage implements Serializable {
      * and send as response. */
     public static class APIMessageException extends RuntimeException implements APIMessageError {
 
+        @Serial
         private static final long serialVersionUID = 1453431210820677296L;
 
         private final Collection<APIMessage> apiMessages;
@@ -324,6 +335,7 @@ public class APIMessage implements Serializable {
      * and send as response. */
     public static class FieldValidationException extends RuntimeException {
 
+        @Serial
         private static final long serialVersionUID = 3324566460573096815L;
 
         public final APIMessage apiMessage;

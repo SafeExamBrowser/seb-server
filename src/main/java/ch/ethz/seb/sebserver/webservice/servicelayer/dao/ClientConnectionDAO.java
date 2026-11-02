@@ -9,8 +9,13 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionInfo;
+import ch.ethz.seb.sebserver.gbl.model.session.SessionDeletionReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -150,6 +155,13 @@ public interface ClientConnectionDAO extends
             key = "#connectionToken")
     Result<Void> assignToScreenProctoringGroup(Long connectionId, String connectionToken, Long groupId);
 
+    /** This is used to clear all group assignments for all client connections of a given exam
+     * screen proctoring and remote proctoring. This usually is used before group deletion for the exam
+     * to avoid DB constraint violation since this groups references are constraint.
+     *
+     * @param examId The exam identifier for witch exam all client-connection should be cleared for group references
+     * @return number of affected client connections */
+    Result<Integer> clearAllGroupAssignments(Long examId);
     
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
@@ -255,5 +267,22 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the list of deleted client connections or to an error when happened */
     Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
-    
+    Long numberOfConnectionsOfExam(Long examId);
+
+    Result<Collection<ClientConnectionRecord>> getAllForUserSessionNameLike(String searchName);
+
+    /** Get all PK ids for given connection tokens and map the PK to the connection token.
+     *  If there is no connection for a given connection token, the request is ignored and no PK is added to the result set.
+     *  So it is possible that the result is a set of less PKs then the given set of connection tokens
+     *
+     * @param connectionTokens Set of connectinTokens to get the ids from
+     * @param examId The exam id
+     * @return Map of all ids extracted PKs from the given set of connection tokens */
+    Result<Map<Long, String>> getAllIdsForConnectionTokens(Long examId, Set<String> connectionTokens);
+
+    /** Get the total number of client connections (in any state) that are attached to the given SPS group.
+     *
+     * @param screenProctoringGroup The ScreenProctoringGroup to get numbers of connections for
+     * @return total number of client connections (in any state) that are attached to the given SPS group. */
+    long numberOfConnectionForSPSGroup(ScreenProctoringGroup screenProctoringGroup);
 }

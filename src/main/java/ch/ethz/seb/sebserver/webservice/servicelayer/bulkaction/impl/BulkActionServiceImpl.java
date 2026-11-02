@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionEntityException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
@@ -42,7 +41,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSuppor
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 
 @Service
-@WebServiceProfile
 public class BulkActionServiceImpl implements BulkActionService {
 
     private static final Logger log = LoggerFactory.getLogger(BulkActionServiceImpl.class);

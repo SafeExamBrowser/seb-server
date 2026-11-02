@@ -93,4 +93,29 @@ public class ReplTest {
 
     }
 
+    @Test
+    public void decryptDevData() {
+        final MockEnvironment mockEnvironment = new MockEnvironment();
+        mockEnvironment.setProperty("sebserver.webservice.internalSecret", "somePW");
+        final String encrypted = "e0ac86b5d84e64681f61a8e662e15037afea648e4e017090d64f544b99331cb743fd29640fc73d4b33733ec34f24";
+        final Cryptor cryptor = new Cryptor(mockEnvironment);
+        final Result<CharSequence> decrypted = cryptor.decrypt(encrypted);
+        assertFalse(decrypted.hasError());
+        System.out.println("decrypted:");
+        System.out.println(decrypted.get());
+    }
+
+    @Test
+    public void encryptDevData() {
+        final MockEnvironment mockEnvironment = new MockEnvironment();
+        mockEnvironment.setProperty("sebserver.webservice.internalSecret", "somePW");
+        final String text = "{\"id\":28,\"enableScreenProctoring\":true,\"spsServiceURL\":\"http://localhost:8090\",\"spsAPIKey\":\"sebserverClient\",\"spsAPISecret\":\"somePW\",\"spsAccountId\":\"SEBServerAPIAccount\",\"spsAccountPassword\":\"admin\",\"spsCollectingStrategy\":\"EXAM\",\"spsSEBGroupsSelection\":\"\",\"bundled\":true,\"changeStrategyConfirm\":false}";
+        final Cryptor cryptor = new Cryptor(mockEnvironment);
+        final Result<CharSequence> encrypt = cryptor.encrypt(text);
+        assertFalse(encrypt.hasError());
+        System.out.println("encrypted:");
+        System.out.println(encrypt.get());
+    }
+
+
 }

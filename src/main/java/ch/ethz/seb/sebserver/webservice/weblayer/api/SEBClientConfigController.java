@@ -14,9 +14,10 @@ import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationChangeEvent;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -45,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -57,7 +57,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
-@WebServiceProfile
 @RestController
 @EnableAsync
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONFIG_ENDPOINT)
@@ -65,6 +64,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
     private final ConnectionConfigurationService sebConnectionConfigurationService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final SEBClientConfigDAO sebClientConfigDAO;
 
     public SEBClientConfigController(
             final SEBClientConfigDAO sebClientConfigDAO,
@@ -74,7 +74,8 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
             final ConnectionConfigurationService sebConnectionConfigurationService,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final ApplicationEventPublisher applicationEventPublisher, 
+            final Cryptor cryptor) {
 
         super(authorization,
                 bulkActionService,
@@ -85,6 +86,20 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
         this.sebConnectionConfigurationService = sebConnectionConfigurationService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.sebClientConfigDAO = sebClientConfigDAO;
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SEBClientConfig getBy(@PathVariable final String modelId) {
+        return sebClientConfigDAO.decryptPasswords(super.getBy(modelId));
+    }
+
+    @Override
+    public SEBClientConfig savePut(SEBClientConfig modifyData) {
+        return sebClientConfigDAO.decryptPasswords(super.savePut(modifyData));
     }
 
     @RequestMapping(
@@ -123,7 +138,8 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
         this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)
-                .map(this.userActivityLogDAO::logExport);
+                .flatMap(this.userActivityLogDAO::logExport)
+                .getOrThrow();
 
         final ServletOutputStream outputStream = response.getOutputStream();
         final PipedOutputStream pout;

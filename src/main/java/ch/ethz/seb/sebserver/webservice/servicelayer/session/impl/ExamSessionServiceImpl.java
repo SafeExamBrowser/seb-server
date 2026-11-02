@@ -49,7 +49,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringStaticClientData;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
@@ -65,7 +64,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class ExamSessionServiceImpl implements ExamSessionService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionServiceImpl.class);
@@ -288,20 +286,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Collection<Exam>> getFilteredFinishedExams(
-            final FilterMap filterMap,
-            final Predicate<Exam> predicate) {
-
-        filterMap.putIfAbsent(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
-
-        return this.examDAO.getExamsForStatus(
-                filterMap,
-                predicate,
-                ExamStatus.FINISHED,
-                ExamStatus.ARCHIVED);
-    }
-
-    @Override
     public void streamDefaultExamConfig(
             final Long institutionId,
             final String connectionToken,
@@ -500,14 +484,12 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Collection<String>> getActiveConnectionTokens(final Long examId) {
-        return this.clientConnectionDAO
-                .getActiveConnectionTokens(examId);
+        return this.clientConnectionDAO.getActiveConnectionTokens(examId);
     }
 
     @Override
     public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
-        return this.clientConnectionDAO
-                .getAllActiveConnectionTokens(examId);
+        return this.clientConnectionDAO.getAllActiveConnectionTokens(examId);
     }
 
     @EventListener

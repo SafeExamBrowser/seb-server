@@ -10,8 +10,13 @@ package ch.ethz.seb.sebserver.gui.integration;
 
 import static org.junit.Assert.assertNotNull;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
+import ch.ethz.seb.sebserver.gui.api.RestCall;
+import ch.ethz.seb.sebserver.gui.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.api.auth.OAuth2AuthorizationContextHolder;
+import ch.ethz.seb.sebserver.gui.api.auth.SEBServerAuthorizationContext;
+import ch.ethz.seb.sebserver.gui.api.auth.WebserviceURIService;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -22,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -31,11 +37,6 @@ import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
@@ -98,7 +99,7 @@ public abstract class GuiIntegrationTest {
             @Override
             public SEBServerAuthorizationContext getAuthorizationContext() {
                 if (this.authContext == null || !this.authContext.isValid()) {
-                    this.authContext = super.getAuthorizationContext(sessionMock);
+                    this.authContext = super.getAuthorizationContext();
                 }
                 return this.authContext;
             }

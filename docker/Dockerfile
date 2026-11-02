@@ -1,4 +1,7 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
+
+# remove all eMudhra trusts until the JDK vendor ships a fix
+RUN keytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_root_ca__g1,o_emudhra_technologies_limited,ou_emsign_pki,c_in [jdk]" -storepass changeit
 
 ENV SERVER_PORT="8080"
 ENV JMX_PORT=
@@ -9,19 +12,16 @@ ENV JAVA_HEAP_MAX=
 RUN groupadd --system spring && useradd --system --gid spring spring && mkdir /sebserver && chown spring:spring /sebserver
 USER spring:spring
 
-COPY docker/start-sebserver.sh seb-server.jar /sebserver/
+COPY seb-server.jar /sebserver/
 
 WORKDIR /sebserver
-
-# NOTE: This seems not to work, maybe some permission problems, how knows!?
-#CMD /bin/sh /sebserver/start-sebserver.sh
 
 CMD if [ "x${JMX_PORT}" = "x" ] ; \
     then exec java \
         -Xms${JAVA_HEAP_MIN} \
         -Xmx${JAVA_HEAP_MAX} \
         -jar "seb-server.jar" \
-        --spring.config.location=file:/sebserver/config/spring/,classpath:/config/; \
+        --spring.config.location=classpath:/config/,optional:file:/sebserver/config/spring/; \
     else echo "admin ${SEBSERVER_SECRET}" > jmxremote.password && chown spring:spring /sebserver/jmxremote.password && chmod 400 /sebserver/jmxremote.password && exec java \
         -Xms${JAVA_HEAP_MIN} \
         -Xmx${JAVA_HEAP_MAX} \
@@ -35,7 +35,7 @@ CMD if [ "x${JMX_PORT}" = "x" ] ; \
         -Dcom.sun.management.jmxremote.password.file=/sebserver/jmxremote.password \
         -Dcom.sun.management.jmxremote.access.file=/sebserver/config/jmx/jmxremote.access \
         -jar "seb-server.jar" \
-        --spring.config.location=file:/sebserver/config/spring/,classpath:/config/; \
+        --spring.config.location=classpath:/config/,optional:file:/sebserver/config/spring/; \
 fi
 
 EXPOSE $SERVER_PORT $JMX_PORT

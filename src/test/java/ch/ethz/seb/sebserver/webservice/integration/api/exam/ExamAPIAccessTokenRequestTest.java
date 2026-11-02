@@ -27,7 +27,7 @@ public class ExamAPIAccessTokenRequestTest extends ExamAPIIntegrationTester {
 
     @Test
     public void testRequestAccessToken() throws Exception {
-        final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
+        final String accessToken = super.obtainAccessToken("test", "test", "");
         assertNotNull(accessToken);
     }
 

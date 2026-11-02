@@ -32,8 +32,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -54,8 +52,6 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigurationService;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -98,18 +94,18 @@ public abstract class ExamAPIIntegrationTester {
                 .forEach(cache -> cache.clear());
     }
 
-    protected ClientDetails getForExamClientAPI() {
-        final BaseClientDetails baseClientDetails = new BaseClientDetails(
-                "test",
-                WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
-                null,
-                "client_credentials",
-                "");
-        baseClientDetails.setScope(Collections.emptySet());
-        baseClientDetails
-                .setClientSecret(ExamAPIIntegrationTester.this.clientPasswordEncoder.encode("test"));
-        return baseClientDetails;
-    }
+//    protected ClientDetails getForExamClientAPI() {
+//        final BaseClientDetails baseClientDetails = new BaseClientDetails(
+//                "test",
+//                WebserviceResourceConfiguration.EXAM_API_RESOURCE_ID,
+//                null,
+//                "client_credentials",
+//                "");
+//        baseClientDetails.setScope(Collections.emptySet());
+//        baseClientDetails
+//                .setClientSecret(ExamAPIIntegrationTester.this.clientPasswordEncoder.encode("test"));
+//        return baseClientDetails;
+//    }
 
     protected String obtainAccessToken(
             final String clientId,
@@ -126,7 +122,8 @@ public abstract class ExamAPIIntegrationTester {
                 .with(httpBasic(clientId, clientSecret))
                 .accept(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                ;
 
         final String resultString = result.andReturn().getResponse().getContentAsString();
 
@@ -310,12 +307,11 @@ public abstract class ExamAPIIntegrationTester {
         return result.andReturn().getResponse();
     }
 
-    @Autowired
-    AdminAPIClientDetails adminClientDetails;
+//    @Autowired
+//    AdminAPIClientDetails adminClientDetails;
     @Autowired
     ConnectionConfigurationService sebConnectionConfigurationService;
     @Autowired
-    @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME)
     private PasswordEncoder clientPasswordEncoder;
 
 }

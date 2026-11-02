@@ -8,10 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
+import static org.apache.ibatis.ognl.OgnlOps.doubleValue;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.SqlCriterion;
@@ -64,42 +66,35 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
             log.trace("computeValueAt: {}", timestamp);
         }
 
-        try {
+        distributedIndicatorValueService.addIndicatorValueFetch(
+                new AsyncValueFetch(timestamp, value -> this.currentValue = value));
 
-            final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
-                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
-                    .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
-                    .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
-                    .and(
-                            ClientEventRecordDynamicSqlSupport.text,
-                            isLikeWhenPresent(getFirstTagSQL()),
-                            getSubTagSQL())
-                    .orderBy(ClientEventRecordDynamicSqlSupport.serverTime)
-                    .build()
-                    .execute();
+        return currentValue;
+    }
 
-            if (execute == null || execute.isEmpty()) {
-                return super.currentValue;
-            }
+    protected Double fetchValue(final long timestamp) {
+        final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
+                .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
+                .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
+                .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.text,
+                        isLikeWhenPresent(getFirstTagSQL()),
+                        getSubTagSQL())
+                .orderBy(ClientEventRecordDynamicSqlSupport.serverTime.descending())
+                .limit(1)
+                .build()
+                .execute();
 
-            final BigDecimal numericValue = execute.get(execute.size() - 1).getNumericValue();
-            if (numericValue != null) {
+        if (execute == null || execute.isEmpty()) {
+            return super.currentValue;
+        }
 
-                // update active indicator value record on persistent when caching is not enabled
-                if (this.active && this.distributedIndicatorValueRecordId != null) {
-                    this.distributedIndicatorValueService.updateIndicatorValueAsync(
-                            this.distributedIndicatorValueRecordId,
-                            numericValue.longValue());
-                }
-
-                return numericValue.doubleValue();
-            } else {
-                return super.currentValue;
-            }
-
-        } catch (final Exception e) {
-            log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
-            return this.currentValue;
+        BigDecimal numericValue = execute.getLast().getNumericValue();
+        if (numericValue != null) {
+            return numericValue.doubleValue();
+        } else {
+            return null;
         }
     }
 
@@ -125,6 +120,42 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
         }
 
         return result;
+    }
+
+    private final class AsyncValueFetch implements FetchIndicatorValue {
+
+        private final long timestamp;
+        private final Consumer<Double> callback;
+
+        private AsyncValueFetch(long timestamp, Consumer<Double> callback) {
+            this.timestamp = timestamp;
+            this.callback = callback;
+        }
+
+        @Override
+        public void fetch() {
+            try {
+
+                final Double numericValue = fetchValue(timestamp);
+                if (numericValue != null) {
+
+                    // update active indicator value record on persistent when caching is not enabled
+                    if (active && distributedIndicatorValueRecordId != null) {
+                        distributedIndicatorValueService.updateIndicatorValueAsync(
+                                distributedIndicatorValueRecordId,
+                                numericValue.longValue());
+                    }
+
+                    callback.accept(numericValue);
+                } else {
+                    callback.accept(currentValue);
+                }
+
+            } catch (final Exception e) {
+                log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
+                callback.accept(currentValue);
+            }
+        }
     }
 
 }

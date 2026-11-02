@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionExec;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionService;
@@ -44,7 +43,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Service
-@WebServiceProfile
 public class BatchActionServiceImpl implements BatchActionService {
 
     private static final Logger log = LoggerFactory.getLogger(BatchActionServiceImpl.class);
@@ -71,7 +69,6 @@ public class BatchActionServiceImpl implements BatchActionService {
 
         this.batchExecutions = new EnumMap<>(BatchActionType.class);
         batchExecutions
-                .stream()
                 .forEach(exec -> this.batchExecutions.putIfAbsent(exec.actionType(), exec));
     }
 

@@ -23,15 +23,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.web.client.RestTemplate;
 
 public class OlatLmsRestTemplate extends RestTemplate {
 
     private static final Logger log = LoggerFactory.getLogger(OlatLmsRestTemplate.class);
 
+    private final String tokenURI;
+    private final String clientId;
+    private final String clientSecret;
+
     private String token;
-    private ClientCredentialsResourceDetails details;
 
     public void testAuthentication() {
         if (this.token == null) {
@@ -39,9 +41,15 @@ public class OlatLmsRestTemplate extends RestTemplate {
         }
     }
 
-    public OlatLmsRestTemplate(final ClientCredentialsResourceDetails details) {
+    public OlatLmsRestTemplate(
+            final String tokenURI,
+            final String clientId,
+            final String clientSecret
+    ) {
         super();
-        this.details = details;
+        this.tokenURI = tokenURI;
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
 
         // Add X-OLAT-TOKEN request header to every request done using this RestTemplate
         this.getInterceptors().add(new ClientHttpRequestInterceptor() {
@@ -116,15 +124,14 @@ public class OlatLmsRestTemplate extends RestTemplate {
     private void authenticate() {
         // Authenticate with OLAT and store the received X-OLAT-TOKEN
         this.token = "authenticating";
-        final String authUrl = this.details.getAccessTokenUri();
         final Map<String, String> parameters = new HashMap<>();
-        parameters.put("username", this.details.getClientId());
-        parameters.put("password", this.details.getClientSecret());
+        parameters.put("username", this.clientId);
+        parameters.put("password", this.clientSecret);
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("content-type", "application/json");
         final HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(httpHeaders);
         try {
-            final ResponseEntity<String> response = this.exchange(authUrl, HttpMethod.GET, requestEntity, String.class, parameters);
+            final ResponseEntity<String> response = this.exchange(this.tokenURI, HttpMethod.GET, requestEntity, String.class, parameters);
             final HttpHeaders responseHeaders = response.getHeaders();
 
             if (log.isDebugEnabled()) {

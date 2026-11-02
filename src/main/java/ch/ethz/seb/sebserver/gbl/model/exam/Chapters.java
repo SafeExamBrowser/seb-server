@@ -8,10 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -41,83 +38,46 @@ public final class Chapters {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Chapters [chapters=");
-        builder.append(this.chapter_list);
-        builder.append("]");
-        return builder.toString();
+        return "Chapters [chapters=" + this.chapter_list + "]";
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static final class Chapter implements Comparable<Chapter> {
-
-        public static final String ATTR_NAME = "name";
-        public static final String ATTR_ID = "id";
-
-        public final String name;
-        public final String id;
-
-        @JsonCreator
-        public Chapter(
-                @JsonProperty(ATTR_NAME) final String name,
-                @JsonProperty(ATTR_ID) final String id) {
-
-            this.name = name;
-            this.id = id;
-        }
-
-        public String getName() {
-            return this.name;
-        }
-
-        public String getId() {
-            return this.id;
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("Chapter [name=");
-            builder.append(this.name);
-            builder.append(", id=");
-            builder.append(this.id);
-            builder.append("]");
-            return builder.toString();
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            final Chapter other = (Chapter) obj;
-            if (this.id == null) {
-                if (other.id != null)
-                    return false;
-            } else if (!this.id.equals(other.id))
-                return false;
-            return true;
-        }
-
-        @Override
-        public int compareTo(final Chapter o) {
-            if (o == null) {
-                return -1;
+        public record Chapter(
+            @JsonProperty(ATTR_NAME) String name,
+            @JsonProperty(ATTR_ID) String id) implements Comparable<Chapter> {
+    
+            public static final String ATTR_NAME = "name";
+            public static final String ATTR_ID = "id";
+    
+            @JsonCreator
+            public Chapter {}
+    
+            @Override
+            public boolean equals(final Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                final Chapter chapter = (Chapter) o;
+                return Objects.equals(id, chapter.id);
             }
-
-            return ObjectUtils.compare(this.name, o.name);
+    
+            @Override
+            public int hashCode() {
+                return Objects.hashCode(id);
+            }
+    
+            @Override
+            public String toString() {
+                return "Chapter [name=" + this.name + ", id=" + this.id + "]";
+            }
+    
+            @Override
+            public int compareTo(final Chapter o) {
+                if (o == null) {
+                    return -1;
+                }
+    
+                return ObjectUtils.compare(this.name, o.name);
+            }
         }
-    }
 
 }

@@ -6,14 +6,6 @@
         <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
       </encoder>
     </appender>
-    
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-      <file>log/sebserver.log</file>
-      <append>true</append>
-      <encoder>
-         <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} %-5level [%thread]:[%logger] %msg%n</pattern>
-      </encoder>
-   </appender>
 
   <springProfile name="dev">
     <root level="INFO" additivity="true">
@@ -22,13 +14,31 @@
     <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </Logger>
+    <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </Logger>
   </springProfile>
+
+    <springProfile name="e2e">
+        <root level="INFO" additivity="true">
+            <appender-ref ref="STDOUT" />
+        </root>
+        <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+        </Logger>
+        <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+        </Logger>
+    </springProfile>
 
     <springProfile name="bundled">
         <root level="INFO" additivity="true">
             <appender-ref ref="STDOUT" />
         </root>
         <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
+            <appender-ref ref="STDOUT" />
+        </Logger>
+        <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
             <appender-ref ref="STDOUT" />
         </Logger>
     </springProfile>
@@ -53,6 +63,9 @@
     <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </Logger>
+      <Logger name="ch.ethz.seb.SEB_SERVER_REPAIR" level="INFO" additivity="false">
+          <appender-ref ref="STDOUT" />
+      </Logger>
     
   </springProfile>
   

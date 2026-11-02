@@ -35,7 +35,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -47,7 +46,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventExporter
 
 @Lazy
 @Service
-@WebServiceProfile
 public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientEventAdminServiceImpl.class);

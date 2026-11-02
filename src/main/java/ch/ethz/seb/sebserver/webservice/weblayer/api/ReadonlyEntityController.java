@@ -10,8 +10,8 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;

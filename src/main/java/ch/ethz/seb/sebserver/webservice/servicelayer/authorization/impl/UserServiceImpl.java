@@ -10,37 +10,33 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl;
 
 import java.beans.PropertyEditorSupport;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.WebDataBinder;
 
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class UserServiceImpl implements UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserDAO userDAO;
-
 
     public interface ExtractUserFromAuthenticationStrategy {
         SEBServerUser extract(Principal principal);
@@ -116,6 +112,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfo getUser(final String userId) {
+        if (Objects.equals(userId, LMS_INTEGRATION_CLIENT_UUID)) {
+            return createLMSIntegrationClientUser().getUserInfo();
+        }
+        if (Objects.equals(userId, SEB_SERVER_ANONYMOUS_USER)) {
+            return getAnonymousUser().getUserInfo();
+        }
+
         final UserInfo user = this.userDAO
                 .byModelId(userId)
                 .onError(error -> log.error("Failed to find user for id: {} error: {}", userId, error.getMessage()))
@@ -134,50 +137,63 @@ public class UserServiceImpl implements UserService {
     @Component
     public static class DefaultUserExtractStrategy implements ExtractUserFromAuthenticationStrategy {
 
+        final UserCacheService userCacheService;
+        final String lmsClientId;
+
+        DefaultUserExtractStrategy(
+                UserCacheService userCacheService,
+                final Environment env,
+                @Value("${sebserver.webservice.lms.api.clientId}") final String lmsClientId) {
+
+            this.userCacheService = userCacheService;
+            this.lmsClientId = lmsClientId;
+        }
+
         @Override
         public SEBServerUser extract(final Principal principal) {
-            if (principal instanceof OAuth2Authentication) {
-                final Authentication userAuthentication = ((OAuth2Authentication) principal).getUserAuthentication();
-                if (userAuthentication == null) {
-                    // check if lms integration client
-                    return isLMSIntegrationClient(principal);
-                }
-                //if (userAuthentication instanceof UsernamePasswordAuthenticationToken) {
-                    final Object userPrincipal = userAuthentication.getPrincipal();
-                    if (userPrincipal instanceof SEBServerUser) {
-                        return (SEBServerUser) userPrincipal;
-                    }
-                //}
+            String name = principal.getName();
+            SEBServerUser lmsIntegrationClient = isLMSIntegrationClient(name);
+            if (lmsIntegrationClient != null) {
+                return lmsIntegrationClient;
             }
 
+            SEBServerUser sebServerUser = userCacheService.serverUserByName(name);
+            if (sebServerUser == null) {
+                throw new UsernameNotFoundException("User for name: " + name + " not found");
+            }
+
+            return sebServerUser;
+        }
+
+        private SEBServerUser isLMSIntegrationClient(final String name) {
+            if (lmsClientId.equals(name)) {
+                return createLMSIntegrationClientUser();
+            }
             return null;
         }
+
     }
 
-    private static SEBServerUser isLMSIntegrationClient(final Principal principal) {
-        final String name = principal.getName();
-        if ("lmsClient".equals(name)) {
-            return new SEBServerUser(
-                    -1L,
-                    new UserInfo(
-                            LMS_INTEGRATION_CLIENT_UUID,
-                            -1L,
-                            null,
-                            LMS_INTEGRATION_CLIENT_NAME,
-                            LMS_INTEGRATION_CLIENT_NAME,
-                            LMS_INTEGRATION_CLIENT_NAME, null,
-                            false,
-                            false,
-                            true,
-                            null, null,
-                            Arrays.stream(UserRole.values())
-                                    .map(Enum::name)
-                                    .collect(Collectors.toSet()),
-                            Collections.emptyList(),
-                            Collections.emptyList()),
-                    null);
-        }
-        return null;
+    private static SEBServerUser createLMSIntegrationClientUser() {
+        return new SEBServerUser(
+                -1L,
+                new UserInfo(
+                        LMS_INTEGRATION_CLIENT_UUID,
+                        -1L,
+                        null,
+                        LMS_INTEGRATION_CLIENT_NAME,
+                        LMS_INTEGRATION_CLIENT_NAME,
+                        LMS_INTEGRATION_CLIENT_NAME, null,
+                        false,
+                        false,
+                        true,
+                        null, null,
+                        Arrays.stream(UserRole.values())
+                                .map(Enum::name)
+                                .collect(Collectors.toSet()),
+                        Collections.emptyList(),
+                        Collections.emptyList()),
+                null);
     }
 
     // 2. Separated thread strategy
@@ -197,7 +213,7 @@ public class UserServiceImpl implements UserService {
 
     private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
             -1L,
-            new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, null, "anonymous", "anonymous", "anonymous", null,
+            new UserInfo(SEB_SERVER_ANONYMOUS_USER, -2L, null, "anonymous", "anonymous", "anonymous", null,
                     false,
                     false,
                     true,

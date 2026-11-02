@@ -56,7 +56,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.Proctoring
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -67,7 +66,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringSer
 
 @Lazy
 @Service
-@WebServiceProfile
 public class JitsiProctoringService implements RemoteProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(JitsiProctoringService.class);

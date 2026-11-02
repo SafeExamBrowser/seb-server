@@ -20,12 +20,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ZipServiceImpl implements ZipService {
 
     private static final Logger log = LoggerFactory.getLogger(ZipServiceImpl.class);

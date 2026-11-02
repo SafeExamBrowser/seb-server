@@ -14,11 +14,11 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ExamUUIDMapper;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -42,7 +42,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
@@ -51,14 +50,9 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DuplicateResourceException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExamRecordDAO {
 
     private static final Logger log = LoggerFactory.getLogger(ExamRecordDAO.class);
@@ -94,16 +88,24 @@ public class ExamRecordDAO {
     }
 
     @Transactional(readOnly = true)
-    public Result<Long> idByExternalQuizId(final String externalQuizId) {
+    public Result<Long> idByExternalQuizId(final Long lmsId, final String externalQuizId) {
         return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectIdsByExample()
+            List<Long> ids = this.examRecordMapper.selectIdsByExample()
                     .where(
-                            ExamRecordDynamicSqlSupport.externalId,
+                            externalId,
                             isEqualToWhenPresent(externalQuizId))
+                    .and(lmsSetupId, isEqualToWhenPresent(lmsId))
                     .build()
-                    .execute()
-                    .stream()
-                    .collect(Utils.toSingleton());
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                throw new NoResourceFoundException(EntityType.EXAM, "No Exam found for externalId: " + externalQuizId + " and lmsSetupId: " + lmsId);
+            }
+
+            if (ids.size() > 1) {
+                log.warn("Expected one Exam for external Id: {} but found: {}. Take first in the list and go on", externalQuizId ,ids);
+            }
+            return ids.getFirst();
         });
     }
 
@@ -160,6 +162,7 @@ public class ExamRecordDAO {
 
             // If we have a sort on institution name, join the institution table
             // If we have a sort on lms setup name, join lms setup table
+            // otherwise no join
             QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>>.QueryExpressionWhereBuilder whereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.examRecordMapper
@@ -186,17 +189,33 @@ public class ExamRecordDAO {
                                                     ExamRecordDynamicSqlSupport.active,
                                                     isEqualToWhenPresent(filterMap.getActiveAsInt()));
 
+            // Institution and LMS filter, no multiple OR/IN currently implemented
             whereClause = whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.institutionId,
                             isEqualToWhenPresent(filterMap.getInstitutionId()))
                     .and(
                             ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualToWhenPresent(filterMap.getLmsSetupId()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.type,
-                            isEqualToWhenPresent(filterMap.getExamType()));
+                            isEqualToWhenPresent(filterMap.getLmsSetupId()));
 
+            // Exam Types (OR/IN when multiple)
+            String examType = filterMap.getExamType();
+            if (StringUtils.isNotBlank(examType)) {
+                if (examType.contains(Constants.LIST_SEPARATOR)) {
+                    final List<String> examTypes = Arrays.asList(StringUtils.split(examType, Constants.LIST_SEPARATOR));
+                    whereClause = whereClause
+                            .and(
+                                    ExamRecordDynamicSqlSupport.type,
+                                    isIn(examTypes));
+                } else {
+                    whereClause = whereClause
+                            .and(
+                                    ExamRecordDynamicSqlSupport.type,
+                                    isEqualToWhenPresent(examType));
+                }
+            }
+
+            // Supporter like clause when supporterUUID is available
             final String supporterUUID = filterMap.getSQLWildcard(FilterMap.ATTR_SUPPORTER_USER_ID);
             if (StringUtils.isNotBlank(supporterUUID)) {
                 whereClause = whereClause.and(
@@ -204,13 +223,14 @@ public class ExamRecordDAO {
                         SqlBuilder.isLike(supporterUUID));
             }
 
-            // SEBSERV-298
+            // SEBSERV-298 hide missing Exams when flag is set
             if (filterMap.getBoolean(Exam.FILTER_ATTR_HIDE_MISSING)) {
                 whereClause = whereClause.and(
                         ExamRecordDynamicSqlSupport.lmsAvailable,
                         SqlBuilder.isGreaterThan(0));
             }
 
+            // Exam Status filter, multiple OR/IN possible
             final String examStatus = filterMap.getExamStatus();
             if (StringUtils.isNotBlank(examStatus)) {
                 if (examStatus.contains(Constants.LIST_SEPARATOR)) {
@@ -230,17 +250,11 @@ public class ExamRecordDAO {
                         .and(
                                 ExamRecordDynamicSqlSupport.status,
                                 isIn(stateNames));
-            } else {
-                // for default the archived state is not presented only on explicit request
-                whereClause = whereClause
-                        .and(
-                                ExamRecordDynamicSqlSupport.status,
-                                isNotEqualTo(ExamStatus.ARCHIVED.name()));
             }
 
+            // Start time clause... when FILTER_ATTR_START_TIME_MILLIS is available restrict search on user day span
+            //                      otherwise search for Exams with start time greater than given date/time
             final Long startTime = filterMap.getLong(Exam.FILTER_ATTR_START_TIME_MILLIS);
-            
-            // if start timestamp is available use user day span search for quiz start time
             if (startTime != null) {
                 final DateTimeZone userTimeZone = filterMap.getUserTimeZone();
                 final Pair<Long, Long> userDaySpanMillis = Utils.getUserDaySpanMillis(startTime, userTimeZone);
@@ -253,7 +267,6 @@ public class ExamRecordDAO {
                                             quizStartTime, 
                                             isLessThanOrEqualTo(Utils.toDateTimeUTC(userDaySpanMillis.b))));
                 }
-            // if old exam from time filter is available apply old search
             } else if (filterMap.getExamFromTime() != null) {
                 whereClause = whereClause
                         .and(
@@ -262,6 +275,7 @@ public class ExamRecordDAO {
                                 or(ExamRecordDynamicSqlSupport.quizEndTime, isNull()));
             }
 
+            // Exam name filter
             final String nameCriteria = filterMap.contains(QuizData.FILTER_ATTR_NAME)
                     ? filterMap.getSQLWildcard(QuizData.FILTER_ATTR_NAME)
                     : filterMap.getSQLWildcard(Domain.EXAM.ATTR_QUIZ_NAME);
@@ -390,6 +404,11 @@ public class ExamRecordDAO {
 
             // check internal persistent write-lock
             final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(examId);
+
+            if (oldRecord == null) {
+                throw new NoResourceFoundException(EntityType.EXAM, "No Exam with Id: " + examId + "found!");
+            }
+
             if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
                 throw new IllegalStateException("Exam is currently locked: " + examId);
             }
@@ -486,7 +505,7 @@ public class ExamRecordDAO {
                 // if there is already an existing imported exam for the quiz, this is
                 // used to save instead of create a new one
                 if (records != null && !records.isEmpty()) {
-                    final ExamRecord examRecord = records.get(0);
+                    final ExamRecord examRecord = records.getFirst();
                     // if the same institution tries to import an exam that already exists throw an error
                     if (exam.institutionId.equals(examRecord.getInstitutionId())) {
                         throw new DuplicateResourceException(EntityType.EXAM, exam.externalId);
@@ -526,7 +545,8 @@ public class ExamRecordDAO {
                     exam.startTime,
                     exam.endTime,
                     BooleanUtils.toIntegerObject(true),
-                    exam.followUpId);
+                    exam.followUpId,
+                    BooleanUtils.toIntegerObject(exam.excludeFromDeletion));
 
             this.examRecordMapper.insert(examRecord);
             return examRecord;
@@ -642,7 +662,7 @@ public class ExamRecordDAO {
     }
 
     @Transactional
-    public Result<ExamRecord> updateSupporterAccounts(final Long examId, final List<String> supporterUUIDs) {
+    public Result<ExamRecord> updateSupporterAccounts(final Long examId, final Set<String> supporterUUIDs) {
         return Result.tryCatch(() -> {
 
                     final String joinedUUIds = StringUtils.join(supporterUUIDs, Constants.COMMA);
@@ -706,7 +726,7 @@ public class ExamRecordDAO {
                 return null;
             }
 
-            final ExamRecord examRecord = records.get(0);
+            final ExamRecord examRecord = records.getFirst();
             if (examRecord.getFollowupId() == null) {
                 return null;
             }
@@ -746,7 +766,7 @@ public class ExamRecordDAO {
                     .selectByExample()
                     .where(institutionId, isEqualToWhenPresent(exam.institutionId))
                     .and(active, isNotEqualTo(0))
-                    .and(id, isNotInWhenPresent(exclude.isEmpty() ? null : exclude))
+                    .and(id, isNotInWhenPresent(exclude))
                     .and(status, isNotIn(ExamStatus.ARCHIVED.name(), ExamStatus.FINISHED.name()))
                     .and(quizStartTime,
                             isGreaterThanOrEqualTo(Utils.toDateTimeUTC(userDaySpanMillis.a)),

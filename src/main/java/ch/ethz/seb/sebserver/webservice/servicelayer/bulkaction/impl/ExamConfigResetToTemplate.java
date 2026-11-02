@@ -20,7 +20,6 @@ import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionExec;
@@ -30,7 +29,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateSer
 
 @Lazy
 @Component
-@WebServiceProfile
 public class ExamConfigResetToTemplate implements BatchActionExec {
 
     private final ConfigurationNodeDAO configurationNodeDAO;

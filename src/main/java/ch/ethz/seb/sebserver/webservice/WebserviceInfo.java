@@ -28,13 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Lazy
 @Service
-@WebServiceProfile
 public class WebserviceInfo {
 
     private static final Logger log = LoggerFactory.getLogger(WebserviceInfo.class);
@@ -44,6 +42,8 @@ public class WebserviceInfo {
     private static final String WEB_SERVICE_SERVER_NAME_KEY = "sebserver.webservice.http.external.servername";
     private static final String WEB_SERVICE_HTTP_SCHEME_KEY = "sebserver.webservice.http.external.scheme";
     private static final String WEB_SERVICE_HTTP_PORT = "sebserver.webservice.http.external.port";
+    private static final String WEB_SERVICE_HTTP_SUBPATH = "sebserver.webservice.http.external.subpath";
+
     private static final String WEB_SERVICE_HOST_ADDRESS_KEY = "server.address";
     private static final String WEB_SERVICE_SERVER_PORT_KEY = "server.port";
     private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
@@ -53,6 +53,7 @@ public class WebserviceInfo {
     public static final String SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT = "sebserver.webservice.autologin.endpoint";
     public static final String WEB_SERVICE_GUI_AUTOLOGIN_URL_KEY = "sebserver.webservice.autologin.url";
 
+
     private final String sebServerVersion;
     private final String testProperty;
     private final String httpScheme;
@@ -61,7 +62,7 @@ public class WebserviceInfo {
     private final String serverPort; // internal
     private final String webserverPort; // external
     private final String discoveryEndpoint;
-    private final String contextPath;
+    private final String subPath;
 
     private final String autoLoginEndpoint;
 
@@ -107,13 +108,11 @@ public class WebserviceInfo {
         this.serverPort = environment.getRequiredProperty(WEB_SERVICE_SERVER_PORT_KEY);
         this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
-        this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
+        this.subPath = environment.getProperty(WEB_SERVICE_HTTP_SUBPATH, "");
         this.webserviceUUID = UUID.randomUUID().toString()
                 + Constants.UNDERLINE
                 + this.sebServerVersion;
-        this.autoLoginEndpoint = environment.getProperty(
-                SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT,
-                "/auto_login");
+
 
         this.distributedUpdateInterval = environment.getProperty(
                 "sebserver.webservice.distributed.updateInterval",
@@ -139,15 +138,16 @@ public class WebserviceInfo {
         if (StringUtils.isNotBlank(this.webserverPort)) {
             builder.port(this.webserverPort);
         }
-        if (StringUtils.isNotBlank(this.contextPath) && !this.contextPath.equals("/")) {
-            builder.path(this.contextPath);
+        if (StringUtils.isNotBlank(this.subPath)) {
+            builder.path(this.subPath);
         }
         this.serverURLPrefix = builder.toUriString();
+
+        this.autoLoginEndpoint = environment.getProperty(
+                SEBSERVER_WEBSERVICE_AUTOLOGIN_ENDPOINT,
+                "/login");
         String guiAutologinURL = environment.getProperty(WEB_SERVICE_GUI_AUTOLOGIN_URL_KEY, builder.toUriString());
-        if (StringUtils.isBlank(guiAutologinURL)) {
-            guiAutologinURL = builder.toUriString();
-        }
-        this.guiAutologinURL = guiAutologinURL;
+        this.guiAutologinURL = guiAutologinURL + autoLoginEndpoint;
 
         this.isLightSetup = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.light.setup",
@@ -178,19 +178,16 @@ public class WebserviceInfo {
         final boolean spsEnabled = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.feature.exam.seb.screenProctoring.enabled",
                 Constants.FALSE_STRING));
-        final boolean spsBundled = BooleanUtils.toBoolean(environment.getProperty(
-                "sebserver.feature.exam.seb.screenProctoring.bundled",
-                Constants.FALSE_STRING));
-        if (spsEnabled && spsBundled) {
+        if (spsEnabled) {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle(
-                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.url"),
-                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientId"),
+                    environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.url"),
+                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.url.intern"),
+                    environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientId"),
                     cryptor.encrypt(
-                            environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientPassword"))
+                            environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.clientPassword"))
                             .getOrThrow(),
-                    environment.getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.username"),
-                    cryptor.encrypt(environment
-                            .getProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.password"))
+                    environment.getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.username"), cryptor.encrypt(environment
+                            .getRequiredProperty("sebserver.feature.exam.seb.screenProctoring.bundled.sebserveraccount.password"))
                             .getOrThrow());
         } else {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle();
@@ -248,16 +245,8 @@ public class WebserviceInfo {
         return this.webserverPort;
     }
 
-    public Object getContextPath() {
-        return this.contextPath;
-    }
-
     public String getDiscoveryEndpoint() {
         return this.discoveryEndpoint;
-    }
-
-    public String getAutoLoginEndpoint() {
-        return autoLoginEndpoint;
     }
 
     public String getDiscoveryEndpointAddress() {
@@ -382,6 +371,7 @@ public class WebserviceInfo {
 
         public final boolean bundled;
         public final String serviceURL;
+        public final String internalServiceURL;
         public final String clientId;
         public final CharSequence clientSecret;
         public final String apiAccountName;
@@ -389,13 +379,16 @@ public class WebserviceInfo {
 
         public ScreenProctoringServiceBundle(
                 final String serviceURL,
+                final String internalServiceURL,
                 final String clientId,
                 final CharSequence clientSecret,
                 final String apiAccountName,
                 final CharSequence apiAccountPassword) {
 
+
             this.bundled = true;
             this.serviceURL = serviceURL;
+            this.internalServiceURL = internalServiceURL;
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.apiAccountName = apiAccountName;
@@ -409,15 +402,19 @@ public class WebserviceInfo {
             this.clientSecret = null;
             this.apiAccountName = null;
             this.apiAccountPassword = null;
-        }
-
-        @Override
-        public Long getExamId() {
-            return null;
+            this.internalServiceURL = null;
         }
 
         @Override
         public String getSpsServiceURL() {
+            return serviceURL;
+        }
+
+        @Override
+        public String getInternalServiceURL() {
+            if (StringUtils.isNotBlank(internalServiceURL)) {
+                return internalServiceURL;
+            }
             return serviceURL;
         }
 
@@ -443,15 +440,13 @@ public class WebserviceInfo {
 
         @Override
         public String toString() {
-            return "ScreenProctoringServiceBundle [bundled=" +
-                    this.bundled +
-                    ", serviceURL=" +
-                    this.serviceURL +
-                    ", clientId=" +
-                    this.clientId +
-                    ", apiAccountName=" +
-                    this.apiAccountName +
-                    "]";
+            return "ScreenProctoringServiceBundle{" +
+                    "bundled=" + bundled +
+                    ", serviceURL='" + serviceURL + '\'' +
+                    ", internalServiceURL='" + internalServiceURL + '\'' +
+                    ", clientId='" + clientId + '\'' +
+                    ", apiAccountName='" + apiAccountName + '\'' +
+                    '}';
         }
     }
 

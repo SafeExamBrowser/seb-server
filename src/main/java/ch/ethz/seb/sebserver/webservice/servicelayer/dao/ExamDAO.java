@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.util.Pair;
@@ -115,15 +115,15 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     /** Gets all Exams of all active LMS Setups form a given LMS Setup Id list.
      * 
      * @param lmsId List of LMS Setup ids
-     * @return Result refer to all Exams of all active LMS Setups form a given LMS Setup Id list or to an error when happened
-     */
+     * @return Result refer to all Exams of all active LMS Setups form a given LMS Setup Id list or to an error when happened */
     Result<Collection<Exam>> allActiveForLMSSetup(Collection<Long> lmsId);
+
+    boolean hasNoneArchivedExamsForLMSSetup(Long lmsSetupId);
 
     /** Get all Exams form LMS Setup with a given id.
      * 
      * @param lmsSetupId The LMS Setup id
-     * @return Result refer to all Exam if the LMS Setup or to an error when happened
-     */
+     * @return Result refer to all Exam if the LMS Setup or to an error when happened */
     Result<Collection<Exam>> allForLMSSetup(Long lmsSetupId);
 
     /** This is used to get all Exams that potentially needs a state change.
@@ -148,6 +148,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *
      * @return collection of all currently running exam identifiers */
     Result<Collection<Long>> allRunningExamIds();
+
+    Result<Collection<Long>> allExamIds();
 
     /** This is used to place an internal (write)lock for the specified exam.
      * The exam will be marked as locked on the persistence level to prevent other running web-service instances
@@ -258,16 +260,17 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     /** This is used by the internal update process to mark exams for which the LMS related data availability
      *
+     * @param lmsSetupId The LMS setup identifier
      * @param externalQuizId The exams external UUID or quiz id of the exam to mark
      * @param available The LMS availability flag to set
      * @param updateId The update identifier given by the update task */
-    void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
+    void markLMSAvailability(Long lmsSetupId, String externalQuizId, boolean available, String updateId);
 
     void updateQuitPassword(Exam exam, String quitPassword);
     
     void saveBrowserExamKeys(Long examId, String bek);
 
-    void updateSupporterAccounts(Long examId, List<String> supporterUUIDs);
+    void updateSupporterAccounts(Long examId, Set<String> supporterUUIDs);
 
     /** This gets the number of exams that references a given Supporter or Teacher account UUID
      * 
@@ -281,4 +284,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     Pair<Long, Long> getConsecutiveExamIds(Long id);
 
     Result<Collection<Exam>> possibleConsecutiveExams(Exam exam, DateTimeZone timeZone);
+
+    Result<Collection<EntityKey>> excludeFromDeletion(Collection<Long> examPKs, boolean reset);
+
+    Result<Collection<Exam>> getExamsForScheduledDeletion(Long deleteDueTimestampUTC);
 }

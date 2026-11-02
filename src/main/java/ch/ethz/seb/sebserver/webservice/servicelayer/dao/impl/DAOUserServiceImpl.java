@@ -8,19 +8,18 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserService;
 
 @Lazy
 @Service
-@WebServiceProfile
-public class DAOUserServiceImpl implements DAOUserServcie {
+public class DAOUserServiceImpl implements DAOUserService {
 
     private static final Logger log = LoggerFactory.getLogger(DAOUserServiceImpl.class);
 
@@ -35,8 +34,31 @@ public class DAOUserServiceImpl implements DAOUserServcie {
         try {
             return this.authorizationService.getUserService().getCurrentUser().uuid();
         } catch (final Exception e) {
-            log.error("Failed to get current user: ", e);
+            log.warn("Failed to get current user: {}", e.getMessage());
             return null;
+        }
+    }
+
+    @Override
+    public String getUserNameForUUID(final String userUUID) {
+        if (userUUID == null) {
+            return null;
+        }
+
+        final UserInfo user = authorizationService.getUserService().getUser(userUUID);
+        if (user == null || user.username == null) {
+            return null;
+        }
+
+        return user.username + " (" + user.name + " " + user.surname + ")";
+    }
+
+    @Override
+    public String getCurrentUserUUIDOrAnonymousUser() {
+        try {
+            return this.authorizationService.getUserService().getCurrentUser().uuid();
+        } catch (final Exception e) {
+            return this.authorizationService.getAnonymousUserUUID();
         }
     }
 

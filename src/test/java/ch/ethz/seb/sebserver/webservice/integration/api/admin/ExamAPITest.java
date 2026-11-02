@@ -41,7 +41,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                 "user5");
 
         assertNotNull(exam);
-        assertEquals("quiz2 Ã¤Ã¶Ã¼Ã¨ÃÃÃ ?<", exam.getExternalId()); // Note cannot set right collation on h2
+        assertEquals("quiz2 äöüèÜÄÖ ?<", exam.getExternalId());
         assertEquals(ExamType.MANAGED, exam.getType());
         assertFalse(exam.getSupporter().isEmpty());
 
@@ -66,7 +66,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         false,
                         null,
                         true,
-                        null, null, null, null, null))
+                        null, null, null, null, Boolean.FALSE,null))
                 .withExpectedStatus(HttpStatus.OK)
                 .getAsObject(new TypeReference<Exam>() {
                 });
@@ -96,7 +96,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         false,
                         null,
                         true,
-                        null, null, null, null, null))
+                        null, null, null, null,Boolean.FALSE, null))
                 .withExpectedStatus(HttpStatus.BAD_REQUEST)
                 .getAsObject(new TypeReference<List<APIMessage>>() {
                 });

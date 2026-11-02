@@ -31,9 +31,9 @@ import org.springframework.context.event.EventListener;
 public interface FullLmsIntegrationService {
 
     @EventListener(LmsSetupChangeEvent.class)
-    void notifyLmsSetupChange(final LmsSetupChangeEvent event);
+    void notifyLmsSetupChange(LmsSetupChangeEvent event);
     @EventListener(ExamTemplateChangeEvent.class)
-    void notifyExamTemplateChange(final ExamTemplateChangeEvent event);
+    void notifyExamTemplateChange(ExamTemplateChangeEvent event);
     @EventListener(ConnectionConfigurationChangeEvent.class)
     void notifyConnectionConfigurationChange(ConnectionConfigurationChangeEvent event);
     @EventListener(ExamDeletionEvent.class)
@@ -42,6 +42,10 @@ public interface FullLmsIntegrationService {
     void notifyExamConfigChange(ExamConfigUpdateEvent event);
     @EventListener(ExamArchivedEvent.class)
     void notifyExamArchived(ExamArchivedEvent event);
+
+    Result<Long> processLmsSetupActivation(Long lmsSetupId);
+
+    Result<Long> processLmsSetupDeactivation(Long lmsSetupId);
 
     /** Applies the exam data to LMS to inform the LMS that the exam exists on SEB Server site.
      * 
