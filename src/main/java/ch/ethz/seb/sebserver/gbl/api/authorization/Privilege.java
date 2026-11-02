@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.api.authorization;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -151,10 +152,19 @@ public record Privilege(
             return true;
         }
 
+        if (!Objects.equals(userAccount.getInstitutionId(), currentUser.institutionId)) {
+            return false;
+        }
+
         if (userRolesOfCurrentUser.contains(UserRole.INSTITUTIONAL_ADMIN)) {
             return !userRolesOfUserAccount.contains(UserRole.SEB_SERVER_ADMIN);
         }
 
-        return currentUser.equals(userAccount);
+        if (currentUser.equals(userAccount)) {
+            // all other user that can only change their own account are still not able to change the roles!
+            return Objects.equals(currentUser.roles, userAccount.getRoles());
+        }
+
+        return false;
     }
 }
