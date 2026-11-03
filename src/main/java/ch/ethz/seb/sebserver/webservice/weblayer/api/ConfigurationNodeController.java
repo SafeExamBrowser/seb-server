@@ -57,6 +57,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SettingsPublished;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.SizeLimitedInputStream;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -73,6 +74,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ConfigurationNodeController extends EntityController<ConfigurationNode, ConfigurationNode> {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationNodeController.class);
+
+    /** Maximum size of an uploaded SEB settings file. Real SEB settings files are far smaller. */
+    private static final long MAX_IMPORT_FILE_SIZE = 10L * 1024 * 1024;
 
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ConfigurationDAO configurationDAO;
@@ -204,6 +208,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .byPK(copyInfo.configurationNodeId)
                 .flatMap(this.authorization::checkWrite)
                 .getOrThrow();
+        this.checkWritePrivilege(institutionId);
 
         final SEBServerUser currentUser = this.authorization
                 .getUserService()
@@ -610,7 +615,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final HttpServletRequest request,
             final Configuration configuration) throws IOException {
 
-        final InputStream inputStream = new BufferedInputStream(request.getInputStream());
+        final InputStream inputStream = new BufferedInputStream(
+                new SizeLimitedInputStream(request.getInputStream(), MAX_IMPORT_FILE_SIZE));
         try {
 
             final Configuration result = this.sebExamConfigService.importFromSEBFile(

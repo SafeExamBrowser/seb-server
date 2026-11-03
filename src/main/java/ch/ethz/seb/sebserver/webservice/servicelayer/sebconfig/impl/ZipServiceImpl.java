@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.util.SizeLimitedInputStream;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 
 @Lazy
@@ -27,6 +28,20 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 public class ZipServiceImpl implements ZipService {
 
     private static final Logger log = LoggerFactory.getLogger(ZipServiceImpl.class);
+
+    /** Upper bound for the uncompressed size of gzip data read by {@link #read(OutputStream, InputStream)}.
+     * Real SEB settings are far smaller; the limit protects against decompression bombs. */
+    static final long DEFAULT_MAX_UNZIPPED_SIZE = 50L * 1024 * 1024;
+
+    private final long maxUnzippedSize;
+
+    public ZipServiceImpl() {
+        this(DEFAULT_MAX_UNZIPPED_SIZE);
+    }
+
+    ZipServiceImpl(final long maxUnzippedSize) {
+        this.maxUnzippedSize = maxUnzippedSize;
+    }
 
     @Override
     public void write(final OutputStream out, final InputStream in) {
@@ -72,7 +87,7 @@ public class ZipServiceImpl implements ZipService {
         try {
 
             zipInputStream = new GZIPInputStream(in);
-            IOUtils.copyLarge(zipInputStream, out);
+            IOUtils.copyLarge(new SizeLimitedInputStream(zipInputStream, this.maxUnzippedSize), out);
 
         } catch (final IOException e) {
             log.error("Error while streaming data to unzipped output: ", e);
