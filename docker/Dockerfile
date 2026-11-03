@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 # remove all eMudhra trusts until the JDK vendor ships a fix
 RUN keytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_root_ca__g1,o_emudhra_technologies_limited,ou_emsign_pki,c_in [jdk]" -storepass changeit
