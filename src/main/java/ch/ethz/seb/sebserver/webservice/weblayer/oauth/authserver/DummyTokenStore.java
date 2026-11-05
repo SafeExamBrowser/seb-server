@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth.authserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -20,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+// TODO make this store to existing table maybe reuse the old JDBCStore
 public class DummyTokenStore implements OAuth2AuthorizationService  {
 
     private static final Logger logger = LoggerFactory.getLogger(DummyTokenStore.class);
@@ -30,7 +32,10 @@ public class DummyTokenStore implements OAuth2AuthorizationService  {
         if (authorization == null) {
             return;
         }
-        
+
+        OAuth2Authorization.Token<Jwt> token1 = authorization.getToken(Jwt.class);
+        token1.getToken().getId();
+
         if (logger.isDebugEnabled()) {
             logger.debug("New token for: {} token: {}", authorization.getPrincipalName(), authorization.getAccessToken().getToken().getTokenValue());
         }

@@ -194,7 +194,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final Predicate<QuizData> quizFilter = LmsAPIService.quizFilterPredicate(filterMap);
             final String quizName = filterMap.getQuizName();
 
-            log.info("fetch quizzes with quizFromTime: {}", quizFromTime);
+            log.debug("fetch quizzes with quizFromTime: {}", quizFromTime);
 
             while (!asyncQuizFetchBuffer.finished && !asyncQuizFetchBuffer.canceled) {
                 try {
