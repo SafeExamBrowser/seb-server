@@ -175,7 +175,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     saveToHistory(templateId)
                              .flatMap(config -> this.clearHistory(templateId))
                              .getOrThrow();
-
                 }
 
             } catch (Exception e) {
