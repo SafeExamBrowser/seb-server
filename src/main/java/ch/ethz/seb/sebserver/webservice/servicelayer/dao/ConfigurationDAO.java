@@ -117,4 +117,5 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
      * @return the current follow-up configuration identifier */
     Result<Long> getFollowupConfigurationId(Long configNodeId);
 
+    void updateTemplateLegacyData(Long templateId);
 }
