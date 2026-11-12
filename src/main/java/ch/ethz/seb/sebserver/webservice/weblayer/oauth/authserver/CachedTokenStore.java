@@ -231,7 +231,7 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
                     }
                 } catch (Exception e) {
                     log.info("Found old or corrupted Refresh Token: {} delete it by id...", data.a);
-                    jdbcTokenStore.deleteAccessTokenById(data.a);
+                    jdbcTokenStore.deleteRefreshTokenById(data.a);
                 }
             });
         } catch (Exception e) {
