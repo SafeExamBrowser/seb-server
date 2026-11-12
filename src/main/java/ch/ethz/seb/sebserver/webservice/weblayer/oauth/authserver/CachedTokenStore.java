@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth.authserver;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -195,26 +196,42 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
         log.debug("Cleanup out dated OAuth Tokens...");
 
         try {
-            final Collection<OAuth2AccessToken> allAccessTokens = jdbcTokenStore.getAllAccessTokens();
-            final Collection<OAuth2RefreshToken> allRefreshTokens = jdbcTokenStore.getAllRefreshTokens();
+            final Collection<Pair<String, byte[]>> allAccessTokens = jdbcTokenStore.getAllAccessTokens();
+            final Collection<Pair<String, byte[]>> allRefreshTokens = jdbcTokenStore.getAllRefreshTokens();
 
             Instant now = Instant.now();
-            allAccessTokens.forEach(aToken -> {
-                Instant expiresAt = aToken.getExpiresAt();
-                if (expiresAt != null && expiresAt.isBefore(now)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Remove out dated access token: {} expired at: {}", aToken.getTokenValue(), expiresAt);
+            allAccessTokens.forEach(data -> {
+                // first try to deserialize the token. If this fails, it is probably an old or corrupt token... delete it then
+                try {
+                    final OAuth2AccessToken aToken = jdbcTokenStore.deserializeAccessToken(data.b);
+                    final Instant expiresAt = aToken.getExpiresAt();
+                    if (expiresAt != null && expiresAt.isBefore(now)) {
+                        if (log.isDebugEnabled()) {
+                            log.info("Remove out dated access token: {} expired at: {}", aToken.getTokenValue(), expiresAt);
+                        }
+                        jdbcTokenStore.removeAccessToken(aToken);
                     }
-                    jdbcTokenStore.removeAccessToken(aToken);
+                } catch (Exception e) {
+                    log.info("Found old or corrupted Access Token: {} delete it by id...", data.a);
+                    jdbcTokenStore.deleteAccessTokenById(data.a);
                 }
+
+
             });
-            allRefreshTokens.forEach(rToken -> {
-                Instant expiresAt = rToken.getExpiresAt();
-                if (expiresAt != null && expiresAt.isBefore(now)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Remove out dated refresh token: {} expired at: {}", rToken.getTokenValue(), expiresAt);
+            allRefreshTokens.forEach(data -> {
+                // first try to deserialize the token. If this fails, it is probably an old or corrupt token... delete it then
+                try {
+                    final OAuth2RefreshToken rToken = jdbcTokenStore.deserializeRefreshToken(data.b);
+                    final Instant expiresAt = rToken.getExpiresAt();
+                    if (expiresAt != null && expiresAt.isBefore(now)) {
+                        if (log.isDebugEnabled()) {
+                            log.info("Remove out dated refresh token: {} expired at: {}", rToken.getTokenValue(), expiresAt);
+                        }
+                        jdbcTokenStore.removeRefreshToken(rToken);
                     }
-                    jdbcTokenStore.removeRefreshToken(rToken);
+                } catch (Exception e) {
+                    log.info("Found old or corrupted Refresh Token: {} delete it by id...", data.a);
+                    jdbcTokenStore.deleteAccessTokenById(data.a);
                 }
             });
         } catch (Exception e) {
