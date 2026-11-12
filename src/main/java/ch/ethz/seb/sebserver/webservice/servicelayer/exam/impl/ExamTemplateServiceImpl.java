@@ -70,7 +70,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private final WebserviceInfo webserviceInfo;
     private final ProctoringAdminService proctoringServiceSettingsService;
     private final BeanValidationService beanValidationService;
-    private final DAOUserService daoUserServcie;
+    private final DAOUserService daoUserService;
+    private final ConfigurationDAO configurationDAO;
 
     private final String defaultIndicatorName;
     private final String defaultIndicatorType;
@@ -91,7 +92,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final WebserviceInfo webserviceInfo,
             final ProctoringAdminService proctoringServiceSettingsService,
             final BeanValidationService beanValidationService,
-            final DAOUserService daoUserServcie,
+            final DAOUserService daoUserServcie, ConfigurationDAO configurationDAO,
 
             @Value("${sebserver.webservice.api.exam.indicator.name:}") final String defaultIndicatorName,
             @Value("${sebserver.webservice.api.exam.indicator.type:}") final String defaultIndicatorType,
@@ -111,7 +112,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         this.webserviceInfo = webserviceInfo;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
         this.beanValidationService = beanValidationService;
-        this.daoUserServcie = daoUserServcie;
+        this.daoUserService = daoUserServcie;
+        this.configurationDAO = configurationDAO;
 
         this.defaultIndicatorName = defaultIndicatorName;
         this.defaultIndicatorType = defaultIndicatorType;
@@ -552,12 +554,20 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         try {
 
             if (examTemplate.configTemplateId != null) {
+                // if we already have one, save the values back to history for the first time
+                log.info("Save modified SEB Settings to history for new Exam Template: {}", examTemplate.name);
+
+                configurationDAO
+                        .saveToHistory(examTemplate.configTemplateId)
+                        .flatMap(config -> configurationDAO.clearHistory(examTemplate.configTemplateId))
+                        .getOrThrow();
+
                 return examTemplate;
             }
 
             log.info("Create new default ConfigurationTemplate for Exam Template: {}", examTemplate);
 
-            final String currentUserUUID = this.daoUserServcie.getCurrentUserUUID();
+            final String currentUserUUID = this.daoUserService.getCurrentUserUUID();
             ConfigurationNode newConfigurationTemplate = configurationNodeDAO.createNew(new ConfigurationNode(
                     null,
                     examTemplate.institutionId,

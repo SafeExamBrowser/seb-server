@@ -28,6 +28,8 @@ import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -64,6 +66,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConnectionConfigu
 @Lazy
 @Component
 public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
+
+    static final Logger REPAIR_LOGGER = LoggerFactory.getLogger("ch.ethz.seb.SEB_SERVER_REPAIR");
 
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;
     private final ClientCredentialService clientCredentialService;
@@ -432,6 +436,52 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     public Result<CharSequence> getConfigPasswordCipher(final String modelId) {
         return recordByModelId(modelId)
                 .map(SebClientConfigRecord::getEncryptSecret);
+    }
+
+    @Override
+    @Transactional
+    public void repairClientCredentialsWithInvalidChars() {
+        this.sebClientConfigRecordMapper
+                .selectByExample()
+                .build()
+                .execute()
+                .forEach(this::repairClientCredentials);
+    }
+
+    private void repairClientCredentials(final SebClientConfigRecord rec) {
+        try {
+            final String name = rec.getClientName();
+            final String secret = clientCredentialService.decrypt(rec.getClientSecret()).getOrThrow().toString();
+
+            if (name.contains("+") || secret.contains("+") || name.contains("%") || secret.contains("%")) {
+                REPAIR_LOGGER.info(
+                        "--------> found SEB client config: {} : {} with illegal chars: {} try to repair it...",
+                        rec.getId(),
+                        rec.getName(),
+                        name);
+
+                final ClientCredentials newCredentials = clientCredentialService.generatedClientCredentials().getOrThrow();
+                SebClientConfigRecord newRec = new SebClientConfigRecord(
+                        rec.getId(),
+                        null, null, null,
+                        newCredentials.clientIdAsString(),
+                        newCredentials.secretAsString(),
+                        null, null, null, null);
+
+                int i = sebClientConfigRecordMapper.updateByPrimaryKeySelective(newRec);
+                if (i != 1) {
+                    REPAIR_LOGGER.error("--------> Failed to repair SEB client config: {} ", rec);
+                } else {
+                    REPAIR_LOGGER.info(
+                            "--------> Successfully created new client credentials for: {} : {} !!!NOTE!!! If you already have downloaded this Client Configuration, this will not work anymore.nNPlease download it again and use the new one or update it on Moodle, if you use Moodle.",
+                            rec.getId(),
+                            rec.getName());
+                }
+            }
+
+        } catch (Exception e) {
+           REPAIR_LOGGER.error("--------> Failed to repair SEB client config: {} cause: {}", rec, e.getMessage());
+        }
     }
 
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {

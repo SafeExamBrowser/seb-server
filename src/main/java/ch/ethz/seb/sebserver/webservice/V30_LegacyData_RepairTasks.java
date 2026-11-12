@@ -10,6 +10,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
@@ -40,10 +41,12 @@ public class V30_LegacyData_RepairTasks {
     private static final String USER_ROLE_REPAIR_DONE_ATTR_NAME = "V3_USER_ROLE_REPAIR_DONE";
     private static final String EXAM_REPAIR_DONE_ATTR_NAME = "V3_EXAM_REPAIR_DONE";
     private static final String EXAM_TEMPLATE_REPAIR_DONE_ATTR_NAME = "V3_EXAM_TEMPLATE_REPAIR_DONE";
+    private static final String CLIENT_CONFIG_REPAIR_DONE_ATTR_NAME = "V3_CLIENT_CONFIG_REPAIR_DONE";
 
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
+    private final SEBClientConfigDAO sebClientConfigDAO;
     private final ExamTemplateService examTemplateService;
     private final WebserviceInfo webserviceInfo;
     private final ScreenProctoringService screenProctoringService;
@@ -51,6 +54,7 @@ public class V30_LegacyData_RepairTasks {
     public V30_LegacyData_RepairTasks(
             final AdditionalAttributesDAO additionalAttributesDAO, final ExamDAO examDAO,
             final UserDAO userDAO,
+            final SEBClientConfigDAO sebClientConfigDAO,
             final ExamTemplateService examTemplateService,
             final WebserviceInfo webserviceInfo,
             final ScreenProctoringService screenProctoringService) {
@@ -58,6 +62,7 @@ public class V30_LegacyData_RepairTasks {
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.examDAO = examDAO;
         this.userDAO = userDAO;
+        this.sebClientConfigDAO = sebClientConfigDAO;
         this.examTemplateService = examTemplateService;
         this.webserviceInfo = webserviceInfo;
         this.screenProctoringService = screenProctoringService;
@@ -104,8 +109,42 @@ public class V30_LegacyData_RepairTasks {
         repairUserRoles();
         repairExams();
         repairExamTemplates();
+        repairClientConfigs();
         syncSPSUsers();
 
+    }
+
+    private void repairClientConfigs() {
+        try {
+
+            try {
+
+                AdditionalAttributeRecord attr = additionalAttributesDAO
+                        .getAdditionalAttribute(EntityType.EXAM, 0L, CLIENT_CONFIG_REPAIR_DONE_ATTR_NAME)
+                        .getOr(null);
+
+                if (attr != null && BooleanUtils.toBoolean(attr.getValue())) {
+                    REPAIR_LOGGER.info("------> Client Configs already repaired, skip repair task.");
+                    return;
+                }
+
+            } catch (final Exception e) {
+                REPAIR_LOGGER.error("------> !!! Failed to check if Exam repair task already applied. Cause: ", e);
+                return;
+            }
+
+            REPAIR_LOGGER.info("------> ");
+            REPAIR_LOGGER.info("------> Start repairing SEB client configs. Check if there are invalid chars within the client credentials and generate new if so");
+
+            sebClientConfigDAO.repairClientCredentialsWithInvalidChars();
+
+            additionalAttributesDAO.saveAdditionalAttribute(EntityType.USER, 0L, CLIENT_CONFIG_REPAIR_DONE_ATTR_NAME, "true");
+
+            REPAIR_LOGGER.info("------> Successfully finished repairing legacy SEB client configurations");
+
+        } catch (Exception e) {
+            REPAIR_LOGGER.error("------> !!! Failed to repair legacy client configs, error: ", e);
+        }
     }
 
     private void repairUserRoles() {

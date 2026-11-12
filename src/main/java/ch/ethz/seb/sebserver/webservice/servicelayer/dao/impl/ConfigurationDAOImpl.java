@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -27,11 +28,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
@@ -150,6 +146,48 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
+    public void updateTemplateLegacyData(final Long templateId) {
+
+            // check if first version is still on v0. If so save the old data back into the first version
+
+            try {
+
+                ConfigurationNodeRecord node = this.configurationNodeRecordMapper.selectByPrimaryKey(templateId);
+                if (node == null || node.getName().startsWith(ConfigurationNodeDAO.TEMPORARY_TEMPLATE_PREFIX)) {
+                    // If we have a new temporary Configuration Template Node,
+                    // we skip the fix since this is not legacy data
+                    return;
+                }
+
+                Long count = this.configurationRecordMapper
+                        .countByExample()
+                        .where(
+                                ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                                isEqualTo(templateId))
+                        .and(ConfigurationRecordDynamicSqlSupport.version, isEqualTo("v0"))
+                        .build()
+                        .execute();
+
+                if (count != null && count > 0) {
+
+                    log.info("Update legacy Configuration Template data for template: {}", templateId);
+
+                    saveToHistory(templateId)
+                             .flatMap(config -> this.clearHistory(templateId))
+                             .getOrThrow();
+                }
+
+            } catch (Exception e) {
+                log.error(
+                        "Failed to update Configuration Template legacy data for template: {} due to error: {}",
+                        templateId,
+                        e.getMessage());
+
+            }
+
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Result<Configuration> getConfigurationLastStableVersion(final Long configNodeId) {
         return Result.tryCatch(() -> {
@@ -220,18 +258,31 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     .filter(pk -> !Objects.equals(pk, lastStableId) && !Objects.equals(pk, followupId))
                     .toList();
 
-            // delete all ConfigurationValue's that belongs to the Configuration's to delete
-            this.configurationValueRecordMapper.deleteByExample()
-                    .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isIn(configurationIds))
-                    .build()
-                    .execute();
-
             // delete all Configuration's
-            this.configurationRecordMapper.deleteByExample()
+            List<ConfigurationRecord> toDelete = this.configurationRecordMapper
+                    .selectByExample()
                     .where(ConfigurationRecordDynamicSqlSupport.id, isIn(configurationIds))
                     .build()
                     .execute();
-            
+
+            if (toDelete != null && !toDelete.isEmpty()) {
+
+                log.info("Cleanup History, delete following history entries: {}", toDelete);
+
+                // delete all ConfigurationValue's that belongs to the Configuration's to delete
+                this.configurationValueRecordMapper
+                        .deleteByExample()
+                        .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isIn(configurationIds))
+                        .build()
+                        .execute();
+
+                // delete all Configuration's
+                this.configurationRecordMapper.deleteByExample()
+                        .where(ConfigurationRecordDynamicSqlSupport.id, isIn(configurationIds))
+                        .build()
+                        .execute();
+            }
+
             return followup;
         });
     }

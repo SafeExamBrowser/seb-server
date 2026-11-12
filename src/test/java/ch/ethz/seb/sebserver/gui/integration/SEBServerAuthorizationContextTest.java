@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import org.springframework.test.context.jdbc.Sql;
 
+@Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class SEBServerAuthorizationContextTest extends GuiIntegrationTest {
 
     @Test
