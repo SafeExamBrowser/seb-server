@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.MapperFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -30,18 +32,8 @@ public class JSONMapper extends ObjectMapper {
         super.configure(
                 com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID,
                 false);
+        super.disable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS);
         super.setSerializationInclusion(Include.NON_NULL);
     }
 
-//    public String writeValueAsStringOr(final Object entity, final String or) {
-//        if (entity == null) {
-//            return or;
-//        }
-//        try {
-//            return super.writeValueAsString(entity);
-//        } catch (final Exception e) {
-//            log.error("Failed to serialize value: {}", entity, e);
-//            return or;
-//        }
-//    }
 }

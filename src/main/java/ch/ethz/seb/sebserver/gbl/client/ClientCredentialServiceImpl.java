@@ -22,128 +22,99 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 @Lazy
 @Service
 public class ClientCredentialServiceImpl implements ClientCredentialService {
+
+    private final Cryptor cryptor;
+
+    protected ClientCredentialServiceImpl(final Cryptor cryptor) {
+        this.cryptor = cryptor;
+    }
+
     @Override
     public Result<ClientCredentials> generatedClientCredentials() {
-        return null;
+        return encryptClientCredentials(
+                generateClientId(),
+                generateClientSecret());
     }
 
     @Override
-    public Result<ClientCredentials> encryptClientCredentials(CharSequence clientIdPlaintext, CharSequence secretPlaintext, CharSequence accessTokenPlaintext) {
-        return null;
+    public Result<ClientCredentials> encryptClientCredentials(
+            final CharSequence clientIdPlaintext,
+            final CharSequence secretPlaintext,
+            final CharSequence accessTokenPlaintext) {
+
+        return Result.tryCatch(() -> {
+            return new ClientCredentials(
+                    clientIdPlaintext,
+                    (StringUtils.isNoneBlank(secretPlaintext))
+                            ? this.cryptor.encrypt(secretPlaintext)
+                                    .getOrThrow()
+                                    .toString()
+                            : null,
+                    (StringUtils.isNoneBlank(accessTokenPlaintext))
+                            ? this.cryptor.encrypt(accessTokenPlaintext)
+                                    .getOrThrow()
+                                    .toString()
+                            : null);
+        });
     }
 
     @Override
-    public Result<CharSequence> getPlainClientSecret(ClientCredentials credentials) {
-        return null;
+    public Result<CharSequence> getPlainClientSecret(final ClientCredentials credentials) {
+        if (credentials == null || !credentials.hasSecret()) {
+            return Result.ofRuntimeError("ClientCredentials has no secret");
+        }
+
+        return this.cryptor.decrypt(credentials.secret);
     }
 
     @Override
-    public Result<CharSequence> getPlainAccessToken(ClientCredentials credentials) {
-        return null;
+    public Result<CharSequence> getPlainAccessToken(final ClientCredentials credentials) {
+        if (credentials == null || !credentials.hasAccessToken()) {
+            return Result.ofRuntimeError("No token available");
+        }
+
+        return this.cryptor.decrypt(credentials.accessToken);
     }
 
     @Override
-    public Result<CharSequence> encrypt(CharSequence text) {
-        return null;
+    public Result<CharSequence> encrypt(final CharSequence text) {
+        return this.cryptor.encrypt(text);
     }
 
     @Override
-    public Result<CharSequence> decrypt(CharSequence cipher) {
-        return null;
+    public Result<CharSequence> decrypt(final CharSequence text) {
+        return this.cryptor.decrypt(text);
     }
 
-//    private final Cryptor cryptor;
-//
-//    protected ClientCredentialServiceImpl(final Cryptor cryptor) {
-//        this.cryptor = cryptor;
-//    }
-//
-//    @Override
-//    public Result<ClientCredentials> generatedClientCredentials() {
-//        return encryptClientCredentials(
-//                generateClientId(),
-//                generateClientSecret());
-//    }
-//
-//    @Override
-//    public Result<ClientCredentials> encryptClientCredentials(
-//            final CharSequence clientIdPlaintext,
-//            final CharSequence secretPlaintext,
-//            final CharSequence accessTokenPlaintext) {
-//
-//        return Result.tryCatch(() -> {
-//            return new ClientCredentials(
-//                    clientIdPlaintext,
-//                    (StringUtils.isNoneBlank(secretPlaintext))
-//                            ? this.cryptor.encrypt(secretPlaintext)
-//                                    .getOrThrow()
-//                                    .toString()
-//                            : null,
-//                    (StringUtils.isNoneBlank(accessTokenPlaintext))
-//                            ? this.cryptor.encrypt(accessTokenPlaintext)
-//                                    .getOrThrow()
-//                                    .toString()
-//                            : null);
-//        });
-//    }
-//
-//    @Override
-//    public Result<CharSequence> getPlainClientSecret(final ClientCredentials credentials) {
-//        if (credentials == null || !credentials.hasSecret()) {
-//            return Result.ofRuntimeError("ClientCredentials has no secret");
-//        }
-//
-//        return this.cryptor.decrypt(credentials.secret);
-//    }
-//
-//    @Override
-//    public Result<CharSequence> getPlainAccessToken(final ClientCredentials credentials) {
-//        if (credentials == null || !credentials.hasAccessToken()) {
-//            return Result.ofRuntimeError("No token available");
-//        }
-//
-//        return this.cryptor.decrypt(credentials.accessToken);
-//    }
-//
-//    @Override
-//    public Result<CharSequence> encrypt(final CharSequence text) {
-//        return this.cryptor.encrypt(text);
-//    }
-//
-//    @Override
-//    public Result<CharSequence> decrypt(final CharSequence text) {
-//        return this.cryptor.decrypt(text);
-//    }
-//
-//    private final static char[] possibleCharacters =
-//            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-//                    .toCharArray();
-//
-//    public static CharSequence generateClientId() {
-//        return RandomStringUtils.random(
-//                16, 0, possibleCharacters.length - 1, false, false,
-//                possibleCharacters, new SecureRandom());
-//    }
-//
-//    public static CharSequence generateClientSecret() {
-//        return RandomStringUtils.random(
-//                64, 0, possibleCharacters.length - 1, false, false,
-//                possibleCharacters, new SecureRandom());
-//    }
-//
-//    public static void clearChars(final CharSequence sequence) {
-//        if (sequence == null) {
-//            return;
-//        }
-//
-//        if (sequence instanceof CharBuffer) {
-//            ((CharBuffer) sequence).clear();
-//            ((CharBuffer) sequence).put(new char[((CharBuffer) sequence).capacity()]);
-//            return;
-//        }
-//
-//        throw new IllegalArgumentException(
-//                "Cannot clear chars on CharSequence of type: " + sequence.getClass().getName());
-//    }
+    private final static char[] possibleCharacters =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+                    .toCharArray();
+
+    public static CharSequence generateClientId() {
+        return RandomStringUtils.random(
+                16, 0, possibleCharacters.length - 1, false, false,
+                possibleCharacters, new SecureRandom());
+    }
+
+    public static CharSequence generateClientSecret() {
+        return RandomStringUtils.random(
+                64, 0, possibleCharacters.length - 1, false, false,
+                possibleCharacters, new SecureRandom());
+    }
+
+    public static void clearChars(final CharSequence sequence) {
+        if (sequence == null) {
+            return;
+        }
+
+        if (sequence instanceof CharBuffer) {
+            ((CharBuffer) sequence).clear();
+            ((CharBuffer) sequence).put(new char[((CharBuffer) sequence).capacity()]);
+            return;
+        }
+
+        throw new IllegalArgumentException(
+                "Cannot clear chars on CharSequence of type: " + sequence.getClass().getName());
+    }
 
 }

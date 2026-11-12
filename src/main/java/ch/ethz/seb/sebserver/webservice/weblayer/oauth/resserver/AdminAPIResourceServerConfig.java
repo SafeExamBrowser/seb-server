@@ -25,6 +25,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
@@ -93,19 +94,19 @@ public class AdminAPIResourceServerConfig {
         public Collection<GrantedAuthority> convert(final Jwt source) {
             try {
 
-                if (oAuth2AuthorizationService.findById(source.getId()) == null) {
-                    throw new InvalidBearerTokenException("Invalid Token");
+                final OAuth2Authorization validAuth = oAuth2AuthorizationService.findByToken(source.getTokenValue(), OAuth2TokenType.ACCESS_TOKEN);
+                if (validAuth == null) {
+                    throw new InvalidBearerTokenException("Invalid Bearer Token");
                 }
 
                 final List<String> scopes = source.getClaim("scope");
-                if (!scopes.contains(API.WEB_API_SCOPE_NAME)) {
+                if (scopes != null && !scopes.contains(API.WEB_API_SCOPE_NAME)) {
                     throw new InvalidBearerTokenException("Invalid scope");
                 }
 
                 return jwtGrantedAuthoritiesConverter.convert(source);
             } catch (Exception e) {
-                log.warn("Failed to extract scope claim from JWT: {}", source);
-                throw new InvalidBearerTokenException("Invalid scope");
+                throw new InvalidBearerTokenException("Failed to verify Token: ", e);
             }
         }
     }

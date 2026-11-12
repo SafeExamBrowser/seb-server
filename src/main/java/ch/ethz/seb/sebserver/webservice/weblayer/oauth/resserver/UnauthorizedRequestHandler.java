@@ -36,12 +36,7 @@ public class UnauthorizedRequestHandler implements AuthenticationEntryPoint {
                 authenticationException.getMessage());
 
         try {
-            String bearerTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-            if (bearerTokenHeader != null) {
-                bearerTokenHeader = bearerTokenHeader.replace("Bearer ", "");
-            }
-            response.getOutputStream().print(String.format(ERROR_MSG_TEMPLATE, bearerTokenHeader));
+            response.getOutputStream().print(String.format(ERROR_MSG_TEMPLATE, authenticationException.getMessage()));
         } catch (Exception e) {
             log.error("Failed to create proper OAuth error: {}", e.getMessage());
         }

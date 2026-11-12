@@ -39,6 +39,8 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 
+import javax.sql.DataSource;
+
 @Configuration
 @EnableWebSecurity
 public class AuthServerConfig {
@@ -123,9 +125,9 @@ public class AuthServerConfig {
     }
 
     @Bean
-    public OAuth2AuthorizationService oAuth2AuthorizationService() {
+    public OAuth2AuthorizationService oAuth2AuthorizationService(DataSource dataSource) {
         //return new DummyTokenStore();
-        return new InMemoryOAuth2AuthorizationService();
+        return new CachedTokenStore(dataSource);
     }
 
     @Bean
