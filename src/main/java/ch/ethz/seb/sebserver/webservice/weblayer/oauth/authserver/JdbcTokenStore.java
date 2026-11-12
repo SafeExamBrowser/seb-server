@@ -4,8 +4,6 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collection;
 
@@ -16,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlBinaryValue;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -30,14 +27,12 @@ public class JdbcTokenStore {
     private static final Logger log = LoggerFactory.getLogger(JdbcTokenStore.class);
 
 	private final String insertAccessTokenSql = "insert into oauth_access_token (token_id, token, authentication_id, user_name, client_id, authentication, refresh_token) values (?, ?, ?, ?, ?, ?, ?)";;
-
     private final String selectAllAccessTokens = "select token_id, token from oauth_access_token";
     private final String selectAllRefreshTokens = "select token_id, token from oauth_refresh_token";
     private final String selectAccessTokenAuthenticationSql = "select token_id, authentication from oauth_access_token where token_id = ?";
     private final String selectAuthenticationByIdSql = "select authentication from oauth_access_token where authentication_id = ?";;
 	private final String deleteAccessTokenSql = "delete from oauth_access_token where token_id = ?";
 	private final String insertRefreshTokenSql = "insert into oauth_refresh_token (token_id, token, authentication) values (?, ?, ?)";
-	private final String selectRefreshTokenSql = "delete from oauth_access_token where refresh_token = ?";
 	private final String selectRefreshTokenAuthenticationSql = "select token_id, authentication from oauth_refresh_token where token_id = ?";
 	private final String deleteRefreshTokenSql = "delete from oauth_refresh_token where token_id = ?";
 
@@ -92,7 +87,6 @@ public class JdbcTokenStore {
         jdbcTemplate.update(deleteRefreshTokenSql, tokenId);
     }
 
-
     public OAuth2Authorization tryReadAuthorizationById(String id) {
         try {
             return jdbcTemplate.queryForObject(
@@ -101,26 +95,6 @@ public class JdbcTokenStore {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    public OAuth2Authorization readAuthorizationById(String id) {
-        OAuth2Authorization authentication = null;
-
-        try {
-
-            authentication = jdbcTemplate.queryForObject(
-                    selectAuthenticationByIdSql,
-                    (rs, rowNum) -> deserializeAuthorization(rs.getBytes(1)), id);
-
-        } catch (EmptyResultDataAccessException e) {
-            if (log.isInfoEnabled()) {
-                log.info("Failed to find Authorization: {}", id);
-            }
-        } catch (IllegalArgumentException e) {
-            log.warn("Failed to deserialize Authorization", e);
-        }
-
-        return authentication;
     }
 
 	public OAuth2Authorization readAuthorization(String token) {
@@ -157,34 +131,6 @@ public class JdbcTokenStore {
             log.warn("Failed to store refreshToken: {}", refreshToken);
         }
     }
-
-//	public OAuth2RefreshToken readRefreshToken(String token) {
-//		OAuth2RefreshToken refreshToken = null;
-//
-//		try {
-//			refreshToken = jdbcTemplate.queryForObject(selectRefreshTokenSql, new RowMapper<OAuth2RefreshToken>() {
-//				public OAuth2RefreshToken mapRow(ResultSet rs, int rowNum) throws SQLException {
-//					return deserializeRefreshToken(rs.getBytes(2));
-//				}
-//			}, extractTokenKey(token));
-//		}
-//		catch (EmptyResultDataAccessException e) {
-//			if (log.isInfoEnabled()) {
-//				log.info("Failed to find refresh token: {}", token);
-//			}
-//		}
-//		catch (IllegalArgumentException e) {
-//			log.warn("Failed to deserialize refresh token: {} cause: {}", token, e.getMessage());
-//			removeRefreshToken(token);
-//		}
-//
-//		return refreshToken;
-//	}
-
-
-//	public OAuth2Authorization readAAuthorizationForRefreshToken(OAuth2RefreshToken token) {
-//		return readAuthorizationForRefreshToken(token.getTokenValue());
-//	}
 
 	public OAuth2Authorization readAuthorizationForRefreshToken(String value) {
         OAuth2Authorization authentication = null;
@@ -234,19 +180,6 @@ public class JdbcTokenStore {
         byte[] bytes = digest.digest(value.getBytes(StandardCharsets.UTF_8));
         return String.format("%032x", new BigInteger(1, bytes));
     }
-
-//    private final class SafeAccessTokenRowMapper implements RowMapper<OAuth2AccessToken> {
-//		public OAuth2AccessToken mapRow(ResultSet rs, int rowNum) throws SQLException {
-//			try {
-//				return deserializeAccessToken(rs.getBytes(2));
-//			}
-//			catch (IllegalArgumentException e) {
-//				String token = rs.getString(1);
-//				jdbcTemplate.update(deleteAccessTokenSql, token);
-//				return null;
-//			}
-//		}
-//	}
 
 	byte[] serializeAccessToken(OAuth2AccessToken token) {
 		return SerializationUtils.serialize(token);
