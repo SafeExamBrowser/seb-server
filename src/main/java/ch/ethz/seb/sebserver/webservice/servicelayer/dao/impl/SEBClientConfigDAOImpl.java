@@ -454,7 +454,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             final String secret = clientCredentialService.decrypt(rec.getClientSecret()).getOrThrow().toString();
 
             if (name.contains("+") || secret.contains("+") || name.contains("%") || secret.contains("%")) {
-                REPAIR_LOGGER.error(
+                REPAIR_LOGGER.info(
                         "--------> found SEB client config: {} : {} with illegal chars: {} try to repair it...",
                         rec.getId(),
                         rec.getName(),
@@ -472,7 +472,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 if (i != 1) {
                     REPAIR_LOGGER.error("--------> Failed to repair SEB client config: {} ", rec);
                 } else {
-                    REPAIR_LOGGER.error(
+                    REPAIR_LOGGER.info(
                             "--------> Successfully created new client credentials for: {} : {} !!!NOTE!!! If you already have downloaded this Client Configuration, this will not work anymore.nNPlease download it again and use the new one or update it on Moodle, if you use Moodle.",
                             rec.getId(),
                             rec.getName());
