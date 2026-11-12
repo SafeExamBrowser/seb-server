@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Nullable;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,6 +25,9 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -40,6 +44,8 @@ public class AdminAPIResourceServerConfig {
     
     @Autowired
     private JwtDecoder jwtDecoder;
+    @Autowired
+    private OAuth2AuthorizationService oAuth2AuthorizationService;
     @Value("${sebserver.webservice.api.admin.endpoint}")
     private String adminAPIEndpoint;
 
@@ -64,7 +70,7 @@ public class AdminAPIResourceServerConfig {
         ;
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new AdminAPIJwtGrantedAuthoritiesConverter());
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new AdminAPIJwtGrantedAuthoritiesConverter(oAuth2AuthorizationService));
         http
                 .oauth2ResourceServer(resServer -> resServer
                         .authenticationEntryPoint(new UnauthorizedRequestHandler("AdminAPIResourceServerConfig"))
@@ -76,22 +82,31 @@ public class AdminAPIResourceServerConfig {
     
     
     private static class AdminAPIJwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
-        
+
+        private final OAuth2AuthorizationService oAuth2AuthorizationService;
         private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        
+
+        private AdminAPIJwtGrantedAuthoritiesConverter(OAuth2AuthorizationService oAuth2AuthorizationService) {
+            this.oAuth2AuthorizationService = oAuth2AuthorizationService;
+        }
+
         @Override
         public Collection<GrantedAuthority> convert(final Jwt source) {
             try {
 
+                final OAuth2Authorization validAuth = oAuth2AuthorizationService.findByToken(source.getTokenValue(), OAuth2TokenType.ACCESS_TOKEN);
+                if (validAuth == null) {
+                    throw new InvalidBearerTokenException("Invalid Bearer Token");
+                }
+
                 final List<String> scopes = source.getClaim("scope");
-                if (!scopes.contains(API.WEB_API_SCOPE_NAME)) {
+                if (scopes != null && !scopes.contains(API.WEB_API_SCOPE_NAME)) {
                     throw new InvalidBearerTokenException("Invalid scope");
                 }
 
                 return jwtGrantedAuthoritiesConverter.convert(source);
             } catch (Exception e) {
-                log.warn("Failed to extract scope claim from JWT: {}", source);
-                throw new InvalidBearerTokenException("Invalid scope");
+                throw new InvalidBearerTokenException("Failed to verify Token: ", e);
             }
         }
     }

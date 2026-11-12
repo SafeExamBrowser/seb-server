@@ -194,11 +194,11 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     @RequestMapping(path = API.LOGOUT_PATH_SEGMENT, method = RequestMethod.POST)
     public void logout(@Parameter(hidden = true) final HttpServletRequest request) {
         try {
-            String authHeader = request.getHeader("Authorization");
+            final String authHeader = request.getHeader("Authorization");
             if (authHeader != null) {
-                String tokenValue = authHeader.replace("Bearer", "").trim();
-                OAuth2Authorization byToken = oAuth2AuthorizationService.findByToken(tokenValue, OAuth2TokenType.ACCESS_TOKEN);
-                oAuth2AuthorizationService.remove(byToken);
+                final String tokenValue = authHeader.replace("Bearer", "").trim();
+                final OAuth2Authorization auth = oAuth2AuthorizationService.findByToken(tokenValue, OAuth2TokenType.ACCESS_TOKEN);
+                oAuth2AuthorizationService.remove(auth);
             }
         } catch (Exception e) {
             log.warn("Failed to revoke access token: {}", e.getMessage());
