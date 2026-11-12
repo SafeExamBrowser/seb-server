@@ -43,28 +43,41 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
             return;
         }
 
-        String aToken = null;
-        String rToken = null;
         final OAuth2Authorization.Token<OAuth2AccessToken> accessToken = authorization.getAccessToken();
         final OAuth2Authorization.Token<OAuth2RefreshToken> refreshToken = authorization.getRefreshToken();
 
         // Note: we only store OAuth2Authorization with refresh tokens since the others come from SEB or LMS and will
         //       just get invalid when they expire and they are not exposed within a browser.
         if (refreshToken != null) {
-            rToken = refreshToken.getToken().getTokenValue();
+            final String rToken = refreshToken.getToken().getTokenValue();
             if (rToken != null) {
                 if (accessToken != null) {
-                    aToken = accessToken.getToken().getTokenValue();
+                    final String aToken = accessToken.getToken().getTokenValue();
                     if (aToken != null) {
+
                         authorizationsByAccessToken.put(aToken, authorization);
                         storeAuthorization(authorization, accessToken, refreshToken);
+
+                        if (log.isDebugEnabled()) {
+                            log.info("Stored new tokens for: {} token: {} refreshToken: {}",
+                                    authorization.getPrincipalName(),
+                                    aToken,
+                                    rToken);
+                        }
+
+                        return;
                     }
                 }
             }
-        }
 
-        if (log.isDebugEnabled()) {
-            log.info("New token for: {} token: {} refreshToken: {}", authorization.getPrincipalName(), aToken, rToken);
+            log.info("Skip storing tokens for: {} : {}", authorization.getId(), authorization.getPrincipalName());
+
+        } else if (accessToken != null) {
+            if (log.isDebugEnabled()) {
+                log.info("New access token token for: {} token: {}",
+                        authorization.getPrincipalName(),
+                        accessToken.getToken().getTokenValue());
+            }
         }
     }
 
