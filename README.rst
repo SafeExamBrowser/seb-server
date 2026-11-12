@@ -88,6 +88,14 @@ Bugfixes:
    - Exam/Quiz description change from Moodle causes errors when description is deleted
    - SEB Settings, URLs getting cut in SEB Config
 
+Bugfixes coming with 3.0.1 patch
+   - SEB Settings in legacy configuration template get reset when fist action is undo
+   - SEB Settings changes on Exam Template vanish on first undo
+   - Old SEB Client Configurations that have special chars in client_name or client_secret are not accepted anymore
+   - Institutional Admin has no gallery view access when not attached to Exam
+   - Version incompatibility with S3 Minio batch store common-utils-io
+   - Remove description in Assessment Tool based exams
+
 Missing Features:
    - Consider that the new UI is MVP (minimal viable product). And despite the fact that almost all of the former features as be implemented or integrated, there are some few missing features.
    - User/Audit Logs are currently not viewable in the UI.
