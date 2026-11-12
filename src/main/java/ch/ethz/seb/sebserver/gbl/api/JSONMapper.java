@@ -32,7 +32,6 @@ public class JSONMapper extends ObjectMapper {
         super.configure(
                 com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID,
                 false);
-        super.disable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS);
         super.setSerializationInclusion(Include.NON_NULL);
     }
 
