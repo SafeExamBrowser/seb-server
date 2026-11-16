@@ -6,6 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Types;
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.sql.DataSource;
 
@@ -43,8 +44,9 @@ public class JdbcTokenStore {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
-	public void storeAccessToken(OAuth2AccessToken token, OAuth2Authorization authorization) {
+    public void storeAccessToken(OAuth2AccessToken token, OAuth2Authorization authorization) {
         try {
+
             String refreshToken = null;
             if (authorization.getRefreshToken() != null) {
                 refreshToken = authorization.getRefreshToken().getToken().getTokenValue();
@@ -57,29 +59,33 @@ public class JdbcTokenStore {
                     new SqlBinaryValue(serializeAuthorization(authorization)), extractTokenKey(refreshToken)}, new int[]{
                     Types.VARCHAR, Types.BLOB, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB, Types.VARCHAR});
 
-            if (log.isDebugEnabled()) {
-                log.debug("Stored new access token for: {}", authorization);
+            if (update == 0) {
+                log.warn("Failed to store access token for: {} no row update received.", authorization.getPrincipalName());
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Stored new tokens for: {} token: {} refreshToken: {}",
+                            authorization.getPrincipalName(),
+                            token.getTokenValue(),
+                            refreshToken);
+                }
             }
 
-            if (update == 0) {
-                log.warn("Failed to store access token for: {} no row update received.", authorization.getId());
-            }
         } catch (Exception e) {
-            log.error("Failed to store access token for: {} error cause:  {}", authorization.getId(), e.getMessage());
+            log.error("Failed to store access token for: {} error cause:  {}", authorization.getPrincipalName(), e.getMessage());
         }
     }
 
-	public void removeAccessToken(OAuth2AccessToken token) {
-		removeAccessToken(token.getTokenValue());
-	}
+    public void removeAccessToken(OAuth2AccessToken token) {
+        removeAccessToken(token.getTokenValue());
+    }
 
-	public void removeAccessToken(String tokenValue) {
+    public void removeAccessToken(String tokenValue) {
         if (log.isDebugEnabled()) {
             log.debug("Remove access token by token value: {}", tokenValue);
         }
 
-		jdbcTemplate.update(deleteAccessTokenSql, extractTokenKey(tokenValue));
-	}
+        jdbcTemplate.update(deleteAccessTokenSql, extractTokenKey(tokenValue));
+    }
 
     public void deleteAccessTokenById(final String tokenId) {
         if (log.isDebugEnabled()) {
@@ -107,114 +113,130 @@ public class JdbcTokenStore {
 
     public OAuth2Authorization tryReadAuthorizationById(String id) {
         try {
+
             return jdbcTemplate.queryForObject(
                     selectAuthenticationByIdSql,
                     (rs, rowNum) -> deserializeAuthorization(rs.getBytes(1)), id);
+
         } catch (Exception e) {
             return null;
         }
     }
 
-	public OAuth2Authorization readAuthorization(String token) {
-		try {
+    public OAuth2Authorization readAuthorization(String token) {
+        try {
 
-			return jdbcTemplate.queryForObject(
+            return jdbcTemplate.queryForObject(
                     selectAccessTokenAuthenticationSql,
                     (rs, rowNum) -> deserializeAuthorization(rs.getBytes(2)), extractTokenKey(token));
 
-		} catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             log.info("Failed to find access token: {}", token);
             return null;
-		} catch (IllegalArgumentException e) {
-			log.warn("Failed to deserialize authentication: {}", e.getMessage());
-			removeAccessToken(token);
+        } catch (IllegalArgumentException e) {
+            log.warn("Failed to deserialize authentication: {}", e.getMessage());
+            removeAccessToken(token);
             return null;
-		}
-	}
-
-	public void storeRefreshToken(OAuth2RefreshToken refreshToken, OAuth2Authorization authorization) {
-
-        log.info("Store refresh token: {} for auth: {}", refreshToken.getTokenValue(), authorization.getId());
-
-        int update = jdbcTemplate.update(insertRefreshTokenSql, new Object[]{extractTokenKey(refreshToken.getTokenValue()),
-                new SqlBinaryValue(serializeRefreshToken(refreshToken)),
-                new SqlBinaryValue(serializeAuthorization(authorization))}, new int[]{Types.VARCHAR, Types.BLOB,
-                Types.BLOB});
-
-        if (update == 0) {
-            log.warn("Failed to store refreshToken: {}", refreshToken);
         }
     }
 
-	public OAuth2Authorization readAuthorizationForRefreshToken(String value) {
+    public void storeRefreshToken(OAuth2RefreshToken refreshToken, OAuth2Authorization authorization) {
+        try {
 
-		try {
-			return jdbcTemplate
+            int update = jdbcTemplate.update(insertRefreshTokenSql, new Object[]{extractTokenKey(refreshToken.getTokenValue()),
+                    new SqlBinaryValue(serializeRefreshToken(refreshToken)),
+                    new SqlBinaryValue(serializeAuthorization(authorization))}, new int[]{Types.VARCHAR, Types.BLOB,
+                    Types.BLOB});
+
+            if (update == 0) {
+                log.warn("Failed to store refreshToken: {}", refreshToken);
+            }
+        } catch (Exception e) {
+            log.error("Failed to store new access token for: {} cause:  {}", authorization.getPrincipalName(), e.getMessage());
+        }
+    }
+
+    public OAuth2Authorization readAuthorizationForRefreshToken(String value) {
+        try {
+
+            return jdbcTemplate
                     .queryForObject(selectRefreshTokenAuthenticationSql,
-                    (rs, rowNum) -> deserializeAuthorization(rs.getBytes(2)), extractTokenKey(value));
-		}
-		catch (EmptyResultDataAccessException e) {
+                            (rs, rowNum) -> deserializeAuthorization(rs.getBytes(2)), extractTokenKey(value));
+
+        } catch (EmptyResultDataAccessException e) {
             log.info("Failed to find by refresh token token: {}", value);
             return null;
-		}
-		catch (IllegalArgumentException e) {
-			log.warn("Failed to deserialize authorization token. Cause: {}", e.getMessage());
-			removeRefreshToken(value);
+        } catch (IllegalArgumentException e) {
+            log.warn("Failed to deserialize authorization token. Cause: {}", e.getMessage());
+            removeRefreshToken(value);
             return null;
-		}
-
-	}
+        }
+    }
 
     public Collection<Pair<String, byte[]>> getAllAccessTokens() {
-        return jdbcTemplate.query(
-                selectAllAccessTokens,
-                (rs, rowNum) -> new Pair<>(rs.getString(1), rs.getBytes(2)));
+        try {
+
+            return jdbcTemplate.query(
+                    selectAllAccessTokens,
+                    (rs, rowNum) -> new Pair<>(rs.getString(1), rs.getBytes(2)));
+
+        } catch (Exception e) {
+            log.error("Failed to fetch all access tokens: {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     public Collection<Pair<String, byte[]>> getAllRefreshTokens() {
-        return jdbcTemplate.query(
-                selectAllRefreshTokens,
-                (rs, rowNum) ->  new Pair<>(rs.getString(1), rs.getBytes(2)));
+        try {
+
+            return jdbcTemplate.query(
+                    selectAllRefreshTokens,
+                    (rs, rowNum) ->  new Pair<>(rs.getString(1), rs.getBytes(2)));
+
+        } catch (Exception e) {
+            log.error("Failed to fetch all refresh tokens: {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
-	protected String extractTokenKey(String value) {
-		if (value == null) {
-			return null;
-		}
-		MessageDigest digest;
-		try {
-			digest = MessageDigest.getInstance("MD5");
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).");
-		}
+    protected String extractTokenKey(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).");
+        }
 
         byte[] bytes = digest.digest(value.getBytes(StandardCharsets.UTF_8));
         return String.format("%032x", new BigInteger(1, bytes));
     }
 
-	byte[] serializeAccessToken(OAuth2AccessToken token) {
-		return SerializationUtils.serialize(token);
-	}
+    byte[] serializeAccessToken(OAuth2AccessToken token) {
+        return SerializationUtils.serialize(token);
+    }
 
-	byte[] serializeRefreshToken(OAuth2RefreshToken token) {
-		return SerializationUtils.serialize(token);
-	}
+    byte[] serializeRefreshToken(OAuth2RefreshToken token) {
+        return SerializationUtils.serialize(token);
+    }
 
-	byte[] serializeAuthorization(OAuth2Authorization authorization) {
-		return SerializationUtils.serialize(authorization);
-	}
+    byte[] serializeAuthorization(OAuth2Authorization authorization) {
+        return SerializationUtils.serialize(authorization);
+    }
 
-	OAuth2AccessToken deserializeAccessToken(byte[] token) {
-		return (OAuth2AccessToken) SerializationUtils.deserialize(token);
-	}
+    OAuth2AccessToken deserializeAccessToken(byte[] token) {
+        return (OAuth2AccessToken) SerializationUtils.deserialize(token);
+    }
 
-	OAuth2RefreshToken deserializeRefreshToken(byte[] token) {
-		return (OAuth2RefreshToken) SerializationUtils.deserialize(token);
-	}
+    OAuth2RefreshToken deserializeRefreshToken(byte[] token) {
+        return (OAuth2RefreshToken) SerializationUtils.deserialize(token);
+    }
 
-	OAuth2Authorization deserializeAuthorization(byte[] authentication) {
-		return (OAuth2Authorization) SerializationUtils.deserialize(authentication);
-	}
+    OAuth2Authorization deserializeAuthorization(byte[] authentication) {
+        return (OAuth2Authorization) SerializationUtils.deserialize(authentication);
+    }
 
 }

@@ -59,13 +59,7 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
                         authorizationsByAccessToken.put(aToken, authorization);
                         storeAuthorization(authorization, accessToken, refreshToken);
 
-                        if (log.isDebugEnabled()) {
-                            log.info("Stored new tokens for: {} token: {} refreshToken: {}",
-                                    authorization.getPrincipalName(),
-                                    aToken,
-                                    rToken);
-                        }
-
+                        log.info("Stored new access token for: {}", authorization.getPrincipalName());
                         return;
                     }
                 }
@@ -89,6 +83,8 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
                     authorization,
                     authorization.getAccessToken(),
                     authorization.getRefreshToken());
+
+            log.info("Revoked access token and refresh token for: {}", authorization.getPrincipalName());
         }
     }
 
@@ -136,7 +132,7 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
             }
 
         } catch (Exception e) {
-             log.error("Failed to store authorization: {} cause: {}", authorization.getId(), e.getMessage());
+            log.error("Failed to store authorization: {} cause: {}", authorization.getId(), e.getMessage());
         }
     }
 
@@ -156,6 +152,8 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
         // delete refresh token since it was reused
         if (authorization!= null) {
             jdbcTokenStore.removeRefreshToken(refreshToken);
+            // also remove old access token from cache
+            authorizationsByAccessToken.remove(authorization.getAccessToken().getToken().getTokenValue());
         }
 
         return authorization;
