@@ -44,20 +44,28 @@ public class JdbcTokenStore {
 	}
 
 	public void storeAccessToken(OAuth2AccessToken token, OAuth2Authorization authorization) {
-		String refreshToken = null;
-		if (authorization.getRefreshToken() != null) {
-			refreshToken = authorization.getRefreshToken().getToken().getTokenValue();
-		}
+        try {
+            String refreshToken = null;
+            if (authorization.getRefreshToken() != null) {
+                refreshToken = authorization.getRefreshToken().getToken().getTokenValue();
+            }
 
-        int update = jdbcTemplate.update(insertAccessTokenSql, new Object[]{extractTokenKey(token.getTokenValue()),
-                new SqlBinaryValue(serializeAccessToken(token)), authorization.getId(),
-                authorization.getPrincipalName(),
-                authorization.getRegisteredClientId(),
-                new SqlBinaryValue(serializeAuthorization(authorization)), extractTokenKey(refreshToken)}, new int[]{
-                Types.VARCHAR, Types.BLOB, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB, Types.VARCHAR});
+            int update = jdbcTemplate.update(insertAccessTokenSql, new Object[]{extractTokenKey(token.getTokenValue()),
+                    new SqlBinaryValue(serializeAccessToken(token)), authorization.getId(),
+                    authorization.getPrincipalName(),
+                    authorization.getRegisteredClientId(),
+                    new SqlBinaryValue(serializeAuthorization(authorization)), extractTokenKey(refreshToken)}, new int[]{
+                    Types.VARCHAR, Types.BLOB, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB, Types.VARCHAR});
 
-        if (log.isDebugEnabled()) {
-            log.debug("Stored new access token for: {}", authorization);
+            if (log.isDebugEnabled()) {
+                log.debug("Stored new access token for: {}", authorization);
+            }
+
+            if (update == 0) {
+                log.warn("Failed to store access token for: {} no row update received.", authorization.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to store access token for: {} error cause:  {}", authorization.getId(), e.getMessage());
         }
     }
 
@@ -66,11 +74,18 @@ public class JdbcTokenStore {
 	}
 
 	public void removeAccessToken(String tokenValue) {
-        log.debug("Remove access token: {}", tokenValue);
+        if (log.isDebugEnabled()) {
+            log.debug("Remove access token by token value: {}", tokenValue);
+        }
+
 		jdbcTemplate.update(deleteAccessTokenSql, extractTokenKey(tokenValue));
 	}
 
     public void deleteAccessTokenById(final String tokenId) {
+        if (log.isDebugEnabled()) {
+            log.debug("Remove access token by id: {}", tokenId);
+        }
+
         jdbcTemplate.update(deleteAccessTokenSql, tokenId);
     }
 
@@ -79,7 +94,10 @@ public class JdbcTokenStore {
     }
 
     public void removeRefreshToken(String token) {
-        log.debug("Remove refresh token: {}", token);
+        if (log.isDebugEnabled()) {
+            log.debug("Remove refresh token: {}", token);
+        }
+
         jdbcTemplate.update(deleteRefreshTokenSql, extractTokenKey(token));
     }
 
@@ -98,24 +116,20 @@ public class JdbcTokenStore {
     }
 
 	public OAuth2Authorization readAuthorization(String token) {
-        OAuth2Authorization authentication = null;
-
 		try {
 
-			authentication = jdbcTemplate.queryForObject(
+			return jdbcTemplate.queryForObject(
                     selectAccessTokenAuthenticationSql,
                     (rs, rowNum) -> deserializeAuthorization(rs.getBytes(2)), extractTokenKey(token));
 
 		} catch (EmptyResultDataAccessException e) {
-			if (log.isInfoEnabled()) {
-				log.info("Failed to find access token: {}", token);
-			}
+            log.info("Failed to find access token: {}", token);
+            return null;
 		} catch (IllegalArgumentException e) {
-			log.warn("Failed to deserialize authentication", e);
+			log.warn("Failed to deserialize authentication: {}", e.getMessage());
 			removeAccessToken(token);
+            return null;
 		}
-
-		return authentication;
 	}
 
 	public void storeRefreshToken(OAuth2RefreshToken refreshToken, OAuth2Authorization authorization) {
@@ -133,24 +147,22 @@ public class JdbcTokenStore {
     }
 
 	public OAuth2Authorization readAuthorizationForRefreshToken(String value) {
-        OAuth2Authorization authentication = null;
 
 		try {
-			authentication = jdbcTemplate
+			return jdbcTemplate
                     .queryForObject(selectRefreshTokenAuthenticationSql,
                     (rs, rowNum) -> deserializeAuthorization(rs.getBytes(2)), extractTokenKey(value));
 		}
 		catch (EmptyResultDataAccessException e) {
-			if (log.isInfoEnabled()) {
-				log.info("Failed to find by refresh token token: {}", value);
-			}
+            log.info("Failed to find by refresh token token: {}", value);
+            return null;
 		}
 		catch (IllegalArgumentException e) {
-			log.warn("Failed to deserialize authorization token", e);
+			log.warn("Failed to deserialize authorization token. Cause: {}", e.getMessage());
 			removeRefreshToken(value);
+            return null;
 		}
 
-		return authentication;
 	}
 
     public Collection<Pair<String, byte[]>> getAllAccessTokens() {

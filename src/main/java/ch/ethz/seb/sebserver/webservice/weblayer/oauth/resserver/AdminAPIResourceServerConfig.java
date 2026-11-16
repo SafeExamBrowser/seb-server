@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -95,7 +94,9 @@ public class AdminAPIResourceServerConfig {
             try {
 
                 // check token still available on store
-                final OAuth2Authorization validAuth = oAuth2AuthorizationService.findByToken(source.getTokenValue(), OAuth2TokenType.ACCESS_TOKEN);
+                final OAuth2Authorization validAuth = oAuth2AuthorizationService.findByToken(
+                        source.getTokenValue(),
+                        OAuth2TokenType.ACCESS_TOKEN);
                 if (validAuth == null) {
                     throw new InvalidBearerTokenException("Invalid Bearer Token");
                 }
