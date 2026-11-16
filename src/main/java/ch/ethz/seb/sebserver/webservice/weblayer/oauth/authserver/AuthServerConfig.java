@@ -126,7 +126,7 @@ public class AuthServerConfig {
 
     @Bean
     public OAuth2AuthorizationService oAuth2AuthorizationService(DataSource dataSource) {
-        //return new DummyTokenStore();
+        //return new InMemoryOAuth2AuthorizationService();
         return new CachedTokenStore(dataSource);
     }
 

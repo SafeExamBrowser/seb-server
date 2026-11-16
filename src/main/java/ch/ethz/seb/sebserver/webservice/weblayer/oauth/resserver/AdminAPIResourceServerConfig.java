@@ -94,6 +94,7 @@ public class AdminAPIResourceServerConfig {
         public Collection<GrantedAuthority> convert(final Jwt source) {
             try {
 
+                // check token still available on store
                 final OAuth2Authorization validAuth = oAuth2AuthorizationService.findByToken(source.getTokenValue(), OAuth2TokenType.ACCESS_TOKEN);
                 if (validAuth == null) {
                     throw new InvalidBearerTokenException("Invalid Bearer Token");

@@ -26,15 +26,15 @@ public class JdbcTokenStore {
 
     private static final Logger log = LoggerFactory.getLogger(JdbcTokenStore.class);
 
-	private final String insertAccessTokenSql = "insert into oauth_access_token (token_id, token, authentication_id, user_name, client_id, authentication, refresh_token) values (?, ?, ?, ?, ?, ?, ?)";;
-    private final String selectAllAccessTokens = "select token_id, token from oauth_access_token";
-    private final String selectAllRefreshTokens = "select token_id, token from oauth_refresh_token";
-    private final String selectAccessTokenAuthenticationSql = "select token_id, authentication from oauth_access_token where token_id = ?";
-    private final String selectAuthenticationByIdSql = "select authentication from oauth_access_token where authentication_id = ?";;
-	private final String deleteAccessTokenSql = "delete from oauth_access_token where token_id = ?";
-	private final String insertRefreshTokenSql = "insert into oauth_refresh_token (token_id, token, authentication) values (?, ?, ?)";
-	private final String selectRefreshTokenAuthenticationSql = "select token_id, authentication from oauth_refresh_token where token_id = ?";
-	private final String deleteRefreshTokenSql = "delete from oauth_refresh_token where token_id = ?";
+	private static final String insertAccessTokenSql = "insert into oauth_access_token (token_id, token, authentication_id, user_name, client_id, authentication, refresh_token) values (?, ?, ?, ?, ?, ?, ?)";
+    private static final String selectAllAccessTokens = "select token_id, token from oauth_access_token";
+    private static final String selectAllRefreshTokens = "select token_id, token from oauth_refresh_token";
+    private static final String selectAccessTokenAuthenticationSql = "select token_id, authentication from oauth_access_token where token_id = ?";
+    private static final String selectAuthenticationByIdSql = "select authentication from oauth_access_token where authentication_id = ?";
+	private static final String deleteAccessTokenSql = "delete from oauth_access_token where token_id = ?";
+	private static final String insertRefreshTokenSql = "insert into oauth_refresh_token (token_id, token, authentication) values (?, ?, ?)";
+	private static final String selectRefreshTokenAuthenticationSql = "select token_id, authentication from oauth_refresh_token where token_id = ?";
+	private static final String deleteRefreshTokenSql = "delete from oauth_refresh_token where token_id = ?";
 
 	private final JdbcTemplate jdbcTemplate;
 
