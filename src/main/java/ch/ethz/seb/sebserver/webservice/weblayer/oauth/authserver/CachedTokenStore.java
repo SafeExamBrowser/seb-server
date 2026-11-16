@@ -152,8 +152,11 @@ public class CachedTokenStore implements OAuth2AuthorizationService  {
         // delete refresh token since it was reused
         if (authorization!= null) {
             jdbcTokenStore.removeRefreshToken(refreshToken);
-            // also remove old access token from cache
-            authorizationsByAccessToken.remove(authorization.getAccessToken().getToken().getTokenValue());
+            // NOTE: also remove the old access token from cache here will often
+            //       cause the new GUI to logout since there are still requests coming in with the old token.
+            // TODO: once we solved this problem within the GUI, the backend can remove the old access token
+            //       from the cache here.
+            //authorizationsByAccessToken.remove(authorization.getAccessToken().getToken().getTokenValue());
         }
 
         return authorization;
