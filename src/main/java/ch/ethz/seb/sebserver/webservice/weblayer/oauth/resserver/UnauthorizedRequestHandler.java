@@ -1,5 +1,6 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth.resserver;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -30,10 +31,10 @@ public class UnauthorizedRequestHandler implements AuthenticationEntryPoint {
             final HttpServletResponse response,
             final AuthenticationException authenticationException) throws IOException {
 
-        log.warn("{}: Unauthorized Request on: {} cause: {}",
+        log.info("{}: Unauthorized Request on: {}   from: {}",
                 name,
                 request.getRequestURI(),
-                authenticationException.getMessage());
+                Utils.getClientIpAddress(request));
 
         try {
             response.getOutputStream().print(String.format(ERROR_MSG_TEMPLATE, authenticationException.getMessage()));

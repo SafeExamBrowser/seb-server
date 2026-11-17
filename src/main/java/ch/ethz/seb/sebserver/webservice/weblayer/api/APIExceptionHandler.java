@@ -71,7 +71,10 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 return null;
             }
         } else {
-            log.error("Unexpected generic error caught at the API endpoint: ", ex);
+            log.error("Unexpected generic error caught at the API endpoint: {}", ex.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("--> full error: ", ex);
+            }
         }
 
         final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()));
@@ -192,6 +195,19 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         log.warn("Illegal argument or state detected: {}\n    send 400 Bad Request response", ex.getMessage());
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleNoResourceFoundException(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("No Http Resource found for: {}", ex.getMessage());
+        }
+        return new ResponseEntity<>(null, null, ex.getStatusCode());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
