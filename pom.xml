@@ -108,22 +108,22 @@
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
-            <version>3.5.6</version>
+            <version>3.5.19</version>
         </dependency>
         <dependency>
             <groupId>org.mybatis.dynamic-sql</groupId>
             <artifactId>mybatis-dynamic-sql</artifactId>
-            <version>1.1.2</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>3.0.3</version>
+            <version>3.0.5</version>
         </dependency>
         <dependency>
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper-spring-boot-starter</artifactId>
-            <version>1.4.6</version>
+            <version>4.1.1</version>
         </dependency>
 
         <!-- Spring / Spring Boot -->

@@ -18,8 +18,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.ResultType;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.type.JdbcType;
-import org.mybatis.dynamic.sql.BasicColumn;
-import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.mybatis.dynamic.sql.select.SelectDSL;
@@ -35,15 +33,6 @@ public interface ClientEventExtensionMapper {
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
     Long num(SelectStatementProvider selectStatement);
 
-    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> maxByExample(final BasicColumn column) {
-        return SelectDSL.selectWithMapper(this::num, SqlBuilder.max(column))
-                .from(ClientEventRecordDynamicSqlSupport.clientEventRecord);
-    }
-
-    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> minByExample(final BasicColumn column) {
-        return SelectDSL.selectWithMapper(this::num, SqlBuilder.min(column))
-                .from(ClientEventRecordDynamicSqlSupport.clientEventRecord);
-    }
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
     @ResultType(ClientEventExtensionMapper.ConnectionEventJoinRecord.class)
