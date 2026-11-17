@@ -164,7 +164,9 @@ public class JdbcTokenStore {
                             (rs, rowNum) -> deserializeAuthorization(rs.getBytes(2)), extractTokenKey(value));
 
         } catch (EmptyResultDataAccessException e) {
-            log.info("Failed to find by refresh token token: {}", value);
+            if (log.isDebugEnabled()) {
+                log.info("Failed to find authorization by refresh token: {}", value);
+            }
             return null;
         } catch (IllegalArgumentException e) {
             log.warn("Failed to deserialize authorization token. Cause: {}", e.getMessage());
