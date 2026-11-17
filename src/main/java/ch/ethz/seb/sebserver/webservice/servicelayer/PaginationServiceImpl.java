@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ScheduledDelete;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import org.apache.commons.lang3.StringUtils;
@@ -343,6 +342,9 @@ public class PaginationServiceImpl implements PaginationService {
                 ClientEventRecordDynamicSqlSupport.type.name());
         clientEventTableMap.put(
                 Domain.CLIENT_EVENT.ATTR_CLIENT_TIME,
+                ClientEventRecordDynamicSqlSupport.clientTime.name());
+        clientEventTableMap.put(
+                "timestamp",
                 ClientEventRecordDynamicSqlSupport.clientTime.name());
         clientEventTableMap.put(
                 Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
