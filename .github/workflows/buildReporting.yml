@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Get short SHA
-      uses: benjlevesque/short-sha@v3.0
+      uses: benjlevesque/short-sha@v5.0
       id: short-sha
     - name: Store short SHA as environment variable
       run: echo $SHA
