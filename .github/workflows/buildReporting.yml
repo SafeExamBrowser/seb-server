@@ -34,7 +34,7 @@ jobs:
 #        ./hulud/shai-hulud-detector.sh ./seb
 
   maven-build-reporting:
-    needs: shai-hulud-detector
+#   needs: shai-hulud-detector
     runs-on: ubuntu-latest
     steps:
     - name: Get short SHA
