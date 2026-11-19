@@ -66,4 +66,7 @@ public interface SEBClientConfigDAO extends
 
     SEBClientConfig decryptPasswords(SEBClientConfig config);
 
+    /** This is used to repair legacy client configurations that have invalid characters in the client
+     * credentials for SEB connection. This is supposed to only call once on migration by the V30_Legacy_Data_RepairTask */
+    void repairClientCredentialsWithInvalidChars();
 }

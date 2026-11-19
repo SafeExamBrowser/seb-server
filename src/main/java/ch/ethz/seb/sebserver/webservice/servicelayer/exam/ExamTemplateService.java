@@ -96,7 +96,7 @@ public interface ExamTemplateService {
     /** This is used to prepare a given ExamTemplate for SEB Server v3 needs if is not already up to date.
      *  First it checks if there is a Configuration Template assigned. This is mandatory since V3 and
      *  if not, this preparation will create a new default Configuration Template for the given Exam Template
-     *  and sore all the data for this.
+     *  and store all the data for this.
      *  Then add all additional data needed to support the new V3 UI to the Exam Template model.
      *  And last but not least, filters out all legacy data that is not used by the new V3 UI anymore
      *  and also cannot handle it anymore.
@@ -106,7 +106,7 @@ public interface ExamTemplateService {
     default Result<ExamTemplate> prepareForV3(final ExamTemplate examTemplate) {
         return Result.tryCatch(() -> {
             final ExamTemplate withConfigurationTemplate = createConfigurationTemplateWhenMissing(examTemplate);
-            final ExamTemplate allData =  applyExamTemplateAdditionalData(withConfigurationTemplate);
+            final ExamTemplate allData = applyExamTemplateAdditionalData(withConfigurationTemplate);
             return filterLegacyData(allData);
         });
     }

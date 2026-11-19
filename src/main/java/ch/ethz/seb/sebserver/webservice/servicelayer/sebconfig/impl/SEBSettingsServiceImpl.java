@@ -69,6 +69,10 @@ public class SEBSettingsServiceImpl implements SEBSettingsService {
     public Result<SEBSettingsView> getSEBSettingsOfTemplate(
             final Long templateId, 
             final SEBSettingsView.ViewType viewType) {
+
+        if (viewType == SEBSettingsView.ViewType.GENERAL) {
+            configurationDAO.updateTemplateLegacyData(templateId);
+        }
         
         return Result.tryCatch(() -> getSEBSettings(templateId, viewType));
     }
