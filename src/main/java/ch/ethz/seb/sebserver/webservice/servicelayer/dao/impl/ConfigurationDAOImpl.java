@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -32,6 +34,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecor
 @Lazy
 @Component
 public class ConfigurationDAOImpl implements ConfigurationDAO {
+
+    private final Logger log = LoggerFactory.getLogger(ConfigurationDAOImpl.class);
 
     private final ConfigurationRecordMapper configurationRecordMapper;
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;

@@ -21,7 +21,6 @@ import org.springframework.test.context.jdbc.Sql;
 public class SEBServerAuthorizationContextTest extends GuiIntegrationTest {
 
     @Test
-
     public void testLoginLogoutAsSEBAdmin() {
 
         final SEBServerAuthorizationContext authorizationContext = getAuthorizationContext();

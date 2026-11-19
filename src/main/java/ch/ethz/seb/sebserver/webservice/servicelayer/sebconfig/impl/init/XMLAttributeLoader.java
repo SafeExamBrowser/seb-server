@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.function.Function;
 
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -27,6 +26,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.SecureSAXParserFactory;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser;
 
@@ -68,8 +68,7 @@ public class XMLAttributeLoader {
                     values::add,
                     attributeResolver);
 
-            final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-            final SAXParser parser = saxParserFactory.newSAXParser();
+            final SAXParser parser = SecureSAXParserFactory.newSAXParser();
             parser.parse(inputStream, examConfigImportHandler);
 
             return Utils.immutableCollectionOf(values);

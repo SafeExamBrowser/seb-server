@@ -56,6 +56,7 @@ public class RegisteredGuiClient {
                             .builder()
                             .accessTokenTimeToLive(Duration.of(accessTokenValiditySeconds, SECONDS))
                             .refreshTokenTimeToLive(refreshTokenValDuration)
+                            .reuseRefreshTokens(false)
                             .build())
                     .build();
 
