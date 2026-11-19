@@ -35,6 +35,10 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigXMLParser.class);
 
+    /** Maximum number of characters of a single SEB setting value (the database column holds 16000).
+     * Protects the import against oversized values. */
+    static final int MAX_VALUE_LENGTH = 65_536;
+
     // comma separated list of SEB exam config keys that can be ignored on imports
     // See: https://jira.let.ethz.ch/browse/SEBSERV-100
     private static final Set<String> SEB_EXAM_CONFIG_KEYS_TO_IGNORE = Utils.immutableSetOf(Arrays.asList(
@@ -281,6 +285,8 @@ public class ExamConfigXMLParser extends DefaultHandler {
             final String qName) {
 
         final PListNode top = this.stack.peek();
+        // materialize the character data and list items collected for the ending element
+        top.flushBuffers();
         if (VALUE_ELEMENTS.contains(qName)) {
             if (top.type.isValueType) {
                 this.stack.pop();
@@ -290,26 +296,14 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
                 // if we are in a values-array
                 if (parent.type == Type.ARRAY) {
-                    if (StringUtils.isBlank(parent.value)) {
-                        parent.value = top.value;
-                    } else {
-                        parent.value += "," + top.value;
-                    }
+                    parent.appendListValue(top.value);
                     return;
                 }
 
                 // if we are in an inline table array
                 if (grandParent.type == Type.ARRAY && grandParent.inlineTable) {
-                    if (StringUtils.isBlank(grandParent.value)) {
-                        grandParent.value = top.value;
-                    } else {
-                        grandParent.value += "," + top.value;
-                    }
-                    if (StringUtils.isBlank(grandParent.valueName)) {
-                        grandParent.valueName = top.name;
-                    } else {
-                        grandParent.valueName += "," + top.name;
-                    }
+                    grandParent.appendListValue(top.value);
+                    grandParent.appendListValueName(top.name);
                     return;
                 }
 
@@ -397,13 +391,14 @@ public class ExamConfigXMLParser extends DefaultHandler {
         final char[] valueChar = new char[length];
         System.arraycopy(ch, start, valueChar, 0, length);
         final String value = String.valueOf(valueChar);
+
+        // skip blank values since they are now processed by the secure parser
+        if (StringUtils.isBlank(value)) {
+            return;
+        }
         final PListNode top = this.stack.peek();
         if (top.type == Type.VALUE_STRING || top.type == Type.VALUE_DATA) {
-            if (top.value == null) {
-                top.value = StringEscapeUtils.unescapeXml(value);
-            } else {
-                top.value += StringEscapeUtils.unescapeXml(value);
-            }
+            top.appendText(StringEscapeUtils.unescapeXml(value));
         } else if (top.type == Type.VALUE_INTEGER || top.type == Type.VALUE_REAL_NUMBER) {
             top.value = value;
         } else if (top.type == Type.KEY) {
@@ -632,8 +627,87 @@ public class ExamConfigXMLParser extends DefaultHandler {
         String valueName;
         String value;
 
+        // NOTE: Character data and list items are collected in StringBuilders and materialized into value and
+        //       valueName when the element ends (see flushBuffers). The former String concatenation was quadratic
+        //       in the size of the imported data. A single value is limited to MAX_VALUE_LENGTH characters.
+        private StringBuilder valueBuffer;
+        private boolean valueBuffered = false;
+        private StringBuilder valueNameBuffer;
+        private boolean valueNameBuffered = false;
+
         protected PListNode(final Type type) {
             this.type = type;
+        }
+
+        /** Appends a chunk of character data to the value of this node. SAX parsers may report the text of a
+         * single element in many chunks.
+         *
+         * @param text the chunk of character data to append */
+        void appendText(final String text) {
+            if (text == null) {
+                return;
+            }
+            StringBuilder buffer = this.valueBuffered ? this.valueBuffer : toBuilder(this.value);
+            if (buffer == null) {
+                buffer = new StringBuilder();
+            }
+            this.valueBuffer = append(buffer, text);
+            this.valueBuffered = true;
+        }
+
+        /** Adds an item to the comma separated list value of this node. A blank value is replaced by the item.
+         *
+         * @param item the list item to add */
+        void appendListValue(final String item) {
+            this.valueBuffer = appendListItem(
+                    this.valueBuffered ? this.valueBuffer : toBuilder(this.value),
+                    item);
+            this.valueBuffered = true;
+        }
+
+        /** Adds a name to the comma separated list of value names of this node. A blank list is replaced by the name.
+         *
+         * @param item the name to add */
+        void appendListValueName(final String item) {
+            this.valueNameBuffer = appendListItem(
+                    this.valueNameBuffered ? this.valueNameBuffer : toBuilder(this.valueName),
+                    item);
+            this.valueNameBuffered = true;
+        }
+
+        /** Materializes the collected character data and list items into value and valueName. */
+        void flushBuffers() {
+            if (this.valueBuffered) {
+                this.value = (this.valueBuffer != null) ? this.valueBuffer.toString() : null;
+                this.valueBuffer = null;
+                this.valueBuffered = false;
+            }
+            if (this.valueNameBuffered) {
+                this.valueName = (this.valueNameBuffer != null) ? this.valueNameBuffer.toString() : null;
+                this.valueNameBuffer = null;
+                this.valueNameBuffered = false;
+            }
+        }
+
+        private static StringBuilder toBuilder(final String text) {
+            return (text != null) ? new StringBuilder(text) : null;
+        }
+
+        private static StringBuilder appendListItem(final StringBuilder list, final String item) {
+            if (list == null || StringUtils.isBlank(list)) {
+                return (item != null) ? append(new StringBuilder(), item) : null;
+            }
+            return append(append(list, ","), item);
+        }
+
+        private static StringBuilder append(final StringBuilder buffer, final String text) {
+            // String.valueOf keeps the former concatenation semantics where null was appended as "null"
+            final String chunk = String.valueOf(text);
+            if (buffer.length() + chunk.length() > MAX_VALUE_LENGTH) {
+                throw new IllegalArgumentException(
+                        "SEB setting value exceeds the maximum length of " + MAX_VALUE_LENGTH + " characters");
+            }
+            return buffer.append(chunk);
         }
 
         @Override
