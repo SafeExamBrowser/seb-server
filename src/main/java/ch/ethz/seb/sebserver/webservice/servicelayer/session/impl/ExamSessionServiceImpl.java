@@ -470,6 +470,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final Long examId,
             final Set<Long> connectionIds) {
 
+        updateClientConnections(examId);
+
         this.duplicateCheck.clear();
         final Set<Long> duplicates = new HashSet<>();
         return this.clientConnectionDAO
@@ -573,7 +575,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     // ensure an update every now and then for new incoming connections
     private long lastConnectionTokenCacheUpdate = 0;
     private final Set<Long> examIds = ConcurrentHashMap.newKeySet();
-    private void updateClientConnections(final Long examId) {
+
+    @Override
+    public void updateClientConnections(final Long examId) {
         try {
             if (!this.distributedSetup) {
                 return;
