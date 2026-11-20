@@ -122,6 +122,9 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
         final ClientStatesData clientStates = new ClientStatesData();
         final NotificationData notifications = new NotificationData();
 
+        // in a distributed setup, sync cached client connections with changes made by other instances
+        this.examSessionService.updateClientConnections(runningExam.id);
+
         // get a list of all connection Tokens of the exam from cache and iterate over cached Client Connections
         this.clientConnectionDAO
                 .getConnectionTokens(runningExam.id)
@@ -201,7 +204,10 @@ public class ExamMonitoringV3ServiceImpl implements ExamMonitoringV3Service {
     public MonitoringFullPageData getFullMonitoringPageData(
             final Exam runningExam,
             final Predicate<ClientConnectionDataInternal> filter) {
-        
+
+        // in a distributed setup, sync cached client connections with changes made by other instances
+        this.examSessionService.updateClientConnections(runningExam.id);
+
         final List<? extends ClientMonitoringDataView> filteredConnections = this.clientConnectionDAO
                 .getConnectionTokens(runningExam.id)
                 .getOrThrow()
