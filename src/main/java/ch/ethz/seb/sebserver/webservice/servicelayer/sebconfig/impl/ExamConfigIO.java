@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -42,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.SecureSAXParserFactory;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
@@ -233,9 +233,8 @@ public class ExamConfigIO {
                             .getOrThrow(),
                     attributeMap::get);
 
-            // SAX parsing
-            final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-            final SAXParser parser = saxParserFactory.newSAXParser();
+            // SAX parsing, hardened against XML external entities (XXE)
+            final SAXParser parser = SecureSAXParserFactory.newSAXParser();
             parser.parse(in, examConfigImportHandler);
 
         } catch (final ParserConfigurationException | SAXException | IOException e) {

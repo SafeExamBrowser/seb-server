@@ -75,7 +75,7 @@ public class ClientGroupTemplate implements ClientGroupData {
     @JsonCreator
     public ClientGroupTemplate(
             @JsonProperty(CLIENT_GROUP.ATTR_ID) final Long id,
-            @JsonProperty(CLIENT_GROUP.ATTR_EXAM_ID) final Long examTemplateId,
+            @JsonProperty(ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
             @JsonProperty(CLIENT_GROUP.ATTR_NAME) final String name,
             @JsonProperty(CLIENT_GROUP.ATTR_TYPE) final ClientGroupType type,
             @JsonProperty(CLIENT_GROUP.ATTR_COLOR) final String color,

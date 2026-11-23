@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -1680,9 +1681,21 @@ public class ScreenProctoringAPIBinding {
                     throw new IllegalStateException("Only bundled SEB Server Screen Proctoring is supported yet");
                 }
 
-                this.testConnection(bundle).getOrThrow();
                 this.apiTemplate = new ScreenProctoringServiceOAuthTemplate(this, bundle);
-        }
+                final ResponseEntity<String> stringResponseEntity = this.apiTemplate.testServiceConnection();
+                final HttpStatusCode statusCode = stringResponseEntity.getStatusCode();
+                if (statusCode.value() != HttpStatus.OK.value()) {
+                    if (statusCode.is4xxClientError()) {
+                        log.warn(
+                                "Failed to establish SPS connection to: {}. status: {}",
+                                bundle.getInternalServiceURL(), statusCode);
+                        this.apiTemplate = null;
+                        throw new RuntimeException("Failed to establish SPS connection to: " + bundle.getInternalServiceURL() + ". status: " + statusCode);
+                    }
+                    this.apiTemplate = null;
+                    throw new RuntimeException("Invalid SEB Screen Proctoring Service response: " + stringResponseEntity);
+                }
+         }
         
         return apiTemplate;
     }
