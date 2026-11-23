@@ -218,6 +218,17 @@ public interface ExamSessionService {
      * @param examId the Exam identifier */
     void updateExamCache(Long examId);
 
+    /** Use this to synchronize the locally cached client connections of a running exam with the
+     * persistent storage before reading them from cache.
+     * <p>
+     * In a distributed setup, client connections can be created or updated by another webservice instance.
+     * This refreshes the cached connection tokens of the exam and evicts all cached client connections
+     * that are out of sync. The check is done at most once per interval and exam
+     * (sebserver.webservice.distributed.connectionUpdate). Does nothing if this is not a distributed setup.
+     *
+     * @param examId the Exam identifier */
+    void updateClientConnections(Long examId);
+
     /** Flush all the caches for a specified Exam.
      *
      * <pre>
