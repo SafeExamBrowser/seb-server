@@ -1,12 +1,6 @@
 FROM eclipse-temurin:25-jre
 
-# remove all eMudhra trusts until the JDK vendor ships a fix
-RUN keytool -delete -noprompt -trustcacerts -cacerts -alias "cn_emsign_root_ca__g1,o_emudhra_technologies_limited,ou_emsign_pki,c_in [jdk]" -storepass changeit
-
 ENV SERVER_PORT="8080"
-ENV JMX_PORT=
-ENV JAVA_HEAP_MIN=
-ENV JAVA_HEAP_MAX=
 
 #just try wihtout user to check if we habe a permission problem
 RUN groupadd --system spring && useradd --system --gid spring spring && mkdir /sebserver && chown spring:spring /sebserver
@@ -16,28 +10,11 @@ COPY seb-server.jar /sebserver/
 
 WORKDIR /sebserver
 
-CMD if [ "x${JMX_PORT}" = "x" ] ; \
-    then exec java \
+CMD exec java \
         -Xms${JAVA_HEAP_MIN} \
         -Xmx${JAVA_HEAP_MAX} \
         -XX:-UseBASE64Intrinsics \
         -jar "seb-server.jar" \
         --spring.config.location=classpath:/config/,optional:file:/sebserver/config/spring/; \
-    else echo "admin ${SEBSERVER_SECRET}" > jmxremote.password && chown spring:spring /sebserver/jmxremote.password && chmod 400 /sebserver/jmxremote.password && exec java \
-        -Xms${JAVA_HEAP_MIN} \
-        -Xmx${JAVA_HEAP_MAX} \
-        -XX:-UseBASE64Intrinsics \
-        -Dcom.sun.management.jmxremote \
-        -Dcom.sun.management.jmxremote.port=${JMX_PORT} \
-        -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT} \
-        -Djava.rmi.server.hostname=localhost \
-        -Dcom.sun.management.jmxremote.local.only=false \
-        -Dcom.sun.management.jmxremote.ssl=false \
-        -Dcom.sun.management.jmxremote.authenticate=true \
-        -Dcom.sun.management.jmxremote.password.file=/sebserver/jmxremote.password \
-        -Dcom.sun.management.jmxremote.access.file=/sebserver/config/jmx/jmxremote.access \
-        -jar "seb-server.jar" \
-        --spring.config.location=classpath:/config/,optional:file:/sebserver/config/spring/; \
-fi
 
-EXPOSE $SERVER_PORT $JMX_PORT
+EXPOSE $SERVER_PORT
