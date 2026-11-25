@@ -64,7 +64,7 @@ public class AdminAPIResourceServerConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .headers(c -> c.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .headers(c -> c.frameOptions(HeadersConfigurer.FrameOptionsConfig::deny))
                 .exceptionHandling( c -> c.authenticationEntryPoint(new UnauthorizedRequestHandler("AdminAPIResourceServerConfig")))
         ;
 
