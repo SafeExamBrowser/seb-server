@@ -64,7 +64,6 @@ public class ExamSessionCacheService {
             final ClientConnectionDAO clientConnectionDAO,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final ExamConfigService sebExamConfigService,
-            final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final ScreenProctoringGroupDAO screenProctoringGroupDAO, 
             final IndicatorDAO indicatorDAO) {
 

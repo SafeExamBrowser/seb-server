@@ -13,7 +13,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import org.apache.commons.lang3.BooleanUtils;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 import java.util.Collection;
 import java.util.function.Predicate;
@@ -22,11 +21,11 @@ public interface ExamAdminService {
 
     ProctoringAdminService getProctoringAdminService();
 
-    /** Get the exam domain object for the exam identifier (PK).
-     *
-     * @param examId the exam identifier
-     * @return Result refer to the domain object or to an error when happened */
-    Result<Exam> examForPK(Long examId);
+//    /** Get the exam domain object for the exam identifier (PK).
+//     *
+//     * @param examId the exam identifier
+//     * @return Result refer to the domain object or to an error when happened */
+//    Result<Exam> examForPK(Long examId);
 
     /** Saves the security key settings for an specific exam.
      *
@@ -56,37 +55,6 @@ public interface ExamAdminService {
      * @return Result refer to the restriction flag or to an error when happened */
     Result<Boolean> isRestricted(Exam exam);
 
-    /** Get proctoring service settings for a certain exam to an error when happened.
-     *
-     * @param examId the exam identifier
-     * @return Result refer to proctoring service settings for the exam. */
-    Result<ProctoringServiceSettings> getProctoringServiceSettings(Long examId);
-
-    /** Save the given proctoring service settings for an existing Exam.
-     *
-     * @param examId the exam identifier
-     * @param proctoringServiceSettings The proctoring service settings to save for the exam
-     * @return Result refer to saved proctoring service settings or to an error when happened. */
-    Result<ProctoringServiceSettings> saveProctoringServiceSettings(
-            Long examId,
-            ProctoringServiceSettings proctoringServiceSettings);
-
-    /** This indicates if proctoring is set and enabled for a certain exam.
-     *
-     * @param exam the exam instance
-     * @return proctoring is enabled flag */
-    default boolean isProctoringEnabled(final Exam exam) {
-        if (exam == null || exam.id == null) {
-            return false;
-        }
-
-        if (exam.additionalAttributesIncluded()) {
-            return BooleanUtils.toBoolean(
-                    exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
-        }
-
-        return isProctoringEnabled(exam.id).getOr(false);
-    }
 
     /** This indicates if screen proctoring is set and enabled for a certain exam.
      *
@@ -132,17 +100,6 @@ public interface ExamAdminService {
      * @return Result refer to screen proctoring is enabled flag or to an error when happened. */
     Result<Boolean> isScreenProctoringEnabled(Long examId);
 
-    /** Get the exam proctoring service implementation for specified exam.
-     *
-     * @param examId the exam identifier
-     * @return ExamProctoringService instance */
-    Result<RemoteProctoringService> getExamProctoringService(Long examId);
-
-//    /** This resets the proctoring settings for a given exam and stores the default settings.
-//     *
-//     * @param exam The exam reference
-//     * @return Result refer to the given exam or to an error when happened */
-//    Result<Exam> resetProctoringSettings(Exam exam);
 
     /** This archives a finished exam and set it to archived state as well as the assigned
      * exam configurations that are also set to archived state.

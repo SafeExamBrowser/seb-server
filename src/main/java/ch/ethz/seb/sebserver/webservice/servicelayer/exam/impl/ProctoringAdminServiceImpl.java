@@ -14,82 +14,35 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo.ScreenProctoringServiceBundle;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ProctoringSettingsDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ProctoringSettingsDAOImpl;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.RemoteProctoringServiceFactory;
 
 @Lazy
 @Service
 public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
     private final ProctoringSettingsDAO proctoringSettingsDAO;
-    private final RemoteProctoringServiceFactory remoteProctoringServiceFactory;
     private final ScreenProctoringService screenProctoringService;
     private final ExamSessionCacheService examSessionCacheService;
     private final ScreenProctoringServiceBundle screenProctoringServiceBundle;
-    private final Cryptor cryptor;
 
     public ProctoringAdminServiceImpl(
             final ProctoringSettingsDAOImpl proctoringSettingsDAO,
-            final RemoteProctoringServiceFactory remoteProctoringServiceFactory,
             final ScreenProctoringService screenProctoringService,
             final ExamSessionCacheService examSessionCacheService,
-            final WebserviceInfo webserviceInfo,
-            final Cryptor cryptor) {
+            final WebserviceInfo webserviceInfo) {
 
         this.proctoringSettingsDAO = proctoringSettingsDAO;
-        this.remoteProctoringServiceFactory = remoteProctoringServiceFactory;
         this.screenProctoringService = screenProctoringService;
         this.examSessionCacheService = examSessionCacheService;
         this.screenProctoringServiceBundle = webserviceInfo.getScreenProctoringServiceBundle();
-        this.cryptor = cryptor;
-    }
-
-    @Override
-    public Result<ProctoringServiceSettings> getProctoringSettings(final EntityKey parentEntityKey) {
-        return Result.tryCatch(() -> {
-            checkType(parentEntityKey);
-            return this.proctoringSettingsDAO
-                    .getProctoringSettings(parentEntityKey)
-                    .getOrThrow();
-
-        });
-    }
-
-    @Override
-    public Result<ProctoringServiceSettings> saveProctoringServiceSettings(
-            final EntityKey parentEntityKey,
-            final ProctoringServiceSettings proctoringServiceSettings) {
-
-        return Result.tryCatch(() -> {
-
-            checkType(parentEntityKey);
-
-            final ProctoringServiceSettings result = this.proctoringSettingsDAO
-                    .saveProctoringServiceSettings(parentEntityKey, proctoringServiceSettings)
-                    .getOrThrow();
-
-            if (parentEntityKey.entityType == EntityType.EXAM) {
-                try {
-                    this.examSessionCacheService.evictScreenProctoringGroups(Long.parseLong(parentEntityKey.modelId));
-                } catch (final Exception e) {
-                    log.warn("Failed to update Exam cache:_{}", e.getMessage());
-                }
-            }
-
-            return result;
-        });
     }
 
     @Override
@@ -149,12 +102,6 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
             return settings;
         });
-    }
-
-    @Override
-    public Result<RemoteProctoringService> getExamProctoringService(final ProctoringServerType type) {
-        return this.remoteProctoringServiceFactory
-                .getExamProctoringService(type);
     }
 
     @Override

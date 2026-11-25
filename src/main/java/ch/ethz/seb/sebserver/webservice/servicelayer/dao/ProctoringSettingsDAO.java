@@ -9,17 +9,10 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ProctoringSettingsDAO {
-
-    Result<ProctoringServiceSettings> getProctoringSettings(EntityKey entityKey);
-
-    Result<ProctoringServiceSettings> saveProctoringServiceSettings(
-            EntityKey entityKey,
-            ProctoringServiceSettings proctoringServiceSettings);
 
     Result<ScreenProctoringSettings> getScreenProctoringSettings(EntityKey entityKey);
 
