@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
@@ -35,7 +34,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 import java.util.Collection;
 import java.util.function.Predicate;
@@ -80,10 +78,10 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         return this.proctoringAdminService;
     }
 
-    @Override
-    public Result<Exam> examForPK(final Long examId) {
-        return this.examDAO.byPK(examId);
-    }
+//    @Override
+//    public Result<Exam> examForPK(final Long examId) {
+//        return this.examDAO.byPK(examId);
+//    }
 
     @Override
     public Result<Exam> saveSecurityKeySettings(
@@ -169,30 +167,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<ProctoringServiceSettings> getProctoringServiceSettings(final Long examId) {
-        return this.proctoringAdminService
-                .getProctoringSettings(new EntityKey(examId, EntityType.EXAM));
-    }
-
-    @Override
-    public Result<ProctoringServiceSettings> saveProctoringServiceSettings(
-            final Long examId,
-            final ProctoringServiceSettings proctoringServiceSettings) {
-
-        return this.proctoringAdminService
-                .testProctoringSettings(proctoringServiceSettings)
-                .flatMap(test -> this.proctoringAdminService
-                        .saveProctoringServiceSettings(
-                                new EntityKey(examId, EntityType.EXAM),
-                                proctoringServiceSettings))
-                .map(settings -> {
-                    this.examDAO.setModified(examId);
-                    return settings;
-                });
-    }
-
-
-    @Override
     public Result<Exam> enableScreenProctoringForExam(final Exam exam, final boolean enableSP) {
         return Result.tryCatch(() -> {
             final ProctoringAdminService proctoringAdminService = getProctoringAdminService();
@@ -275,13 +249,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     }
                     return false;
                 });
-    }
-
-    @Override
-    public Result<RemoteProctoringService> getExamProctoringService(final Long examId) {
-        return getProctoringServiceSettings(examId)
-                .flatMap(settings -> this.proctoringAdminService
-                        .getExamProctoringService(settings.serverType));
     }
 
     @Override
