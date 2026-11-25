@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
@@ -470,6 +469,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final Long examId,
             final Set<Long> connectionIds) {
 
+        updateClientConnections(examId);
+
         this.duplicateCheck.clear();
         final Set<Long> duplicates = new HashSet<>();
         return this.clientConnectionDAO
@@ -573,7 +574,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     // ensure an update every now and then for new incoming connections
     private long lastConnectionTokenCacheUpdate = 0;
     private final Set<Long> examIds = ConcurrentHashMap.newKeySet();
-    private void updateClientConnections(final Long examId) {
+
+    @Override
+    public void updateClientConnections(final Long examId) {
         try {
             if (!this.distributedSetup) {
                 return;

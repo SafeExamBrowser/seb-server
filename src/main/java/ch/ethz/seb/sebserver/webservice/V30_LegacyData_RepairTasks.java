@@ -120,7 +120,7 @@ public class V30_LegacyData_RepairTasks {
             try {
 
                 AdditionalAttributeRecord attr = additionalAttributesDAO
-                        .getAdditionalAttribute(EntityType.EXAM, 0L, CLIENT_CONFIG_REPAIR_DONE_ATTR_NAME)
+                        .getAdditionalAttribute(EntityType.SEB_CLIENT_CONFIGURATION, 0L, CLIENT_CONFIG_REPAIR_DONE_ATTR_NAME)
                         .getOr(null);
 
                 if (attr != null && BooleanUtils.toBoolean(attr.getValue())) {
@@ -138,7 +138,11 @@ public class V30_LegacyData_RepairTasks {
 
             sebClientConfigDAO.repairClientCredentialsWithInvalidChars();
 
-            additionalAttributesDAO.saveAdditionalAttribute(EntityType.USER, 0L, CLIENT_CONFIG_REPAIR_DONE_ATTR_NAME, "true");
+            additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    0L,
+                    CLIENT_CONFIG_REPAIR_DONE_ATTR_NAME,
+                    "true");
 
             REPAIR_LOGGER.info("------> Successfully finished repairing legacy SEB client configurations");
 

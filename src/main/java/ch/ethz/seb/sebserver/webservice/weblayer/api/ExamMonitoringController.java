@@ -479,6 +479,9 @@ public class ExamMonitoringController {
 
         checkPrivileges(institutionId, examId);
 
+        // in a distributed setup, sync cached client connections with changes made by other instances
+        this.examSessionService.updateClientConnections(examId);
+
         return this.examSessionService
                 .getConnectionData(connectionToken)
                 .getOrThrow();
@@ -641,7 +644,11 @@ public class ExamMonitoringController {
                     required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
-        
+
+        // in a distributed setup, sync cached client connections with changes made by other instances
+        // since disabling depends on the current connection status
+        this.examSessionService.updateClientConnections(examId);
+
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
             // If we have a bunch of client connections to disable, make it asynchronously and respond to the caller immediately
             this.executor.execute(() -> {
