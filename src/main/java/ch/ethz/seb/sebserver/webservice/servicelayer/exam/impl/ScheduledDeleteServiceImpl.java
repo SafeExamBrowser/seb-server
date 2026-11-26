@@ -263,7 +263,7 @@ public class ScheduledDeleteServiceImpl implements ScheduledDeleteService {
 
                                     final String sessionUUID = info.sessionInfo().uuid();
                                     screenProctoringAPIBinding
-                                            .secureDeleteSession(sessionUUID)
+                                            .deleteSession(sessionUUID)
                                             .getOrThrow();
 
                                     log.info("**** ---> Deleted session on SPS: {}", info);
